@@ -1,0 +1,21 @@
+<!-- 顶部导航栏 -->
+<navigation-bar title="我的钱包" back="{{true}}" color="black" background="#FFF" bind:back="handleBack" style="display: block; box-sizing: border-box; height: auto"></navigation-bar>
+
+<!-- 分隔线 -->
+<view class="home-header-line"></view>
+
+<!-- 余额展示区域 -->
+<view class="container">  
+    <view class="balance-font">余额</view>
+    <icon type="success" size="55" class="balance-icon"></icon>
+    <view class="balance-income-font">￥{{balanceIncome}}</view>
+    <view class="income-details-font" bindtap="incomeDetailsTap">收入明细</view>
+</view>
+
+<!-- 提现按钮 -->
+<button class="cash-botton" id="cashBtn" bindtap="cashTap" >
+    <view class="cash-font">提现</view>
+</button>
+
+<!-- 底部导航栏 -->
+<tab-bar currentTab="{{currentTab}}" bind:switchTab="switchTab"></tab-bar>

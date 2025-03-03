@@ -1,0 +1,30 @@
+/* components/tab-bar.wxss */   
+/* 底部导航栏容器样式 */
+.tab-bar {
+    position: fixed;     /* 固定定位在屏幕底部 */
+    bottom: 0;          /* 距离底部0 */
+    left: 0;           /* 距离左边0 */
+    right: 0;          /* 距离右边0 */
+    height: 120rpx;    /* 设置高度为120rpx */
+    background: white; /* 背景色为白色 */
+    display: flex;     /* 使用flex布局 */
+    border-top: 2rpx solid #999996;    /* 顶部边框 */
+    border-bottom: 2rpx solid #999996; /* 底部边框 */
+    padding-bottom: env(safe-area-inset-bottom); /* 适配iPhone X等机型的底部安全区域 */
+}
+
+/* 单个标签项样式 */
+.tab-item {
+    flex: 1;                /* 平均分配空间 */
+    display: flex;          /* 使用flex布局 */
+    flex-direction: column; /* 垂直排列 */
+    align-items: center;    /* 水平居中对齐 */
+    justify-content: center;/* 垂直居中对齐 */
+}
+
+/* 标签文本样式 */
+.tab-item text {
+    font-size: 30rpx;     /* 文字大小 */
+    margin-top: 10rpx;    /* 上方间距 */
+    color: black;         /* 文字颜色 */
+}

@@ -1,0 +1,104 @@
+/* 页面整体布局 */
+page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 滚动区域 */
+.scroll-area {
+  flex: 1;
+  overflow-y: hidden;
+}
+
+/* 顶部分隔线 */
+.home-header-line {
+  background: #999996;
+  width: 100%;
+  height: 2rpx;
+  position: relative;
+  left: 0;
+  right: 0;
+}
+
+/* 余额展示容器 */
+.container {
+  display: flex; 
+  flex-direction: column;
+  align-self: center;
+  width: 680rpx;
+  height: 300rpx; 
+  background-color: #eaf3fc;
+  margin-top: 30rpx;
+  border-width: 2rpx ;
+  border-radius: 50rpx;
+  border-style: solid;
+  border-color: #999996;
+  flex-wrap: wrap;
+}
+
+/* 余额文字样式 */
+.balance-font {
+  color: black;
+  font-weight: normal;
+  font-size: 40rpx;
+  text-align: center;
+  width: 340rpx;
+  height: 150rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 余额金额文字样式 */
+.balance-income-font {
+  color: black;
+  font-weight: normal;
+  font-size: 64rpx;
+  width: 340rpx;
+  height: 150rpx;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 20rpx;
+  align-items: flex-end;
+}
+
+/* 余额图标样式 */
+.balance-icon {
+  width: 340rpx;
+  height: 150rpx;
+  display: flex;
+  justify-content: center;
+}
+
+/* 收入明细文字样式 */
+.income-details-font {
+  color:#999996;
+  font-weight:normal;
+  font-size:32rpx;
+  width: 340rpx;
+  height: 150rpx;
+  display: flex;
+  justify-content: center;
+}
+
+/* 提现按钮样式 */
+.cash-botton {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  max-width: 300rpx;
+  height: 80rpx;
+  margin-top: 50rpx;
+  background-color: white;
+  border-width: 2rpx ;
+  border-radius: 30rpx;
+  border-style: solid;
+  border-color: #3068d1;
+}
+
+/* 提现按钮文字样式 */
+.cash-font {
+  color: #3068d1;
+  font-weight: lighter;
+}

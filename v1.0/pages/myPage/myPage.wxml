@@ -1,0 +1,70 @@
+<!--pages/myPage/myPage.wxml-->
+
+<!-- 顶部导航栏组件 -->
+<navigation-bar back="{{false}}" color="black" background="#FFF" bind:back="handleBack"></navigation-bar>
+
+<!-- 用户信息头部区域 -->
+<view class="header">
+  <!-- 用户头像,未登录显示默认图片 -->
+  <image class="avatar" src="{{userInfo.avatarUrl ? userInfo.avatarUrl : '/asset/test.png'}}"></image>
+  <!-- 用户昵称/登录按钮 -->
+  <view class="login-text" bindtap="loginTap">{{userInfo.nickName ? userInfo.nickName : '登录'}}</view>
+  <!-- 用户标签 -->
+  <view class="tag">{{userInfo.tag ? userInfo.tag : '标签'}}</view>
+</view>
+
+<!-- 用户数据统计区域 -->
+<view class="statistics">
+  <!-- 动态数量统计 -->
+  <view class="stat-item" bindtap="statisticTap" data-type="posts">
+    <view class="stat-num">{{statisticInfo.totalPosts}}</view>
+    <view class="stat-label">动态</view>
+  </view>
+  <!-- 粉丝数量统计 -->
+  <view class="stat-item" bindtap="statisticTap" data-type="fans">
+    <view class="stat-num">{{statisticInfo.totalFans}}</view>
+    <view class="stat-label">粉丝</view>
+  </view>
+  <!-- 关注数量统计 -->
+  <view class="stat-item" bindtap="statisticTap" data-type="follow">
+    <view class="stat-num">{{statisticInfo.totalFollow}}</view>
+    <view class="stat-label">关注</view>
+  </view>
+  <!-- 收藏数量统计 -->
+  <view class="stat-item" bindtap="statisticTap" data-type="collection">
+    <view class="stat-num">{{statisticInfo.totalCollection}}</view>
+    <view class="stat-label">收藏</view>
+  </view>
+</view>
+
+<!-- 功能按钮组 -->
+<view class="button-group">
+  <!-- 我的订单按钮 -->
+  <view class="menu-button" bindtap="orderTap">
+    <icon type="success" size="30"></icon>
+    <text>我的订单</text>
+  </view>
+  <!-- 我的钱包按钮 -->
+  <view class="menu-button" bindtap="walletTap">
+    <icon type="warn" size="30"></icon>
+    <text>我的钱包</text>
+  </view>
+  <!-- 学长学姐认证按钮 -->
+  <view class="menu-button" bindtap="certificationTap">
+    <icon type="info" size="30"></icon>
+    <text>学长学姐认证</text>
+  </view>
+  <!-- 关注公众号按钮 -->
+  <view class="menu-button" bindtap="subscribeTap">
+    <icon type="waiting" size="30"></icon>
+    <text>关注公众号</text>
+  </view>
+  <!-- 联系我们按钮 -->
+  <view class="menu-button" bindtap="contactTap">
+    <icon type="success" size="30"></icon>
+    <text>联系我们</text>
+  </view>
+</view>
+
+<!-- 底部标签栏组件 -->
+<tab-bar currentTab="{{currentTab}}" bind:switchTab="switchTab"></tab-bar>

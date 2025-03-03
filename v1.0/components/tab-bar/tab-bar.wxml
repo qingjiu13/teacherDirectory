@@ -1,0 +1,7 @@
+<!--components/tab-bar.wxml-->
+<view class="tab-bar">
+  <view wx:for="{{tabs}}" wx:key="index" class="tab-item" bindtap="handleTap" data-index="{{index}}">
+    <icon type="{{item.icon}}" size="25"></icon>
+    <text>{{item.text}}</text>
+  </view>
+</view>
