@@ -1,0 +1,45 @@
+{
+    "name" : "考研AI择校助手",
+    "appid" : "__UNI__918D3DD",
+    "description" : "",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {},
+        "distribute" : {
+            "android" : {
+                "permissions" : []
+            },
+            "ios" : {},
+            "sdkConfigs" : {}
+        }
+    },
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "vueVersion" : "2",
+    "uniCloud": {
+        "provider": "aliyun",
+        "spaceId": "你的服务空间ID",
+        "clientSecret": "你的服务空间密钥"
+    },
+    "uni-modules": {
+        "dependencies": [
+            "uni-captcha"
+        ]
+    }
+}

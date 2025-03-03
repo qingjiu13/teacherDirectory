@@ -1,0 +1,28 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/selection/selection",
+    "pages/selection/step2",
+    "pages/selection/step3",
+    "pages/selection/step4",
+    "pages/selection/step5",
+    "pages/selection/step6",
+    "pages/selection/result",
+    "pages/major/major",
+    "pages/infoQuery/infoQuery",
+    "pages/ai/ai",
+    "pages/exam/exam",
+    "pages/institutions/institutions",
+    "pages/compare/compare",
+    "pages/heat/heat",
+    "pages/selection/analyzing"
+  ],
+  "subPackages": [],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "考研AI择校助手",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "usingComponents": {}
+}
