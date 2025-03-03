@@ -1,0 +1,27 @@
+
+.container {
+	padding: 20rpx;
+}
+.header {
+	margin-bottom: 20rpx;
+}
+.title {
+	font-size: 40rpx;
+	font-weight: bold;
+}
+.heat-list {
+	margin-top: 20rpx;
+}
+.heat-item {
+	padding: 20rpx;
+	border-bottom: 1px solid #eee;
+}
+.heat-name {
+	font-size: 32rpx;
+	font-weight: bold;
+}
+.heat-desc {
+	font-size: 28rpx;
+	color: #666;
+}
+

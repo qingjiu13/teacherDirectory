@@ -1,0 +1,1 @@
+<view class="container"><view class="header"><text class="title">报考热度</text></view><view class="heat-list"><block wx:for="{{heatList}}" wx:for-item="item" wx:for-index="index" wx:key="index"><view class="heat-item"><text class="heat-name">{{item.name}}</text><text class="heat-desc">{{item.desc}}</text></view></block></view></view>

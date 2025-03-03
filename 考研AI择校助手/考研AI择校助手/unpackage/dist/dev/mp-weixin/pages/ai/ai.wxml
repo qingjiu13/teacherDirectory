@@ -1,0 +1,1 @@
+<view class="container"><view class="header"><text class="title">AI智能择校</text></view><view class="content"><view class="intro-section"><text class="intro-text">欢迎使用AI智能择校系统</text><text class="desc-text">基于深度学习模型，为您提供个性化的择校建议</text></view><button data-event-opts="{{[['tap',[['startAnalysis',['$event']]]]]}}" class="start-btn" bindtap="__e">开始智能分析</button></view></view>

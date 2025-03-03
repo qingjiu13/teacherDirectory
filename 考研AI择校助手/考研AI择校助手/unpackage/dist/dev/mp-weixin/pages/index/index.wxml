@@ -1,0 +1,1 @@
+<view class="content"><image class="logo" src="/static/logo.png"></image><view class="text-area"><text class="title">{{title}}</text></view><button data-event-opts="{{[['tap',[['goToSelection',['$event']]]]]}}" class="start-btn" bindtap="__e">考研AI择校助手</button></view>
