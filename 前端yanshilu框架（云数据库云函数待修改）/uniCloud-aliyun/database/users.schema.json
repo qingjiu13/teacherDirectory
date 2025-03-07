@@ -1,0 +1,69 @@
+{
+  "bsonType": "object",
+  "required": ["openid", "role"],
+  "permission": {
+    "read": true,
+    "create": "auth.uid != null",
+    "update": "doc._id == auth.uid",
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "ID，系统自动生成"
+    },
+    "openid": {
+      "bsonType": "string",
+      "description": "微信openid"
+    },
+    "unionid": {
+      "bsonType": "string",
+      "description": "微信unionid"
+    },
+    "nickname": {
+      "bsonType": "string",
+      "description": "昵称"
+    },
+    "avatar": {
+      "bsonType": "string",
+      "description": "头像地址"
+    },
+    "role": {
+      "bsonType": "string",
+      "enum": ["student", "senior"],
+      "description": "用户角色，student-学生，senior-学长学姐"
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间"
+    },
+    "update_time": {
+      "bsonType": "timestamp",
+      "description": "更新时间"
+    },
+    // 学长学姐特有信息
+    "school": {
+      "bsonType": "string",
+      "description": "学校名称"
+    },
+    "major": {
+      "bsonType": "string",
+      "description": "专业名称"
+    },
+    "score": {
+      "bsonType": "int",
+      "description": "考研分数"
+    },
+    "tags": {
+      "bsonType": "array",
+      "description": "个人标签",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "followers_count": {
+      "bsonType": "int",
+      "description": "粉丝数量",
+      "defaultValue": 0
+    }
+  }
+} 
