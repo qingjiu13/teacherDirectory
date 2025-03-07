@@ -1,0 +1,29 @@
+:host{display:flex;flex-direction:column}
+
+.container {
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		padding: 20px;
+		background-color: #ffffff;
+}
+.header {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 20px;
+}
+.back-button {
+		padding: 5px 10px;
+		margin-right: 10px;
+}
+.title {
+		font-size: 18px;
+		font-weight: bold;
+}
+.content {
+		flex: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+}

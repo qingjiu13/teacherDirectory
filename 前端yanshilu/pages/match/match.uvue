@@ -1,0 +1,72 @@
+<template>
+	<view class="container">
+		<view class="header">
+			<view class="back-button" @click="goBack">
+				<text>返回</text>
+			</view>
+			<text class="title">精准匹配</text>
+		</view>
+		
+		<view class="content">
+			<text>这里是精准匹配页面内容</text>
+		</view>
+	</view>
+</template>
+
+<script>
+	/**
+	 * @description 精准匹配页面
+	 */
+	export default {
+		data() {
+			return {}
+		},
+		// 确保此页面能被正确路由
+		onReady() {
+			console.log('Match page ready');
+		},
+		methods: {
+			/**
+			 * @description 返回上一页
+			 */
+			goBack() {
+				// 简化返回方法，不使用回调
+				uni.navigateBack();
+			}
+		}
+	}
+</script>
+
+<style>
+	.container {
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		padding: 20px;
+		background-color: #ffffff;
+	}
+	
+	.header {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 20px;
+	}
+	
+	.back-button {
+		padding: 5px 10px;
+		margin-right: 10px;
+	}
+	
+	.title {
+		font-size: 18px;
+		font-weight: bold;
+	}
+	
+	.content {
+		flex: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+</style> 

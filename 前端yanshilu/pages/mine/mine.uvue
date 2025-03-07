@@ -1,0 +1,51 @@
+<template>
+	<view class="container">
+		<view class="content">
+			<!-- 页面内容 -->
+			<text>我的页面</text>
+		</view>
+		
+		<!-- 底部导航栏 -->
+		<tab-bar pageName="mine"></tab-bar>
+	</view>
+</template>
+
+<script>
+	import TabBar from '../../components/tab-bar/tab-bar.uvue';
+	
+	export default {
+		components: {
+			TabBar
+		},
+		data() {
+			return {
+				
+			}
+		},
+		onShow() {
+			// 确保系统tabBar被隐藏
+			uni.hideTabBar();
+		},
+		methods: {
+			
+		}
+	}
+</script>
+
+<style>
+	.container {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+		padding-bottom: 100px; /* 增加底部padding以腾出tabBar空间 */
+		box-sizing: border-box;
+	}
+	
+	.content {
+		flex: 1;
+		padding: 20px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+</style>
