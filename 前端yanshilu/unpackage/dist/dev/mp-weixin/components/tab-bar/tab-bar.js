@@ -22,9 +22,13 @@ const _sfc_main = common_vendor.defineComponent({
         "publish": "/pages/publish/publish",
         "mine": "/pages/mine/mine"
       });
-      common_vendor.index.switchTab({
-        url: pageMap[page]
-      });
+      try {
+        common_vendor.index.switchTab({
+          url: pageMap[page]
+        });
+      } catch (e) {
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:60", "Tab切换失败:", e);
+      }
     }
   }
 });

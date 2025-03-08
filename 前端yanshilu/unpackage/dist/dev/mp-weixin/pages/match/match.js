@@ -6,7 +6,7 @@ const _sfc_main = common_vendor.defineComponent({
   },
   // 确保此页面能被正确路由
   onReady() {
-    common_vendor.index.__f__("log", "at pages/match/match.uvue:26", "Match page ready");
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:27", "Match page ready");
   },
   methods: {
     /**

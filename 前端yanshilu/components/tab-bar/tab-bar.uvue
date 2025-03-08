@@ -1,27 +1,29 @@
 <template>
-	<view class="tab-bar">
-		<view class="tab-item" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
-			<image class="nav-icon" :src="pageName === 'index' ? '/static/image/home_24dp_active.svg' : '/static/image/home_24dp_E3E3E3.svg'"></image>
-			<text class="tab-text">首页</text>
-		</view>
-		<view class="tab-item" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
-			<image class="nav-icon" :src="pageName === 'message' ? '/static/image/mail_outline_24dp_active.svg' : '/static/image/mail_outline_24dp_E3E3E3.svg'"></image>
-			<text class="tab-text">消息</text>
-		</view>
-		<view class="tab-item" :class="{ active: pageName === 'publish' }" @click="switchPage('publish')">
-			<image class="nav-icon" :src="pageName === 'publish' ? '/static/image/location_on_24dp_active.svg' : '/static/image/location_on_24dp_E3E3E3.svg'"></image>
-			<text class="tab-text">发布</text>
-		</view>
-		<view class="tab-item" :class="{ active: pageName === 'mine' }" @click="switchPage('mine')">
-			<image class="nav-icon" :src="pageName === 'mine' ? '/static/image/person_24dp_active.svg' : '/static/image/person_24dp_E3E3E3.svg'"></image>
-			<text class="tab-text">我的</text>
+	<view class="tab-bar-wrapper">
+		<view class="tab-bar">
+			<view class="tab-item" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
+				<image class="nav-icon" :src="pageName === 'index' ? '/static/image/home_24dp_active.svg' : '/static/image/home_24dp_E3E3E3.svg'"></image>
+				<text class="tab-text">首页</text>
+			</view>
+			<view class="tab-item" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
+				<image class="nav-icon" :src="pageName === 'message' ? '/static/image/mail_outline_24dp_active.svg' : '/static/image/mail_outline_24dp_E3E3E3.svg'"></image>
+				<text class="tab-text">消息</text>
+			</view>
+			<view class="tab-item" :class="{ active: pageName === 'publish' }" @click="switchPage('publish')">
+				<image class="nav-icon" :src="pageName === 'publish' ? '/static/image/location_on_24dp_active.svg' : '/static/image/location_on_24dp_E3E3E3.svg'"></image>
+				<text class="tab-text">发布</text>
+			</view>
+			<view class="tab-item" :class="{ active: pageName === 'mine' }" @click="switchPage('mine')">
+				<image class="nav-icon" :src="pageName === 'mine' ? '/static/image/person_24dp_active.svg' : '/static/image/person_24dp_E3E3E3.svg'"></image>
+				<text class="tab-text">我的</text>
+			</view>
 		</view>
 	</view>
 </template>
 
 <script>
 	/**
-	 * @description 简化版底部导航栏组件
+	 * @description 底部导航栏组件
 	 */
 	export default {
 		props: {
@@ -49,47 +51,52 @@
 					'mine': '/pages/mine/mine'
 				};
 				
-				// 执行页面跳转
-				uni.switchTab({
-					url: pageMap[page]
-				});
+				try {
+					// 执行页面跳转
+					uni.switchTab({
+						url: pageMap[page]
+					});
+				} catch (e) {
+					console.error('Tab切换失败:', e);
+				}
 			}
 		}
 	}
 </script>
 
 <style>
-	.tab-bar {
-		display: flex;
+	.tab-bar-wrapper {
 		width: 100%;
 		height: 55px;
-		border-top: 1px solid rgba(0,0,0,0.1);
-		background-color: #ffffff;
 		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
-		justify-content: space-around;
-		align-items: center;
 		z-index: 999;
-		/* 增加底部安全区域 */
-		padding-bottom: constant(safe-area-inset-bottom);
-		padding-bottom: env(safe-area-inset-bottom);
+	}
+	
+	.tab-bar {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		height: 55px;
+		border-top: 1px solid #eeeeee;
+		background-color: #ffffff;
 	}
 	
 	.tab-item {
+		flex: 1;
+		height: 55px;
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		justify-content: center;
-		width: 25%;
-		height: 55px;
+		align-items: center;
 	}
 	
 	.nav-icon {
 		width: 24px;
 		height: 24px;
-		margin-bottom: 4px;
+		margin-bottom: 3px;
 	}
 	
 	.tab-text {
