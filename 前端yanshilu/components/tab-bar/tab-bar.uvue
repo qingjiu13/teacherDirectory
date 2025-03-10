@@ -25,6 +25,8 @@
 	/**
 	 * @description 底部导航栏组件
 	 */
+	import { pageMap } from '@/config.js';
+	
 	export default {
 		props: {
 			pageName: {
@@ -43,13 +45,11 @@
 					return;
 				}
 				
-				// 页面路径映射
-				const pageMap = {
-					'index': '/pages/index/index',
-					'message': '/pages/message/message',
-					'publish': '/pages/publish/publish',
-					'mine': '/pages/mine/mine'
-				};
+				// 跳转前检查目标页面是否存在
+				if (!pageMap[page]) {
+					console.error('页面不存在:', page);
+					return;
+				}
 				
 				try {
 					// 执行页面跳转

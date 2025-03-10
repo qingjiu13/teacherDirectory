@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const config = require("../../config.js");
 const _sfc_main = common_vendor.defineComponent({
   props: {
     pageName: {
@@ -16,15 +17,13 @@ const _sfc_main = common_vendor.defineComponent({
       if (page === this.pageName) {
         return null;
       }
-      const pageMap = new UTSJSONObject({
-        "index": "/pages/index/index",
-        "message": "/pages/message/message",
-        "publish": "/pages/publish/publish",
-        "mine": "/pages/mine/mine"
-      });
+      if (!config.pageMap[page]) {
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:50", "页面不存在:", page);
+        return null;
+      }
       try {
         common_vendor.index.switchTab({
-          url: pageMap[page]
+          url: config.pageMap[page]
         });
       } catch (e) {
         common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:60", "Tab切换失败:", e);
