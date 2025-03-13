@@ -75,15 +75,6 @@
 .dropdown-menu[style*="display: block"] {
 		animation: fadeIn 0.2s ease;
 }
-	
-	/* 新增样式：控制下拉菜单的显示与隐藏 */
-.dropdown-menu {
-		display: none;
-}
-.dropdown-visible {
-		display: block !important;
-		animation: fadeIn 0.2s ease;
-}
 @keyframes fadeIn {
 from {
 			opacity: 0;
@@ -205,41 +196,4 @@ to {
 		background-color: #ffffff;
 		padding: 20px;
 		border-radius: 8px;
-}
-	
-	/* 删除不需要的弹出层样式 */
-	
-	/* 筛选区域样式 */
-.filter-section {
-		display: flex;
-		flex-direction: row;
-		padding: 10px 15px;
-		background-color: #ffffff;
-		border-bottom: 1px solid #eeeeee;
-		position: relative;
-		z-index: 1000; /* 确保筛选区域显示在上层 */
-}
-.filter-item {
-		flex: 1;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		justify-content: center;
-		padding: 8px 0;
-		position: relative;
-}
-.filter-text {
-		font-size: 14px;
-		color: #333333;
-		margin-right: 5px;
-}
-.dropdown-icon {
-		width: 16px;
-		height: 16px;
-		transition: transform 0.3s;
-}
-	
-	/* 当下拉菜单激活时，旋转图标 */
-.filter-item.active .dropdown-icon {
-		transform: rotate(180deg);
 }
