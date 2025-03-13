@@ -1,38 +1,530 @@
 <template>
 	<view class="container">
 		<view class="header">
-			<view class="back-button" @click="goBack">
+			<view class="back-button" @click="goBack" id="step1">
 				<text>返回</text>
 			</view>
 			<text class="title">精准匹配</text>
 		</view>
 		
-		<view class="content">
-			<text>这里是精准匹配页面内容</text>
+		<!-- 筛选区域 -->
+		<view class="filter-section">
+			<view class="filter-item" @click.stop="showNativeActionSheet('school')">
+				<text class="filter-text">{{ selectedSchool || '请选择学校' }}</text>
+				<image class="dropdown-icon" :src="'/static/image/arrow_down.svg'" mode="aspectFit"></image>
+			</view>
+			
+			<view class="filter-item" @click.stop="showNativeActionSheet('major')">
+				<text class="filter-text">{{ selectedMajor || '请选择专业' }}</text>
+				<image class="dropdown-icon" :src="'/static/image/arrow_down.svg'" mode="aspectFit"></image>
+			</view>
+			
+			<view class="filter-item" @click.stop="showNativeActionSheet('sort')">
+				<text class="filter-text">{{ selectedSort || '排序筛选' }}</text>
+				<image class="dropdown-icon" :src="'/static/image/arrow_down.svg'" mode="aspectFit"></image>
+			</view>
 		</view>
+		
+		<!-- 老师卡片列表 -->
+		<scroll-view class="card-list" scroll-y="true" id="step2">
+			<view class="teacher-card" v-for="(teacher, index) in filteredTeachers" :key="index">
+				<view class="card-left">
+					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/default_avatar.png'" mode="aspectFill"></image>
+				</view>
+				<view class="card-middle">
+					<view class="teacher-name">{{ teacher.nickname }}</view>
+					<view class="teacher-info">{{ teacher.title || '教授' }} | {{ teacher.major }} | {{ teacher.score }}</view>
+					<view class="teacher-tags">
+						<view class="tag" v-for="(tag, tagIndex) in teacher.tags" :key="tagIndex">{{ tag }}</view>
+					</view>
+				</view>
+				<view class="card-right">
+					<button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
+				</view>
+			</view>
+			
+			<view class="empty-state" v-if="filteredTeachers.length === 0">
+				<text>暂无匹配的老师信息</text>
+			</view>
+		</scroll-view>
+		
+		<!-- 加载提示 -->
+		<view class="loading-mask" v-if="isLoading">
+			<view class="loading-content">
+				<text>正在连接中...</text>
+			</view>
+		</view>
+		
+		<!-- 底部导航栏 -->
+		<tab-bar pageName="none"></tab-bar>
 	</view>
 </template>
 
 <script>
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
+	import { pageMap } from '@/config.js';
+
 	/**
 	 * @description 精准匹配页面
 	 */
 	export default {
+		components: {
+			TabBar
+		},
 		data() {
-			return {}
+			return {
+				// 筛选相关数据
+				selectedSchool: '',
+				selectedMajor: '',
+				selectedSort: '综合排序',
+				schools: ['北京大学', '清华大学', '复旦大学', '浙江大学', '南京大学'],
+				majors: ['计算机科学', '软件工程', '数学', '物理', '化学', '生物'],
+				
+				// 环境检测
+				isWebEnv: true, // 默认假设是Web环境
+				
+				// 加载状态
+				isLoading: false,
+				
+				// 自动关闭定时器
+				autoCloseTimer: null,
+				
+				// 老师数据
+				teachers: [
+					{
+						id: 1,
+						nickname: '王教授',
+						avatar: '/static/image/default_avatar.png',
+						school: '北京大学',
+						major: '计算机科学',
+						title: '教授',
+						score: '考研400分',
+						tags: ['认证学校', '经验丰富']
+					},
+					{
+						id: 2,
+						nickname: '李博士',
+						avatar: '/static/image/default_avatar.png',
+						school: '清华大学',
+						major: '软件工程',
+						title: '副教授',
+						score: '考研390分',
+						tags: ['认证学校', '教学认真']
+					},
+					{
+						id: 3,
+						nickname: '张老师',
+						avatar: '/static/image/default_avatar.png',
+						school: '复旦大学',
+						major: '数学',
+						title: '讲师',
+						score: '考研380分',
+						tags: ['认证学校', '耐心细致']
+					},
+					{
+						id: 4,
+						nickname: '刘教授',
+						avatar: '/static/image/default_avatar.png',
+						school: '浙江大学',
+						major: '物理',
+						title: '教授',
+						score: '考研410分',
+						tags: ['认证学校', '通俗易懂']
+					},
+					{
+						id: 5,
+						nickname: '陈老师',
+						avatar: '/static/image/default_avatar.png',
+						school: '南京大学',
+						major: '化学',
+						title: '副教授',
+						score: '考研385分',
+						tags: ['认证学校', '答疑及时']
+					}
+				]
+			}
+		},
+		computed: {
+			/**
+			 * @description 根据筛选条件过滤老师列表
+			 * @return {Array} 过滤后的老师列表
+			 */
+			filteredTeachers() {
+				// 创建源数据的副本
+				let result = [...this.teachers];
+				
+				try {
+					// 按学校筛选
+					if (this.selectedSchool) {
+						result = result.filter(teacher => teacher.school === this.selectedSchool);
+					}
+					
+					// 按专业筛选
+					if (this.selectedMajor) {
+						result = result.filter(teacher => teacher.major === this.selectedMajor);
+					}
+					
+					// 排序
+					if (this.selectedSort === '评分排序') {
+						// 根据分数进行排序，提取数字部分
+						result.sort((a, b) => {
+							try {
+								const scoreA = parseInt(a.score.match(/\d+/)[0]);
+								const scoreB = parseInt(b.score.match(/\d+/)[0]);
+								return scoreB - scoreA; // 降序排列
+							} catch (error) {
+								console.error('分数排序异常:', error);
+								return 0; // 排序出错时保持原顺序
+							}
+						});
+					} else {
+						// 综合排序，可以根据业务需求实现
+						// 这里简单实现为按ID排序
+						result.sort((a, b) => a.id - b.id);
+					}
+				} catch (error) {
+					console.error('筛选处理异常:', error);
+					// 发生异常时返回原始数据
+					return this.teachers;
+				}
+				
+				return result;
+			}
+		},
+		// 页面加载时的处理
+		onLoad() {
+			console.log('Match page loaded');
+			// 延迟检测环境，确保在页面完全加载后执行
+			setTimeout(() => {
+				this.detectEnvironment();
+				// 添加一个全局的点击事件监听
+				this.setupGlobalClickListener();
+			}, 300);
 		},
 		// 确保此页面能被正确路由
 		onReady() {
 			console.log('Match page ready');
+			// 初始化数据
+			this.initFilterData();
+			// 检测当前环境
+			this.detectEnvironment();
+			
+			// 调试下拉菜单状态
+			console.log('初始下拉菜单状态:', this.selectedSchool, this.selectedMajor, this.selectedSort);
+		},
+		// 页面显示时添加点击事件监听
+		onShow() {
+			// 添加全局点击事件处理
+			setTimeout(() => {
+				// 只在非App环境中使用document方法
+				if (this.isWebEnv) {
+					// 移除可能存在的旧监听器，避免重复添加
+					document.removeEventListener('click', this.handleGlobalClick);
+					// 添加新的监听器
+					document.addEventListener('click', this.handleGlobalClick);
+					console.log('全局点击事件监听已添加');
+				}
+			}, 200);
+		},
+		// 页面隐藏时移除点击事件监听
+		onHide() {
+			// 只在非App环境中使用document方法
+			if (this.isWebEnv) {
+				document.removeEventListener('click', this.handleGlobalClick);
+				console.log('全局点击事件监听已移除');
+			}
+		},
+		// 页面卸载时移除点击事件监听
+		onUnload() {
+			// 只在非App环境中使用document方法
+			if (this.isWebEnv) {
+				document.removeEventListener('click', this.handleGlobalClick);
+			}
+			
+			// 清除可能存在的定时器
+			if (this.autoCloseTimer) {
+				clearTimeout(this.autoCloseTimer);
+				this.autoCloseTimer = null;
+			}
+		},
+		watch: {
+			/**
+			 * @description 监听筛选条件变化
+			 */
+			selectedSchool() {
+				console.log('学校变更为:', this.selectedSchool);
+				// 这里可以添加额外的处理逻辑，例如加载专业列表等
+			},
+			selectedMajor() {
+				console.log('专业变更为:', this.selectedMajor);
+			},
+			selectedSort() {
+				console.log('排序方式变更为:', this.selectedSort);
+			}
 		},
 		methods: {
+			/**
+			 * @description 检测当前运行环境
+			 */
+			detectEnvironment() {
+				// 检测是否为Web环境
+				try {
+					// 在小程序等非Web环境下，document可能不存在或表现不同
+					this.isWebEnv = typeof document !== 'undefined' && !!document.body;
+					
+					// 获取系统信息
+					const systemInfo = uni.getSystemInfoSync();
+					console.log('当前环境:', systemInfo);
+					
+					// App环境标识
+					if (systemInfo.uniPlatform === 'app') {
+						this.isWebEnv = false;
+					}
+				} catch (e) {
+					console.error('环境检测失败:', e);
+					this.isWebEnv = false; // 出错时假设非Web环境，避免调用不兼容方法
+				}
+			},
+			
+			/**
+			 * @description 初始化筛选数据
+			 */
+			initFilterData() {
+				// 此方法可用于从API加载学校和专业数据
+				// 示例：
+				// this.getSchoolList();
+				// this.getMajorList();
+				
+				// 如果有缓存或上次选择的数据，可以在这里恢复
+				const cachedSchool = uni.getStorageSync('selectedSchool');
+				const cachedMajor = uni.getStorageSync('selectedMajor');
+				const cachedSort = uni.getStorageSync('selectedSort');
+				
+				if (cachedSchool) this.selectedSchool = cachedSchool;
+				if (cachedMajor) this.selectedMajor = cachedMajor;
+				if (cachedSort) this.selectedSort = cachedSort;
+				
+				console.log("初始化筛选数据完成:", {
+					schools: this.schools,
+					majors: this.majors,
+					selectedSchool: this.selectedSchool,
+					selectedMajor: this.selectedMajor
+				});
+			},
+			
+			/**
+			 * @description 设置全局点击监听器
+			 */
+			setupGlobalClickListener() {
+				// 在小程序环境中，处理方式不同
+				if (!this.isWebEnv) {
+					console.log('小程序环境：使用更简单的处理方式');
+					// 对于小程序环境，我们使用更简单的方法
+					// 不再尝试使用事件绑定，而是在下拉菜单打开时设置一个自动关闭的定时器
+					// 这样可以避免各种兼容性问题
+					// 其他逻辑在toggleDropdown方法中处理
+				} else {
+					// Web环境使用document方法
+					console.log('Web环境：使用document点击事件监听');
+					try {
+						// 移除可能存在的旧监听器，避免重复添加
+						document.removeEventListener('click', this.handleGlobalClick);
+						// 添加新的监听器
+						document.addEventListener('click', this.handleGlobalClick);
+					} catch (e) {
+						console.error('添加点击监听失败:', e);
+					}
+				}
+			},
+			
+			/**
+			 * @description 处理页面点击事件（小程序环境）
+			 */
+			handlePageTap(event) {
+				// 如果没有打开的下拉菜单，不处理
+				if (!this.selectedSchool && !this.selectedMajor && !this.selectedSort) {
+					return;
+				}
+				
+				// 通用处理：点击非筛选区域时关闭下拉菜单
+				this.closeAllDropdowns();
+				console.log('小程序环境：页面点击，关闭所有下拉菜单');
+			},
+			
+			/**
+			 * @description 处理全局点击事件，用于关闭下拉菜单
+			 * @param {Event} event - 点击事件对象
+			 */
+			handleGlobalClick(event) {
+				// 如果没有打开的下拉菜单，不处理
+				if (!this.selectedSchool && !this.selectedMajor && !this.selectedSort) {
+					return;
+				}
+				
+				// 如果点击的不是筛选项或下拉菜单，则关闭所有下拉菜单
+				const target = event.target;
+				
+				// 使用原生DOM API判断点击元素
+				let isFilterItem = false;
+				let isDropdownMenu = false;
+				
+				// 向上查找父元素
+				let currentElement = target;
+				while (currentElement && currentElement !== document.body) {
+					if (currentElement.classList) {
+						if (currentElement.classList.contains('filter-item')) {
+							isFilterItem = true;
+							break;
+						}
+						if (currentElement.classList.contains('dropdown-menu')) {
+							isDropdownMenu = true;
+							break;
+						}
+					}
+					currentElement = currentElement.parentElement;
+				}
+				
+				// 如果点击的不是筛选项或下拉菜单，则关闭所有下拉菜单
+				if (!isFilterItem && !isDropdownMenu) {
+					console.log('点击了筛选区域外部，关闭所有下拉菜单');
+					this.closeAllDropdowns();
+				} else {
+					console.log('点击了筛选区域，保持菜单状态');
+				}
+			},
+			
 			/**
 			 * @description 返回上一页
 			 */
 			goBack() {
-				// 简化返回方法，不使用回调
 				uni.navigateBack();
+			},
+			
+			/**
+			 * @description 显示原生操作表单
+			 * @param {String} type - 操作表单类型
+			 */
+			showNativeActionSheet(type) {
+				console.log('显示选择操作表:', type);
+				
+				// 根据类型决定显示的选项
+				let itemList = [];
+				let titleText = '';
+				
+				if (type === 'school') {
+					itemList = this.schools;
+					titleText = '选择学校';
+				} else if (type === 'major') {
+					itemList = this.majors;
+					titleText = '选择专业';
+				} else if (type === 'sort') {
+					itemList = ['综合排序', '评分排序'];
+					titleText = '选择排序方式';
+				}
+				
+				// 打开原生操作表单
+				uni.showActionSheet({
+					title: titleText,
+					itemList: itemList,
+					success: (res) => {
+						const selectedValue = itemList[res.tapIndex];
+						console.log('用户选择了:', selectedValue);
+						
+						// 根据类型设置选中的值
+						if (type === 'school') {
+							this.selectedSchool = selectedValue;
+							
+							// 保存选择到本地存储
+							try {
+								uni.setStorageSync('selectedSchool', selectedValue);
+							} catch (e) {
+								console.error('保存学校选择失败', e);
+							}
+							
+							console.log("已选择学校:", selectedValue);
+						} else if (type === 'major') {
+							this.selectedMajor = selectedValue;
+							
+							// 保存选择到本地存储
+							try {
+								uni.setStorageSync('selectedMajor', selectedValue);
+							} catch (e) {
+								console.error('保存专业选择失败', e);
+							}
+							
+							console.log("已选择专业:", selectedValue);
+						} else if (type === 'sort') {
+							this.selectedSort = selectedValue;
+							
+							// 保存选择到本地存储
+							try {
+								uni.setStorageSync('selectedSort', selectedValue);
+							} catch (e) {
+								console.error('保存排序选择失败', e);
+							}
+							
+							console.log("已选择排序方式:", selectedValue);
+						}
+					},
+					fail: (err) => {
+						console.log('操作表单关闭:', err);
+					}
+				});
+			},
+			
+			/**
+			 * @description 关闭所有下拉菜单
+			 */
+			closeAllDropdowns() {
+				// 清除可能存在的自动关闭定时器
+				if (this.autoCloseTimer) {
+					clearTimeout(this.autoCloseTimer);
+					this.autoCloseTimer = null;
+				}
+				this.selectedSchool = '';
+				this.selectedMajor = '';
+				this.selectedSort = '综合排序';
+			},
+			
+			/**
+			 * @description 处理"马上沟通"按钮点击
+			 * @param {Number} teacherId - 老师的ID
+			 */
+			handleCommunicate(teacherId) {
+				// 显示加载提示
+				this.isLoading = true;
+				
+				// 模拟API调用延迟
+				setTimeout(() => {
+					this.isLoading = false;
+					
+					try {
+						// 在实际应用中，这里应该调用Box-IM的API
+						console.log(`打开与老师${teacherId}的聊天窗口`);
+						
+						// 假设有一个全局的boxIM对象
+						if (window.boxIM && typeof window.boxIM.openChat === 'function') {
+							window.boxIM.openChat(teacherId);
+						} else {
+							// 如果没有找到Box-IM的API，模拟一个成功的跳转
+							uni.showToast({
+								title: '正在打开聊天窗口',
+								icon: 'none'
+							});
+							
+							// 这里可以跳转到一个聊天页面
+							// uni.navigateTo({
+							//   url: `/pages/chat/chat?teacherId=${teacherId}`
+							// });
+						}
+					} catch (error) {
+						console.error('打开聊天窗口失败:', error);
+						uni.showToast({
+							title: '老师当前不在线，请稍后再试',
+							icon: 'none'
+						});
+					}
+				}, 1000);
 			}
 		}
 	}
@@ -43,15 +535,15 @@
 		display: flex;
 		flex-direction: column;
 		height: 100vh;
-		padding: 20px;
-		background-color: #ffffff;
+		background-color: #f5f5f5;
 	}
 	
 	.header {
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		margin-bottom: 20px;
+		padding: 10px 15px;
+		background-color: #ffffff;
 	}
 	
 	.back-button {
@@ -64,10 +556,249 @@
 		font-weight: bold;
 	}
 	
-	.content {
+	/* 筛选区域样式 */
+	.filter-section {
+		display: flex;
+		flex-direction: row;
+		padding: 10px 15px;
+		background-color: #ffffff;
+		border-bottom: 1px solid #eeeeee;
+		position: relative;
+		z-index: 1000; /* 确保筛选区域显示在上层 */
+	}
+	
+	.filter-item {
 		flex: 1;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		padding: 8px 0;
+		position: relative;
+	}
+	
+	.filter-text {
+		font-size: 14px;
+		color: #333333;
+		margin-right: 5px;
+	}
+	
+	.dropdown-icon {
+		width: 16px;
+		height: 16px;
+		transition: transform 0.3s;
+	}
+	
+	/* 当下拉菜单激活时，旋转图标 */
+	.filter-item.active .dropdown-icon {
+		transform: rotate(180deg);
+	}
+	
+	.dropdown-menu {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		width: 100%;
+		background-color: #ffffff;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		z-index: 2001; /* 增加z-index确保显示在最顶层 */
+		border-radius: 4px;
+		max-height: 200px;
+		overflow-y: auto;
+		margin-top: 5px;
+	}
+	
+	/* 使用更简单的过渡效果 */
+	.dropdown-menu[style*="display: block"] {
+		animation: fadeIn 0.2s ease;
+	}
+	
+	/* 新增样式：控制下拉菜单的显示与隐藏 */
+	.dropdown-menu {
+		display: none;
+	}
+	
+	.dropdown-visible {
+		display: block !important;
+		animation: fadeIn 0.2s ease;
+	}
+	
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	
+	.dropdown-item {
+		padding: 10px 15px;
+		font-size: 14px;
+		border-bottom: 1px solid #f5f5f5;
+	}
+	
+	.dropdown-item.selected {
+		background-color: #f0f7ff;
+		color: #007aff;
+	}
+	
+	.dropdown-item.selected text {
+		color: #007aff;
+		font-weight: bold;
+	}
+	
+	.dropdown-item:active {
+		background-color: #f8f8f8;
+	}
+	
+	.dropdown-item:last-child {
+		border-bottom: none;
+	}
+	
+	/* 卡片列表样式 */
+	.card-list {
+		flex: 1;
+		padding: 10px 15px;
+	}
+	
+	.teacher-card {
+		display: flex;
+		flex-direction: row;
+		background-color: #ffffff;
+		border-radius: 8px;
+		padding: 15px;
+		margin-bottom: 10px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+	
+	.card-left {
+		margin-right: 15px;
+	}
+	
+	.teacher-avatar {
+		width: 60px;
+		height: 60px;
+		border-radius: 30px;
+		background-color: #eeeeee;
+	}
+	
+	.card-middle {
+		flex: 1;
+	}
+	
+	.teacher-name {
+		font-size: 16px;
+		font-weight: bold;
+		margin-bottom: 5px;
+		color: #333333;
+	}
+	
+	.teacher-info {
+		font-size: 14px;
+		color: #666666;
+		margin-bottom: 8px;
+	}
+	
+	.teacher-tags {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	
+	.tag {
+		font-size: 12px;
+		color: #666666;
+		background-color: #f5f5f5;
+		padding: 2px 8px;
+		border-radius: 10px;
+		margin-right: 8px;
+		margin-bottom: 5px;
+	}
+	
+	.card-right {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		margin-left: 10px;
+	}
+	
+	.communicate-btn {
+		background-color: #007aff;
+		color: #ffffff;
+		font-size: 14px;
+		padding: 5px 10px;
+		border-radius: 15px;
+		border: none;
+	}
+	
+	/* 空状态样式 */
+	.empty-state {
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		height: 200px;
+	}
+	
+	/* 加载提示样式 */
+	.loading-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1001;
+	}
+	
+	.loading-content {
+		background-color: #ffffff;
+		padding: 20px;
+		border-radius: 8px;
+	}
+	
+	/* 删除不需要的弹出层样式 */
+	
+	/* 筛选区域样式 */
+	.filter-section {
+		display: flex;
+		flex-direction: row;
+		padding: 10px 15px;
+		background-color: #ffffff;
+		border-bottom: 1px solid #eeeeee;
+		position: relative;
+		z-index: 1000; /* 确保筛选区域显示在上层 */
+	}
+	
+	.filter-item {
+		flex: 1;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		padding: 8px 0;
+		position: relative;
+	}
+	
+	.filter-text {
+		font-size: 14px;
+		color: #333333;
+		margin-right: 5px;
+	}
+	
+	.dropdown-icon {
+		width: 16px;
+		height: 16px;
+		transition: transform 0.3s;
+	}
+	
+	/* 当下拉菜单激活时，旋转图标 */
+	.filter-item.active .dropdown-icon {
+		transform: rotate(180deg);
 	}
 </style> 
