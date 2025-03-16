@@ -1,0 +1,708 @@
+<template>
+	<view class="chat-container">
+		<!-- 顶部导航栏 -->
+		<view class="header">
+			<view class="header-content">
+				<view class="header-left" @tap="goBack">
+					<image class="back-icon" src="/static/image/arrow_down.svg"></image>
+				</view>
+				<view class="header-title">
+					<text class="title">{{friendInfo.name}}</text>
+				</view>
+				<view class="header-right">
+					<image class="more-icon" src="/static/image/plus-1727487.svg" @tap="showMoreOptions"></image>
+				</view>
+			</view>
+		</view>
+
+		<!-- 聊天内容区域 -->
+		<scroll-view class="chat-content" 
+					scroll-y="true"
+					:scroll-top="scrollTop"
+					:scroll-into-view="scrollToMessageId"
+					@scrolltoupper="loadMoreMessages"
+					enable-back-to-top>
+			<view class="messages-list">
+				<!-- 聊天日期分隔 -->
+				<view class="message-date">
+					<text class="date-text">今天</text>
+				</view>
+				
+				<view class="message-item"
+					  :class="{'self': msg.isSelf}"
+					  v-for="msg in messages"
+					  :key="msg.id"
+					  :id="'msg-' + msg.id">
+					<image class="avatar" :src="msg.avatar || '/static/image/default_avatar.png'"></image>
+					<view class="message-content">
+						<view class="message-bubble">
+							<text class="message-text">{{msg.content}}</text>
+						</view>
+						<text class="message-time">{{formatTime(msg.time)}}</text>
+					</view>
+				</view>
+			</view>
+		</scroll-view>
+
+		<!-- 输入区域 -->
+		<view class="input-area" :style="{ bottom: keyboardHeight + 'px' }">
+			<view class="input-toolbar">
+				<view class="tool-icon-wrapper voice-icon" @tap="toggleVoiceInput">
+					<image class="tool-icon" src="/static/image/home_24dp_E3E3E3.svg"></image>
+				</view>
+				<view class="input-container">
+					<input class="message-input"
+						   v-model="inputMessage"
+						   :focus="inputFocus"
+						   @focus="onInputFocus"
+						   @blur="onInputBlur"
+						   @confirm="sendMessage"
+						   confirm-type="send"
+						   placeholder="发送消息"/>
+				</view>
+				<view class="tool-icon-wrapper emoji-icon" @tap="toggleEmojiPanel">
+					<image class="tool-icon" src="/static/image/person_24dp_E3E3E3.svg"></image>
+				</view>
+				<view class="send-btn" v-if="inputMessage.trim()" @tap="sendMessage">
+					<text class="send-text">发送</text>
+				</view>
+				<view class="tool-icon-wrapper plus-icon" v-else @tap="showMorePanel">
+					<image class="tool-icon" src="/static/image/plus-1727487.svg"></image>
+				</view>
+			</view>
+
+			<!-- 表情面板 -->
+			<view class="emoji-panel" v-if="showEmoji">
+				<scroll-view class="emoji-list" scroll-y>
+					<view class="emoji-grid">
+						<view class="emoji-item"
+							  v-for="emoji in emojis"
+							  :key="emoji.id"
+							  @tap="insertEmoji(emoji.char)"
+							  hover-class="emoji-item-hover">
+							<text>{{emoji.char}}</text>
+						</view>
+					</view>
+				</scroll-view>
+				<view class="emoji-panel-footer">
+					<view class="emoji-send-btn" @tap="sendMessage" v-if="inputMessage.trim()">
+						<text>发送</text>
+					</view>
+					<view class="emoji-close-btn" @tap="toggleEmojiPanel" v-else>
+						<text>关闭</text>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				friendInfo: {
+					id: '',
+					name: '',
+					avatar: ''
+				},
+				messages: [],
+				inputMessage: '',
+				inputFocus: false,
+				keyboardHeight: 0,
+				scrollTop: 0,
+				scrollToMessageId: '',
+				showEmoji: false,
+				emojis: [
+					{ id: 1, char: '😊' },
+					{ id: 2, char: '😂' },
+					{ id: 3, char: '🤔' },
+					{ id: 4, char: '👍' },
+					{ id: 5, char: '🎉' },
+					{ id: 6, char: '❤️' },
+					{ id: 7, char: '🙏' },
+					{ id: 8, char: '🔥' },
+					{ id: 9, char: '🤣' },
+					{ id: 10, char: '😅' },
+					{ id: 11, char: '😁' },
+					{ id: 12, char: '🥰' }
+				]
+			}
+		},
+		onLoad(options) {
+			this.friendInfo.id = options.id;
+			this.friendInfo.name = options.name;
+			this.loadChatHistory();
+		},
+		methods: {
+			goBack() {
+				uni.navigateBack();
+			},
+			
+			showMoreOptions() {
+				uni.showActionSheet({
+					itemList: ['查看资料', '清空聊天记录'],
+					success: (res) => {
+						if (res.tapIndex === 1) {
+							uni.showModal({
+								title: '确认清空聊天记录？',
+								content: '清空后无法恢复',
+								success: (res) => {
+									if (res.confirm) {
+										this.messages = [];
+										uni.showToast({
+											title: '已清空',
+											icon: 'success'
+										});
+									}
+								}
+							});
+						}
+					}
+				});
+			},
+			
+			async loadChatHistory() {
+				// 模拟加载聊天记录
+				this.messages = [
+					{
+						id: 1,
+						content: '你好，有什么可以帮助你的吗？',
+						time: Date.now() - 3600000,
+						isSelf: false,
+						avatar: '/static/image/default_avatar.png'
+					},
+					{
+						id: 2,
+						content: '老师好，我想请教一个问题',
+						time: Date.now() - 3300000,
+						isSelf: true,
+						avatar: '/static/image/default_avatar.png'
+					},
+					{
+						id: 3,
+						content: '关于论文的研究方向，我有一些新的想法需要讨论',
+						time: Date.now() - 3000000,
+						isSelf: true,
+						avatar: '/static/image/default_avatar.png'
+					},
+					{
+						id: 4,
+						content: '很好，我们可以安排时间详细探讨一下，你有具体的研究方向吗？',
+						time: Date.now() - 2700000,
+						isSelf: false,
+						avatar: '/static/image/default_avatar.png'
+					}
+				];
+				this.scrollToBottom();
+			},
+			
+			loadMoreMessages() {
+				uni.showLoading({
+					title: '加载中...'
+				});
+				
+				setTimeout(() => {
+					uni.hideLoading();
+					// 模拟加载更多聊天记录
+					const oldMessages = [
+						{
+							id: 'earlier-1',
+							content: '昨天我们讨论的课题你考虑得怎么样了？',
+							time: Date.now() - 86400000,
+							isSelf: false,
+							avatar: '/static/image/default_avatar.png'
+						},
+						{
+							id: 'earlier-2',
+							content: '我已经查阅了相关文献，有一些新的发现',
+							time: Date.now() - 86000000,
+							isSelf: true,
+							avatar: '/static/image/default_avatar.png'
+						}
+					];
+					
+					this.messages = [...oldMessages, ...this.messages];
+				}, 800);
+			},
+			
+			scrollToBottom() {
+				setTimeout(() => {
+					const lastMessage = this.messages[this.messages.length - 1];
+					if (lastMessage) {
+						this.scrollToMessageId = 'msg-' + lastMessage.id;
+					}
+				}, 100);
+			},
+			
+			async sendMessage() {
+				if (!this.inputMessage.trim()) return;
+				
+				const message = {
+					id: Date.now(),
+					content: this.inputMessage,
+					time: Date.now(),
+					isSelf: true,
+					avatar: '/static/image/default_avatar.png'
+				};
+				
+				this.messages.push(message);
+				this.inputMessage = '';
+				this.showEmoji = false;
+				this.scrollToBottom();
+				
+				// 模拟对方回复
+				setTimeout(() => {
+					const reply = {
+						id: Date.now() + 1,
+						content: '我明白了，这个问题我们可以进一步讨论。你有空的时候可以来我办公室。',
+						time: Date.now(),
+						isSelf: false,
+						avatar: '/static/image/default_avatar.png'
+					};
+					this.messages.push(reply);
+					this.scrollToBottom();
+				}, 2000);
+			},
+			
+			onInputFocus(e) {
+				this.keyboardHeight = e.detail.height || 0;
+				this.showEmoji = false;
+			},
+			
+			onInputBlur() {
+				this.keyboardHeight = 0;
+			},
+			
+			toggleVoiceInput() {
+				uni.showToast({
+					title: '语音输入功能开发中',
+					icon: 'none'
+				});
+			},
+			
+			toggleEmojiPanel() {
+				this.showEmoji = !this.showEmoji;
+				if (this.showEmoji) {
+					uni.hideKeyboard();
+				}
+			},
+			
+			showMorePanel() {
+				uni.showActionSheet({
+					itemList: ['图片', '文件', '位置', '视频通话'],
+					success: (res) => {
+						uni.showToast({
+							title: '该功能开发中',
+							icon: 'none'
+						});
+					}
+				});
+			},
+			
+			insertEmoji(emoji) {
+				this.inputMessage += emoji;
+			},
+			
+			formatTime(timestamp) {
+				const date = new Date(timestamp);
+				return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+			}
+		}
+	}
+</script>
+
+<style>
+/* 全局变量 - 与 message.uvue 保持一致 */
+page {
+	/* 蓝色调色板 */
+	--blue-primary: #2970ff;
+	--blue-secondary: #5294ff;
+	--blue-light: #eaf2ff;
+	--blue-dark: #1e5ac8;
+	--blue-gradient: linear-gradient(135deg, #2970ff, #5294ff);
+	
+	/* 文本颜色 */
+	--text-primary: #333333;
+	--text-secondary: #666666;
+	--text-light: #999999;
+	--text-white: #ffffff;
+	
+	/* 背景和边框 */
+	--bg-white: #ffffff;
+	--bg-light: #f8f9fc;
+	--border-color: #eaedf4;
+	
+	/* 阴影 */
+	--shadow-sm: 0 2px 6px rgba(41, 112, 255, 0.08);
+	--shadow-md: 0 4px 12px rgba(41, 112, 255, 0.12);
+	
+	/* 字体 */
+	--font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.chat-container {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	background-color: var(--bg-light);
+	font-family: var(--font-family);
+}
+
+/* 顶部导航栏 - 与message.uvue保持一致的蓝色渐变 */
+.header {
+	padding-top: calc(5px + constant(safe-area-inset-top));
+	padding-top: calc(5px + env(safe-area-inset-top));
+	padding-bottom: 2px;
+	background-image: var(--blue-gradient);
+	position: relative;
+	box-shadow: var(--shadow-sm);
+	z-index: 10;
+}
+
+.header-content {
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 30px;
+	padding: 8px 16px;
+}
+
+.header-left {
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.15);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	transition: all 0.3s;
+}
+
+.header-left:active {
+	transform: scale(0.92);
+	background-color: rgba(255, 255, 255, 0.25);
+}
+
+.back-icon {
+	width: 16px;
+	height: 16px;
+	filter: brightness(0) invert(1);
+	transform: rotate(90deg); /* 将箭头调整为向左 */
+}
+
+.header-title {
+	flex: 1;
+	text-align: center;
+}
+
+.title {
+	color: var(--text-white);
+	font-size: 16px;
+	font-weight: 500;
+	letter-spacing: 0.5px;
+}
+
+.header-right {
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.15);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+}
+
+.header-right:active {
+	transform: scale(0.92);
+	background-color: rgba(255, 255, 255, 0.25);
+}
+
+.more-icon {
+	width: 16px;
+	height: 16px;
+	filter: brightness(0) invert(1);
+}
+
+/* 聊天内容区域 */
+.chat-content {
+	flex: 1;
+	padding: 12px;
+	position: relative;
+}
+
+.messages-list {
+	display: flex;
+	flex-direction: column;
+	padding-bottom: 16px;
+}
+
+.message-date {
+	text-align: center;
+	margin: 8px 0 16px;
+}
+
+.date-text {
+	display: inline-block;
+	padding: 4px 12px;
+	background-color: rgba(0, 0, 0, 0.06);
+	color: var(--text-secondary);
+	font-size: 12px;
+	border-radius: 16px;
+}
+
+.message-item {
+	display: flex;
+	margin-bottom: 16px;
+	animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(8px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.message-item.self {
+	flex-direction: row-reverse;
+}
+
+.avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 18px;
+	margin: 0 10px;
+	border: 1px solid var(--border-color);
+	box-shadow: var(--shadow-sm);
+	object-fit: cover;
+}
+
+.message-content {
+	max-width: 65%; /* 缩小聊天框 */
+	display: flex;
+	flex-direction: column;
+}
+
+.self .message-content {
+	align-items: flex-end;
+}
+
+.message-bubble {
+	padding: 8px 12px;
+	border-radius: 16px;
+	background-color: var(--bg-white);
+	box-shadow: var(--shadow-sm);
+	position: relative;
+}
+
+.self .message-bubble {
+	background-image: var(--blue-gradient);
+	box-shadow: 0 2px 6px rgba(41, 112, 255, 0.2);
+}
+
+.message-text {
+	font-size: 14px;
+	line-height: 1.4;
+	color: var(--text-primary);
+	word-break: break-word;
+}
+
+.self .message-text {
+	color: var(--text-white);
+}
+
+.message-time {
+	font-size: 10px;
+	color: var(--text-light);
+	margin-top: 4px;
+	margin-left: 4px;
+	margin-right: 4px;
+}
+
+/* 输入区域 */
+.input-area {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: var(--bg-white);
+	border-top: 1px solid var(--border-color);
+	padding: 8px 10px;
+	padding-bottom: calc(8px + constant(safe-area-inset-bottom));
+	padding-bottom: calc(8px + env(safe-area-inset-bottom));
+	z-index: 100;
+}
+
+.input-toolbar {
+	display: flex;
+	align-items: center;
+	background-color: var(--bg-white);
+	padding: 2px 0;
+}
+
+.input-container {
+	flex: 1;
+	background-color: var(--bg-light);
+	border-radius: 18px;
+	margin: 0 8px;
+	padding: 0 12px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.message-input {
+	width: 100%;
+	height: 36px;
+	font-size: 14px;
+	color: var(--text-primary);
+	background: transparent;
+}
+
+.tool-icon-wrapper {
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all 0.2s;
+}
+
+.tool-icon-wrapper:active {
+	background-color: rgba(41, 112, 255, 0.1);
+}
+
+.tool-icon {
+	width: 20px;
+	height: 20px;
+	opacity: 0.6;
+}
+
+.send-btn {
+	width: 60px;
+	height: 36px;
+	background-image: var(--blue-gradient);
+	border-radius: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 6px rgba(41, 112, 255, 0.2);
+}
+
+.send-btn:active {
+	transform: scale(0.96);
+	box-shadow: 0 1px 3px rgba(41, 112, 255, 0.15);
+}
+
+.send-text {
+	color: var(--text-white);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+/* 表情面板 */
+.emoji-panel {
+	height: 220px;
+	background-color: var(--bg-white);
+	border-top: 1px solid var(--border-color);
+	display: flex;
+	flex-direction: column;
+}
+
+.emoji-list {
+	flex: 1;
+	padding: 8px;
+}
+
+.emoji-grid {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	padding: 8px;
+}
+
+.emoji-item {
+	width: 48px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	border-radius: 8px;
+	transition: all 0.2s;
+}
+
+.emoji-item-hover {
+	background-color: var(--blue-light);
+}
+
+.emoji-panel-footer {
+	height: 44px;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	padding: 0 16px;
+	border-top: 1px solid var(--border-color);
+}
+
+.emoji-send-btn, .emoji-close-btn {
+	background-image: var(--blue-gradient);
+	color: var(--text-white);
+	padding: 6px 16px;
+	border-radius: 18px;
+	font-size: 14px;
+	font-weight: 500;
+	box-shadow: 0 2px 6px rgba(41, 112, 255, 0.2);
+}
+
+.emoji-send-btn:active, .emoji-close-btn:active {
+	transform: scale(0.96);
+	box-shadow: 0 1px 3px rgba(41, 112, 255, 0.15);
+}
+
+/* 隐藏滚动条 */
+::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+	background-color: transparent;
+}
+
+/* 适配深色模式 */
+@media (prefers-color-scheme: dark) {
+	page {
+		--blue-primary: #4c8dff;
+		--blue-secondary: #6fa5ff;
+		--blue-light: #1c2c4c;
+		--blue-dark: #3b78e7;
+		--blue-gradient: linear-gradient(135deg, #2d6fdc, #4c8dff);
+		
+		--text-primary: #f0f0f0;
+		--text-secondary: #c0c0c0;
+		--text-light: #909090;
+		
+		--bg-white: #1a1a1a;
+		--bg-light: #242424;
+		--border-color: #333333;
+	}
+	
+	.message-bubble {
+		background-color: #2a2a2a;
+	}
+	
+	.date-text {
+		background-color: rgba(255, 255, 255, 0.1);
+	}
+	
+	.back-icon,
+	.more-icon,
+	.tool-icon {
+		filter: brightness(0.8) invert(1);
+	}
+}
+</style>
