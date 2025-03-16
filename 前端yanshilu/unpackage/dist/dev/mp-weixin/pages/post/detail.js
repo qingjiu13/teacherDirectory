@@ -361,7 +361,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     s: $data.post.isLiked ? "/static/image/like_filled.svg" : "/static/image/like.svg",
     t: common_vendor.t($data.post.likeCount),
     v: common_vendor.o((...args) => $options.likePost && $options.likePost(...args)),
-    w: common_assets._imports_0$1,
+    w: common_assets._imports_0$2,
     x: common_vendor.t($data.post.commentCount),
     y: common_vendor.o((...args) => $options.focusCommentInput && $options.focusCommentInput(...args)),
     z: $data.post.isCollected ? "/static/image/star_filled.svg" : "/static/image/star.svg",

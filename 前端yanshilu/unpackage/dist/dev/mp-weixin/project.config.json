@@ -18,7 +18,7 @@
     }
   },
   "compileType": "miniprogram",
-  "libVersion": "3.7.9",
+  "libVersion": "3.7.10",
   "appid": "touristappid",
   "projectname": "前端yanshilu",
   "condition": {},

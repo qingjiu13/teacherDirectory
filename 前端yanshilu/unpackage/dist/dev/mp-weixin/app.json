@@ -6,7 +6,15 @@
     "pages/mine/mine",
     "pages/match/match",
     "pages/publish/editor",
-    "pages/post/detail"
+    "pages/post/detail",
+    "pages/ai/selection/selection",
+    "pages/ai/selection/step2",
+    "pages/ai/selection/step3",
+    "pages/ai/selection/step4",
+    "pages/ai/selection/step5",
+    "pages/ai/selection/step6",
+    "pages/ai/selection/analyzing",
+    "pages/ai/selection/result"
   ],
   "window": {
     "navigationBarTextStyle": "black",

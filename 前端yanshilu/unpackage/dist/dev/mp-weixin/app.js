@@ -9,6 +9,14 @@ if (!Math) {
   "./pages/match/match.js";
   "./pages/publish/editor.js";
   "./pages/post/detail.js";
+  "./pages/ai/selection/selection.js";
+  "./pages/ai/selection/step2.js";
+  "./pages/ai/selection/step3.js";
+  "./pages/ai/selection/step4.js";
+  "./pages/ai/selection/step5.js";
+  "./pages/ai/selection/step6.js";
+  "./pages/ai/selection/analyzing.js";
+  "./pages/ai/selection/result.js";
 }
 const _sfc_main = common_vendor.defineComponent({
   onLaunch: function() {

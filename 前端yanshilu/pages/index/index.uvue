@@ -11,6 +11,9 @@
 			<view class="match-button" @click="goToMatch">
 				<text class="button-text">精准匹配</text>
 			</view>
+			<view class="selection-button" @click="goToAISelection">
+				<text class="button-text">AI择校</text>
+			</view>
 		</view>
 		
 		<!-- 底部导航栏 -->
@@ -51,6 +54,23 @@
 				try {
 					uni.navigateTo({
 						url: '/pages/match/match'
+					});
+				} catch (e) {
+					console.error(e);
+					uni.showToast({
+						title: '页面跳转失败',
+						icon: 'none'
+					});
+				}
+			},
+			
+			/**
+			 * @description 跳转到AI择校页面
+			 */
+			goToAISelection() {
+				try {
+					uni.navigateTo({
+						url: '/pages/ai/selection/selection'
 					});
 				} catch (e) {
 					console.error(e);
@@ -100,12 +120,14 @@
 	.button-area {
 		flex: 1;
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
 		width: 100%;
+		gap: 30rpx;
 	}
 	
-	.match-button {
+	.match-button, .selection-button {
 		width: 240px;
 		height: 50px;
 		background-color: #ffffff;
@@ -116,6 +138,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+	
+	.selection-button {
+		background-color: #f0f8ff;
+		border-color: #007AFF;
 	}
 	
 	.button-text {

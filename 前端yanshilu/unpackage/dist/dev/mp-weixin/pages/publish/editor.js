@@ -413,7 +413,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     a: common_vendor.o((...args) => $options.goBack && $options.goBack(...args)),
     b: common_vendor.t($data.isDraft ? "编辑草稿" : "发布新动态"),
     c: common_vendor.t($data.selectedCategory),
-    d: common_assets._imports_0,
+    d: common_assets._imports_0$1,
     e: common_vendor.o((...args) => $options.showTagSelector && $options.showTagSelector(...args)),
     f: common_vendor.f($data.selectedTags, (tag, index, i0) => {
       return {

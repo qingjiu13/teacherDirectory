@@ -25,7 +25,23 @@ const _sfc_main = common_vendor.defineComponent({
           url: "/pages/match/match"
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/index/index.uvue:56", e);
+        common_vendor.index.__f__("error", "at pages/index/index.uvue:59", e);
+        common_vendor.index.showToast({
+          title: "页面跳转失败",
+          icon: "none"
+        });
+      }
+    },
+    /**
+     * @description 跳转到AI择校页面
+     */
+    goToAISelection() {
+      try {
+        common_vendor.index.navigateTo({
+          url: "/pages/ai/selection/selection"
+        });
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/index/index.uvue:76", e);
         common_vendor.index.showToast({
           title: "页面跳转失败",
           icon: "none"
@@ -45,10 +61,11 @@ if (!Math) {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_vendor.o((...args) => $options.goToMatch && $options.goToMatch(...args)),
-    b: common_vendor.p({
+    b: common_vendor.o((...args) => $options.goToAISelection && $options.goToAISelection(...args)),
+    c: common_vendor.p({
       pageName: "index"
     }),
-    c: common_vendor.sei(_ctx.virtualHostId, "view")
+    d: common_vendor.sei(_ctx.virtualHostId, "view")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

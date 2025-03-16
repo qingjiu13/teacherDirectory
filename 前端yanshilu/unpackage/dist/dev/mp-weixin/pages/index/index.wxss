@@ -32,11 +32,13 @@
 .button-area {
 		flex: 1;
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
 		width: 100%;
+		gap: 30rpx;
 }
-.match-button {
+.match-button, .selection-button {
 		width: 240px;
 		height: 50px;
 		background-color: #ffffff;
@@ -47,6 +49,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+}
+.selection-button {
+		background-color: #f0f8ff;
+		border-color: #007AFF;
 }
 .button-text {
 		color: #333;

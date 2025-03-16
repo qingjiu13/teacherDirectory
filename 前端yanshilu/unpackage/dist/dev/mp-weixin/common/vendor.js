@@ -7564,9 +7564,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.81.1.13,127.0.0.1";
+  const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_1CHjmK";
+  const id = "mp-weixin_XT-cUy";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9147,6 +9147,37 @@ const createSubpackageApp = initCreateSubpackageApp();
   wx.createPluginApp = global.createPluginApp = createPluginApp;
   wx.createSubpackageApp = global.createSubpackageApp = createSubpackageApp;
 }
+function __awaiter(thisArg, _arguments, P2, generator) {
+  function adopt(value) {
+    return value instanceof P2 ? value : new P2(function(resolve2) {
+      resolve2(value);
+    });
+  }
+  return new (P2 || (P2 = Promise))(function(resolve2, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e2) {
+        reject(e2);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e2) {
+        reject(e2);
+      }
+    }
+    function step(result) {
+      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
+typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
+  var e2 = new Error(message);
+  return e2.name = "SuppressedError", e2.error = error, e2.suppressed = suppressed, e2;
+};
 const pages = [
   new UTSJSONObject({
     path: "pages/index/index",
@@ -9206,6 +9237,78 @@ const pages = [
     path: "pages/post/detail",
     style: new UTSJSONObject({
       navigationBarTitleText: "帖子详情",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/selection",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/step2",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 第二步",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/step3",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 第三步",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/step4",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 第四步",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/step5",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 第五步",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/step6",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 第六步",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/analyzing",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 分析中",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/ai/selection/result",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "AI择校 - 分析结果",
       "app-plus": new UTSJSONObject({
         titleNView: false
       })
@@ -9574,7 +9677,7 @@ class S {
 function T(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const b = true, E = "mp-weixin", P = T(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), C = E, A = T('{"address":["127.0.0.1","100.81.1.13"],"servePort":7001,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","E:/HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/unicloud/**/*.js"]}'), O = T('[{"provider":"aliyun","spaceName":"yanshilu-from-0-to-1","spaceId":"mp-802f6022-5817-472b-90ee-026bda58d0ce","clientSecret":"oB9/azLBf9WZR/8xL6vKhA==","endpoint":"https://api.next.bspapp.com"}]') || [];
+const b = true, E = "mp-weixin", P = T(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), C = E, A = T(""), O = T("[]") || [];
 let N = "";
 try {
   N = "__UNI__92532B9";
@@ -11998,7 +12101,7 @@ function Qs(e2) {
   } }));
 }
 const Xs = { tcb: Ct, tencent: Ct, aliyun: fe, private: Rt, dcloud: Rt, alipay: Bt };
-let Zs = new class {
+exports.Zs = new class {
   init(e2) {
     let t2 = {};
     const n2 = Xs[e2.provider];
@@ -12073,21 +12176,22 @@ let Zs = new class {
   const e2 = O;
   let t2 = {};
   if (e2 && 1 === e2.length)
-    t2 = e2[0], Zs = Zs.init(t2), Zs._isDefault = true;
+    t2 = e2[0], exports.Zs = exports.Zs.init(t2), exports.Zs._isDefault = true;
   else {
     const t3 = ["auth", "callFunction", "uploadFile", "deleteFile", "getTempFileURL", "downloadFile", "database", "getCurrentUSerInfo", "importObject"];
     let n2;
     n2 = e2 && e2.length > 0 ? "应用有多个服务空间，请通过uniCloud.init方法指定要使用的服务空间" : "应用未关联服务空间，请在uniCloud目录右键关联服务空间", t3.forEach((e3) => {
-      Zs[e3] = function() {
+      exports.Zs[e3] = function() {
         return console.error(n2), Promise.reject(new te({ code: "SYS_ERR", message: n2 }));
       };
     });
   }
-  if (Object.assign(Zs, { get mixinDatacom() {
-    return js(Zs);
-  } }), Rs(Zs), Zs.addInterceptor = F, Zs.removeInterceptor = K, Zs.interceptObject = B, "web" === C)
+  if (Object.assign(exports.Zs, { get mixinDatacom() {
+    return js(exports.Zs);
+  } }), Rs(exports.Zs), exports.Zs.addInterceptor = F, exports.Zs.removeInterceptor = K, exports.Zs.interceptObject = B, "web" === C)
     ;
 })();
+exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
 exports.defineComponent = defineComponent;

@@ -1,0 +1,374 @@
+<template>
+	<view class="container">
+		<view class="progress-bar">
+			<text class="progress-text">2/6</text>
+		</view>
+
+		<view class="question-container">
+			<view class="emoji">😊</view>
+			<text class="question">您的本科学校是？</text>
+			
+			<view class="search-box">
+				<input class="search-input" 
+					v-model="searchText" 
+					placeholder="请选择你的本科院校" 
+					@focus="showSchoolList = true"
+				/>
+			</view>
+			
+			<!-- 学校列表 -->
+			<scroll-view 
+				v-if="showSchoolList" 
+				class="school-list"
+				scroll-y="true"
+			>
+				<view 
+					v-for="(school, index) in filteredSchools" 
+					:key="index"
+					class="school-item"
+					@click="selectSchool(school)"
+				>
+					{{school}}
+				</view>
+			</scroll-view>
+			
+			<text class="question second-question">您的本科专业是？</text>
+			<view class="search-box">
+				<input class="search-input" 
+					v-model="searchMajorText" 
+					placeholder="请输入你的本科专业" 
+					@focus="showMajorList = true"
+				/>
+			</view>
+			
+			<!-- 专业列表 -->
+			<scroll-view 
+				v-if="showMajorList" 
+				class="school-list"
+				scroll-y="true"
+			>
+				<view 
+					v-for="(major, index) in filteredMajors" 
+					:key="index"
+					class="school-item"
+					@click="selectMajor(major)"
+				>
+					{{major}}
+				</view>
+			</scroll-view>
+		</view>
+
+		<view class="button-group">
+			<button class="prev-btn" @click="prevPage">上一步</button>
+			<button class="next-btn" @click="nextPage">下一步</button>
+		</view>
+	</view>
+</template>
+
+<script>
+	/**
+	 * @description AI择校第二步页面
+	 */
+	import { aiSelectionApis } from '../../../config.js';
+	
+	export default {
+		data() {
+			return {
+				selectedSchool: '',
+				selectedMajor: '',
+				showSchoolList: false,
+				showMajorList: false,
+				searchText: '',
+				searchMajorText: '',
+				schools: [], // 学校列表
+				majors: [], // 专业列表
+				// 添加本地备用数据，防止云函数失败
+				localSchools: [
+					'北京大学', '清华大学', '复旦大学', '上海交通大学', '浙江大学',
+					'南京大学', '中国人民大学', '武汉大学', '中山大学', '华中科技大学',
+					'北京师范大学', '厦门大学', '南开大学', '吉林大学', '西安交通大学',
+					'哈尔滨工业大学', '电子科技大学', '东南大学', '四川大学', '中南大学'
+				],
+				localMajors: [
+					'计算机科学与技术', '软件工程', '人工智能', '数据科学与大数据技术',
+					'网络空间安全', '电子信息工程', '通信工程', '自动化', '机械工程',
+					'土木工程', '建筑学', '工商管理', '会计学', '金融学', '经济学',
+					'法学', '医学', '生物科学', '化学', '物理学', '数学', '英语',
+					'汉语言文学', '新闻学', '心理学', '教育学'
+				]
+			}
+		},
+		computed: {
+			/**
+			 * @description 过滤后的学校列表
+			 * @returns {Array} 过滤后的学校列表
+			 */
+			filteredSchools() {
+				if (!this.searchText) return this.schools.length > 0 ? this.schools : this.localSchools;
+				const keyword = this.searchText.toLowerCase();
+				return (this.schools.length > 0 ? this.schools : this.localSchools).filter(
+					school => school.toLowerCase().includes(keyword)
+				);
+			},
+			
+			/**
+			 * @description 过滤后的专业列表
+			 * @returns {Array} 过滤后的专业列表
+			 */
+			filteredMajors() {
+				if (!this.searchMajorText) return this.majors.length > 0 ? this.majors : this.localMajors;
+				const keyword = this.searchMajorText.toLowerCase();
+				return (this.majors.length > 0 ? this.majors : this.localMajors).filter(
+					major => major.toLowerCase().includes(keyword)
+				);
+			}
+		},
+		onLoad() {
+			this.loadSchools();
+			
+			// 检查是否有保存的数据，如果有则回显
+			const savedSchool = uni.getStorageSync('step2_school');
+			const savedMajor = uni.getStorageSync('step2_major');
+			
+			if (savedSchool) {
+				this.selectedSchool = savedSchool;
+				this.searchText = savedSchool;
+			}
+			
+			if (savedMajor) {
+				this.selectedMajor = savedMajor;
+				this.searchMajorText = savedMajor;
+			}
+		},
+		methods: {
+			/**
+			 * @description 加载学校列表
+			 */
+			async loadSchools() {
+				try {
+					uni.showLoading({
+						title: '加载中...'
+					});
+					
+					const result = await uniCloud.callFunction({
+						name: aiSelectionApis.getSchools,
+						data: {},
+						timeout: 10000 // 增加超时时间
+					}).catch(err => {
+						console.error('获取学校列表失败:', err);
+						return { result: { code: -1, msg: err.message } };
+					});
+					
+					uni.hideLoading();
+					
+					if (result.result && result.result.code === 0) {
+						this.schools = result.result.data || [];
+						console.log('获取到学校列表:', this.schools);
+					} else {
+						console.warn('使用本地学校列表');
+						this.schools = this.localSchools;
+					}
+				} catch (e) {
+					uni.hideLoading();
+					console.error('加载学校列表异常:', e);
+					// 使用本地备用数据
+					this.schools = this.localSchools;
+				}
+			},
+			
+			/**
+			 * @description 选择学校
+			 * @param {String} school - 选择的学校
+			 */
+			selectSchool(school) {
+				this.selectedSchool = school;
+				this.searchText = school;
+				this.showSchoolList = false;
+				uni.setStorageSync('step2_school', school);
+			},
+			
+			/**
+			 * @description 加载专业列表
+			 */
+			async loadMajors() {
+				try {
+					if (!this.selectedSchool) {
+						return;
+					}
+					
+					uni.showLoading({
+						title: '加载中...'
+					});
+					
+					const result = await uniCloud.callFunction({
+						name: aiSelectionApis.getMajors,
+						data: {},
+						timeout: 10000 // 增加超时时间
+					}).catch(err => {
+						console.error('获取专业列表失败:', err);
+						return { result: { code: -1, msg: err.message } };
+					});
+					
+					uni.hideLoading();
+					
+					if (result.result && result.result.code === 0) {
+						this.majors = result.result.data || [];
+						console.log('获取到专业列表:', this.majors);
+					} else {
+						console.warn('使用本地专业列表');
+						this.majors = this.localMajors;
+					}
+				} catch (e) {
+					uni.hideLoading();
+					console.error('加载专业列表异常:', e);
+					// 使用本地备用数据
+					this.majors = this.localMajors;
+				}
+			},
+			
+			/**
+			 * @description 选择专业
+			 * @param {String} major - 选择的专业
+			 */
+			selectMajor(major) {
+				this.selectedMajor = major;
+				this.searchMajorText = major;
+				this.showMajorList = false;
+				uni.setStorageSync('step2_major', major);
+			},
+			
+			/**
+			 * @description 返回上一步
+			 */
+			prevPage() {
+				uni.navigateBack();
+			},
+			
+			/**
+			 * @description 进入下一步
+			 */
+			nextPage() {
+				if (!this.selectedSchool) {
+					uni.showToast({
+						title: '请选择就读学校',
+						icon: 'none'
+					});
+					return;
+				}
+				
+				if (!this.selectedMajor) {
+					uni.showToast({
+						title: '请输入就读专业',
+						icon: 'none'
+					});
+					return;
+				}
+				
+				uni.navigateTo({
+					url: '/pages/ai/selection/step3'
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	.container {
+		padding: 30rpx;
+	}
+	
+	.progress-bar {
+		text-align: center;
+		margin-bottom: 40rpx;
+	}
+	
+	.progress-text {
+		font-size: 32rpx;
+		color: #FF9853;
+		background: #FFF;
+		padding: 10rpx 30rpx;
+		border-radius: 30rpx;
+	}
+	
+	.question-container {
+		margin-top: 40rpx;
+	}
+	
+	.emoji {
+		font-size: 48rpx;
+		margin-bottom: 20rpx;
+	}
+	
+	.question {
+		font-size: 36rpx;
+		font-weight: bold;
+		color: #333;
+		margin-bottom: 40rpx;
+		display: block;
+	}
+	
+	.second-question {
+		margin-top: 40rpx;
+	}
+	
+	.search-box {
+		margin: 20rpx 0;
+	}
+	
+	.search-input {
+		width: 100%;
+		height: 80rpx;
+		background: #F5F5F5;
+		border-radius: 40rpx;
+		padding: 0 30rpx;
+		font-size: 28rpx;
+	}
+	
+	.school-list {
+		max-height: 300rpx;
+		background: #FFFFFF;
+		border-radius: 20rpx;
+		box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+	}
+	
+	.school-item {
+		padding: 20rpx 30rpx;
+		font-size: 28rpx;
+		border-bottom: 1rpx solid #EEEEEE;
+	}
+	
+	.school-item:active {
+		background: #F5F5F5;
+	}
+	
+	.button-group {
+		position: fixed;
+		bottom: 40rpx;
+		left: 0;
+		right: 0;
+		padding: 0 30rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		gap: 20rpx;
+	}
+	
+	.prev-btn, .next-btn {
+		width: 45%;
+		height: 90rpx;
+		line-height: 90rpx;
+		border-radius: 45rpx;
+		font-size: 32rpx;
+	}
+	
+	.prev-btn {
+		background: #FFFFFF;
+		color: #007AFF;
+		border: 1rpx solid #007AFF;
+	}
+	
+	.next-btn {
+		background: #007AFF;
+		color: #FFFFFF;
+	}
+</style> 
