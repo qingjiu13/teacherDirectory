@@ -118,6 +118,26 @@ function parseStringStyle(cssText) {
   });
   return ret;
 }
+function normalizeClass$1(value) {
+  let res = "";
+  if (isString(value)) {
+    res = value;
+  } else if (isArray(value)) {
+    for (let i2 = 0; i2 < value.length; i2++) {
+      const normalized = normalizeClass$1(value[i2]);
+      if (normalized) {
+        res += normalized + " ";
+      }
+    }
+  } else if (isObject(value)) {
+    for (const name in value) {
+      if (value[name]) {
+        res += name + " ";
+      }
+    }
+  }
+  return res.trim();
+}
 const toDisplayString = (val) => {
   return isString(val) ? val : val == null ? "" : isArray(val) || isObject(val) && (val.toString === objectToString || !isFunction(val.toString)) ? JSON.stringify(val, replacer, 2) : String(val);
 };
@@ -337,6 +357,33 @@ function normalizeStyle(value) {
   } else {
     return normalizeStyle$1(value);
   }
+}
+function normalizeClass(value) {
+  let res = "";
+  const g2 = getGlobal$1();
+  if (g2 && g2.UTSJSONObject && value instanceof g2.UTSJSONObject) {
+    g2.UTSJSONObject.keys(value).forEach((key) => {
+      if (value[key]) {
+        res += key + " ";
+      }
+    });
+  } else if (value instanceof Map) {
+    value.forEach((value2, key) => {
+      if (value2) {
+        res += key + " ";
+      }
+    });
+  } else if (isArray(value)) {
+    for (let i2 = 0; i2 < value.length; i2++) {
+      const normalized = normalizeClass(value[i2]);
+      if (normalized) {
+        res += normalized + " ";
+      }
+    }
+  } else {
+    res = normalizeClass$1(value);
+  }
+  return res.trim();
 }
 const encode = encodeURIComponent;
 function stringifyQuery(obj, encodeStr = encode) {
@@ -5658,6 +5705,7 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
 const o$1 = (value, key) => vOn(value, key);
 const f$1 = (source, renderItem) => vFor(source, renderItem);
 const e$1 = (target, ...sources) => extend(target, ...sources);
+const n$1 = (value) => normalizeClass(value);
 const t$1 = (val) => toDisplayString(val);
 const p$1 = (props) => renderProps(props);
 const sei = setUniElementId;
@@ -7516,9 +7564,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.78.77.216,127.0.0.1";
+  const hosts = "100.81.1.13,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_Uitsa9";
+  const id = "mp-weixin_1CHjmK";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9144,6 +9192,24 @@ const pages = [
         titleNView: false
       })
     })
+  }),
+  new UTSJSONObject({
+    path: "pages/publish/editor",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "发布动态",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
+  }),
+  new UTSJSONObject({
+    path: "pages/post/detail",
+    style: new UTSJSONObject({
+      navigationBarTitleText: "帖子详情",
+      "app-plus": new UTSJSONObject({
+        titleNView: false
+      })
+    })
   })
 ];
 const tabBar = new UTSJSONObject({
@@ -9508,7 +9574,7 @@ class S {
 function T(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const b = true, E = "mp-weixin", P = T(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), C = E, A = T('{"address":["127.0.0.1","100.78.77.216"],"servePort":7001,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","E:/HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/unicloud/**/*.js"]}'), O = T('[{"provider":"aliyun","spaceName":"yanshilu-from-0-to-1","spaceId":"mp-802f6022-5817-472b-90ee-026bda58d0ce","clientSecret":"oB9/azLBf9WZR/8xL6vKhA==","endpoint":"https://api.next.bspapp.com"}]') || [];
+const b = true, E = "mp-weixin", P = T(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), C = E, A = T('{"address":["127.0.0.1","100.81.1.13"],"servePort":7001,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","E:/HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/unicloud/**/*.js"]}'), O = T('[{"provider":"aliyun","spaceName":"yanshilu-from-0-to-1","spaceId":"mp-802f6022-5817-472b-90ee-026bda58d0ce","clientSecret":"oB9/azLBf9WZR/8xL6vKhA==","endpoint":"https://api.next.bspapp.com"}]') || [];
 let N = "";
 try {
   N = "__UNI__92532B9";
@@ -12028,6 +12094,7 @@ exports.defineComponent = defineComponent;
 exports.e = e$1;
 exports.f = f$1;
 exports.index = index;
+exports.n = n$1;
 exports.o = o$1;
 exports.p = p$1;
 exports.resolveComponent = resolveComponent;

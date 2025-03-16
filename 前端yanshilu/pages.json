@@ -44,6 +44,24 @@
 					"titleNView": false
 				}
 			}
+		},
+		{
+			"path" : "pages/publish/editor",
+			"style" : {
+				"navigationBarTitleText" : "发布动态",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path" : "pages/post/detail",
+			"style" : {
+				"navigationBarTitleText" : "帖子详情",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
 		}
 	],
 	

@@ -7,6 +7,8 @@ if (!Math) {
   "./pages/publish/publish.js";
   "./pages/mine/mine.js";
   "./pages/match/match.js";
+  "./pages/publish/editor.js";
+  "./pages/post/detail.js";
 }
 const _sfc_main = common_vendor.defineComponent({
   onLaunch: function() {

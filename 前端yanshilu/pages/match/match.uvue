@@ -9,19 +9,40 @@
 		
 		<!-- 筛选区域 -->
 		<view class="filter-section">
-			<view class="filter-item" @click.stop="showNativeActionSheet('school')">
+			<view class="filter-item" :class="{ active: activeDropdown === 'school' }" @click.stop="toggleDropdown('school')">
 				<text class="filter-text">{{ selectedSchool || '请选择学校' }}</text>
 				<image class="dropdown-icon" :src="'/static/image/arrow_down.svg'" mode="aspectFit"></image>
+				
+				<!-- 学校下拉菜单 -->
+				<view class="dropdown-menu" v-if="activeDropdown === 'school'">
+					<view class="dropdown-item" :class="{ selected: selectedSchool === school }" v-for="(school, index) in schools" :key="index" @click.stop="selectFromDropdown('school', school)">
+						<text>{{ school }}</text>
+					</view>
+				</view>
 			</view>
 			
-			<view class="filter-item" @click.stop="showNativeActionSheet('major')">
+			<view class="filter-item" :class="{ active: activeDropdown === 'major' }" @click.stop="toggleDropdown('major')">
 				<text class="filter-text">{{ selectedMajor || '请选择专业' }}</text>
 				<image class="dropdown-icon" :src="'/static/image/arrow_down.svg'" mode="aspectFit"></image>
+				
+				<!-- 专业下拉菜单 -->
+				<view class="dropdown-menu" v-if="activeDropdown === 'major'">
+					<view class="dropdown-item" :class="{ selected: selectedMajor === major }" v-for="(major, index) in majors" :key="index" @click.stop="selectFromDropdown('major', major)">
+						<text>{{ major }}</text>
+					</view>
+				</view>
 			</view>
 			
-			<view class="filter-item" @click.stop="showNativeActionSheet('sort')">
+			<view class="filter-item" :class="{ active: activeDropdown === 'sort' }" @click.stop="toggleDropdown('sort')">
 				<text class="filter-text">{{ selectedSort || '排序筛选' }}</text>
 				<image class="dropdown-icon" :src="'/static/image/arrow_down.svg'" mode="aspectFit"></image>
+				
+				<!-- 排序下拉菜单 -->
+				<view class="dropdown-menu" v-if="activeDropdown === 'sort'">
+					<view class="dropdown-item" :class="{ selected: selectedSort === sort }" v-for="(sort, index) in ['综合排序', '评分排序']" :key="index" @click.stop="selectFromDropdown('sort', sort)">
+						<text>{{ sort }}</text>
+					</view>
+				</view>
 			</view>
 		</view>
 		
@@ -53,6 +74,67 @@
 			<view class="loading-content">
 				<text>正在连接中...</text>
 			</view>
+		</view>
+		
+		<!-- 教师详情弹窗 -->
+		<view class="teacher-detail-popup" v-if="showTeacherDetail">
+			<view class="popup-mask" @tap="closeTeacherDetail"></view>
+			<view class="popup-content">
+				<view class="teacher-header">
+					<image class="teacher-large-avatar" :src="currentTeacher.avatar || '/static/image/default_avatar.png'" mode="aspectFill"></image>
+					<view class="teacher-header-info">
+						<view class="teacher-header-name">{{ currentTeacher.nickname }}</view>
+						<view class="teacher-header-title">{{ currentTeacher.title }} | {{ currentTeacher.school }}</view>
+					</view>
+				</view>
+				
+				<view class="detail-tabs">
+					<view class="tab" :class="{ active: activeTab === 'chat' }" @tap="switchTab('chat')">
+						<text>聊天</text>
+					</view>
+					<view class="tab" :class="{ active: activeTab === 'profile' }" @tap="switchTab('profile')">
+						<text>老师详情</text>
+					</view>
+				</view>
+				
+				<view class="tab-content">
+					<view v-if="activeTab === 'chat'" class="chat-tip">
+						<button class="start-chat-btn" @tap="startChat">马上沟通</button>
+					</view>
+					
+					<view v-if="activeTab === 'profile'" class="profile-content">
+						<view class="profile-section">
+							<view class="section-title">专业背景</view>
+							<view class="section-content">{{ currentTeacher.background || '暂无介绍' }}</view>
+						</view>
+						
+						<view class="profile-section">
+							<view class="section-title">教学经验</view>
+							<view class="section-content">{{ currentTeacher.experience || '暂无介绍' }}</view>
+						</view>
+						
+						<view class="profile-section">
+							<view class="section-title">擅长领域</view>
+							<view class="section-content">
+								<view class="expertise-tags">
+									<view class="expertise-tag" v-for="(tag, index) in currentTeacher.expertise || []" :key="index">
+										{{ tag }}
+									</view>
+								</view>
+							</view>
+						</view>
+						
+						<button class="view-profile-btn" @tap="viewTeacherProfile">查看完整主页</button>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 匹配计时器 -->
+		<view class="matching-timer" v-if="isMatching">
+			<view class="timer-text">匹配中</view>
+			<view class="timer-countdown">{{ matchingTime }}秒</view>
+			<button class="cancel-btn" @tap="cancelMatching">取消匹配</button>
 		</view>
 		
 		<!-- 底部导航栏 -->
@@ -139,7 +221,14 @@
 						score: '考研385分',
 						tags: ['认证学校', '答疑及时']
 					}
-				]
+				],
+				showTeacherDetail: false,
+				currentTeacher: null,
+				activeTab: 'chat',
+				isMatching: false,
+				matchingTime: 60,
+				showCancelButton: true,
+				matchingTimer: null
 			}
 		},
 		computed: {
@@ -304,35 +393,36 @@
 					return;
 				}
 				
-				// 如果点击的不是筛选项或下拉菜单，则关闭所有下拉菜单
-				const target = event.target;
-				
 				// 使用原生DOM API判断点击元素
-				let isFilterItem = false;
-				let isDropdownMenu = false;
-				
-				// 向上查找父元素
-				let currentElement = target;
-				while (currentElement && currentElement !== document.body) {
-					if (currentElement.classList) {
-						if (currentElement.classList.contains('filter-item')) {
-							isFilterItem = true;
-							break;
+				try {
+					const target = event.target;
+					let isFilterItemOrDropdown = false;
+					
+					// 向上查找父元素
+					let currentElement = target;
+					while (currentElement && currentElement !== document.body) {
+						if (currentElement.classList) {
+							if (currentElement.classList.contains('filter-item') || 
+								currentElement.classList.contains('dropdown-menu') || 
+								currentElement.classList.contains('dropdown-item')) {
+								isFilterItemOrDropdown = true;
+								break;
+							}
 						}
-						if (currentElement.classList.contains('dropdown-menu')) {
-							isDropdownMenu = true;
-							break;
-						}
+						currentElement = currentElement.parentElement;
 					}
-					currentElement = currentElement.parentElement;
-				}
-				
-				// 如果点击的不是筛选项或下拉菜单，则关闭所有下拉菜单
-				if (!isFilterItem && !isDropdownMenu) {
-					console.log('点击了筛选区域外部，关闭所有下拉菜单');
+					
+					// 如果点击的不是筛选项或下拉菜单，则关闭所有下拉菜单
+					if (!isFilterItemOrDropdown) {
+						console.log('点击了筛选区域外部，关闭所有下拉菜单');
+						this.closeAllDropdowns();
+					} else {
+						console.log('点击了筛选或下拉菜单区域，保持菜单状态');
+					}
+				} catch (error) {
+					console.error('处理全局点击事件失败:', error);
+					// 出错时关闭所有下拉菜单（安全处理）
 					this.closeAllDropdowns();
-				} else {
-					console.log('点击了筛选区域，保持菜单状态');
 				}
 			},
 			
@@ -352,21 +442,14 @@
 				
 				// 更新下拉菜单状态
 				if (this.activeDropdown === dropdown) {
+					// 如果当前菜单已打开，则关闭
 					this.activeDropdown = '';
 					console.log('关闭下拉菜单:', dropdown);
 				} else {
+					// 关闭其他打开的菜单，打开当前菜单
 					this.activeDropdown = dropdown;
 					console.log('打开下拉菜单:', dropdown);
-					
-					// 延迟关闭其他可能的菜单（防止闪烁）
-					setTimeout(() => {
-						// 菜单已打开，确认一下
-						console.log('确认菜单状态:', this.activeDropdown);
-					}, 100);
 				}
-				
-				// 阻止事件继续传播
-				return false;
 			},
 			
 			/**
@@ -377,69 +460,51 @@
 			},
 			
 			/**
-			 * @description 选择学校
-			 * @param {String} school - 学校名称
+			 * @description 从下拉菜单中选择项目
+			 * @param {String} type - 类型（school、major、sort）
+			 * @param {String} value - 选择的值
 			 */
-			selectSchool(school) {
-				console.log('选择学校:', school);
-				this.selectedSchool = school;
+			selectFromDropdown(type, value) {
+				console.log(`选择${type}:`, value);
 				
-				// 关闭弹出框
-				this.$refs.schoolPopup.close();
-				
-				// 保存选择到本地存储
-				try {
-					uni.setStorageSync('selectedSchool', school);
-				} catch (e) {
-					console.error('保存学校选择失败', e);
+				// 根据类型设置选中的值
+				if (type === 'school') {
+					this.selectedSchool = value;
+					
+					// 保存选择到本地存储
+					try {
+						uni.setStorageSync('selectedSchool', value);
+					} catch (e) {
+						console.error('保存学校选择失败', e);
+					}
+					
+					console.log("已选择学校:", value);
+				} else if (type === 'major') {
+					this.selectedMajor = value;
+					
+					// 保存选择到本地存储
+					try {
+						uni.setStorageSync('selectedMajor', value);
+					} catch (e) {
+						console.error('保存专业选择失败', e);
+					}
+					
+					console.log("已选择专业:", value);
+				} else if (type === 'sort') {
+					this.selectedSort = value;
+					
+					// 保存选择到本地存储
+					try {
+						uni.setStorageSync('selectedSort', value);
+					} catch (e) {
+						console.error('保存排序选择失败', e);
+					}
+					
+					console.log("已选择排序方式:", value);
 				}
 				
-				// 选择学校后可能需要更新专业列表
-				// 示例: this.getMajorsBySchool(school);
-				
-				console.log("已选择学校:", school);
-			},
-			
-			/**
-			 * @description 选择专业
-			 * @param {String} major - 专业名称
-			 */
-			selectMajor(major) {
-				console.log('选择专业:', major);
-				this.selectedMajor = major;
-				
-				// 关闭弹出框
-				this.$refs.majorPopup.close();
-				
-				// 保存选择到本地存储
-				try {
-					uni.setStorageSync('selectedMajor', major);
-				} catch (e) {
-					console.error('保存专业选择失败', e);
-				}
-				
-				console.log("已选择专业:", major);
-			},
-			
-			/**
-			 * @description 选择排序方式
-			 * @param {String} sort - 排序方式
-			 */
-			selectSort(sort) {
-				console.log('选择排序方式:', sort);
-				this.selectedSort = sort;
-				
-				// 关闭弹出框
-				this.$refs.sortPopup.close();
-				
-				// 保存选择到本地存储
-				try {
-					uni.setStorageSync('selectedSort', sort);
-				} catch (e) {
-					console.error('保存排序选择失败', e);
-				}
-				
-				console.log("已选择排序方式:", sort);
+				// 关闭下拉菜单
+				this.closeAllDropdowns();
 			},
 			
 			/**
@@ -506,73 +571,264 @@
 			},
 			
 			/**
-			 * @description 显示原生操作表单
-			 * @param {String} type - 操作表单类型
+			 * @description 处理无匹配结果的情况
 			 */
-			showNativeActionSheet(type) {
-				console.log('显示选择操作表:', type);
-				
-				// 根据类型决定显示的选项
-				let itemList = [];
-				let titleText = '';
-				
-				if (type === 'school') {
-					itemList = this.schools;
-					titleText = '选择学校';
-				} else if (type === 'major') {
-					itemList = this.majors;
-					titleText = '选择专业';
-				} else if (type === 'sort') {
-					itemList = ['综合排序', '评分排序'];
-					titleText = '选择排序方式';
-				}
-				
-				// 打开原生操作表单
-				uni.showActionSheet({
-					title: titleText,
-					itemList: itemList,
+			handleNoMatchResult() {
+				// 显示相关推荐
+				uni.showModal({
+					title: '暂无精确匹配',
+					content: '是否查看相关推荐？（同专业其他学校或相关专业）',
+					confirmText: '查看推荐',
+					cancelText: '取消',
 					success: (res) => {
-						const selectedValue = itemList[res.tapIndex];
-						console.log('用户选择了:', selectedValue);
-						
-						// 根据类型设置选中的值
-						if (type === 'school') {
-							this.selectedSchool = selectedValue;
+						if (res.confirm) {
+							// 获取相关推荐
+							this.getRelatedTeachers();
+						} else {
+							// 用户取消，可以显示空状态
+							console.log('用户取消查看推荐');
+						}
+					}
+				});
+			},
+			
+			/**
+			 * @description 获取相关推荐教师
+			 */
+			getRelatedTeachers() {
+				// 显示加载状态
+				this.isLoading = true;
+				
+				// 准备参数（放宽筛选条件）
+				const params = {
+					major: this.selectedMajor || '',
+					isRelated: true // 标记为相关推荐请求
+				};
+				
+				// 调用API获取相关教师
+				uni.request({
+					url: '您的API地址/api/related-teachers',
+					method: 'GET',
+					data: params,
+					success: (res) => {
+						if (res.statusCode === 200 && res.data) {
+							this.teachers = res.data.teachers || [];
 							
-							// 保存选择到本地存储
-							try {
-								uni.setStorageSync('selectedSchool', selectedValue);
-							} catch (e) {
-								console.error('保存学校选择失败', e);
+							if (this.teachers.length > 0) {
+								uni.showToast({
+									title: '已显示相关推荐',
+									icon: 'none'
+								});
+							} else {
+								// 所有规则都失效的情况
+								this.startMatchingTimer();
 							}
-							
-							console.log("已选择学校:", selectedValue);
-						} else if (type === 'major') {
-							this.selectedMajor = selectedValue;
-							
-							// 保存选择到本地存储
-							try {
-								uni.setStorageSync('selectedMajor', selectedValue);
-							} catch (e) {
-								console.error('保存专业选择失败', e);
-							}
-							
-							console.log("已选择专业:", selectedValue);
-						} else if (type === 'sort') {
-							this.selectedSort = selectedValue;
-							
-							// 保存选择到本地存储
-							try {
-								uni.setStorageSync('selectedSort', selectedValue);
-							} catch (e) {
-								console.error('保存排序选择失败', e);
-							}
-							
-							console.log("已选择排序方式:", selectedValue);
 						}
 					},
-					fail: (err) => {
-						console.log('操作表单关闭:', err);
+					complete: () => {
+						this.isLoading = false;
+					}
+				});
+			},
+			
+			/**
+			 * @description 开始匹配计时器
+			 */
+			startMatchingTimer() {
+				// 显示匹配中状态
+				this.isMatching = true;
+				this.matchingTime = 60; // 60秒倒计时
+				this.showCancelButton = true;
+				
+				// 开始倒计时
+				this.matchingTimer = setInterval(() => {
+					this.matchingTime--;
+					
+					if (this.matchingTime <= 0) {
+						// 停止计时器
+						clearInterval(this.matchingTimer);
+						
+						// 显示优惠提示
+						this.showLongTermMatchingTip();
+					}
+				}, 1000);
+			},
+			
+			/**
+			 * @description 取消匹配
+			 */
+			cancelMatching() {
+				if (this.matchingTimer) {
+					clearInterval(this.matchingTimer);
+					this.matchingTimer = null;
+				}
+				
+				this.isMatching = false;
+				this.showCancelButton = false;
+				
+				uni.showToast({
+					title: '已取消匹配',
+					icon: 'none'
+				});
+			},
+			
+			/**
+			 * @description 显示长期匹配提示
+			 */
+			showLongTermMatchingTip() {
+				this.isMatching = false;
+				
+				uni.showModal({
+					title: '匹配超时',
+					content: '我们将在后台继续为您匹配合适的老师，并提供优惠。是否继续等待？',
+					confirmText: '继续等待',
+					cancelText: '取消',
+					success: (res) => {
+						if (res.confirm) {
+							// 发送后台长期匹配请求
+							this.startLongTermMatching();
+						} else {
+							// 用户取消
+							uni.showToast({
+								title: '已取消匹配',
+								icon: 'none'
+							});
+						}
+					}
+				});
+			},
+			
+			/**
+			 * @description 开始后台长期匹配
+			 */
+			startLongTermMatching() {
+				// 调用API启动后台匹配任务
+				uni.request({
+					url: '您的API地址/api/long-term-matching',
+					method: 'POST',
+					data: {
+						school: this.selectedSchool,
+						major: this.selectedMajor,
+						userId: '当前用户ID' // 需要从全局状态或存储中获取
+					},
+					success: (res) => {
+						if (res.statusCode === 200) {
+							uni.showToast({
+								title: '已启动后台匹配',
+								icon: 'none'
+							});
+						}
+					}
+				});
+			},
+			
+			/**
+			 * @description 打开教师详情弹窗
+			 * @param {Object} teacher - 教师对象
+			 */
+			showTeacherDetailPopup(teacher) {
+				this.currentTeacher = teacher;
+				this.showTeacherDetail = true;
+				this.activeTab = 'chat'; // 默认显示聊天选项卡
+			},
+			
+			/**
+			 * @description 关闭教师详情弹窗
+			 */
+			closeTeacherDetail() {
+				this.showTeacherDetail = false;
+			},
+			
+			/**
+			 * @description 切换选项卡
+			 * @param {String} tab - 选项卡名称
+			 */
+			switchTab(tab) {
+				this.activeTab = tab;
+			},
+			
+			/**
+			 * @description 开始聊天
+			 */
+			startChat() {
+				// 关闭弹窗
+				this.closeTeacherDetail();
+				
+				// 调用Box-IM打开聊天
+				if (this.currentTeacher) {
+					this.handleCommunicate(this.currentTeacher.id);
+				}
+			},
+			
+			/**
+			 * @description 查看教师完整主页
+			 */
+			viewTeacherProfile() {
+				if (this.currentTeacher) {
+					// 导航到教师主页
+					uni.navigateTo({
+						url: `/pages/teacher/profile?id=${this.currentTeacher.id}`
+					});
+				}
+			},
+			
+			/**
+			 * @description 监听滚动到底部
+			 */
+			onReachBottom() {
+				// 如果不是在匹配中状态且列表有内容
+				if (!this.isMatching && this.filteredTeachers.length > 0) {
+					// 如果已经加载完所有数据
+					if (this.isAllLoaded) {
+						uni.showToast({
+							title: '已经到底啦~',
+							icon: 'none'
+						});
+					} else {
+						// 加载更多数据
+						this.loadMoreTeachers();
+					}
+				}
+			},
+			
+			/**
+			 * @description 加载更多教师数据
+			 */
+			loadMoreTeachers() {
+				if (this.isLoadingMore) return;
+				
+				this.isLoadingMore = true;
+				this.page++;
+				
+				// 准备参数
+				const params = {
+					page: this.page,
+					pageSize: this.pageSize,
+					school: this.selectedSchool || '',
+					major: this.selectedMajor || '',
+					sortType: this.selectedSort || '综合排序'
+				};
+				
+				// 调用API加载更多
+				uni.request({
+					url: '您的API地址/api/teachers',
+					method: 'GET',
+					data: params,
+					success: (res) => {
+						if (res.statusCode === 200 && res.data) {
+							const newTeachers = res.data.teachers || [];
+							
+							if (newTeachers.length > 0) {
+								// 添加新数据到列表
+								this.teachers = [...this.teachers, ...newTeachers];
+							} else {
+								// 没有更多数据
+								this.isAllLoaded = true;
+							}
+						}
+					},
+					complete: () => {
+						this.isLoadingMore = false;
 					}
 				});
 			}
@@ -644,26 +900,23 @@
 		transform: rotate(180deg);
 	}
 	
+	/* 下拉菜单样式 */
 	.dropdown-menu {
 		position: absolute;
-		top: 100%;
+		top: 100%; /* 从点击位置下方开始展示 */
 		left: 0;
 		width: 100%;
 		background-color: #ffffff;
 		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-		z-index: 2001; /* 增加z-index确保显示在最顶层 */
+		z-index: 2001;
 		border-radius: 4px;
 		max-height: 200px;
 		overflow-y: auto;
 		margin-top: 5px;
+		animation: dropdownFadeIn 0.2s ease-out;
 	}
 	
-	/* 使用更简单的过渡效果 */
-	.dropdown-menu[style*="display: block"] {
-		animation: fadeIn 0.2s ease;
-	}
-	
-	@keyframes fadeIn {
+	@keyframes dropdownFadeIn {
 		from {
 			opacity: 0;
 			transform: translateY(-10px);
@@ -800,5 +1053,189 @@
 		background-color: #ffffff;
 		padding: 20px;
 		border-radius: 8px;
+	}
+	
+	/* 匹配计时器样式 */
+	.matching-timer {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 20px;
+		background-color: #ffffff;
+		border-radius: 8px;
+		margin: 15px;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	}
+	
+	.timer-text {
+		font-size: 16px;
+		color: #333333;
+		margin-bottom: 10px;
+	}
+	
+	.timer-countdown {
+		font-size: 24px;
+		color: #007aff;
+		font-weight: bold;
+		margin: 10px 0;
+	}
+	
+	.cancel-btn {
+		margin-top: 15px;
+		padding: 8px 20px;
+		background-color: #f5f5f5;
+		color: #666666;
+		border-radius: 20px;
+		font-size: 14px;
+	}
+	
+	/* 教师详情弹窗样式 */
+	.teacher-detail-popup {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 9999;
+	}
+	
+	.popup-mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.5);
+	}
+	
+	.popup-content {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background-color: #ffffff;
+		border-top-left-radius: 16px;
+		border-top-right-radius: 16px;
+		padding-bottom: 20px;
+		max-height: 80%;
+		overflow-y: auto;
+	}
+	
+	.teacher-header {
+		display: flex;
+		padding: 20px;
+		border-bottom: 1px solid #eeeeee;
+	}
+	
+	.teacher-large-avatar {
+		width: 80px;
+		height: 80px;
+		border-radius: 40px;
+		margin-right: 15px;
+	}
+	
+	.teacher-header-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	
+	.teacher-header-name {
+		font-size: 18px;
+		font-weight: bold;
+		color: #333333;
+		margin-bottom: 5px;
+	}
+	
+	.teacher-header-title {
+		font-size: 14px;
+		color: #666666;
+	}
+	
+	.detail-tabs {
+		display: flex;
+		border-bottom: 1px solid #eeeeee;
+	}
+	
+	.tab {
+		flex: 1;
+		text-align: center;
+		padding: 15px 0;
+		position: relative;
+	}
+	
+	.tab.active {
+		color: #007aff;
+		font-weight: bold;
+	}
+	
+	.tab.active:after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 20px;
+		height: 3px;
+		background-color: #007aff;
+		border-radius: 3px;
+	}
+	
+	.tab-content {
+		padding: 20px;
+	}
+	
+	.chat-tip {
+		text-align: center;
+		margin-bottom: 20px;
+	}
+	
+	.start-chat-btn, .view-profile-btn {
+		width: 100%;
+		height: 45px;
+		line-height: 45px;
+		background-color: #007aff;
+		color: #ffffff;
+		font-size: 16px;
+		border-radius: 22px;
+		text-align: center;
+		margin-top: 20px;
+	}
+	
+	.profile-content {
+		margin-bottom: 20px;
+	}
+	
+	.profile-section {
+		margin-bottom: 20px;
+	}
+	
+	.section-title {
+		font-size: 16px;
+		color: #333333;
+		font-weight: bold;
+		margin-bottom: 10px;
+	}
+	
+	.section-content {
+		font-size: 14px;
+		color: #666666;
+		line-height: 1.5;
+	}
+	
+	.expertise-tags {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	
+	.expertise-tag {
+		padding: 5px 10px;
+		background-color: #f0f7ff;
+		color: #007aff;
+		border-radius: 15px;
+		margin-right: 10px;
+		margin-bottom: 10px;
+		font-size: 12px;
 	}
 </style> 

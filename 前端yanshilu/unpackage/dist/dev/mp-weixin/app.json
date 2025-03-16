@@ -4,7 +4,9 @@
     "pages/message/message",
     "pages/publish/publish",
     "pages/mine/mine",
-    "pages/match/match"
+    "pages/match/match",
+    "pages/publish/editor",
+    "pages/post/detail"
   ],
   "window": {
     "navigationBarTextStyle": "black",

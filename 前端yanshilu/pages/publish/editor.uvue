@@ -1,0 +1,902 @@
+<template>
+  <view class="container">
+    <view class="header">
+      <view class="back-button" @tap="goBack">
+        <text>←</text>
+      </view>
+      <text class="header-title">{{isDraft ? '编辑草稿' : '发布新动态'}}</text>
+    </view>
+    
+    <view class="form-content">
+      <!-- 标题输入 -->
+      <view class="input-section">
+        <view class="tag-row">
+          <view class="tag-selection" @tap="showTagSelector">
+            <text class="tag-text">{{selectedCategory}}</text>
+            <image class="tag-arrow" src="/static/image/arrow_down.svg" mode="aspectFit"></image>
+          </view>
+          <view class="tag-item" v-for="(tag, index) in selectedTags" :key="index">
+            <text>{{tag}}</text>
+            <text class="tag-remove" @tap="removeTag(index)">×</text>
+          </view>
+          <view class="add-tag" @tap="showTagPrompt" v-if="selectedTags.length < 3">
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 内容输入 -->
+      <textarea 
+        class="content-input" 
+        placeholder="请输入想要分享的内容..." 
+        v-model="postContent"
+        maxlength="2000"
+        auto-focus="false"
+        auto-height="true"
+      ></textarea>
+      
+      <!-- 字数统计 -->
+      <view class="word-count">
+        <text>{{postContent.length}}/2000</text>
+      </view>
+      
+      <!-- 图片上传区域 -->
+      <view class="upload-section">
+        <!-- 已上传图片预览 -->
+        <view class="uploaded-images">
+          <view class="image-item" v-for="(image, index) in images" :key="index">
+            <image class="preview-image" :src="image" mode="aspectFill"></image>
+            <view class="delete-btn" @tap.stop="deleteImage(index)">×</view>
+          </view>
+          
+          <!-- 图片上传按钮，最多9张图片 -->
+          <view class="image-upload-btn" @tap="chooseImage" v-if="images.length < 9">
+            <text class="upload-icon">+</text>
+            <text class="upload-text">添加图片</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 底部按钮区域 -->
+    <view class="bottom-actions">
+      <button class="action-btn save-btn" @tap="saveAsDraft">保存草稿</button>
+      <button class="action-btn publish-btn" @tap="publishPost" :disabled="!postContent.trim()">发布</button>
+    </view>
+  </view>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        postTitle: '',
+        postContent: '',
+        selectedCategory: '专业课',
+        selectedTags: [],
+        images: [],
+        userInfo: null,
+        isDraft: false,
+        draftId: null
+      }
+    },
+    // 组件初始化
+    onLoad(options) {
+      // 检查是否是编辑草稿
+      if (options.draftId) {
+        this.draftId = options.draftId;
+        this.loadDraft(options.draftId);
+      }
+      
+      // 获取用户信息
+      this.getUserInfo();
+    },
+    // 页面显示
+    onShow() {
+      // 检测草稿内容
+      if (!this.isDraft && !this.draftId) {
+        this.checkAutoSaveDraft();
+      }
+    },
+    // 页面隐藏
+    onHide() {
+      // 自动保存草稿
+      this.autoSaveDraft();
+    },
+    methods: {
+      /**
+       * @description 获取用户信息
+       */
+      getUserInfo() {
+        // 使用模拟数据
+        this.userInfo = {
+          id: 100,
+          nickname: '考研学生',
+          avatar: '/static/image/default_avatar.png',
+          school: '清华大学',
+          major: '计算机科学'
+        };
+        
+        // 实际API调用(暂时注释)
+        /*
+        uni.request({
+          url: 'YOUR_API_URL/user/info',
+          method: 'GET',
+          success: (res) => {
+            if (res.statusCode === 200 && res.data) {
+              this.userInfo = res.data;
+            }
+          },
+          fail: (err) => {
+            console.error('获取用户信息失败:', err);
+          }
+        });
+        */
+      },
+      
+      /**
+       * @description 返回上一页
+       */
+      goBack() {
+        if (this.postContent || this.images.length > 0) {
+          uni.showModal({
+            title: '提示',
+            content: '是否保存为草稿？',
+            cancelText: '不保存',
+            confirmText: '保存',
+            success: (res) => {
+              if (res.confirm) {
+                this.saveAsDraft();
+              } else {
+                uni.navigateBack({
+                  delta: 1,
+                  fail: () => {
+                    // 如果返回失败，尝试使用reLaunch
+                    uni.reLaunch({
+                      url: '/pages/publish/publish'
+                    });
+                  }
+                });
+              }
+            }
+          });
+        } else {
+          uni.navigateBack({
+            delta: 1,
+            fail: () => {
+              // 如果返回失败，尝试使用reLaunch
+              uni.reLaunch({
+                url: '/pages/publish/publish'
+              });
+            }
+          });
+        }
+      },
+      
+      /**
+       * @description 显示标签选择器
+       */
+      showTagSelector() {
+        uni.showActionSheet({
+          itemList: ['专业课', '数学', '英语', '政治', '历史', '地理', '物理', '化学', '生物'],
+          success: (res) => {
+            const selectedIndex = res.tapIndex;
+            this.selectedCategory = ['专业课', '数学', '英语', '政治', '历史', '地理', '物理', '化学', '生物'][selectedIndex];
+          }
+        });
+      },
+      
+      /**
+       * @description 显示添加标签提示框
+       */
+      showTagPrompt() {
+        uni.showModal({
+          title: '添加标签',
+          content: '添加一个标签，方便他人查找（15字以内）',
+          editable: true,
+          placeholderText: '如：复习方法',
+          success: (res) => {
+            if (res.confirm && res.content) {
+              // 标签去重和长度限制
+              if (res.content.length > 15) {
+                uni.showToast({
+                  title: '标签过长',
+                  icon: 'none'
+                });
+                return;
+              }
+              
+              // 标签最多3个
+              if (this.selectedTags.length >= 3) {
+                uni.showToast({
+                  title: '最多添加3个标签',
+                  icon: 'none'
+                });
+                return;
+              }
+              
+              // 检查重复
+              if (this.selectedTags.includes(res.content)) {
+                uni.showToast({
+                  title: '标签已存在',
+                  icon: 'none'
+                });
+                return;
+              }
+              
+              // 添加标签
+              this.selectedTags.push(res.content);
+            }
+          }
+        });
+      },
+      
+      /**
+       * @description 移除标签
+       * @param {Number} index - 标签索引
+       */
+      removeTag(index) {
+        this.selectedTags.splice(index, 1);
+      },
+      
+      /**
+       * @description 选择图片
+       */
+      chooseImage() {
+        uni.chooseImage({
+          count: 9 - this.images.length, // 最多9张图片
+          sizeType: ['compressed'],
+          sourceType: ['album', 'camera'],
+          success: (res) => {
+            // 检查图片内容
+            this.checkImageContent(res.tempFilePaths);
+          }
+        });
+      },
+      
+      /**
+       * @description 检查图片内容(防止二维码等)
+       * @param {Array} imagePaths - 图片路径数组 
+       */
+      checkImageContent(imagePaths) {
+        // 模拟图片内容检查
+        // 实际应用中需要调用后端API进行检查
+        setTimeout(() => {
+          // 添加图片
+          this.images = [...this.images, ...imagePaths];
+          
+          // 超过9张则截取
+          if (this.images.length > 9) {
+            this.images = this.images.slice(0, 9);
+          }
+        }, 500);
+      },
+      
+      /**
+       * @description 删除图片
+       * @param {Number} index - 图片索引
+       */
+      deleteImage(index) {
+        this.images.splice(index, 1);
+      },
+      
+      /**
+       * @description 保存为草稿
+       */
+      saveAsDraft() {
+        // 检查是否有内容
+        if (!this.postContent && this.images.length === 0) {
+          uni.showToast({
+            title: '请先输入内容',
+            icon: 'none'
+          });
+          return;
+        }
+        
+        // 构建草稿数据
+        const draftData = {
+          id: this.draftId || null,
+          title: this.postTitle,
+          content: this.postContent,
+          category: this.selectedCategory,
+          tags: this.selectedTags,
+          images: this.images,
+          updateTime: new Date().getTime()
+        };
+        
+        // 模拟接口保存草稿
+        uni.showLoading({
+          title: '保存中...'
+        });
+        
+        setTimeout(() => {
+          uni.hideLoading();
+          uni.showToast({
+            title: '草稿保存成功',
+            icon: 'success'
+          });
+          
+          // 如果是新建草稿，生成一个模拟ID
+          if (!this.draftId) {
+            this.draftId = new Date().getTime().toString();
+          }
+          
+          // 延迟返回
+          setTimeout(() => {
+            uni.navigateBack({
+              delta: 1,
+              fail: () => {
+                // 如果返回失败，尝试使用reLaunch
+                uni.reLaunch({
+                  url: '/pages/publish/publish'
+                });
+              }
+            });
+          }, 1000);
+        }, 800);
+        
+        // 实际API调用(暂时注释)
+        /*
+        uni.request({
+          url: 'YOUR_API_URL/post/draft',
+          method: 'POST',
+          data: draftData,
+          success: (res) => {
+            if (res.statusCode === 200) {
+              uni.showToast({
+                title: '草稿保存成功',
+                icon: 'success'
+              });
+              
+              // 如果是新建草稿，保存返回的ID
+              if (!this.draftId && res.data && res.data.id) {
+                this.draftId = res.data.id;
+              }
+              
+              // 延迟返回
+              setTimeout(() => {
+                uni.navigateBack();
+              }, 1000);
+            } else {
+              uni.showToast({
+                title: '草稿保存失败',
+                icon: 'none'
+              });
+            }
+          },
+          fail: () => {
+            uni.showToast({
+              title: '网络异常',
+              icon: 'none'
+            });
+          }
+        });
+        */
+      },
+      
+      /**
+       * @description 自动保存草稿(本地)
+       */
+      autoSaveDraft() {
+        if (this.postContent || this.images.length > 0) {
+          try {
+            uni.setStorageSync('post_draft_auto', {
+              content: this.postContent,
+              category: this.selectedCategory,
+              tags: this.selectedTags,
+              images: this.images,
+              updateTime: new Date().getTime()
+            });
+          } catch (e) {
+            console.error('自动保存草稿失败', e);
+          }
+        }
+      },
+      
+      /**
+       * @description 检查自动保存的草稿
+       */
+      checkAutoSaveDraft() {
+        try {
+          const autoDraft = uni.getStorageSync('post_draft_auto');
+          if (autoDraft && autoDraft.updateTime) {
+            const timeAgo = Math.floor((new Date().getTime() - autoDraft.updateTime) / 60000); // 分钟
+            
+            if (timeAgo < 60) { // 1小时内的草稿
+              uni.showModal({
+                title: '发现未发布的内容',
+                content: `您有${timeAgo}分钟前编辑的内容未发布，是否继续编辑？`,
+                success: (res) => {
+                  if (res.confirm) {
+                    this.postContent = autoDraft.content || '';
+                    this.selectedCategory = autoDraft.category || '专业课';
+                    this.selectedTags = autoDraft.tags || [];
+                    this.images = autoDraft.images || [];
+                  } else {
+                    // 清除草稿
+                    uni.removeStorageSync('post_draft_auto');
+                  }
+                }
+              });
+            } else {
+              // 草稿太旧，自动清除
+              uni.removeStorageSync('post_draft_auto');
+            }
+          }
+        } catch (e) {
+          console.error('检查自动草稿失败', e);
+        }
+      },
+      
+      /**
+       * @description 加载草稿内容
+       * @param {String} draftId - 草稿ID
+       */
+      loadDraft(draftId) {
+        // 模拟加载草稿
+        setTimeout(() => {
+          const mockDraft = {
+            title: '考研复习经验分享',
+            content: '分享一下我的考研经验，希望对大家有所帮助...',
+            category: '专业课',
+            tags: ['复习方法', '时间规划'],
+            images: []
+          };
+          
+          this.postTitle = mockDraft.title;
+          this.postContent = mockDraft.content;
+          this.selectedCategory = mockDraft.category;
+          this.selectedTags = mockDraft.tags;
+          this.images = mockDraft.images;
+          this.isDraft = true;
+        }, 500);
+        
+        // 实际API调用(暂时注释)
+        /*
+        uni.request({
+          url: `YOUR_API_URL/post/draft/${draftId}`,
+          method: 'GET',
+          success: (res) => {
+            if (res.statusCode === 200 && res.data) {
+              const draft = res.data;
+              this.postTitle = draft.title || '';
+              this.postContent = draft.content || '';
+              this.selectedCategory = draft.category || '专业课';
+              this.selectedTags = draft.tags || [];
+              this.images = draft.images || [];
+              this.isDraft = true;
+            }
+          },
+          fail: (err) => {
+            console.error('加载草稿失败:', err);
+            uni.showToast({
+              title: '草稿加载失败',
+              icon: 'none'
+            });
+          }
+        });
+        */
+      },
+      
+      /**
+       * @description 发布帖子
+       */
+      publishPost() {
+        // 内容检查
+        if (!this.postContent) {
+          uni.showToast({
+            title: '请输入内容',
+            icon: 'none'
+          });
+          return;
+        }
+        
+        // 模拟内容检测和发布过程
+        uni.showLoading({
+          title: '发布中...'
+        });
+        
+        setTimeout(() => {
+          uni.hideLoading();
+          uni.showToast({
+            title: '发布成功',
+            icon: 'success'
+          });
+          
+          // 清除自动保存的草稿
+          uni.removeStorageSync('post_draft_auto');
+          
+          // 延迟返回
+          setTimeout(() => {
+            uni.navigateBack({
+              delta: 1,
+              fail: () => {
+                // 如果返回失败，尝试使用reLaunch
+                uni.reLaunch({
+                  url: '/pages/publish/publish'
+                });
+              }
+            });
+          }, 1000);
+        }, 1500);
+        
+        // 注释掉原来的实现
+        /*
+        // 内容检测
+        this.checkContent(() => {
+          // 显示加载中
+          uni.showLoading({
+            title: '发布中...'
+          });
+          
+          // 先上传图片
+          this.uploadImages((imageUrls) => {
+            // 构建发布数据
+            const postData = {
+              title: this.postTitle || this.selectedCategory, // 如果没有标题，使用分类作为标题
+              content: this.postContent,
+              category: this.selectedCategory,
+              tags: this.selectedTags,
+              images: imageUrls,
+              draftId: this.draftId // 如果是草稿，提供草稿ID以便发布后删除
+            };
+            
+            // 调用接口发布帖子
+            uni.request({
+              url: 'YOUR_API_URL/post/publish',
+              method: 'POST',
+              data: postData,
+              success: (res) => {
+                uni.hideLoading();
+                
+                if (res.statusCode === 200) {
+                  uni.showToast({
+                    title: '发布成功',
+                    icon: 'success'
+                  });
+                  
+                  // 清除自动保存的草稿
+                  uni.removeStorageSync('post_draft_auto');
+                  
+                  // 延迟返回
+                  setTimeout(() => {
+                    uni.navigateBack();
+                  }, 1000);
+                } else {
+                  uni.showToast({
+                    title: res.data.message || '发布失败',
+                    icon: 'none'
+                  });
+                }
+              },
+              fail: () => {
+                uni.hideLoading();
+                uni.showToast({
+                  title: '网络异常',
+                  icon: 'none'
+                });
+              }
+            });
+          });
+        });
+        */
+      },
+      
+      /**
+       * @description 检查内容是否合规(无二维码、手机号、微信号)
+       * @param {Function} callback - 检查通过后的回调
+       */
+      checkContent(callback) {
+        // 正则表达式检查手机号和微信号
+        const phoneRegex = /1[3-9]\d{9}/g;
+        const wechatRegex = /(微信|wx|weixin)[: ]*([a-zA-Z0-9_-]{6,20})/gi;
+        
+        if (phoneRegex.test(this.postContent) || wechatRegex.test(this.postContent)) {
+          uni.showToast({
+            title: '内容含有联系方式，请修改后重试',
+            icon: 'none'
+          });
+          return;
+        }
+        
+        // 调用后端API进行更复杂的内容检查
+        uni.request({
+          url: 'YOUR_API_URL/content/check',
+          method: 'POST',
+          data: {
+            content: this.postContent
+          },
+          success: (res) => {
+            if (res.statusCode === 200 && res.data.valid) {
+              callback && callback();
+            } else {
+              uni.showToast({
+                title: res.data.message || '内容不合规，请修改后重试',
+                icon: 'none'
+              });
+            }
+          },
+          fail: () => {
+            uni.showToast({
+              title: '网络异常，请稍后再试',
+              icon: 'none'
+            });
+          }
+        });
+      },
+      
+      /**
+       * @description 上传图片
+       * @param {Function} callback - 上传完成后的回调，参数为图片URL数组
+       */
+      uploadImages(callback) {
+        if (this.images.length === 0) {
+          callback && callback([]);
+          return;
+        }
+        
+        const uploadedUrls = [];
+        let uploadCount = 0;
+        
+        // 显示上传进度
+        uni.showLoading({
+          title: `上传图片 0/${this.images.length}`
+        });
+        
+        // 逐个上传图片
+        this.images.forEach((path) => {
+          uni.uploadFile({
+            url: 'YOUR_API_URL/upload/image',
+            filePath: path,
+            name: 'file',
+            success: (res) => {
+              uploadCount++;
+              
+              // 更新进度
+              uni.showLoading({
+                title: `上传图片 ${uploadCount}/${this.images.length}`
+              });
+              
+              // 解析响应
+              if (res.statusCode === 200) {
+                try {
+                  const data = JSON.parse(res.data);
+                  if (data.url) {
+                    uploadedUrls.push(data.url);
+                  }
+                } catch (e) {
+                  console.error('解析上传响应失败', e);
+                }
+              }
+              
+              // 所有图片上传完成
+              if (uploadCount === this.images.length) {
+                uni.hideLoading();
+                callback && callback(uploadedUrls);
+              }
+            },
+            fail: () => {
+              uploadCount++;
+              
+              // 更新进度
+              uni.showLoading({
+                title: `上传图片 ${uploadCount}/${this.images.length}`
+              });
+              
+              // 所有图片上传完成
+              if (uploadCount === this.images.length) {
+                uni.hideLoading();
+                callback && callback(uploadedUrls);
+              }
+            }
+          });
+        });
+      }
+    }
+  }
+</script>
+
+<style>
+  .container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #ffffff;
+  }
+  
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eeeeee;
+  }
+  
+  .back-button {
+    padding: 5px 10px;
+    font-size: 20px;
+  }
+  
+  .header-title {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+  }
+  
+  .form-content {
+    padding: 15px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .input-section {
+    margin-bottom: 15px;
+  }
+  
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+  }
+  
+  .tag-selection {
+    display: flex;
+    align-items: center;
+    padding: 5px 15px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #eeeeee;
+    border-radius: 20px;
+    font-size: 14px;
+    background-color: #f8f8f8;
+  }
+  
+  .tag-text {
+    margin-right: 5px;
+    color: #333;
+  }
+  
+  .tag-arrow {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .tag-item {
+    padding: 5px 15px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #eeeeee;
+    border-radius: 20px;
+    font-size: 14px;
+    background-color: #f0f0f0;
+  }
+  
+  .tag-remove {
+    margin-left: 5px;
+    color: #999;
+    cursor: pointer;
+  }
+  
+  .add-tag {
+    padding: 5px 15px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #eeeeee;
+    border-radius: 20px;
+    font-size: 14px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+  
+  .content-input {
+    width: 100%;
+    min-height: 200px;
+    padding: 10px;
+    font-size: 15px;
+    line-height: 1.5;
+    border: 1px solid #eeeeee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+  }
+  
+  .word-count {
+    text-align: right;
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 15px;
+  }
+  
+  .upload-section {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  
+  .image-upload-btn {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px dashed #cccccc;
+    border-radius: 8px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .upload-icon {
+    font-size: 30px;
+    color: #999999;
+  }
+  
+  .upload-text {
+    margin-top: 5px;
+    color: #999;
+  }
+  
+  .uploaded-images {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .image-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 22px;
+    height: 22px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-size: 16px;
+    text-align: center;
+    line-height: 22px;
+    border-radius: 0 0 0 8px;
+  }
+  
+  .bottom-actions {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #eeeeee;
+    background-color: #ffffff;
+  }
+  
+  .action-btn {
+    flex: 1;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 20px;
+    font-size: 16px;
+  }
+  
+  .save-btn {
+    background-color: #f5f5f5;
+    color: #333333;
+    margin-right: 15px;
+  }
+  
+  .publish-btn {
+    background-color: #007aff;
+    color: #ffffff;
+  }
+</style>
