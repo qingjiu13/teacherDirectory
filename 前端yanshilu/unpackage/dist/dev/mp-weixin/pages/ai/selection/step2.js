@@ -161,25 +161,28 @@ const _sfc_main = common_vendor.defineComponent({
             title: "加载中..."
           });
           const result = yield common_vendor.Zs.callFunction({
-            name: config.aiSelectionApis.getMajors,
-            data: new UTSJSONObject({}),
+            name: config.aiSelectionApis.getUndergraduateMajors,
+            data: new UTSJSONObject({
+              school: this.selectedSchool
+              // 传入学校参数
+            }),
             timeout: 1e4
             // 增加超时时间
           }).catch((err = null) => {
-            common_vendor.index.__f__("error", "at pages/ai/selection/step2.uvue:208", "获取专业列表失败:", err);
+            common_vendor.index.__f__("error", "at pages/ai/selection/step2.uvue:210", "获取专业列表失败:", err);
             return new UTSJSONObject({ result: new UTSJSONObject({ code: -1, msg: err.message }) });
           });
           common_vendor.index.hideLoading();
           if (result.result && result.result.code === 0) {
             this.majors = result.result.data || [];
-            common_vendor.index.__f__("log", "at pages/ai/selection/step2.uvue:216", "获取到专业列表:", this.majors);
+            common_vendor.index.__f__("log", "at pages/ai/selection/step2.uvue:219", "获取到专业列表:", this.majors);
           } else {
-            common_vendor.index.__f__("warn", "at pages/ai/selection/step2.uvue:218", "使用本地专业列表");
+            common_vendor.index.__f__("warn", "at pages/ai/selection/step2.uvue:221", "使用本地专业列表");
             this.majors = this.localMajors;
           }
         } catch (e) {
           common_vendor.index.hideLoading();
-          common_vendor.index.__f__("error", "at pages/ai/selection/step2.uvue:223", "加载专业列表异常:", e);
+          common_vendor.index.__f__("error", "at pages/ai/selection/step2.uvue:226", "加载专业列表异常:", e);
           this.majors = this.localMajors;
         }
       });

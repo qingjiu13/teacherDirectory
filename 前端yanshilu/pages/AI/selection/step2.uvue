@@ -201,8 +201,10 @@
 					});
 					
 					const result = await uniCloud.callFunction({
-						name: aiSelectionApis.getMajors,
-						data: {},
+						name: aiSelectionApis.getUndergraduateMajors, // 使用获取本科专业的接口
+						data: {
+							school: this.selectedSchool // 传入学校参数
+						},
 						timeout: 10000 // 增加超时时间
 					}).catch(err => {
 						console.error('获取专业列表失败:', err);
@@ -212,6 +214,7 @@
 					uni.hideLoading();
 					
 					if (result.result && result.result.code === 0) {
+						// 本科专业列表是简单的字符串数组
 						this.majors = result.result.data || [];
 						console.log('获取到专业列表:', this.majors);
 					} else {

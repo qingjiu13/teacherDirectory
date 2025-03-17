@@ -38,7 +38,11 @@ export const aiSelectionRoutes = {
 export const aiSelectionApis = {
     // 获取学校列表
     getSchools: 'getSchools',
-    // 获取专业列表
+    // 获取本科专业列表（简单字符串数组）
+    getUndergraduateMajors: 'getUndergraduateMajors',
+    // 获取研究生专业列表（包含编号和类别）
+    getGraduateMajors: 'getGraduateMajors',
+    // 获取专业列表（旧接口，为保持兼容）
     getMajors: 'getMajors',
     // 保存分析请求
     saveAnalysisRequest: 'saveAnalysisRequest',

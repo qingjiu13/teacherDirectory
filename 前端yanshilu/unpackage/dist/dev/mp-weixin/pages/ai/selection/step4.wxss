@@ -44,7 +44,7 @@
 		font-size: 28rpx;
 }
 .major-list {
-		max-height: 300rpx;
+		max-height: 400rpx;
 		background: #FFFFFF;
 		border-radius: 20rpx;
 		box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
@@ -56,6 +56,30 @@
 }
 .major-item:active {
 		background: #F5F5F5;
+}
+.major-name {
+		font-weight: bold;
+		font-size: 28rpx;
+}
+.major-code {
+		font-size: 24rpx;
+		color: #666;
+		margin-top: 6rpx;
+}
+.selected-info {
+		margin: 30rpx 0;
+		background: #F8F8F8;
+		border-radius: 16rpx;
+		padding: 20rpx;
+}
+.selected-title {
+		font-size: 26rpx;
+		color: #666;
+		margin-bottom: 10rpx;
+}
+.selected-major {
+		display: flex;
+		flex-direction: column;
 }
 .options-container {
 		display: flex;
