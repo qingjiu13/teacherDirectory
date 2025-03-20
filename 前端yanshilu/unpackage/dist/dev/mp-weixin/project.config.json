@@ -7,10 +7,12 @@
   "setting": {
     "urlCheck": false,
     "es6": true,
-    "postcss": false,
-    "minified": false,
+    "postcss": true,
+    "minified": true,
     "newFeature": true,
     "bigPackageSizeSupport": true,
+    "minifyWXSS": true,
+    "minifyWXML": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
@@ -18,7 +20,7 @@
     }
   },
   "compileType": "miniprogram",
-  "libVersion": "3.7.10",
+  "libVersion": "3.7.9",
   "appid": "touristappid",
   "projectname": "前端yanshilu",
   "condition": {},

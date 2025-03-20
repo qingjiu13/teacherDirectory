@@ -64,6 +64,15 @@
 			}
 		},
 		{
+			"path" : "pages/teacher/profile",
+			"style" : {
+				"navigationBarTitleText" : "老师详情",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
 			"path" : "pages/ai/selection/selection",
 			"style" : {
 				"navigationBarTitleText" : "AI择校",

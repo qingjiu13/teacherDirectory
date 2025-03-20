@@ -7,6 +7,7 @@
     "pages/match/match",
     "pages/publish/editor",
     "pages/post/detail",
+    "pages/teacher/profile",
     "pages/ai/selection/selection",
     "pages/ai/selection/step2",
     "pages/ai/selection/step3",
@@ -46,5 +47,6 @@
       }
     ]
   },
+  "lazyCodeLoading": "requiredComponents",
   "usingComponents": {}
 }

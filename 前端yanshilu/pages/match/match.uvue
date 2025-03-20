@@ -50,7 +50,7 @@
 		<scroll-view class="card-list" scroll-y="true" id="step2">
 			<view class="teacher-card" v-for="(teacher, index) in filteredTeachers" :key="index">
 				<view class="card-left">
-					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/default_avatar.png'" mode="aspectFill"></image>
+					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/default_avatar.svg'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)" hover-class="avatar-hover"></image>
 				</view>
 				<view class="card-middle">
 					<view class="teacher-name">{{ teacher.nickname }}</view>
@@ -831,6 +831,17 @@
 						this.isLoadingMore = false;
 					}
 				});
+			},
+			
+			/**
+			 * @description 打开教师详情
+			 * @param {Number} teacherId - 教师ID
+			 */
+			viewTeacherDetail(teacherId) {
+				// 跳转到教师详情页
+				uni.navigateTo({
+					url: `/pages/teacher/profile?id=${teacherId}`
+				});
 			}
 		}
 	}
@@ -1406,5 +1417,9 @@
 		margin-bottom: 10px;
 		font-size: 13px;
 		font-weight: 500;
+	}
+	
+	.avatar-hover {
+		border: 2px solid var(--primary-color);
 	}
 </style> 

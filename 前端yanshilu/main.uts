@@ -1,8 +1,17 @@
 import App from './App.uvue'
-
 import { createSSRApp } from 'vue'
+import preloadPages from './preload.js'
+
 export function createApp() {
 	const app = createSSRApp(App)
+	
+	// 非开发环境下预加载页面
+	if (process.env.NODE_ENV !== 'development') {
+		setTimeout(() => {
+			preloadPages();
+		}, 1000);
+	}
+	
 	return {
 		app
 	}

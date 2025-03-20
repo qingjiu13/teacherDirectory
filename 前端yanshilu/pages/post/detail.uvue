@@ -15,7 +15,7 @@
       <view class="post-card">
         <view class="post-header">
           <view class="user-info">
-            <image class="avatar" :src="post.avatar || '/static/image/default_avatar.png'" mode="aspectFill"></image>
+            <image class="avatar" :src="post.avatar || '/static/image/default_avatar.png'" mode="aspectFill" @tap="navigateToUserDetail(post.userId)"></image>
             <view class="user-detail">
               <text class="username">{{post.nickname}}</text>
               <text class="school">{{post.school}}</text>
@@ -79,7 +79,7 @@
         
         <view class="comment-list">
           <view class="comment-item" v-for="(comment, index) in comments" :key="index">
-            <image class="comment-avatar" :src="comment.avatar || '/static/image/default_avatar.png'" mode="aspectFill"></image>
+            <image class="comment-avatar" :src="comment.avatar || '/static/image/default_avatar.png'" mode="aspectFill" @tap="navigateToUserDetail(comment.userId)"></image>
             <view class="comment-content">
               <view class="comment-user">
                 <text class="comment-username">{{comment.nickname}}</text>
@@ -474,6 +474,18 @@
         uni.showToast({
           title: '举报已提交',
           icon: 'success'
+        });
+      },
+      
+      /**
+       * @description 跳转到用户详情页
+       * @param {Number} userId - 用户ID
+       */
+      navigateToUserDetail(userId) {
+        // 判断用户类型并跳转到相应的详情页
+        // 这里简单处理，假设全部是老师类型
+        uni.navigateTo({
+          url: `/pages/teacher/profile?id=${userId}`
         });
       },
       
