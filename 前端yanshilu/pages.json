@@ -73,7 +73,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/selection",
+			"path" : "pages/AI/selection/selection",
 			"style" : {
 				"navigationBarTitleText" : "AI择校",
 				"app-plus": {
@@ -82,7 +82,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/step2",
+			"path" : "pages/AI/selection/step2",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 第二步",
 				"app-plus": {
@@ -91,7 +91,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/step3",
+			"path" : "pages/AI/selection/step3",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 第三步",
 				"app-plus": {
@@ -100,7 +100,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/step4",
+			"path" : "pages/AI/selection/step4",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 第四步",
 				"app-plus": {
@@ -109,7 +109,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/step5",
+			"path" : "pages/AI/selection/step5",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 第五步",
 				"app-plus": {
@@ -118,7 +118,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/step6",
+			"path" : "pages/AI/selection/step6",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 第六步",
 				"app-plus": {
@@ -127,7 +127,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/analyzing",
+			"path" : "pages/AI/selection/analyzing",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 分析中",
 				"app-plus": {
@@ -136,7 +136,7 @@
 			}
 		},
 		{
-			"path" : "pages/ai/selection/result",
+			"path" : "pages/AI/selection/result",
 			"style" : {
 				"navigationBarTitleText" : "AI择校 - 分析结果",
 				"app-plus": {

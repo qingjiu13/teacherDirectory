@@ -44,6 +44,7 @@
 	 * @description AI择校第三步页面
 	 */
 	export default {
+		name: 'AISelectionStep3',
 		data() {
 			return {
 				englishLevels: ['已过六级', '已过四级', '四级未过'],
@@ -103,7 +104,7 @@
 					return;
 				}
 				uni.navigateTo({
-					url: '/pages/ai/selection/step4'
+					url: '/pages/AI/selection/step4'
 				});
 			}
 		}

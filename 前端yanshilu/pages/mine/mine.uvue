@@ -1,8 +1,76 @@
 <template>
 	<view class="container">
-		<view class="content">
-			<!-- 页面内容 -->
-			<text>我的页面</text>
+		<!-- 用户信息区 -->
+		<view class="user-info">
+			<view class="user-info-row">
+				<image class="avatar" src="/static/image/default-avatar.png" mode="aspectFill"></image>
+				<view class="login-tag-container">
+					<text class="login-text">登录</text>
+					<view class="tag-btn">
+						<text>标签</text>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 用户数据 -->
+		<view class="user-stats">
+			<view class="stats-row">
+				<text class="stats-num">14</text>
+				<text class="stats-label">动态</text>
+			</view>
+			<view class="stats-row">
+				<text class="stats-num">8</text>
+				<text class="stats-label">粉丝</text>
+			</view>
+			<view class="stats-row">
+				<text class="stats-num">10</text>
+				<text class="stats-label">关注</text>
+			</view>
+			<view class="stats-row">
+				<text class="stats-num">25</text>
+				<text class="stats-label">收藏</text>
+			</view>
+		</view>
+		
+		<!-- 功能菜单列表 -->
+		<view class="menu-list">
+			<view class="menu-item" @click="navigateTo('/pages/order/order')">
+				<view class="icon-circle success">
+					<text class="icon-text">✓</text>
+				</view>
+				<text class="menu-text">我的订单</text>
+			</view>
+			<view class="menu-item" @click="navigateTo('/pages/wallet/wallet')">
+				<view class="icon-circle warning">
+					<text class="icon-text">!</text>
+				</view>
+				<text class="menu-text">我的钱包</text>
+			</view>
+			<view class="menu-item" @click="navigateTo('/pages/certification/certification')">
+				<view class="icon-circle info">
+					<text class="icon-text">i</text>
+				</view>
+				<text class="menu-text">学长学姐认证</text>
+			</view>
+			<view class="menu-item" @click="navigateTo('/pages/service/service')">
+				<view class="icon-circle info">
+					<text class="icon-text">⏱</text>
+				</view>
+				<text class="menu-text">我的服务</text>
+			</view>
+			<view class="menu-item" @click="navigateTo('/pages/subscribe/subscribe')">
+				<view class="icon-circle info">
+					<text class="icon-text">i</text>
+				</view>
+				<text class="menu-text">关注公众号</text>
+			</view>
+			<view class="menu-item" @click="navigateTo('/pages/contact/contact')">
+				<view class="icon-circle success">
+					<text class="icon-text">✓</text>
+				</view>
+				<text class="menu-text">联系我们</text>
+			</view>
 		</view>
 		
 		<!-- 底部导航栏 -->
@@ -11,6 +79,9 @@
 </template>
 
 <script>
+	/**
+	 * @description 个人中心页面
+	 */
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
 	
 	export default {
@@ -22,30 +93,173 @@
 				
 			}
 		},
+		onLoad() {
+			/**
+			 * 页面加载时执行
+			 */
+		},
 		onShow() {
-			// 确保系统tabBar被隐藏
+			/**
+			 * 确保系统tabBar被隐藏
+			 */
 			uni.hideTabBar();
 		},
 		methods: {
-			
+			/**
+			 * 页面跳转方法
+			 * @param {string} url - 目标页面路径
+			 */
+			navigateTo(url) {
+				uni.navigateTo({
+					url: url
+				});
+			}
 		}
 	}
 </script>
 
 <style>
-	.container {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-		padding-bottom: 100px; /* 增加底部padding以腾出tabBar空间 */
-		box-sizing: border-box;
+	page {
+		background-color: #ffffff;
 	}
 	
-	.content {
-		flex: 1;
-		padding: 20px;
+	.container {
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		padding-bottom: 50px;
+	}
+	
+	/* 用户信息区样式 */
+	.user-info {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 30rpx;
+	}
+	
+	.user-info-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 100%;
+	}
+	
+	.avatar {
+		width: 80rpx;
+		height: 80rpx;
+		border-radius: 50%;
+		margin-right: 20rpx;
+	}
+	
+	.login-tag-container {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+	
+	.login-text {
+		font-size: 32rpx;
+		font-weight: bold;
+		margin-right: 20rpx;
+	}
+	
+	.tag-btn {
+		background-color: #f5f5f5;
+		border-radius: 30rpx;
+		padding: 8rpx 30rpx;
+	}
+	
+	.tag-btn text {
+		font-size: 26rpx;
+		color: #666;
+	}
+	
+	/* 用户数据统计 */
+	.user-stats {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+		padding: 20rpx 0;
+		border-bottom: 1px solid #f0f0f0;
+	}
+	
+	.stats-row {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	
+	.stats-num {
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #333;
+		margin-bottom: 5rpx;
+	}
+	
+	.stats-label {
+		font-size: 26rpx;
+		color: #666;
+	}
+	
+	/* 菜单列表 */
+	.menu-list {
+		width: 100%;
+	}
+	
+	.menu-item {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 30rpx 0;
+		border-bottom: 1px solid #f0f0f0;
+	}
+	
+	.icon-circle {
+		width: 60rpx;
+		height: 60rpx;
+		border-radius: 50%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		margin: 0 30rpx;
+		flex-shrink: 0;
+	}
+	
+	.success {
+		background-color: rgba(76, 175, 80, 0.1);
+	}
+	
+	.warning {
+		background-color: rgba(255, 82, 82, 0.1);
+	}
+	
+	.info {
+		background-color: rgba(33, 150, 243, 0.1);
+	}
+	
+	.icon-text {
+		font-size: 30rpx;
+		font-weight: bold;
+	}
+	
+	.success .icon-text {
+		color: #4CAF50;
+	}
+	
+	.warning .icon-text {
+		color: #FF5252;
+	}
+	
+	.info .icon-text {
+		color: #2196F3;
+	}
+	
+	.menu-text {
+		font-size: 30rpx;
+		color: #333;
+		text-align: left;
 	}
 </style>

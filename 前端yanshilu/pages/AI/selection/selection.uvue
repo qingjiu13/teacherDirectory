@@ -31,6 +31,7 @@
 	 * @description AI择校第一步页面
 	 */
 	export default {
+		name: 'AISelectionPage',
 		data() {
 			return {
 				currentStep: 1,
@@ -78,7 +79,7 @@
 					return;
 				}
 				uni.navigateTo({
-					url: '/pages/ai/selection/step2'
+					url: '/pages/AI/selection/step2'
 				});
 			}
 		}

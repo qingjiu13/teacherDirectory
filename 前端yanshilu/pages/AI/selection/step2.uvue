@@ -72,6 +72,7 @@
 	import { aiSelectionApis } from '../../../config.js';
 	
 	export default {
+		name: 'AISelectionStep2',
 		data() {
 			return {
 				selectedSchool: '',
@@ -253,7 +254,7 @@
 			nextPage() {
 				if (!this.selectedSchool) {
 					uni.showToast({
-						title: '请选择就读学校',
+						title: '请选择您的本科院校',
 						icon: 'none'
 					});
 					return;
@@ -261,14 +262,23 @@
 				
 				if (!this.selectedMajor) {
 					uni.showToast({
-						title: '请输入就读专业',
+						title: '请选择您的本科专业',
 						icon: 'none'
 					});
 					return;
 				}
 				
+				// 保存数据
+				this.formData.university = this.selectedSchool;
+				this.formData.major = this.selectedMajor;
+				uni.setStorageSync('step2_data', {
+					university: this.selectedSchool,
+					major: this.selectedMajor
+				});
+				
+				// 导航到下一步
 				uni.navigateTo({
-					url: '/pages/ai/selection/step3'
+					url: '/pages/AI/selection/step3'
 				});
 			}
 		}

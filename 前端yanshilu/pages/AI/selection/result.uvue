@@ -118,11 +118,12 @@
 
 <script>
 	/**
-	 * @description AI择校结果页面
+	 * @description AI择校分析结果页面
 	 */
 	import { aiSelectionApis } from '../../../config.js';
 	
 	export default {
+		name: 'AISelectionResult',
 		data() {
 			return {
 				analysisId: '',
@@ -244,7 +245,7 @@
 					delta: 10, // 尝试返回到首页
 					success: () => {
 						uni.navigateTo({
-							url: '/pages/ai/selection/selection'
+							url: '/pages/AI/selection/selection'
 						});
 					}
 				});

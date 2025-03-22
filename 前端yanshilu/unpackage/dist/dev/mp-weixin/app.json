@@ -8,14 +8,14 @@
     "pages/publish/editor",
     "pages/post/detail",
     "pages/teacher/profile",
-    "pages/ai/selection/selection",
-    "pages/ai/selection/step2",
-    "pages/ai/selection/step3",
-    "pages/ai/selection/step4",
-    "pages/ai/selection/step5",
-    "pages/ai/selection/step6",
-    "pages/ai/selection/analyzing",
-    "pages/ai/selection/result"
+    "pages/AI/selection/selection",
+    "pages/AI/selection/step2",
+    "pages/AI/selection/step3",
+    "pages/AI/selection/step4",
+    "pages/AI/selection/step5",
+    "pages/AI/selection/step6",
+    "pages/AI/selection/analyzing",
+    "pages/AI/selection/result"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -70,7 +70,7 @@
 			goToAISelection() {
 				try {
 					uni.navigateTo({
-						url: '/pages/ai/selection/selection'
+						url: '/pages/AI/selection/selection'
 					});
 				} catch (e) {
 					console.error(e);

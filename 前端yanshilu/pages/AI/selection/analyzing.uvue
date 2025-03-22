@@ -33,6 +33,7 @@
 	import { aiSelectionApis } from '../../../config.js';
 	
 	export default {
+		name: 'AISelectionAnalyzing',
 		data() {
 			return {
 				progressPercent: 0,
@@ -159,9 +160,7 @@
 								clearInterval(this.statusCheckInterval);
 								
 								setTimeout(() => {
-									uni.redirectTo({
-										url: '/pages/ai/selection/result?id=' + this.analysisId
-									});
+									this.goToResult(this.analysisId);
 								}, 800);
 							} else if (data && data.analysis_status === 'failed') {
 								// 分析失败，显示错误信息
@@ -219,6 +218,13 @@
 							uni.navigateBack();
 						}
 					}
+				});
+			},
+			
+			goToResult(id) {
+				// 确保导航URL使用正确的大小写
+				uni.redirectTo({
+					url: '/pages/AI/selection/result?id=' + id
 				});
 			}
 		}

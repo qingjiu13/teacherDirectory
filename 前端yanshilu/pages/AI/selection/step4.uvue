@@ -68,6 +68,7 @@
 	import { aiSelectionApis } from '../../../config.js';
 	
 	export default {
+		name: 'AISelectionStep4',
 		data() {
 			return {
 				searchText: '',
@@ -236,7 +237,7 @@
 					return;
 				}
 				uni.navigateTo({
-					url: '/pages/ai/selection/step5'
+					url: '/pages/AI/selection/step5'
 				});
 			}
 		}
