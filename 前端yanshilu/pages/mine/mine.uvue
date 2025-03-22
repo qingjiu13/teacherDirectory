@@ -3,7 +3,7 @@
 		<!-- 用户信息区 -->
 		<view class="user-info">
 			<view class="user-info-row">
-				<image class="avatar" src="/static/image/default-avatar.png" mode="aspectFill"></image>
+				<image class="avatar" src="/static/image/default_avatar.png" mode="aspectFill"></image>
 				<view class="login-tag-container">
 					<text class="login-text">登录</text>
 					<view class="tag-btn">
@@ -15,7 +15,7 @@
 		
 		<!-- 用户数据 -->
 		<view class="user-stats">
-			<view class="stats-row">
+			<view class="stats-row" @click="goToMyPosts">
 				<text class="stats-num">14</text>
 				<text class="stats-label">动态</text>
 			</view>
@@ -113,6 +113,27 @@
 				uni.navigateTo({
 					url: url
 				});
+			},
+			
+			/**
+			 * @description 跳转到我的帖子页面
+			 */
+			goToMyPosts() {
+				try {
+					// 使用主包标准路径格式
+					uni.navigateTo({
+						url: '/pages/mine/minepost',
+						fail: (err) => {
+							console.error('跳转失败:', err);
+							uni.showToast({
+								title: '页面跳转失败',
+								icon: 'none'
+							});
+						}
+					});
+				} catch (e) {
+					console.error('跳转异常:', e);
+				}
 			}
 		}
 	}
@@ -147,8 +168,8 @@
 	}
 	
 	.avatar {
-		width: 80rpx;
-		height: 80rpx;
+		width: 120rpx;
+		height: 120rpx;
 		border-radius: 50%;
 		margin-right: 20rpx;
 	}

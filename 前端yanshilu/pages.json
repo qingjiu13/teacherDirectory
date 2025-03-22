@@ -37,6 +37,16 @@
 			}
 		},
 		{
+			"path" : "pages/mine/minepost",
+			"style" : {
+				"navigationBarTitleText" : "我的帖子",
+				"app-plus": {
+					"titleNView": false
+				},
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path" : "pages/match/match",
 			"style" : {
 				"navigationBarTitleText" : "精准匹配",

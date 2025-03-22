@@ -4,6 +4,7 @@
     "pages/message/message",
     "pages/publish/publish",
     "pages/mine/mine",
+    "pages/mine/minepost",
     "pages/match/match",
     "pages/publish/editor",
     "pages/post/detail",
