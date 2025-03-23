@@ -8,6 +8,11 @@ export const PAGE_MINE = 'mine';
 export const PAGE_AI_SELECTION = 'ai_selection';
 
 /**
+ * @description API基础配置
+ */
+export const BASE_URL = 'https://api.example.com'; // 实际部署时请修改为正确的API地址
+
+/**
  * @description 页面路径映射
  */
 export const pageMap = {
