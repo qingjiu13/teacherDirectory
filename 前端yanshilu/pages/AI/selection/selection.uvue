@@ -1,86 +1,89 @@
 <template>
 	<view class="container">
-		<view class="progress-bar">
-			<text class="progress-text">1/6</text>
+		<view class="header">
+			<text class="title">{{title}}</text>
+			<text class="description">{{description}}</text>
 		</view>
-
-		<view class="question-container">
-			<view class="emoji">😍</view>
-			<text class="question">您目前的身份是？</text>
+		
+		<view class="content">
+			<view class="selection-card" @click="selectUndergraduate">
+				<text class="card-title">本科择校</text>
+				<text class="card-description">适合高考学生报考本科院校选择</text>
+			</view>
 			
-			<view class="options-container">
-				<view 
-					v-for="(option, index) in identityOptions" 
-					:key="index"
-					:class="['option-item', selectedIdentity === option ? 'active' : '']"
-					@click="selectIdentity(option)"
-				>
-					{{option}}
-				</view>
+			<view class="selection-card" @click="selectGraduate">
+				<text class="card-title">研究生择校</text>
+				<text class="card-description">适合本科生考研院校及专业选择</text>
 			</view>
 		</view>
-
-		<view class="button-group">
-			<button class="next-btn" @click="nextPage">下一步</button>
+		
+		<view class="footer">
+			<button class="back-btn" @click="goBack">返回</button>
+			<button class="home-btn" @click="goToHome">回到首页</button>
 		</view>
 	</view>
 </template>
 
-<script>
+<script lang="uts">
 	/**
-	 * @description AI择校第一步页面
+	 * @description AI择校选择页
 	 */
+	import Routes from '../../../utils/routes.js';
+	import { aiSelectionApis } from '../../../config.js';
+
 	export default {
-		name: 'AISelectionPage',
 		data() {
 			return {
-				currentStep: 1,
-				identityOptions: ['大一', '大二', '大三', '大四', '在职'],
-				selectedIdentity: '',
-				formData: {
-					identity: '',
-					university: '',
-					major: '',
-					englishLevel: '',
-					ranking: '',
-					targetSchool: '',
-					studyMode: '',
-					targetArea: []
-				}
+				title: 'AI智能择校',
+				description: '通过多维度分析，帮助您找到最适合的学校',
+				selectType: '',
+				loading: false
 			}
 		},
+		
 		onLoad() {
-			// 检查是否有已保存的身份数据
-			const savedIdentity = uni.getStorageSync('step1_data');
-			if (savedIdentity) {
-				this.selectedIdentity = savedIdentity;
-			}
+			console.log('AI Selection page loaded');
 		},
+		
 		methods: {
 			/**
-			 * @description 选择身份
-			 * @param {String} option - 选择的身份选项
+			 * @description 选择本科择校
 			 */
-			selectIdentity(option) {
-				this.selectedIdentity = option;
-				// 保存到本地存储
-				uni.setStorageSync('step1_data', option);
+			selectUndergraduate() {
+				this.selectType = 'undergraduate';
+				this.goToNextStep();
 			},
 			
 			/**
-			 * @description 跳转到下一页
+			 * @description 选择研究生择校
 			 */
-			nextPage() {
-				if (!this.selectedIdentity) {
-					uni.showToast({
-						title: '请选择您的身份',
-						icon: 'none'
-					});
-					return;
-				}
-				uni.navigateTo({
-					url: '/pages/AI/selection/step2'
+			selectGraduate() {
+				this.selectType = 'graduate';
+				this.goToNextStep();
+			},
+			
+			/**
+			 * @description 前往下一步
+			 */
+			goToNextStep() {
+				// 使用路由导航到下一步
+				Routes.navigator.navigateTo(Routes.ai.step2, {
+					type: this.selectType
 				});
+			},
+			
+			/**
+			 * @description 返回上一页
+			 */
+			goBack() {
+				Routes.navigator.navigateBack();
+			},
+			
+			/**
+			 * @description 跳到主页
+			 */
+			goToHome() {
+				Routes.navigator.switchTab(Routes.main.INDEX);
 			}
 		}
 	}
@@ -88,82 +91,60 @@
 
 <style>
 	.container {
-		padding: 30rpx;
+		flex: 1;
+		padding: 20px;
 	}
 	
-	.progress-bar {
-		text-align: center;
-		margin-bottom: 40rpx;
-	}
-	
-	.progress-text {
-		font-size: 32rpx;
-		color: #FF9853;
-		background: #FFF;
-		padding: 10rpx 30rpx;
-		border-radius: 30rpx;
-	}
-	
-	.question-container {
-		margin-top: 40rpx;
-	}
-	
-	.emoji {
-		font-size: 48rpx;
-		margin-bottom: 20rpx;
-	}
-	
-	.question {
-		font-size: 36rpx;
-		font-weight: bold;
-		color: #333;
-		margin-bottom: 40rpx;
-		display: block;
-	}
-	
-	.options-container {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		justify-content: space-around;
+	.header {
 		align-items: center;
-		gap: 20rpx;
-		margin-top: 40rpx;
-		width: 100%;
+		margin-bottom: 40px;
 	}
 	
-	.option-item {
-		width: 45%;
-		height: 80rpx;
-		line-height: 80rpx;
+	.title {
+		font-size: 24px;
+		font-weight: bold;
+		margin-bottom: 10px;
+	}
+	
+	.description {
+		font-size: 16px;
+		color: #666;
 		text-align: center;
-		background: #F5F5F5;
-		border-radius: 40rpx;
-		font-size: 28rpx;
-		color: #333;
-		margin-bottom: 20rpx;
 	}
 	
-	.active {
-		background: #007AFF;
-		color: #FFF;
+	.content {
+		flex: 1;
+		justify-content: center;
+		align-items: center;
 	}
 	
-	.button-group {
-		position: fixed;
-		bottom: 40rpx;
-		left: 0;
-		right: 0;
-		padding: 0 30rpx;
+	.selection-card {
+		width: 300px;
+		padding: 20px;
+		margin-bottom: 20px;
+		background-color: #f8f8f8;
+		border-radius: 10px;
+		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 	}
 	
-	.next-btn {
-		width: 100%;
-		height: 90rpx;
-		line-height: 90rpx;
-		background: #007AFF;
-		color: #FFF;
-		border-radius: 45rpx;
-		font-size: 32rpx;
+	.card-title {
+		font-size: 18px;
+		font-weight: bold;
+		margin-bottom: 10px;
+	}
+	
+	.card-description {
+		font-size: 14px;
+		color: #666;
+	}
+	
+	.footer {
+		flex-direction: row;
+		justify-content: space-between;
+		margin-top: 30px;
+	}
+	
+	.back-btn, .home-btn {
+		width: 120px;
 	}
 </style> 

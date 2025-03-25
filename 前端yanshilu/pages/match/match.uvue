@@ -145,6 +145,7 @@
 <script>
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
 	import { pageMap } from '@/config.js';
+	import Routes from '../../utils/routes.js';
 
 	/**
 	 * @description 精准匹配页面
@@ -766,9 +767,7 @@
 			viewTeacherProfile() {
 				if (this.currentTeacher) {
 					// 导航到教师主页
-					uni.navigateTo({
-						url: `/pages/teacher/profile?id=${this.currentTeacher.id}`
-					});
+					Routes.navigator.navigateTo(Routes.teacher.TEACHER_DETAIL, { id: this.currentTeacher.id });
 				}
 			},
 			
@@ -839,9 +838,7 @@
 			 */
 			viewTeacherDetail(teacherId) {
 				// 跳转到教师详情页
-				uni.navigateTo({
-					url: `/pages/teacher/profile?id=${teacherId}`
-				});
+				Routes.navigator.navigateTo(Routes.teacher.TEACHER_DETAIL, { id: teacherId });
 			}
 		}
 	}

@@ -71,6 +71,7 @@
 	 */
 	import { aiSelectionApis } from '../../../config.js';
 	import callCloudFunction from '../../../utils/cloudFunction.js';
+	import Routes from '../../../utils/routes.js';
 	
 	export default {
 		name: 'AISelectionStep2',
@@ -243,7 +244,7 @@
 			},
 			
 			/**
-			 * @description 返回上一步
+			 * @description 返回上一页
 			 */
 			prevPage() {
 				uni.navigateBack();
@@ -278,9 +279,7 @@
 				});
 				
 				// 导航到下一步
-				uni.navigateTo({
-					url: '/pages/AI/selection/step3'
-				});
+				Routes.navigator.navigateTo(Routes.ai.step3);
 			}
 		}
 	}

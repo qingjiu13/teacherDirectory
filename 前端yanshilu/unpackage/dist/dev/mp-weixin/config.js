@@ -1,2 +1,2 @@
-"use strict";const e={index:"/pages/index/index",message:"/pages/message/message",publish:"/pages/publish/publish",mine:"/pages/mine/mine",ai_selection:"/pages/ai/selection/selection"};exports.CUSTOM_API_URL="http://localhost:3000/api",exports.aiSelectionApis={getSchools:"getSchools",getUndergraduateMajors:"getUndergraduateMajors",getGraduateMajors:"getGraduateMajors",getMajors:"getMajors",saveAnalysisRequest:"saveAnalysisRequest",startAnalysis:"startAnalysis",getSchoolAnalysis:"getSchoolAnalysis"},exports.pageMap=e;
+"use strict";const e={index:"/pages/index/index",message:"/pages/message/message",publish:"/pages/publish/publish",mine:"/pages/mine/mine"};exports.pageMap=e;
 //# sourceMappingURL=../.sourcemap/mp-weixin/config.js.map

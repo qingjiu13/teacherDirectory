@@ -57,6 +57,7 @@
 
 <script>
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
+	import Routes from '../../utils/routes.js';
 	
 	export default {
 		components: {
@@ -108,15 +109,15 @@
 		},
 		methods: {
 			navigateToChat(friend) {
-				uni.navigateTo({
-					url: `/pages/message/chat?id=${friend.id}&name=${friend.name}`
+				Routes.navigator.navigateTo(Routes.message.CHAT, {
+					id: friend.id,
+					name: friend.name
 				});
 			},
 			
 			navigateToAddFriend() {
 				console.log('点击了添加好友按钮');
-				uni.navigateTo({
-					url: '/pages/message/add',
+				Routes.navigator.navigateTo(Routes.message.FRIEND_REQUEST, {}, {
 					success: () => {
 						console.log('成功跳转到添加好友页面');
 					},
