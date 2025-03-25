@@ -66,6 +66,7 @@
 	 * @description AI择校第四步页面
 	 */
 	import { aiSelectionApis } from '../../../config.js';
+	import callCloudFunction from '../../../utils/cloudFunction.js';
 	
 	export default {
 		name: 'AISelectionStep4',
@@ -148,7 +149,7 @@
 			async getMajorData() {
 				this.loading = true;
 				try {
-					const result = await uniCloud.callFunction({
+					const result = await callCloudFunction({
 						name: aiSelectionApis.getGraduateMajors, // 使用获取研究生专业的接口
 						data: {}
 					});
@@ -179,7 +180,7 @@
 				if (!keyword) return;
 				this.loading = true;
 				try {
-					const result = await uniCloud.callFunction({
+					const result = await callCloudFunction({
 						name: aiSelectionApis.getGraduateMajors, // 使用获取研究生专业的接口
 						data: { keyword }
 					});

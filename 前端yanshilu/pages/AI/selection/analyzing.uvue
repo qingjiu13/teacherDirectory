@@ -31,6 +31,7 @@
 	 * @description AI择校分析中页面
 	 */
 	import { aiSelectionApis } from '../../../config.js';
+	import callCloudFunction from '../../../utils/cloudFunction.js';
 	
 	export default {
 		name: 'AISelectionAnalyzing',
@@ -138,7 +139,7 @@
 						}
 						
 						// 真实请求API检查状态
-						const result = await uniCloud.callFunction({
+						const result = await callCloudFunction({
 							name: aiSelectionApis.getSchoolAnalysis,
 							data: {
 								action: 'get',

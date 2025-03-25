@@ -28,9 +28,9 @@
     </view>
     
     <view class="section">
-      <button type="primary" @click="getSchoolList">获取学校列表</button>
-      <view class="result" v-if="schools.length">
-        <view class="school-item" v-for="(school, index) in schools" :key="index">
+      <button type="primary" @click="getSchools">获取学校列表</button>
+      <view class="result" v-if="results">
+        <view class="school-item" v-for="(school, index) in results" :key="index">
           <text>{{ school.name }}</text>
         </view>
       </view>
@@ -43,6 +43,8 @@
    * @description API调用示例页面
    */
   import API from '../api/index.js';
+  import { aiSelectionApis } from '../config.js';
+  import callCloudFunction from '../utils/cloudFunction.js';
   
   interface UserInfo {
     id: string;
@@ -77,7 +79,10 @@
         userInfo: null as UserInfo | null,
         posts: [] as Post[],
         teachers: [] as Teacher[],
-        schools: [] as School[]
+        schools: [] as School[],
+        loading: false,
+        results: null,
+        error: null
       }
     },
     
@@ -167,30 +172,52 @@
       },
       
       /**
-       * @description 获取学校列表
+       * @description 调用获取学校列表的云函数
        */
-      async getSchoolList() {
+      async getSchools() {
+        this.loading = true;
+        this.results = null;
+        this.error = null;
+        
         try {
-          uni.showLoading({ title: '加载中...' });
+          // 使用封装的云函数调用工具
+          const result = await callCloudFunction({
+            name: aiSelectionApis.getSchools,
+            data: {},
+            timeout: 10000
+          });
           
-          // 调用API获取学校列表
-          const res = await API.aiSelection.getSchools({});
-          this.schools = res as School[];
-          
-          uni.hideLoading();
+          this.results = result.result;
         } catch (error) {
-          uni.hideLoading();
+          this.error = error.message;
+          console.error('获取学校列表失败:', error);
+        } finally {
+          this.loading = false;
+        }
+      },
+      
+      /**
+       * @description 调用获取研究生专业列表的云函数
+       */
+      async getGraduateMajors() {
+        this.loading = true;
+        this.results = null;
+        this.error = null;
+        
+        try {
+          // 使用封装的云函数调用工具
+          const result = await callCloudFunction({
+            name: aiSelectionApis.getGraduateMajors,
+            data: { keyword: '计算机' },
+            timeout: 10000
+          });
           
-          // 这里使用模拟数据
-          this.schools = [
-            { id: '1', name: '北京大学', type: '985' },
-            { id: '2', name: '清华大学', type: '985' },
-            { id: '3', name: '复旦大学', type: '985' },
-            { id: '4', name: '上海交通大学', type: '985' },
-            { id: '5', name: '浙江大学', type: '985' }
-          ];
-          
-          console.log('获取学校列表失败', error);
+          this.results = result.result;
+        } catch (error) {
+          this.error = error.message;
+          console.error('获取研究生专业列表失败:', error);
+        } finally {
+          this.loading = false;
         }
       }
     }

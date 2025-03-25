@@ -70,6 +70,7 @@
 	 * @description AI择校第二步页面
 	 */
 	import { aiSelectionApis } from '../../../config.js';
+	import callCloudFunction from '../../../utils/cloudFunction.js';
 	
 	export default {
 		name: 'AISelectionStep2',
@@ -151,7 +152,7 @@
 						title: '加载中...'
 					});
 					
-					const result = await uniCloud.callFunction({
+					const result = await callCloudFunction({
 						name: aiSelectionApis.getSchools,
 						data: {},
 						timeout: 10000 // 增加超时时间
@@ -201,7 +202,7 @@
 						title: '加载中...'
 					});
 					
-					const result = await uniCloud.callFunction({
+					const result = await callCloudFunction({
 						name: aiSelectionApis.getUndergraduateMajors, // 使用获取本科专业的接口
 						data: {
 							school: this.selectedSchool // 传入学校参数
