@@ -106,9 +106,9 @@ export const MatchRoutes = {
  */
 export const CommonRoutes = {
   // 登录页
-  LOGIN: '/pages/common/login/login',
+  LOGIN: '/pages/login/login',
   // 注册页
-  REGISTER: '/pages/common/register/register',
+  REGISTER: '/pages/login/register',
   // 关于页面
   ABOUT: '/pages/common/about/about',
   // 隐私政策

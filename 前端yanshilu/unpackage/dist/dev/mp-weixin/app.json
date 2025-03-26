@@ -8,7 +8,8 @@
     "pages/match/match",
     "pages/publish/editor",
     "pages/post/detail",
-    "pages/teacher/profile"
+    "pages/teacher/profile",
+    "pages/login/login"
   ],
   "window": {
     "navigationBarTextStyle": "black",
