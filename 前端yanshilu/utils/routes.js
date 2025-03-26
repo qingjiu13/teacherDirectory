@@ -102,6 +102,18 @@ export const MatchRoutes = {
 };
 
 /**
+ * @description AI助手相关页面路径
+ */
+export const AIRoutes = {
+  // AI助手主页
+  AI_HOME: '/pages/AI/AI',
+  // AI聊天记录
+  AI_HISTORY: '/pages/AI/history',
+  // AI设置
+  AI_SETTINGS: '/pages/AI/settings'
+};
+
+/**
  * @description 公共页面路径
  */
 export const CommonRoutes = {
@@ -209,6 +221,13 @@ export const Navigator = {
   },
   
   /**
+   * @description 跳转到AI助手页面
+   */
+  toAI() {
+    this.navigateTo(AIRoutes.AI_HOME);
+  },
+  
+  /**
    * @description 跳转到登录页
    * @param {string} redirect 登录后跳转的页面
    */
@@ -229,6 +248,7 @@ export default {
   teacher: TeacherRoutes,
   post: PostRoutes,
   match: MatchRoutes,
+  ai: AIRoutes,
   common: CommonRoutes,
   navigator: Navigator
 }; 

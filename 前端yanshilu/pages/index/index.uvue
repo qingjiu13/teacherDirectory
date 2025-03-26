@@ -13,6 +13,38 @@
 			</view>
 		</view>
 		
+		<!-- 可拖动头像区域 -->
+		<!-- #ifndef MP-WEIXIN -->
+		<view 
+			class="draggable-avatar"
+			:style="{ left: avatarPosition.x + 'px', top: avatarPosition.y + 'px' }"
+			@touchstart="onTouchStart"
+			@touchmove="onTouchMove"
+			@touchend="onTouchEnd"
+			@click="goToAI"
+		>
+			<image class="avatar-image" src="../../static/image/default_avatar.png"></image>
+		</view>
+		<!-- #endif -->
+		
+		<!-- #ifdef MP-WEIXIN -->
+		<view class="avatar-container">
+			<movable-area class="movable-container">
+				<movable-view 
+					class="draggable-avatar"
+					direction="all"
+					x="{{avatarPosition.x}}"
+					y="{{avatarPosition.y}}"
+					@change="onMoveChange"
+					@touchend="onTouchEnd"
+					@tap="goToAI"
+				>
+					<image class="avatar-image" src="../../static/image/default_avatar.png"></image>
+				</movable-view>
+			</movable-area>
+		</view>
+		<!-- #endif -->
+		
 		<!-- 底部导航栏 -->
 		<tab-bar pageName="index"></tab-bar>
 	</view>
@@ -31,19 +63,54 @@
 		},
 		data() {
 			return {
-				title: '研师录'
+				title: '研师录',
+				avatarPosition: {
+					x: 50,
+					y: 400
+				},
+				isDragging: false,
+				startPosition: {
+					x: 0,
+					y: 0
+				},
+				screenInfo: {
+					width: 0,
+					height: 0,
+					tabBarHeight: 50 // 默认底部导航栏高度
+				}
 			}
 		},
 		onLoad() {
 			/**
 			 * @description 页面加载时的处理逻辑
 			 */
+			// 获取屏幕信息
+			this.getScreenInfo();
 		},
 		onShow() {
 			// 确保系统tabBar被隐藏
 			uni.hideTabBar();
 		},
 		methods: {
+			/**
+			 * @description 获取屏幕信息
+			 */
+			getScreenInfo() {
+				try {
+					const systemInfo = uni.getSystemInfoSync();
+					this.screenInfo.width = systemInfo.windowWidth;
+					this.screenInfo.height = systemInfo.windowHeight;
+					
+					// 初始化头像位置为右上角
+					this.avatarPosition = {
+						x: this.screenInfo.width - 80,
+						y: 100
+					};
+				} catch (e) {
+					console.error('获取屏幕信息失败:', e);
+				}
+			},
+			
 			/**
 			 * @description 跳转到匹配页面
 			 */
@@ -58,6 +125,95 @@
 						icon: 'none'
 					});
 				}
+			},
+			
+			/**
+			 * @description 跳转到AI页面
+			 */
+			goToAI() {
+				if (!this.isDragging) {
+					try {
+						Routes.navigator.toAI();
+					} catch (err) {
+						console.error('跳转AI页面失败:', err);
+						uni.showToast({
+							title: '页面跳转失败',
+							icon: 'none'
+						});
+					}
+				}
+			},
+			
+			/**
+			 * @description 触摸开始事件处理
+			 * @param {Object} e - 触摸事件对象
+			 */
+			onTouchStart(e) {
+				this.isDragging = false;
+				this.startPosition = {
+					x: e.touches[0].clientX - this.avatarPosition.x,
+					y: e.touches[0].clientY - this.avatarPosition.y
+				};
+			},
+			
+			/**
+			 * @description 触摸移动事件处理
+			 * @param {Object} e - 触摸事件对象
+			 */
+			onTouchMove(e) {
+				this.isDragging = true;
+				// 计算新位置
+				let newX = e.touches[0].clientX - this.startPosition.x;
+				let newY = e.touches[0].clientY - this.startPosition.y;
+				
+				// 限制拖动范围
+				const maxX = this.screenInfo.width - 60; // 头像宽度为60px
+				const maxY = this.screenInfo.height - this.screenInfo.tabBarHeight - 60; // 减去底部导航栏高度
+				
+				newX = Math.max(0, Math.min(newX, maxX));
+				newY = Math.max(0, Math.min(newY, maxY));
+				
+				this.avatarPosition = {
+					x: newX,
+					y: newY
+				};
+			},
+			
+			/**
+			 * @description 微信小程序movable-view移动变化事件
+			 * @param {Object} e - 事件对象
+			 */
+			onMoveChange(e) {
+				this.isDragging = true;
+				
+				// 更新位置
+				let newX = e.detail.x;
+				let newY = e.detail.y;
+				
+				// 限制Y轴不进入底部导航栏区域
+				const maxY = this.screenInfo.height - this.screenInfo.tabBarHeight - 60;
+				if (newY > maxY) {
+					newY = maxY;
+					
+					// 由于微信小程序无法直接修改movable-view的位置，需要延迟设置
+					setTimeout(() => {
+						this.avatarPosition.y = maxY;
+					}, 10);
+				}
+				
+				this.avatarPosition = {
+					x: newX,
+					y: newY
+				};
+			},
+			
+			/**
+			 * @description 触摸结束事件处理
+			 */
+			onTouchEnd() {
+				setTimeout(() => {
+					this.isDragging = false;
+				}, 50);
 			}
 		}
 	}
@@ -121,5 +277,45 @@
 	
 	.button-text {
 		color: #333;
+	}
+	
+	/* #ifndef MP-WEIXIN */
+	.draggable-avatar {
+		position: absolute;
+		width: 60px;
+		height: 60px;
+		z-index: 999; /* 确保在最顶层 */
+	}
+	/* #endif */
+	
+	/* #ifdef MP-WEIXIN */
+	.avatar-container {
+		position: absolute;
+		width: 100%; 
+		height: 100%;
+		top: 0;
+		left: 0;
+		z-index: 999; /* 确保在最顶层 */
+		pointer-events: auto; /* 允许容器接收点击事件 */
+	}
+	
+	.movable-container {
+		width: 100%;
+		height: calc(100% - 50px); /* 减去底部导航栏高度 */
+		pointer-events: none; /* 让容器本身不接收事件 */
+	}
+	
+	.draggable-avatar {
+		width: 60px;
+		height: 60px;
+		pointer-events: auto; /* 确保头像可点击 */
+	}
+	/* #endif */
+	
+	.avatar-image {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	}
 </style>

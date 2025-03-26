@@ -9,7 +9,8 @@
     "pages/publish/editor",
     "pages/post/detail",
     "pages/teacher/profile",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/AI/AI"
   ],
   "window": {
     "navigationBarTextStyle": "black",

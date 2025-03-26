@@ -90,6 +90,15 @@
 					"titleNView": false
 				}
 			}
+		},
+		{
+			"path" : "pages/AI/AI",
+			"style" : {
+				"navigationBarTitleText" : "AI助手",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
 		}
 	],
 	
