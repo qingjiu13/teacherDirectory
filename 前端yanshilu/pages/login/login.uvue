@@ -79,6 +79,7 @@
         timer: null,
         redirectUrl: '',
         isAgreed: false,
+        authSetting: {}, // 授权设置信息
         showPhoneButton: false // 是否显示获取手机号按钮
       }
     },
@@ -91,6 +92,9 @@
       if (options.redirect) {
         this.redirectUrl = decodeURIComponent(options.redirect);
       }
+      
+      // 检查授权设置
+      this.checkAuthSetting();
     },
     
     /**
@@ -104,6 +108,32 @@
     },
     
     methods: {
+      /**
+       * 检查授权设置
+       */
+      checkAuthSetting() {
+        // 判断 API 是否可用
+        if (wx.getAppAuthorizeSetting) {
+          const authSetting = wx.getAppAuthorizeSetting();
+          console.log('授权设置信息：', authSetting);
+          this.authSetting = authSetting;
+          
+          // 可以根据授权情况进行后续处理
+          // 例如：如果已经授权了用户信息，可以直接使用微信登录而不是手机号登录
+          if (authSetting['scope.userInfo'] === 'authorized') {
+            console.log('用户已授权获取用户信息');
+          }
+          
+          // 检查是否授权了用户手机号
+          if (authSetting['scope.phoneNumber'] === 'authorized') {
+            console.log('用户已授权获取手机号');
+            this.showPhoneButton = true;
+          }
+        } else {
+          console.log('wx.getAppAuthorizeSetting API 不可用，请更新基础库版本');
+        }
+      },
+      
       /**
        * 自定义协议勾选状态变更
        * @param {Object} e - 事件对象
@@ -227,6 +257,45 @@
         
         this.loading = true;
         
+        try {
+          // 检查授权状态
+          if (wx.getAppAuthorizeSetting) {
+            const authSetting = wx.getAppAuthorizeSetting();
+            
+            // 如果未授权用户信息，先请求授权
+            if (authSetting['scope.userInfo'] !== 'authorized') {
+              // 提示用户授权
+              uni.showModal({
+                title: '提示',
+                content: '需要获取您的用户信息才能登录，请在稍后的弹窗中点击"允许"',
+                success: (res) => {
+                  if (res.confirm) {
+                    // 继续登录流程
+                    this.processWechatLogin();
+                  } else {
+                    this.loading = false;
+                  }
+                }
+              });
+            } else {
+              // 已授权，直接登录
+              this.processWechatLogin();
+            }
+          } else {
+            // 基础库版本过低，使用旧方式登录
+            this.processWechatLogin();
+          }
+        } catch (error) {
+          console.error('微信登录前检查授权失败：', error);
+          // 出错时继续尝试登录
+          this.processWechatLogin();
+        }
+      },
+      
+      /**
+       * 处理微信登录流程
+       */
+      async processWechatLogin() {
         try {
           // 获取登录code
           const { code } = await wxLogin();
