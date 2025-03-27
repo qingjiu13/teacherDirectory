@@ -146,7 +146,7 @@
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
 	import { pageMap } from '@/config.js';
 	import Routes from '../../utils/routes.js';
-	import { isLoggedIn, checkLoginStatus } from '../../utils/auth.js';
+	import { checkLogin } from '../../utils/checkload.js';
 
 	/**
 	 * @description 精准匹配页面
@@ -514,26 +514,11 @@
 			 * @param {Number} teacherId - 老师的ID
 			 */
 			handleCommunicate(teacherId) {
-				// 检查用户登录状态
-				if (!isLoggedIn()) {
-					// 用户未登录，显示提示
-					uni.showToast({
-						title: '请先登录',
-						icon: 'none',
-						duration: 2000
-					});
-					
-					// 保存当前页面路径，登录后可返回
-					const currentPage = '/pages/match/match';
-					
-					// 延迟跳转到登录页面
-					setTimeout(() => {
-						Routes.navigator.navigateTo(Routes.common.LOGIN, { 
-							redirect: encodeURIComponent(currentPage)
-						});
-					}, 1500);
-					
-					// 未登录，不执行后续逻辑
+				// 检查用户登录状态，未登录会自动跳转到登录页
+				if (!checkLogin({ 
+					redirect: '/pages/match/match',
+					showToast: true
+				})) {
 					return;
 				}
 				
@@ -778,26 +763,11 @@
 			 * @description 开始聊天
 			 */
 			startChat() {
-				// 检查用户登录状态
-				if (!isLoggedIn()) {
-					// 用户未登录，显示提示
-					uni.showToast({
-						title: '请先登录',
-						icon: 'none',
-						duration: 2000
-					});
-					
-					// 保存当前页面路径，登录后可返回
-					const currentPage = '/pages/match/match';
-					
-					// 延迟跳转到登录页面
-					setTimeout(() => {
-						Routes.navigator.navigateTo(Routes.common.LOGIN, { 
-							redirect: encodeURIComponent(currentPage)
-						});
-					}, 1500);
-					
-					// 未登录，不执行后续逻辑
+				// 检查用户登录状态，未登录会自动跳转到登录页
+				if (!checkLogin({ 
+					redirect: MATCH_HOME,
+					showToast: true
+				})) {
 					return;
 				}
 				

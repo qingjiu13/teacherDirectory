@@ -68,6 +68,7 @@
   import { loginWithMobile, loginWithWechat, sendVerificationCode } from '../../api/auth.js';
   import { Navigator, CommonRoutes, MainRoutes } from '../../utils/routes.js';
   import { wxLogin } from '../../utils/wechat.js';
+  import { updateLoginStatus } from '../../utils/checkload.js';
   
   export default {
     data() {
@@ -180,6 +181,11 @@
             mobile: this.mobile,
             code: this.code
           });
+          
+          // 更新登录状态
+          if (result && result.data) {
+            updateLoginStatus(result.data.userInfo, result.data.token);
+          }
           
           this.loginSuccess();
         } catch (error) {
@@ -307,6 +313,11 @@
           // 调用微信登录API
           const result = await loginWithWechat({ code });
           
+          // 更新登录状态
+          if (result && result.data) {
+            updateLoginStatus(result.data.userInfo, result.data.token);
+          }
+          
           this.loginSuccess();
         } catch (error) {
           uni.showToast({
@@ -354,6 +365,11 @@
             code,
             userInfo: e.detail.userInfo
           });
+          
+          // 更新登录状态
+          if (result && result.data) {
+            updateLoginStatus(result.data.userInfo, result.data.token);
+          }
           
           this.loginSuccess();
         } catch (error) {
