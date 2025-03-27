@@ -145,6 +145,8 @@
 <script>
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
 	import { pageMap } from '@/config.js';
+	import Routes from '../../utils/routes.js';
+	import { checkLogin } from '../../utils/checkload.js';
 
 	/**
 	 * @description 精准匹配页面
@@ -512,6 +514,16 @@
 			 * @param {Number} teacherId - 老师的ID
 			 */
 			handleCommunicate(teacherId) {
+				// 检查用户登录状态，未登录会自动跳转到登录页
+				if (!checkLogin({ 
+					redirect: '/pages/match/match',
+					showToast: true
+				})) {
+					return;
+				}
+				
+				// 用户已登录，继续执行原有逻辑
+				
 				// 显示加载提示
 				this.isLoading = true;
 				
@@ -751,6 +763,16 @@
 			 * @description 开始聊天
 			 */
 			startChat() {
+				// 检查用户登录状态，未登录会自动跳转到登录页
+				if (!checkLogin({ 
+					redirect: MATCH_HOME,
+					showToast: true
+				})) {
+					return;
+				}
+				
+				// 已登录，继续执行原有逻辑
+				
 				// 关闭弹窗
 				this.closeTeacherDetail();
 				
@@ -766,9 +788,7 @@
 			viewTeacherProfile() {
 				if (this.currentTeacher) {
 					// 导航到教师主页
-					uni.navigateTo({
-						url: `/pages/teacher/profile?id=${this.currentTeacher.id}`
-					});
+					Routes.navigator.navigateTo(Routes.teacher.TEACHER_DETAIL, { id: this.currentTeacher.id });
 				}
 			},
 			
@@ -839,9 +859,7 @@
 			 */
 			viewTeacherDetail(teacherId) {
 				// 跳转到教师详情页
-				uni.navigateTo({
-					url: `/pages/teacher/profile?id=${teacherId}`
-				});
+				Routes.navigator.navigateTo(Routes.teacher.TEACHER_DETAIL, { id: teacherId });
 			}
 		}
 	}

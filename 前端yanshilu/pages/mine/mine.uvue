@@ -3,10 +3,13 @@
 		<!-- 用户信息区 -->
 		<view class="user-info">
 			<view class="user-info-row">
-				<image class="avatar" src="/static/image/default-avatar.png" mode="aspectFill"></image>
+				<image class="avatar" :src="userInfo ? userInfo.avatarUrl || '/static/image/default_avatar.png' : '/static/image/default_avatar.png'" mode="aspectFill" @click="handleAvatarClick"></image>
 				<view class="login-tag-container">
-					<text class="login-text">登录</text>
-					<view class="tag-btn">
+					<text class="login-text" @click="handleLoginClick">{{ userInfo ? userInfo.nickname || '用户' : '登录' }}</text>
+					<view class="tag-btn" v-if="userInfo">
+						<text>{{ userInfo.tag || '标签' }}</text>
+					</view>
+					<view class="tag-btn" v-else>
 						<text>标签</text>
 					</view>
 				</view>
@@ -15,20 +18,20 @@
 		
 		<!-- 用户数据 -->
 		<view class="user-stats">
-			<view class="stats-row">
-				<text class="stats-num">14</text>
+			<view class="stats-row" @click="goToMyPosts">
+				<text class="stats-num">{{ userInfo ? userInfo.postCount || '0' : '0' }}</text>
 				<text class="stats-label">动态</text>
 			</view>
-			<view class="stats-row">
-				<text class="stats-num">8</text>
+			<view class="stats-row" @click="goToFansList">
+				<text class="stats-num">{{ userInfo ? userInfo.fansCount || '0' : '0' }}</text>
 				<text class="stats-label">粉丝</text>
 			</view>
-			<view class="stats-row">
-				<text class="stats-num">10</text>
+			<view class="stats-row" @click="goToFollowList">
+				<text class="stats-num">{{ userInfo ? userInfo.followCount || '0' : '0' }}</text>
 				<text class="stats-label">关注</text>
 			</view>
-			<view class="stats-row">
-				<text class="stats-num">25</text>
+			<view class="stats-row" @click="goToFavorites">
+				<text class="stats-num">{{ userInfo ? userInfo.favoriteCount || '0' : '0' }}</text>
 				<text class="stats-label">收藏</text>
 			</view>
 		</view>
@@ -71,6 +74,12 @@
 				</view>
 				<text class="menu-text">联系我们</text>
 			</view>
+			<view class="menu-item" @click="handleLogout" v-if="userInfo">
+				<view class="icon-circle warning">
+					<text class="icon-text">⚠</text>
+				</view>
+				<text class="menu-text">退出登录</text>
+			</view>
 		</view>
 		
 		<!-- 底部导航栏 -->
@@ -83,6 +92,8 @@
 	 * @description 个人中心页面
 	 */
 	import TabBar from '../../components/tab-bar/tab-bar.uvue';
+	import { Navigator, CommonRoutes } from '../../utils/routes.js';
+	import { isLoggedIn, getUserInfo, checkLogin, logout } from '../../utils/checkload.js';
 	
 	export default {
 		components: {
@@ -90,28 +101,173 @@
 		},
 		data() {
 			return {
-				
+				userInfo: null
 			}
 		},
 		onLoad() {
 			/**
 			 * 页面加载时执行
 			 */
+			this.checkLoginStatus();
 		},
 		onShow() {
 			/**
 			 * 确保系统tabBar被隐藏
 			 */
 			uni.hideTabBar();
+			
+			// 每次显示页面时检查登录状态，以便更新页面显示
+			this.checkLoginStatus();
 		},
 		methods: {
+			/**
+			 * @description 检查登录状态
+			 */
+			checkLoginStatus() {
+				// 检查是否已登录
+				if (isLoggedIn()) {
+					// 获取用户信息
+					this.userInfo = getUserInfo();
+				} else {
+					this.userInfo = null;
+				}
+			},
+			
+			/**
+			 * @description 处理头像点击
+			 */
+			handleAvatarClick() {
+				if (!this.userInfo) {
+					// 未登录，跳转到登录页
+					Navigator.toLogin('/pages/mine/mine');
+				} else {
+					// 已登录，跳转到个人资料页
+					this.navigateTo('/pages/mine/profile/profile');
+				}
+			},
+			
+			/**
+			 * @description 处理登录文本点击
+			 */
+			handleLoginClick() {
+				if (!this.userInfo) {
+					// 未登录，跳转到登录页
+					Navigator.toLogin('/pages/mine/mine');
+				} else {
+					// 已登录，跳转到个人资料页
+					this.navigateTo('/pages/mine/profile/profile');
+				}
+			},
+			
+			/**
+			 * @description 处理退出登录
+			 */
+			handleLogout() {
+				uni.showModal({
+					title: '提示',
+					content: '确定要退出登录吗？',
+					success: (res) => {
+						if (res.confirm) {
+							// 调用退出登录方法
+							logout();
+							// 更新页面显示
+							this.userInfo = null;
+						}
+					}
+				});
+			},
+			
 			/**
 			 * 页面跳转方法
 			 * @param {string} url - 目标页面路径
 			 */
 			navigateTo(url) {
+				// 有些页面需要登录才能访问
+				const requiresLogin = [
+					'/pages/order/order',
+					'/pages/wallet/wallet',
+					'/pages/certification/certification',
+					'/pages/service/service',
+					'/pages/mine/profile/profile'
+				];
+				
+				// 如果需要登录的页面且未登录，则先检查登录状态
+				if (requiresLogin.includes(url) && !isLoggedIn()) {
+					// 检查登录状态，未登录会自动跳转到登录页
+					checkLogin({
+						redirect: url
+					});
+					return;
+				}
+				
+				// 正常跳转
 				uni.navigateTo({
 					url: url
+				});
+			},
+			
+			/**
+			 * @description 跳转到我的帖子页面
+			 */
+			goToMyPosts() {
+				// 检查是否已登录
+				if (!checkLogin({ redirect: '/pages/mine/minepost' })) {
+					return;
+				}
+				
+				try {
+					// 使用主包标准路径格式
+					uni.navigateTo({
+						url: '/pages/mine/minepost',
+						fail: (err) => {
+							console.error('跳转失败:', err);
+							uni.showToast({
+								title: '页面跳转失败',
+								icon: 'none'
+							});
+						}
+					});
+				} catch (e) {
+					console.error('跳转异常:', e);
+				}
+			},
+			
+			/**
+			 * @description 跳转到粉丝列表页面
+			 */
+			goToFansList() {
+				if (!checkLogin({ redirect: '/pages/mine/fans/fans' })) {
+					return;
+				}
+				
+				uni.navigateTo({
+					url: '/pages/mine/fans/fans'
+				});
+			},
+			
+			/**
+			 * @description 跳转到关注列表页面
+			 */
+			goToFollowList() {
+				if (!checkLogin({ redirect: '/pages/mine/follow/follow' })) {
+					return;
+				}
+				
+				uni.navigateTo({
+					url: '/pages/mine/follow/follow'
+				});
+			},
+			
+			/**
+			 * @description 跳转到收藏页面
+			 */
+			goToFavorites() {
+				if (!checkLogin({ redirect: '/pages/mine/favorites/favorites' })) {
+					return;
+				}
+				
+				uni.navigateTo({
+					url: '/pages/mine/favorites/favorites'
 				});
 			}
 		}
@@ -147,8 +303,8 @@
 	}
 	
 	.avatar {
-		width: 80rpx;
-		height: 80rpx;
+		width: 120rpx;
+		height: 120rpx;
 		border-radius: 50%;
 		margin-right: 20rpx;
 	}

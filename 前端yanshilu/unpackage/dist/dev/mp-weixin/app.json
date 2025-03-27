@@ -4,18 +4,13 @@
     "pages/message/message",
     "pages/publish/publish",
     "pages/mine/mine",
+    "pages/mine/minepost",
     "pages/match/match",
     "pages/publish/editor",
     "pages/post/detail",
     "pages/teacher/profile",
-    "pages/AI/selection/selection",
-    "pages/AI/selection/step2",
-    "pages/AI/selection/step3",
-    "pages/AI/selection/step4",
-    "pages/AI/selection/step5",
-    "pages/AI/selection/step6",
-    "pages/AI/selection/analyzing",
-    "pages/AI/selection/result"
+    "pages/login/login",
+    "pages/AI/AI"
   ],
   "window": {
     "navigationBarTextStyle": "black",

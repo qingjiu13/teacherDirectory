@@ -322,21 +322,21 @@
               id: 1,
               title: '考研数学一对一辅导',
               price: 300,
-              image: '/static/images/service1.png',
+              image: '/static/image/default_avatar.png',
               description: '针对考研数学难点，提供个性化辅导，帮助你掌握核心解题技巧。'
             },
             {
               id: 2,
               title: '计算机专业课指导',
               price: 250,
-              image: '/static/images/service2.png',
+              image: '/static/image/default_avatar.png',
               description: '数据结构、操作系统、计算机网络、计算机组成原理全面指导。'
             },
             {
               id: 3,
               title: '考研复习规划制定',
               price: 180,
-              image: '/static/images/service3.png',
+              image: '/static/image/default_avatar.png',
               description: '根据个人情况定制复习计划，科学规划时间，提高复习效率。'
             }
           ];

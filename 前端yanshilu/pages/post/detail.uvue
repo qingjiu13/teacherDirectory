@@ -88,7 +88,7 @@
               <text class="comment-text">{{comment.content}}</text>
               <view class="comment-actions">
                 <view class="comment-like" @tap="likeComment(comment)">
-                  <image class="comment-like-icon" :src="comment.isLiked ? '/static/image/like_small_filled.svg' : '/static/image/like_small.svg'" mode="aspectFit"></image>
+                  <image class="comment-like-icon" :src="comment.isLiked ? '/static/image/like_filled.svg' : '/static/image/like.svg'" mode="aspectFit"></image>
                   <text class="comment-like-count">{{comment.likeCount || 0}}</text>
                 </view>
                 <view class="comment-reply" @tap="replyComment(comment)">
@@ -933,9 +933,10 @@
   }
   
   .comment-like-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     margin-right: 5px;
+    opacity: 0.8;
   }
   
   .comment-like-count {
