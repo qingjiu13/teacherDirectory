@@ -10,6 +10,12 @@ import { Navigator, CommonRoutes } from './routes.js';
  * @returns {Object|null} 用户信息对象，未登录则返回null
  */
 export const getUserInfo = () => {
+  // 返回模拟的用户信息以便调试
+  return {
+    id: 1,
+    name: '测试用户',
+    email: 'test@example.com'
+  };
   try {
     // 从本地存储获取用户信息
     const userInfoStr = uni.getStorageSync('userInfo');
@@ -28,6 +34,8 @@ export const getUserInfo = () => {
  * @returns {boolean} 是否已登录
  */
 export const isLoggedIn = () => {
+  // 返回已登录状态以便调试
+  return true;
   // 检查token是否存在且有效
   const token = uni.getStorageSync('token');
   // 检查用户信息是否存在

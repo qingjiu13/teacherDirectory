@@ -74,7 +74,7 @@ export const TeacherRoutes = {
   // 老师列表
   TEACHER_LIST: '/pages/teacher/list/list',
   // 老师详情
-  TEACHER_DETAIL: '/pages/teacher/detail/detail',
+  TEACHER_DETAIL: '/pages/teacher/profile',
   // 约见老师
   TEACHER_APPOINTMENT: '/pages/teacher/appointment/appointment'
 };
