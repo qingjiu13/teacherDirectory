@@ -1,5 +1,5 @@
 <template>
-	<view class="page-container">
+	<view class="page-container" @tap="onPageTap">
 		<!-- #ifdef MP-WEIXIN -->
 		<!-- 微信小程序专用视图包装器 -->
 		<view class="mp-container">
@@ -10,13 +10,62 @@
 				<view class="filter-content">
 					<view class="filter-item school">
 						<text class="filter-label">所在学校：</text>
-						<input class="filter-input" v-model="userInfo.school" placeholder="请输入学校" />
+						<view class="select-wrapper">
+							<view class="custom-select" 
+								@tap.stop="toggleDropdown('school')" 
+								:class="{ 'active': activeDropdown === 'school' }">
+								<view class="select-content">
+									<text v-if="userInfo.school">{{userInfo.school}}</text>
+									<text v-else class="placeholder">请选择学校</text>
+								</view>
+								<view class="dropdown-icon" :class="{ 'active': activeDropdown === 'school' }">
+									<text>▼</text>
+								</view>
+							</view>
+							<!-- 下拉菜单内容 -->
+							<view v-if="activeDropdown === 'school'" class="dropdown-list" @tap.stop="stopEvent">
+								<scroll-view scroll-y="true" class="dropdown-scroll">
+									<view 
+										v-for="(item, index) in schoolList" 
+										:key="index" 
+										class="dropdown-item"
+										:class="{ 'selected': userInfo.school === item }"
+										@tap.stop="selectOption('school', item)">
+										<text>{{item}}</text>
+									</view>
+								</scroll-view>
+							</view>
+						</view>
 					</view>
 					<view class="filter-item major">
 						<text class="filter-label">专业：</text>
-						<input class="filter-input" v-model="userInfo.major" placeholder="请输入专业" />
+						<view class="select-wrapper">
+							<view class="custom-select" 
+								@tap.stop="toggleDropdown('major')" 
+								:class="{ 'active': activeDropdown === 'major' }">
+								<view class="select-content">
+									<text v-if="userInfo.major">{{userInfo.major}}</text>
+									<text v-else class="placeholder">请选择专业</text>
+								</view>
+								<view class="dropdown-icon" :class="{ 'active': activeDropdown === 'major' }">
+									<text>▼</text>
+								</view>
+							</view>
+							<!-- 下拉菜单内容 -->
+							<view v-if="activeDropdown === 'major'" class="dropdown-list" @tap.stop="stopEvent">
+								<scroll-view scroll-y="true" class="dropdown-scroll">
+									<view 
+										v-for="(item, index) in majorList" 
+										:key="index" 
+										class="dropdown-item"
+										:class="{ 'selected': userInfo.major === item }"
+										@tap.stop="selectOption('major', item)">
+										<text>{{item}}</text>
+									</view>
+								</scroll-view>
+							</view>
+						</view>
 					</view>
-					<button class="save-button" @click="saveUserInfo">保存筛选</button>
 				</view>
 			</view>
 			
@@ -85,7 +134,30 @@
 				},
 				inputValue: '',
 				currentFunction: null, // null, 'school', 'career'
-				messages: []
+				messages: [],
+				// 下拉框相关
+				activeDropdown: '', // 'school' / 'major' / ''
+				// 学校和专业列表数据
+				schoolList: [
+					'北京大学',
+					'清华大学',
+					'复旦大学',
+					'上海交通大学',
+					'浙江大学',
+					'南京大学',
+					'中国人民大学',
+					'武汉大学'
+				],
+				majorList: [
+					'计算机科学与技术',
+					'软件工程',
+					'人工智能',
+					'数据科学',
+					'网络工程',
+					'电子信息工程',
+					'通信工程',
+					'金融学'
+				]
 			}
 		},
 		onLoad() {
@@ -117,16 +189,63 @@
 			saveUserInfo() {
 				try {
 					uni.setStorageSync('userInfo', JSON.stringify(this.userInfo));
-					uni.showToast({
-						title: '保存成功',
-						icon: 'success'
-					});
 				} catch (e) {
 					console.error('保存用户信息失败:', e);
-					uni.showToast({
-						title: '保存失败',
-						icon: 'none'
-					});
+				}
+			},
+			
+			/**
+			 * @description 切换下拉菜单显示状态
+			 * @param {String} type - 下拉菜单类型（'school' 或 'major'）
+			 */
+			toggleDropdown(type) {
+				// 如果点击的是当前打开的下拉菜单，则关闭它
+				if (this.activeDropdown === type) {
+					this.activeDropdown = '';
+					return;
+				}
+				
+				// 切换下拉菜单
+				this.activeDropdown = type;
+			},
+			
+			/**
+			 * @description 选择下拉选项
+			 * @param {String} type - 下拉菜单类型
+			 * @param {String} item - 选中的选项值
+			 */
+			selectOption(type, item) {
+				// 设置选中项
+				if (type === 'school') {
+					this.userInfo.school = item;
+				} else if (type === 'major') {
+					this.userInfo.major = item;
+				}
+				
+				// 自动保存用户信息
+				this.saveUserInfo();
+				
+				// 关闭下拉菜单
+				this.activeDropdown = '';
+			},
+			
+			/**
+			 * @description 页面点击事件处理
+			 */
+			onPageTap() {
+				// 点击页面空白区域时关闭下拉菜单
+				if (this.activeDropdown) {
+					this.activeDropdown = '';
+				}
+			},
+			
+			/**
+			 * @description 阻止事件冒泡
+			 * @param {Event} e - 事件对象
+			 */
+			stopEvent(e) {
+				if (e && e.stopPropagation) {
+					e.stopPropagation();
 				}
 			},
 			
@@ -251,6 +370,7 @@
 		flex-direction: row;
 		align-items: center;
 		margin-bottom: 10px;
+		position: relative;
 	}
 	
 	.filter-label {
@@ -259,22 +379,86 @@
 		color: #333;
 	}
 	
-	.filter-input {
+	/* 自定义下拉框样式 */
+	.select-wrapper {
 		flex: 1;
+		position: relative;
+	}
+	
+	.custom-select {
 		height: 30px;
 		border: 1px solid #ddd;
 		border-radius: 4px;
-		padding: 0 10px;
 		background-color: #fff;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 10px;
 	}
 	
-	.save-button {
-		align-self: flex-end;
-		width: 100px;
+	.custom-select.active {
+		border-color: #007aff;
+	}
+	
+	.select-content {
+		flex: 1;
 		height: 30px;
+		line-height: 30px;
 		font-size: 14px;
-		background-color: #007aff;
-		color: #fff;
+	}
+	
+	.placeholder {
+		color: #999;
+	}
+	
+	.dropdown-icon {
+		width: 20px;
+		text-align: center;
+	}
+	
+	.dropdown-icon text {
+		font-size: 12px;
+		color: #666;
+	}
+	
+	.dropdown-icon.active text {
+		transform: rotate(180deg);
+		display: inline-block;
+	}
+	
+	.dropdown-list {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		width: 100%;
+		background-color: #ffffff;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		margin-top: 2px;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+		z-index: 999;
+	}
+	
+	.dropdown-scroll {
+		max-height: 180px;
+	}
+	
+	.dropdown-item {
+		padding: 8px 10px;
+		border-bottom: 1px solid #eee;
+	}
+	
+	.dropdown-item:last-child {
+		border-bottom: none;
+	}
+	
+	.dropdown-item.selected {
+		background-color: #f0f8ff;
+	}
+	
+	.dropdown-item.selected text {
+		color: #007aff;
 	}
 	
 	/* 回答区域 */
