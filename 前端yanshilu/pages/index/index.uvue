@@ -21,7 +21,7 @@
 			@touchstart="onTouchStart"
 			@touchmove="onTouchMove"
 			@touchend="onTouchEnd"
-			@click="goToAI"
+			@click.stop="handleAvatarClick"
 		>
 			<image class="avatar-image" src="../../static/image/default_avatar.png"></image>
 		</view>
@@ -37,7 +37,7 @@
 					y="{{avatarPosition.y}}"
 					@change="onMoveChange"
 					@touchend="onTouchEnd"
-					@tap="goToAI"
+					@tap.stop="handleAvatarClick"
 				>
 					<image class="avatar-image" src="../../static/image/default_avatar.png"></image>
 				</movable-view>
@@ -214,6 +214,20 @@
 				setTimeout(() => {
 					this.isDragging = false;
 				}, 50);
+			},
+			
+			/**
+			 * @description 处理头像点击事件，包括防止误触发和跳转逻辑
+			 * @param {Object} e - 点击事件对象
+			 */
+			handleAvatarClick(e) {
+				// 阻止事件冒泡
+				e.stopPropagation();
+				
+				// 只有在非拖拽状态才跳转
+				if (!this.isDragging) {
+					this.goToAI();
+				}
 			}
 		}
 	}
@@ -296,13 +310,13 @@
 		top: 0;
 		left: 0;
 		z-index: 999; /* 确保在最顶层 */
-		pointer-events: auto; /* 允许容器接收点击事件 */
+		pointer-events: none; /* 让整个容器变透明以便点击穿透到底层 */
 	}
 	
 	.movable-container {
 		width: 100%;
 		height: calc(100% - 50px); /* 减去底部导航栏高度 */
-		pointer-events: none; /* 让容器本身不接收事件 */
+		pointer-events: none; /* 让容器变透明以便点击穿透 */
 	}
 	
 	.draggable-avatar {
