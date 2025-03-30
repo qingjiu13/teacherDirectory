@@ -137,6 +137,18 @@
 			"style": {
 				"navigationBarTitleText": "我的钱包"
 			}
+		},
+		{
+			"path": "pages/mine/mine/mine_common",
+			"style": {
+				"navigationBarTitleText": "我的页面中心（共用）"
+			}
+		},
+				{
+			"path": "pages/mine/order/order_common",
+			"style": {
+				"navigationBarTitleText": "我的订单（共用）"
+			}
 		}
 	],
 	"globalStyle": {
