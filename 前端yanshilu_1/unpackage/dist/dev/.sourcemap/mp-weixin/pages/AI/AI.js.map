@@ -1,0 +1,1 @@
+{"version":3,"file":"AI.js","sources":["../../HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvQUkvQUkudXZ1ZQ"],"sourcesContent":["import MiniProgramPage from 'E:/yanshilu重新来过/前端yanshilu_1/pages/AI/AI.uvue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}

@@ -8,12 +8,28 @@
     
     <!-- 按钮区域 -->
     <div class="button-area">
-      <div class="match-button">
+      <div class="match-button" @click="navigateToMatch">
         <div class="button-text">精准匹配</div>
       </div>
     </div>
   </div>
 </template>
+
+<script>
+import Router from '../../Router.js'
+
+export default {
+  methods: {
+    navigateToMatch() {
+      // 使用新的 Navigator 工具类进行跳转
+      Router.navigator.toMatch();
+      
+      // 或者也可以直接使用通用导航方法（效果相同）
+      // Router.navigator.navigateTo(Router.match.MATCH);
+    }
+  }
+}
+</script>
 
 <style>
 .page-container {

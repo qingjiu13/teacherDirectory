@@ -5285,6 +5285,29 @@ function findUniElement(id, ins = getCurrentInstance()) {
   }
   return null;
 }
+function createDummyUniElement() {
+  return new UniElement("", "");
+}
+function createEventElement(id, ins) {
+  if (!id || !ins) {
+    return createDummyUniElement();
+  }
+  const element = findUniElement(id, ins);
+  if (!element) {
+    return createDummyUniElement();
+  }
+  return createUniElement(id, element.tagName, ins);
+}
+function createEventTarget(target, ins) {
+  const id = (target === null || target === void 0 ? void 0 : target.id) || "";
+  const element = createEventElement(id, ins);
+  if (element) {
+    element.dataset = (target === null || target === void 0 ? void 0 : target.dataset) || {};
+    element.offsetTop = typeof (target === null || target === void 0 ? void 0 : target.offsetTop) === "number" ? target === null || target === void 0 ? void 0 : target.offsetTop : NaN;
+    element.offsetLeft = typeof (target === null || target === void 0 ? void 0 : target.offsetLeft) === "number" ? target === null || target === void 0 ? void 0 : target.offsetLeft : NaN;
+  }
+  return element;
+}
 function initMiniProgramNode(uniElement, ins) {
   if (uniElement.tagName === "SCROLL-VIEW") {
     uniElement.$node = new Promise((resolve2) => {
@@ -5300,6 +5323,143 @@ function initMiniProgramNode(uniElement, ins) {
         }).exec();
       }, 2);
     });
+  }
+}
+function vOn(value, key) {
+  const instance = getCurrentInstance();
+  const ctx = instance.ctx;
+  const extraKey = typeof key !== "undefined" && (ctx.$mpPlatform === "mp-weixin" || ctx.$mpPlatform === "mp-qq" || ctx.$mpPlatform === "mp-xhs") && (isString(key) || typeof key === "number") ? "_" + key : "";
+  const name = "e" + instance.$ei++ + extraKey;
+  const mpInstance = ctx.$scope;
+  if (!value) {
+    delete mpInstance[name];
+    return name;
+  }
+  const existingInvoker = mpInstance[name];
+  if (existingInvoker) {
+    existingInvoker.value = value;
+  } else {
+    mpInstance[name] = createInvoker(value, instance);
+  }
+  return name;
+}
+function createInvoker(initialValue, instance) {
+  const invoker = (e2) => {
+    patchMPEvent(e2, instance);
+    let args = [e2];
+    if (instance && instance.ctx.$getTriggerEventDetail) {
+      if (typeof e2.detail === "number") {
+        e2.detail = instance.ctx.$getTriggerEventDetail(e2.detail);
+      }
+    }
+    if (e2.detail && e2.detail.__args__) {
+      args = e2.detail.__args__;
+    }
+    const eventValue = invoker.value;
+    const invoke = () => callWithAsyncErrorHandling(patchStopImmediatePropagation(e2, eventValue), instance, 5, args);
+    const eventTarget = e2.target;
+    const eventSync = eventTarget ? eventTarget.dataset ? String(eventTarget.dataset.eventsync) === "true" : false : false;
+    if (bubbles.includes(e2.type) && !eventSync) {
+      setTimeout(invoke);
+    } else {
+      const res = invoke();
+      if (e2.type === "input" && (isArray(res) || isPromise(res))) {
+        return;
+      }
+      return res;
+    }
+  };
+  invoker.value = initialValue;
+  return invoker;
+}
+const bubbles = [
+  // touch事件暂不做延迟，否则在 Android 上会影响性能，比如一些拖拽跟手手势等
+  // 'touchstart',
+  // 'touchmove',
+  // 'touchcancel',
+  // 'touchend',
+  "tap",
+  "longpress",
+  "longtap",
+  "transitionend",
+  "animationstart",
+  "animationiteration",
+  "animationend",
+  "touchforcechange"
+];
+function isMPTapEvent(event) {
+  return event.type === "tap";
+}
+function normalizeXEvent(event, instance) {
+  if (isMPTapEvent(event)) {
+    event.x = event.detail.x;
+    event.y = event.detail.y;
+    event.clientX = event.detail.x;
+    event.clientY = event.detail.y;
+    const touch0 = event.touches && event.touches[0];
+    if (touch0) {
+      event.pageX = touch0.pageX;
+      event.pageY = touch0.pageY;
+      event.screenX = touch0.screenX;
+      event.screenY = touch0.screenY;
+    }
+  }
+  if (event.target) {
+    const oldTarget = event.target;
+    Object.defineProperty(event, "target", {
+      get() {
+        if (!event._target) {
+          event._target = createEventTarget(oldTarget, instance || void 0);
+        }
+        return event._target;
+      }
+    });
+  }
+  if (event.currentTarget) {
+    const oldCurrentTarget = event.currentTarget;
+    Object.defineProperty(event, "currentTarget", {
+      get() {
+        if (!event._currentTarget) {
+          event._currentTarget = createEventTarget(oldCurrentTarget, instance || void 0);
+        }
+        return event._currentTarget;
+      }
+    });
+  }
+}
+function patchMPEvent(event, instance) {
+  if (event.type && event.target) {
+    event.preventDefault = NOOP;
+    event.stopPropagation = NOOP;
+    event.stopImmediatePropagation = NOOP;
+    if (!hasOwn(event, "detail")) {
+      event.detail = {};
+    }
+    if (hasOwn(event, "markerId")) {
+      event.detail = typeof event.detail === "object" ? event.detail : {};
+      event.detail.markerId = event.markerId;
+    }
+    if (isPlainObject$1(event.detail) && hasOwn(event.detail, "checked") && !hasOwn(event.detail, "value")) {
+      event.detail.value = event.detail.checked;
+    }
+    if (isPlainObject$1(event.detail)) {
+      event.target = extend({}, event.target, event.detail);
+    }
+    {
+      normalizeXEvent(event, instance);
+    }
+  }
+}
+function patchStopImmediatePropagation(e2, value) {
+  if (isArray(value)) {
+    const originalStop = e2.stopImmediatePropagation;
+    e2.stopImmediatePropagation = () => {
+      originalStop && originalStop.call(e2);
+      e2._stopped = true;
+    };
+    return value.map((fn) => (e3) => !e3._stopped && fn(e3));
+  } else {
+    return value;
   }
 }
 function setUniElementId(id, options, ref2, refOpts) {
@@ -5377,6 +5537,7 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
     });
   }
 }
+const o = (value, key) => vOn(value, key);
 const sei = setUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -7233,9 +7394,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.81.1.13,127.0.0.1";
+  const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_1YJUJs";
+  const id = "mp-weixin_MSkF21";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -8820,5 +8981,6 @@ exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
 exports.defineComponent = defineComponent;
 exports.index = index;
+exports.o = o;
 exports.sei = sei;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

@@ -3,6 +3,28 @@ Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
 if (!Math) {
   "./pages/index/index.js";
+  "./pages/match/match.js";
+  "./pages/teacher/teacher.js";
+  "./pages/AI/AI.js";
+  "./pages/message/message.js";
+  "./pages/message/chat.js";
+  "./pages/login/login.js";
+  "./pages/login/student/student.js";
+  "./pages/login/teacher/teacher.js";
+  "./pages/login/wechat_login.js";
+  "./pages/mine/mine/student_mine.js";
+  "./pages/mine/mine/teacher_mine.js";
+  "./pages/mine/modify.js";
+  "./pages/mine/course/course.js";
+  "./pages/mine/course/course_detail.js";
+  "./pages/mine/order.js";
+  "./pages/mine/order/student_order.js";
+  "./pages/mine/order/teacher_order.js";
+  "./pages/mine/order/appraise/appraise.js";
+  "./pages/mine/qualification.js";
+  "./pages/mine/service.js";
+  "./pages/mine/settings.js";
+  "./pages/mine/wallet.js";
 }
 const _sfc_main = common_vendor.defineComponent({
   onLaunch: function() {
