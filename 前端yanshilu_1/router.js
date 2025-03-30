@@ -5,5 +5,7 @@
 export const Routes = {
 	MATCH:'/pages/match/match',
 	AI_SERVER:'/pages/AI/AI',
-	
+	MESSAGE:'/pages/message/message',
+	CHAT:'/pages/message/chat',
+	INDEX:'/pages/'
 }
