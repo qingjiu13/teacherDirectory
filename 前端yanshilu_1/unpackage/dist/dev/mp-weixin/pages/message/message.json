@@ -1,6 +1,4 @@
 {
   "navigationBarTitleText": "消息列表",
-  "usingComponents": {
-    "tab-bar": "../../components/tab-bar/tab-bar"
-  }
+  "usingComponents": {}
 }

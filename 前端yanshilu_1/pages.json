@@ -1,5 +1,5 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [ 
 		{
 			"path": "pages/index/index",
 			"style": {
@@ -151,31 +151,37 @@
 			}
 		}
 	],
-	"tabBar": {
-		"color": "#999999",
-		"selectedColor": "#007AFF",
-		"borderStyle": "white",
-		"backgroundColor": "#ffffff",
-		"list": [
-			{
-				"pagePath": "pages/index/index",
-				"text": "首页"
-			},
-			{
-				"pagePath": "pages/message/message",
-				"text": "消息"
-			},
-			{
-				"pagePath": "pages/mine/mine/mine_common",
-				"text": "我的"
-			}
-		]
-	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app x",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#007aff",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/image/tab-bar/wechat.png",
+				"selectedIconPath": "static/image/tab-bar/default_avatar.png"
+			},
+			{
+				"pagePath": "pages/message/message",
+				"text": "消息",
+				"iconPath": "static/image/tab-bar/wechat.png",
+				"selectedIconPath": "static/image/tab-bar/default_avatar.png"
+			},
+			{
+				"pagePath": "pages/mine/mine/mine_common",
+				"text": "我的",
+				"iconPath": "static/image/tab-bar/wechat.png",
+				"selectedIconPath": "static/image/tab-bar/default_avatar.png"
+			}
+		]
 	},
 	"uniIdRouter": {}
 }

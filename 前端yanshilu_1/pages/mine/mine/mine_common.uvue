@@ -12,11 +12,7 @@
       <include src="./student_mine.uvue"></include>
     </view>
     
-    <!-- 公共底部 -->
-    <footer>yanshilu</footer>
-    
-    <!-- 底部导航栏 -->
-    <tab-bar pageName="mine"></tab-bar>
+    <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
   </view>
 </template>
 
@@ -25,12 +21,8 @@
  * @description 我的页面（通用）
  */
 import { Navigator } from '@/router/Router.js';
-import TabBar from '@/components/tab-bar/tab-bar.uvue';
 
 export default {
-  components: {
-    TabBar
-  },
   data() {
     return {
       userRole: '', // 从全局状态或API获取
@@ -59,17 +51,11 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding-bottom: 55px; /* 为底部导航栏留出空间 */
+  padding-bottom: 50px; /* 为系统tabBar留出空间 */
 }
 header {
   padding: 20rpx;
   font-size: 32rpx;
   text-align: center;
-}
-footer {
-  padding: 20rpx;
-  font-size: 24rpx;
-  text-align: center;
-  color: #999;
 }
 </style>
