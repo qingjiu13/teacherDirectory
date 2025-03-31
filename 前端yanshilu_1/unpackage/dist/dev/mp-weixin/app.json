@@ -22,7 +22,9 @@
     "pages/mine/qualification",
     "pages/mine/service",
     "pages/mine/settings",
-    "pages/mine/wallet"
+    "pages/mine/wallet",
+    "pages/mine/mine/mine_common",
+    "pages/mine/order/order_common"
   ],
   "window": {
     "navigationBarTextStyle": "black",

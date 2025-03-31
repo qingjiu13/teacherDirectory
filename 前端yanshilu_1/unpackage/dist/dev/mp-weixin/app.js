@@ -25,6 +25,8 @@ if (!Math) {
   "./pages/mine/service.js";
   "./pages/mine/settings.js";
   "./pages/mine/wallet.js";
+  "./pages/mine/mine/mine_common.js";
+  "./pages/mine/order/order_common.js";
 }
 const _sfc_main = common_vendor.defineComponent({
   onLaunch: function() {

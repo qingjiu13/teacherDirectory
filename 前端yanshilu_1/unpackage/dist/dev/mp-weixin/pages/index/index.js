@@ -1,10 +1,13 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const Router = require("../../Router.js");
+const router_Router = require("../../router/Router.js");
 const _sfc_main = common_vendor.defineComponent({
   methods: {
+    /**
+     * @description 导航到匹配页面
+     */
     navigateToMatch() {
-      Router.Router.navigator.toMatch();
+      router_Router.Navigator.toMatch();
     }
   }
 });

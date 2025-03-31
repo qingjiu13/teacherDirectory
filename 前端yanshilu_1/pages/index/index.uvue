@@ -16,12 +16,15 @@
 </template>
 
 <script>
-import Router from '../../Router.js'
+import { Navigator } from '@/router/Router.js'
 
 export default {
   methods: {
+    /**
+     * @description 导航到匹配页面
+     */
     navigateToMatch() {
-      Router.navigator.toMatch();
+      Navigator.toMatch();
     }
   }
 }

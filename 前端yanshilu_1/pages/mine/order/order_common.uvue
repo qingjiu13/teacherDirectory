@@ -18,6 +18,9 @@
 </template>
 
 <script>
+// 更新Router.js的导入路径
+import { Navigator } from '@/router/Router.js';
+
 export default {
   data() {
     return {
