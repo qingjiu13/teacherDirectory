@@ -1,6 +1,10 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
+const TabBar = () => "../../../components/tab-bar/tab-bar.js";
 const _sfc_main = common_vendor.defineComponent({
+  components: {
+    TabBar
+  },
   data() {
     return {
       userRole: "",
@@ -22,7 +26,12 @@ const _sfc_main = common_vendor.defineComponent({
 });
 if (!Array) {
   const _component_include = common_vendor.resolveComponent("include");
-  _component_include();
+  const _easycom_tab_bar2 = common_vendor.resolveComponent("tab-bar");
+  (_component_include + _easycom_tab_bar2)();
+}
+const _easycom_tab_bar = () => "../../../components/tab-bar/tab-bar.js";
+if (!Math) {
+  _easycom_tab_bar();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -38,7 +47,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}, {
     d: $data.userRole === "student",
-    f: common_vendor.sei(_ctx.virtualHostId, "view")
+    f: common_vendor.p({
+      pageName: "mine"
+    }),
+    g: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

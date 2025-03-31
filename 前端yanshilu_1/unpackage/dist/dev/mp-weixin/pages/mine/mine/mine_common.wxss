@@ -1,2 +1,20 @@
 @import "../../../uvue.wxss";
 :host{display:flex;flex-direction:column}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: 55px; /* 为底部导航栏留出空间 */
+}
+header {
+  padding: 20rpx;
+  font-size: 32rpx;
+  text-align: center;
+}
+footer {
+  padding: 20rpx;
+  font-size: 24rpx;
+  text-align: center;
+  color: #999;
+}
