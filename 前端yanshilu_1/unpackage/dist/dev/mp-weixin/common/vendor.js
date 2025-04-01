@@ -85,8 +85,8 @@ const def = (obj, key, value) => {
   });
 };
 const looseToNumber = (val) => {
-  const n = parseFloat(val);
-  return isNaN(n) ? val : n;
+  const n2 = parseFloat(val);
+  return isNaN(n2) ? val : n2;
 };
 function normalizeStyle$1(value) {
   if (isArray(value)) {
@@ -117,6 +117,26 @@ function parseStringStyle(cssText) {
     }
   });
   return ret;
+}
+function normalizeClass$1(value) {
+  let res = "";
+  if (isString(value)) {
+    res = value;
+  } else if (isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      const normalized = normalizeClass$1(value[i]);
+      if (normalized) {
+        res += normalized + " ";
+      }
+    }
+  } else if (isObject(value)) {
+    for (const name in value) {
+      if (value[name]) {
+        res += name + " ";
+      }
+    }
+  }
+  return res.trim();
 }
 const toDisplayString = (val) => {
   return isString(val) ? val : val == null ? "" : isArray(val) || isObject(val) && (val.toString === objectToString || !isFunction(val.toString)) ? JSON.stringify(val, replacer, 2) : String(val);
@@ -337,6 +357,33 @@ function normalizeStyle(value) {
   } else {
     return normalizeStyle$1(value);
   }
+}
+function normalizeClass(value) {
+  let res = "";
+  const g2 = getGlobal$1();
+  if (g2 && g2.UTSJSONObject && value instanceof g2.UTSJSONObject) {
+    g2.UTSJSONObject.keys(value).forEach((key) => {
+      if (value[key]) {
+        res += key + " ";
+      }
+    });
+  } else if (value instanceof Map) {
+    value.forEach((value2, key) => {
+      if (value2) {
+        res += key + " ";
+      }
+    });
+  } else if (isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      const normalized = normalizeClass(value[i]);
+      if (normalized) {
+        res += normalized + " ";
+      }
+    }
+  } else {
+    res = normalizeClass$1(value);
+  }
+  return res.trim();
 }
 const encode = encodeURIComponent;
 function stringifyQuery(obj, encodeStr = encode) {
@@ -5548,6 +5595,42 @@ function patchStopImmediatePropagation(e2, value) {
     return value;
   }
 }
+function vFor(source, renderItem) {
+  let ret;
+  if (isArray(source) || isString(source)) {
+    ret = new Array(source.length);
+    for (let i = 0, l = source.length; i < l; i++) {
+      ret[i] = renderItem(source[i], i, i);
+    }
+  } else if (typeof source === "number") {
+    if (!Number.isInteger(source)) {
+      warn(`The v-for range expect an integer value but got ${source}.`);
+      return [];
+    }
+    ret = new Array(source);
+    for (let i = 0; i < source; i++) {
+      ret[i] = renderItem(i + 1, i, i);
+    }
+  } else if (isObject(source)) {
+    if (source[Symbol.iterator]) {
+      ret = Array.from(source, (item, i) => renderItem(item, i, i));
+    } else {
+      const keys = Object.keys(source);
+      ret = new Array(keys.length);
+      for (let i = 0, l = keys.length; i < l; i++) {
+        const key = keys[i];
+        ret[i] = renderItem(source[key], key, i);
+      }
+    }
+  } else {
+    ret = [];
+  }
+  return ret;
+}
+function setRef(ref2, id, opts = {}) {
+  const { $templateRefs } = getCurrentInstance();
+  $templateRefs.push({ i: id, r: ref2, k: opts.k, f: opts.f });
+}
 function setUniElementId(id, options, ref2, refOpts) {
   const ins = getCurrentInstance();
   if (ins) {
@@ -5624,9 +5707,12 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
   }
 }
 const o = (value, key) => vOn(value, key);
+const f = (source, renderItem) => vFor(source, renderItem);
 const e = (target, ...sources) => extend(target, ...sources);
+const n = (value) => normalizeClass(value);
 const t = (val) => toDisplayString(val);
 const p = (props) => renderProps(props);
+const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 const sei = setUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -6282,7 +6368,7 @@ const $once = defineSyncApi(API_ONCE, (name, callback) => {
 const $off = defineSyncApi(API_OFF, (name, callback) => {
   if (!isArray(name))
     name = name ? [name] : [];
-  name.forEach((n) => eventBus.off(n, callback));
+  name.forEach((n2) => eventBus.off(n2, callback));
 }, OffProtocol);
 const $emit = defineSyncApi(API_EMIT, (name, ...args) => {
   eventBus.emit(name, ...args);
@@ -7485,7 +7571,7 @@ function initOnError() {
 function initRuntimeSocketService() {
   const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_uv0_9l";
+  const id = "mp-weixin_gTE3H4";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9070,10 +9156,13 @@ exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
 exports.defineComponent = defineComponent;
 exports.e = e;
+exports.f = f;
 exports.index = index;
+exports.n = n;
 exports.o = o;
 exports.p = p;
 exports.resolveComponent = resolveComponent;
 exports.sei = sei;
+exports.sr = sr;
 exports.t = t;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

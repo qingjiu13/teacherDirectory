@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "AI助手",
-  "usingComponents": {}
+  "usingComponents": {
+    "enhanced-dropdown": "../../components/combobox/combobox"
+  }
 }
