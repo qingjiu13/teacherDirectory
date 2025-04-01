@@ -80,11 +80,6 @@
           <text class="action-btn confirm-btn" @click="confirmSelection">确认</text>
           <text class="action-btn cancel-btn" @click="cancelSelection">取消</text>
         </view>
-        
-        <!-- 关闭按钮 -->
-        <view class="dropdown-close" @click="closeDropdown">
-          <text class="close-icon">×</text>
-        </view>
       </view>
     </view>
   </view>
@@ -282,19 +277,6 @@
   border: 1px solid #dcdfe6;
 }
 
-.dropdown-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  cursor: pointer;
-}
 
 .close-icon {
   font-size: 18px;

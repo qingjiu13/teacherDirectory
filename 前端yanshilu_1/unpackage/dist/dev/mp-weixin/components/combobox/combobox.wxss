@@ -164,19 +164,6 @@
   background-color: #fff;
   border: 1px solid #dcdfe6;
 }
-.dropdown-close.data-v-a531acfb {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  cursor: pointer;
-}
 .close-icon.data-v-a531acfb {
   font-size: 18px;
   color: #909399;

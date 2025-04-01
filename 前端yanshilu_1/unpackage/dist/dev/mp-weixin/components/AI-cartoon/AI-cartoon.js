@@ -25,8 +25,21 @@ const _sfc_main = common_vendor.defineComponent({
       iconTop: config.initialTop,
       startX: 0,
       startY: 0,
-      isMoving: false
+      isMoving: false,
+      isDragging: false
     };
+  },
+  mounted() {
+    if (typeof window !== "undefined") {
+      window.addEventListener("mousemove", this.handleMouseMove);
+      window.addEventListener("mouseup", this.handleMouseUp);
+    }
+  },
+  beforeDestroy() {
+    if (typeof window !== "undefined") {
+      window.removeEventListener("mousemove", this.handleMouseMove);
+      window.removeEventListener("mouseup", this.handleMouseUp);
+    }
   },
   methods: {
     /**
@@ -48,19 +61,9 @@ const _sfc_main = common_vendor.defineComponent({
       if (Math.abs(moveX) > 5 || Math.abs(moveY) > 5) {
         this.isMoving = true;
       }
-      this.iconLeft += moveX;
-      this.iconTop += moveY;
-      const windowInfo = common_vendor.index.getWindowInfo();
-      const screenWidth = windowInfo.windowWidth;
-      const screenHeight = windowInfo.windowHeight;
-      if (this.iconLeft < 0)
-        this.iconLeft = 0;
-      if (this.iconLeft > screenWidth - this.config.size)
-        this.iconLeft = screenWidth - this.config.size;
-      if (this.iconTop < 0)
-        this.iconTop = 0;
-      if (this.iconTop > screenHeight - this.config.size)
-        this.iconTop = screenHeight - this.config.size;
+      const newLeft = (this.iconLeft || 0) + moveX;
+      const newTop = (this.iconTop || 0) + moveY;
+      this.updatePosition(newLeft, newTop);
       this.startX = e.touches[0].clientX;
       this.startY = e.touches[0].clientY;
     },
@@ -68,6 +71,62 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 处理触摸结束事件
      */
     handleTouchEnd() {
+    },
+    /**
+     * @description 处理鼠标按下事件（web端支持）
+     * @param {MouseEvent} e - 鼠标事件对象
+     */
+    handleMouseDown(e = null) {
+      this.startX = e.clientX;
+      this.startY = e.clientY;
+      this.isMoving = false;
+      this.isDragging = true;
+      e.preventDefault();
+    },
+    /**
+     * @description 处理鼠标移动事件（web端支持）
+     * @param {MouseEvent} e - 鼠标事件对象
+     */
+    handleMouseMove(e = null) {
+      if (!this.isDragging)
+        return null;
+      const moveX = e.clientX - this.startX;
+      const moveY = e.clientY - this.startY;
+      if (Math.abs(moveX) > 5 || Math.abs(moveY) > 5) {
+        this.isMoving = true;
+      }
+      const newLeft = (this.iconLeft || 0) + moveX;
+      const newTop = (this.iconTop || 0) + moveY;
+      this.updatePosition(newLeft, newTop);
+      this.startX = e.clientX;
+      this.startY = e.clientY;
+    },
+    /**
+     * @description 处理鼠标松开事件（web端支持）
+     */
+    handleMouseUp() {
+      this.isDragging = false;
+    },
+    /**
+     * @description 更新图标位置并进行边界检测
+     * @param {number} newLeft - 新的左侧位置
+     * @param {number} newTop - 新的顶部位置
+     */
+    updatePosition(newLeft = null, newTop = null) {
+      this.iconLeft = newLeft;
+      this.iconTop = newTop;
+      const windowInfo = common_vendor.index.getWindowInfo();
+      const screenWidth = windowInfo.windowWidth;
+      const screenHeight = windowInfo.windowHeight;
+      const iconSize = this.config.size || 60;
+      if (this.iconLeft < 0)
+        this.iconLeft = 0;
+      if (this.iconLeft > screenWidth - iconSize)
+        this.iconLeft = screenWidth - iconSize;
+      if (this.iconTop < 0)
+        this.iconTop = 0;
+      if (this.iconTop > screenHeight - iconSize)
+        this.iconTop = screenHeight - iconSize;
     },
     /**
      * @description 处理图标点击事件
@@ -95,7 +154,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     i: common_vendor.o((...args) => $options.handleTouchStart && $options.handleTouchStart(...args)),
     j: common_vendor.o((...args) => $options.handleTouchMove && $options.handleTouchMove(...args)),
     k: common_vendor.o((...args) => $options.handleTouchEnd && $options.handleTouchEnd(...args)),
-    l: common_vendor.o((...args) => $options.handleIconClick && $options.handleIconClick(...args))
+    l: common_vendor.o((...args) => $options.handleMouseDown && $options.handleMouseDown(...args)),
+    m: common_vendor.o((...args) => $options.handleIconClick && $options.handleIconClick(...args))
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

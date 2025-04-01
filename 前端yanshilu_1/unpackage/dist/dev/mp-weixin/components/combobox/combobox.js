@@ -450,12 +450,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     p: common_vendor.o((...args) => $options.confirmSelection && $options.confirmSelection(...args)),
     q: common_vendor.o((...args) => $options.cancelSelection && $options.cancelSelection(...args))
   } : {}, {
-    r: common_vendor.o((...args) => $options.closeDropdown && $options.closeDropdown(...args)),
-    s: common_vendor.o(() => {
+    r: common_vendor.o(() => {
     }),
-    t: common_vendor.o((...args) => $options.closeDropdown && $options.closeDropdown(...args))
+    s: common_vendor.o((...args) => $options.closeDropdown && $options.closeDropdown(...args))
   }) : {}, {
-    v: common_vendor.sei(_ctx.virtualHostId, "view")
+    t: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-a531acfb"]]);
