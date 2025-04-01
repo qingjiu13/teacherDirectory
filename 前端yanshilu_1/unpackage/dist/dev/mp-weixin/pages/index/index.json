@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "研师录",
-  "usingComponents": {}
+  "usingComponents": {
+    "a-i-cartoon": "../../components/AI-cartoon/AI-cartoon"
+  }
 }

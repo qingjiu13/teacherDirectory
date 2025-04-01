@@ -1,0 +1,145 @@
+<template>
+  <!-- 可拖动的卡通图标组件 -->
+  <view 
+    class="cartoon-icon" 
+    :style="{
+      left: iconLeft + 'px', 
+      top: iconTop + 'px',
+      width: config.size + 'px',
+      height: config.size + 'px',
+      '--animation-duration': config.animation.duration + 's',
+      '--float-distance': '-' + config.animation.distance + 'px'
+    }"
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove"
+    @touchend="handleTouchEnd"
+    @click="handleIconClick"
+  >
+    <image class="icon-image" :src="iconPath" mode="aspectFit"></image>
+  </view>
+</template>
+
+<script>
+/**
+ * @description 可拖动卡通图标组件
+ */
+export default {
+  name: 'AICartoon',
+  data() {
+    // 内联配置，不依赖外部文件
+    const config = {
+      // 图标图片路径
+      iconPath: '/static/image/tab-bar/default_avatar.png',
+      // 初始位置
+      initialLeft: 20,
+      initialTop: 100,
+      // 图标大小
+      size: 60,
+      // 动画效果
+      animation: {
+        duration: 2,  // 秒
+        distance: 10  // 浮动距离（像素）
+      }
+    };
+    
+    return {
+      config: config,
+      iconPath: config.iconPath,
+      iconLeft: config.initialLeft,
+      iconTop: config.initialTop,
+      startX: 0,
+      startY: 0,
+      isMoving: false
+    }
+  },
+  methods: {
+    /**
+     * @description 处理触摸开始事件
+     * @param {Object} e - 触摸事件对象
+     */
+    handleTouchStart(e) {
+      this.startX = e.touches[0].clientX;
+      this.startY = e.touches[0].clientY;
+      this.isMoving = false;
+    },
+    
+    /**
+     * @description 处理触摸移动事件
+     * @param {Object} e - 触摸事件对象
+     */
+    handleTouchMove(e) {
+      const moveX = e.touches[0].clientX - this.startX;
+      const moveY = e.touches[0].clientY - this.startY;
+      
+      if (Math.abs(moveX) > 5 || Math.abs(moveY) > 5) {
+        this.isMoving = true;
+      }
+      
+      this.iconLeft += moveX;
+      this.iconTop += moveY;
+      
+      // 边界检测，防止图标拖出屏幕
+      // 使用新的 API 获取窗口信息
+      const windowInfo = uni.getWindowInfo();
+      const screenWidth = windowInfo.windowWidth;
+      const screenHeight = windowInfo.windowHeight;
+      
+      if (this.iconLeft < 0) this.iconLeft = 0;
+      if (this.iconLeft > screenWidth - this.config.size) this.iconLeft = screenWidth - this.config.size;
+      if (this.iconTop < 0) this.iconTop = 0;
+      if (this.iconTop > screenHeight - this.config.size) this.iconTop = screenHeight - this.config.size;
+      
+      this.startX = e.touches[0].clientX;
+      this.startY = e.touches[0].clientY;
+    },
+    
+    /**
+     * @description 处理触摸结束事件
+     */
+    handleTouchEnd() {
+      // 触摸结束可以添加额外逻辑
+    },
+    
+    /**
+     * @description 处理图标点击事件
+     */
+    handleIconClick() {
+      if (!this.isMoving) {
+        // 执行跳转逻辑到AI助手页面
+        uni.navigateTo({
+          url: '/pages/AI/AI'
+        });
+      }
+      this.isMoving = false;
+    }
+  }
+}
+</script>
+
+<style>
+.cartoon-icon {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: auto; /* 确保可以接收点击事件 */
+}
+
+.icon-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%; /* 使图标为圆形 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+  animation: float var(--animation-duration, 2s) ease-in-out infinite; /* 添加浮动动画 */
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(calc(var(--float-distance, -10px)));
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+</style>

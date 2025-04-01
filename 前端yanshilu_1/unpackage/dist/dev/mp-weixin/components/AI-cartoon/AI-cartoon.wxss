@@ -1,0 +1,25 @@
+:host{display:flex;flex-direction:column}
+
+.cartoon-icon {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: auto; /* 确保可以接收点击事件 */
+}
+.icon-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%; /* 使图标为圆形 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+  animation: float var(--animation-duration, 2s) ease-in-out infinite; /* 添加浮动动画 */
+}
+@keyframes float {
+0% {
+    transform: translateY(0px);
+}
+50% {
+    transform: translateY(calc(var(--float-distance, -10px)));
+}
+100% {
+    transform: translateY(0px);
+}
+}

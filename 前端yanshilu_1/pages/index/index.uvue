@@ -12,13 +12,20 @@
       </view>
     </view>
     <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
+    
+    <!-- 引入可拖动卡通图标组件 -->
+    <AICartoon />
   </view>
 </template>
 
 <script>
 import { Navigator } from '@/router/Router.js'
+import AICartoon from '../../components/AI-cartoon/AI-cartoon.uvue'
 
 export default {
+  components: {
+    AICartoon
+  },
   methods: {
     /**
      * @description 导航到匹配页面
