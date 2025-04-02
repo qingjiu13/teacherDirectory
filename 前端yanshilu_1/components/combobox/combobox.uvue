@@ -1,696 +1,131 @@
-<template>
-  <view class="dropdown-container">
-    <!-- 下拉框触发区域 -->
-    <view class="dropdown-trigger" @click.stop="toggleDropdown">
-      <text class="selected-value">{{ displayValue || placeholder }}</text>
-      <text class="dropdown-icon">{{ isOpen ? '▲' : '▼' }}</text>
-    </view>
-    
-    <view v-if="isOpen" class="dropdown-overlay" @click="closeDropdown">
-      <!-- 下拉菜单 -->
-      <view class="dropdown-menu" @click.stop>
-        <!-- 搜索框 -->
-        <view class="dropdown-search" v-if="searchable">
-          <input 
-            type="text" 
-            v-model="searchText" 
-            :placeholder="searchPlaceholder"
-            @input="handleSearch"
-            class="search-input"
-          />
-        </view>
-        
-        <!-- 下拉选项 -->
-        <scroll-view scroll-y="true" class="dropdown-options">
-          <!-- 分组选项 -->
-          <template v-if="grouped">
-            <view v-for="(group, groupName) in groupedOptions" :key="groupName">
-              <view class="dropdown-group" v-if="groupName">{{ groupName }}</view>
-              <view 
-                v-for="(item, index) in group" 
-                :key="index"
-                class="dropdown-item"
-                @click="selectItem(item)"
-              >
-                <view class="item-content">
-                  <text v-if="item.icon" class="item-icon">{{ item.icon }}</text>
-                  <text class="item-label">{{ item.label }}</text>
-                  <view v-if="item.tags" class="item-tags">
-                    <text v-for="(tag, ti) in item.tags" :key="ti" class="tag">{{ tag }}</text>
-                  </view>
-                </view>
-                <view class="item-selection">
-                  <text v-if="isItemSelected(item)" class="selected-icon">✓</text>
-                  <text v-else-if="multiple && item === tempSelection" class="selected-icon">+</text>
-                </view>
-              </view>
+<template name="ChoiceSelected">
+    <!-- 自定义下拉选择框 start-->
+    <view class="selected-all">
+        <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick">
+            <text class="dropdown-content">{{choiceContent}}</text>
+            <view>
+                <image class="dropdown-icon" src="../../static/image/arrow/arrow_down.svg" mode="widthFix"></image>
             </view>
-          </template>
-          
-          <!-- 普通选项 -->
-          <template v-else>
-            <view 
-              v-for="(item, index) in filteredOptions" 
-              :key="index"
-              class="dropdown-item"
-              @click="selectItem(item)"
-            >
-              <view class="item-content">
-                <text v-if="item.icon" class="item-icon">{{ item.icon }}</text>
-                <text class="item-label">{{ item.label }}</text>
-                <view v-if="item.tags" class="item-tags">
-                  <text v-for="(tag, ti) in item.tags" :key="ti" class="tag">{{ tag }}</text>
-                </view>
-              </view>
-              <view class="item-selection">
-                <text v-if="isItemSelected(item)" class="selected-icon">✓</text>
-                <text v-else-if="multiple && item === tempSelection" class="selected-icon">+</text>
-              </view>
-            </view>
-          </template>
-          
-          <view v-if="showEmpty" class="dropdown-empty">
-            <text>{{ emptyText }}</text>
-          </view>
-        </scroll-view>
-        
-        <!-- 多选操作栏 -->
-        <view v-if="multiple && selectedItems.length > 0" class="dropdown-actions">
-          <text class="action-text">已选 {{ selectedItems.length }} 项</text>
-          <text class="action-btn confirm-btn" @click="confirmSelection">确认</text>
-          <text class="action-btn cancel-btn" @click="cancelSelection">取消</text>
         </view>
-      </view>
+        <!-- 弹框内容 -->
+        <view class="dialog-view" v-if="isShowChoice">
+            <text :class="choiceIndex ==index ?'dialog-title-selected':'dialog-title'"
+                v-for="(item ,index) in choiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
+        </view>
     </view>
-  </view>
+    <!-- 自定义下拉选择框 end -->
 </template>
 
-<style scoped>
-.dropdown-container {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
-
-.dropdown-trigger {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
-  transition: border-color 0.3s;
-  min-height: 40px;
-}
-
-.dropdown-trigger:hover {
-  border-color: #c0c4cc;
-}
-
-.selected-value {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #606266;
-}
-
-.dropdown-icon {
-  margin-left: 8px;
-  color: #c0c4cc;
-  font-size: 12px;
-}
-
-.dropdown-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.dropdown-menu {
-  position: relative;
-  width: 90%;
-  max-width: 400px;
-  max-height: 80vh;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 1000;
-}
-
-.dropdown-search {
-  padding: 12px;
-  border-bottom: 1px solid #e4e7ed;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  outline: none;
-  font-size: 14px;
-}
-
-.search-input:focus {
-  border-color: #409eff;
-}
-
-.dropdown-options {
-  flex: 1;
-  overflow-y: auto;
-  max-height: 50vh;
-}
-
-.dropdown-group {
-  padding: 8px 16px;
-  font-size: 13px;
-  color: #909399;
-  background-color: #f5f7fa;
-  font-weight: bold;
-}
-
-.dropdown-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.dropdown-item:active {
-  background-color: #f5f7fa;
-}
-
-.item-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.item-icon {
-  margin-right: 8px;
-  font-size: 16px;
-}
-
-.item-label {
-  font-size: 14px;
-  color: #303133;
-}
-
-.item-tags {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.tag {
-  font-size: 10px;
-  padding: 2px 6px;
-  background-color: #f0f0f0;
-  border-radius: 3px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-  color: #909399;
-}
-
-.item-selection {
-  width: 20px;
-  text-align: right;
-}
-
-.selected-icon {
-  color: #409eff;
-  font-weight: bold;
-}
-
-.dropdown-empty {
-  padding: 24px 16px;
-  color: #909399;
-  text-align: center;
-  font-size: 14px;
-}
-
-.dropdown-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-top: 1px solid #e4e7ed;
-  background-color: #f5f7fa;
-}
-
-.action-text {
-  font-size: 13px;
-  color: #606266;
-}
-
-.action-btn {
-  padding: 6px 12px;
-  margin-left: 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.confirm-btn {
-  color: #fff;
-  background-color: #409eff;
-}
-
-.cancel-btn {
-  color: #606266;
-  background-color: #fff;
-  border: 1px solid #dcdfe6;
-}
-
-
-.close-icon {
-  font-size: 18px;
-  color: #909399;
-}
-</style>
-
 <script>
-/**
- * @description 增强版下拉框组件
- * @property {Array} options - 选项列表，每项需包含label和value属性
- * @property {Any} value - 当前值，可以是单个值或数组（多选模式）
- * @property {String} placeholder - 占位文本
- * @property {Boolean} searchable - 是否可搜索
- * @property {String} searchPlaceholder - 搜索框占位文本
- * @property {String} emptyText - 无数据时显示的文本
- * @property {Boolean} autoClose - 是否自动关闭下拉菜单
- * @property {Boolean} multiple - 是否多选
- * @property {Number} maxSelections - 多选时最大选择数量
- * @property {Boolean} grouped - 是否分组显示
- * @property {Function} displayFormatter - 自定义显示值的格式化函数
- * @property {Boolean} collectFullData - 是否收集完整数据
- */
-export default {
-  name: 'EnhancedDropdown',
-  props: {
-    // 选项列表
-    options: {
-      type: Array,
-      default: () => [],
-      validator: value => {
-        return value.every(item => item.label && item.value !== undefined)
-      }
-    },
-    // 当前值（支持多选）
-    value: {
-      type: [String, Number, Boolean, Object, Array],
-      default: null
-    },
-    // 占位文本
-    placeholder: {
-      type: String,
-      default: '请选择'
-    },
-    // 是否可搜索
-    searchable: {
-      type: Boolean,
-      default: false
-    },
-    // 搜索框占位文本
-    searchPlaceholder: {
-      type: String,
-      default: '搜索...'
-    },
-    // 无数据时显示的文本
-    emptyText: {
-      type: String,
-      default: '无匹配数据'
-    },
-    // 是否自动关闭下拉菜单
-    autoClose: {
-      type: Boolean,
-      default: true
-    },
-    // 是否多选
-    multiple: {
-      type: Boolean,
-      default: false
-    },
-    // 多选时最大选择数量
-    maxSelections: {
-      type: Number,
-      default: null
-    },
-    // 是否分组显示
-    grouped: {
-      type: Boolean,
-      default: false
-    },
-    // 自定义显示值的格式化函数
-    displayFormatter: {
-      type: Function,
-      default: null
-    },
-    // 是否收集完整数据（而不仅仅是value）
-    collectFullData: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      isOpen: false,
-      searchText: '',
-      selectedValue: this.value,
-      selectedItems: Array.isArray(this.value) ? [...this.value] : this.value ? [this.value] : [],
-      tempSelection: null
-    }
-  },
-  computed: {
-    /**
-     * @description 显示的值（支持自定义格式化）
-     * @returns {String} 格式化后的显示文本
-     */
-    displayValue() {
-      if (this.displayFormatter) {
-        return this.displayFormatter(this.selectedItems)
-      }
-      
-      if (this.multiple) {
-        return this.selectedItems.length > 0 
-          ? this.selectedItems.map(item => {
-              if (typeof item === 'object' && item.label) {
-                return item.label;
-              } else {
-                const option = this.options.find(opt => opt.value === item);
-                return option ? option.label : item;
-              }
-            }).join(', ') 
-          : ''
-      }
-      
-      if (this.selectedItems.length > 0) {
-        const item = this.selectedItems[0];
-        if (typeof item === 'object' && item.label) {
-          return item.label;
-        } else {
-          const option = this.options.find(opt => opt.value === item);
-          return option ? option.label : item;
+    export default {
+        name: "ChoiceSelected",
+        data() {
+            return {
+                isShowChoice: false
+            };
+        },
+        props: {
+            choiceIndex: {},
+            choiceList: {},
+            choiceContent: {}
+        },
+        methods: {
+            // 选择
+            btnChoiceClick: function(position) {
+                var _this = this
+                // _this.choiceIndex = position
+                _this.isShowChoice = false
+                // _this.choiceContent = _this.choiceList[position].choiceItemContent
+                _this.$emit("onChoiceClick",position)
+            },
+            // 显示与隐藏选择内容
+            btnShowHideClick: function() {
+                var _this = this
+                if (_this.isShowChoice) {
+                    _this.isShowChoice = false
+                } else {
+                    _this.isShowChoice = true
+                }
+            },
         }
-      }
-      
-      return '';
-    },
-    
-    /**
-     * @description 过滤后的选项
-     * @returns {Array} 过滤后的选项列表
-     */
-    filteredOptions() {
-      if (!this.searchText) return this.options
-      const searchText = this.searchText.toLowerCase()
-      return this.options.filter(item => 
-        item.label.toLowerCase().includes(searchText) ||
-        (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchText)))
-      )
-    },
-    
-    /**
-     * @description 分组后的选项
-     * @returns {Object} 分组后的选项对象
-     */
-    groupedOptions() {
-      if (!this.grouped) return {}
-      return this.filteredOptions.reduce((groups, item) => {
-        const groupName = item.group || ''
-        if (!groups[groupName]) {
-          groups[groupName] = []
-        }
-        groups[groupName].push(item)
-        return groups
-      }, {})
-    },
-    
-    /**
-     * @description 是否显示空状态
-     * @returns {Boolean} 是否显示空状态
-     */
-    showEmpty() {
-      if (this.grouped) {
-        return Object.keys(this.groupedOptions).length === 0
-      }
-      return this.filteredOptions.length === 0
     }
-  },
-  watch: {
-    value(newVal) {
-      if (this.multiple) {
-        this.selectedItems = Array.isArray(newVal) ? [...newVal] : []
-      } else {
-        this.selectedItems = newVal ? [newVal] : []
-      }
-    }
-  },
-  methods: {
-    /**
-     * @description 切换下拉框状态
-     */
-    toggleDropdown() {
-      this.isOpen = !this.isOpen;
-      if (this.isOpen) {
-        this.searchText = '';
-        this.tempSelection = null;
-      }
-    },
-    
-    /**
-     * @description 关闭下拉框
-     */
-    closeDropdown() {
-      this.isOpen = false;
-    },
-    
-    /**
-     * @description 判断项目是否被选中
-     * @param {Object} item - 需要判断的选项
-     * @returns {Boolean} 是否选中
-     */
-    isItemSelected(item) {
-      return this.selectedItems.some(selected => 
-        this.compareItems(selected, item)
-      )
-    },
-    
-    /**
-     * @description 比较两个项目是否相同
-     * @param {Object} item1 - 第一个项目
-     * @param {Object} item2 - 第二个项目
-     * @returns {Boolean} 是否相同
-     */
-    compareItems(item1, item2) {
-      if (typeof item1 === 'object' && typeof item2 === 'object') {
-        return item1.value === item2.value
-      }
-      return item1 === item2
-    },
-    
-    /**
-     * @description 选择项目
-     * @param {Object} item - 选择的项目
-     */
-    selectItem(item) {
-      if (this.multiple) {
-        this.handleMultipleSelection(item)
-      } else {
-        this.handleSingleSelection(item)
-      }
-    },
-    
-    /**
-     * @description 处理单选
-     * @param {Object} item - 选择的项目
-     */
-    handleSingleSelection(item) {
-      this.selectedItems = [this.collectFullData ? item : item.value];
-      this.emitChanges();
-      
-      if (this.autoClose) {
-        this.closeDropdown();
-      }
-    },
-    
-    /**
-     * @description 处理多选
-     * @param {Object} item - 选择的项目
-     */
-    handleMultipleSelection(item) {
-      const itemValue = this.collectFullData ? item : item.value;
-      const index = this.selectedItems.findIndex(selected => 
-        this.compareItems(selected, itemValue)
-      );
-      
-      if (index >= 0) {
-        // 已选中则取消
-        this.selectedItems.splice(index, 1);
-        // 直接触发变更事件
-        this.emitChanges();
-      } else {
-        // 检查是否超过最大选择数量
-        if (this.maxSelections && this.selectedItems.length >= this.maxSelections) {
-          uni.showToast({
-            title: `最多选择 ${this.maxSelections} 项`,
-            icon: 'none'
-          });
-          return;
-        }
-        
-        // 直接添加选项，不使用临时选择机制
-        this.selectedItems.push(itemValue);
-        this.emitChanges();
-      }
-    },
-    
-    /**
-     * @description 确认多选
-     */
-    confirmSelection() {
-      this.closeDropdown();
-    },
-    
-    /**
-     * @description 取消多选
-     */
-    cancelSelection() {
-      // 取消选择，重置为初始状态
-      if (this.value) {
-        this.selectedItems = Array.isArray(this.value) ? [...this.value] : [this.value];
-      } else {
-        this.selectedItems = [];
-      }
-      this.emitChanges();
-      this.closeDropdown();
-    },
-    
-    /**
-     * @description 触发变更事件
-     */
-    emitChanges() {
-      if (this.multiple) {
-        const values = this.selectedItems.map(item => 
-          this.collectFullData ? item : item.value
-        );
-        this.$emit('input', values);
-        this.$emit('change', this.selectedItems);
-      } else {
-        const value = this.selectedItems.length > 0 
-          ? (this.collectFullData ? this.selectedItems[0] : this.selectedItems[0].value)
-          : null;
-        this.$emit('input', value);
-        this.$emit('change', this.selectedItems[0] || null);
-      }
-    },
-    
-    /**
-     * @description 处理搜索
-     */
-    handleSearch() {
-      // 搜索处理逻辑
-    },
-    
-    /**
-     * @description 获取当前选中的数据（完整对象或值）
-     * @returns {Any} 选中的数据
-     */
-    getSelectedData() {
-      if (this.multiple) {
-        return this.collectFullData 
-          ? this.selectedItems 
-          : this.selectedItems.map(item => item.value)
-      }
-      return this.selectedItems.length > 0 
-        ? (this.collectFullData ? this.selectedItems[0] : this.selectedItems[0].value)
-        : null
-    },
-    
-    /**
-     * @description 获取当前搜索条件
-     * @returns {String} 搜索条件
-     */
-    getSearchCondition() {
-      return this.searchable ? this.searchText : ''
-    },
-    
-    /**
-     * @description 获取选中的原始数据（总是返回完整对象）
-     * @returns {Any} 选中的原始数据
-     */
-    getSelectedRawData() {
-      if (this.multiple) {
-        return this.selectedItems.map(item => 
-          typeof item === 'object' ? item : this.options.find(opt => opt.value === item)
-        ).filter(Boolean)
-      }
-      return this.selectedItems.length > 0 
-        ? (typeof this.selectedItems[0] === 'object' 
-            ? this.selectedItems[0] 
-            : this.options.find(opt => opt.value === this.selectedItems[0]))
-        : null
-    },
-    
-    /**
-     * @description 获取可用于提交给后端的数据
-     * @returns {Any} 后端数据
-     */
-    getPayloadData() {
-      const data = this.getSelectedRawData()
-      
-      if (data === null) return null
-      if (Array.isArray(data)) {
-        return data.map(item => this.transformItemForBackend(item))
-      }
-      return this.transformItemForBackend(data)
-    },
-    
-    /**
-     * @description 转换单个项目为后端需要的格式
-     * @param {Object} item - 项目对象
-     * @returns {Object} 转换后的对象
-     */
-    transformItemForBackend(item) {
-      if (!item) return null
-      
-      return {
-        id: item.value, // 通常作为主键
-        name: item.label, // 显示名称
-        ...item.metadata // 包含任何额外的元数据
-      }
-    },
-    
-    /**
-     * @description 重置选择
-     */
-    reset() {
-      this.selectedItems = []
-      this.searchText = ''
-      this.emitChanges()
-    },
-    
-    /**
-     * @description 清空搜索
-     */
-    clearSearch() {
-      this.searchText = ''
-    }
-  }
-}
 </script>
+
+<style>
+    /* end */
+    .dialog-title-selected {
+        color: white;
+        font-size: 30rpx;
+        padding-left: 20rpx;
+        padding-top: 6rpx;
+        padding-bottom: 6rpx;
+        padding-right: 15rpx;
+        background-color: #55ffff;
+    }
+
+    .dialog-title {
+        color: black;
+        font-size: 30rpx;
+        padding-left: 20rpx;
+        padding-top: 6rpx;
+        padding-bottom: 6rpx;
+        padding-right: 15rpx;
+        background-color: white;
+    }
+
+    .dialog-view {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        border: 2rpx solid #F0AD4E;
+        box-sizing: border-box;
+    }
+
+    .dropdown-icon {
+        width: 30rpx;
+        height: 30rpx;
+        margin-left: 15rpx;
+        margin-right: 20rpx;
+    }
+
+    .dropdown-content {
+        color: black;
+        font-size: 30rpx;
+        padding-left: 20rpx;
+        padding-top: 5rpx;
+        padding-bottom: 5rpx;
+        flex-grow: 1;
+    }
+
+    .drop-down-box-selected {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-height: 60rpx;
+        width: 100%;
+        border: 2rpx solid #F0AD4E;
+        box-sizing: border-box;
+    }
+
+    .drop-down-box {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-height: 60rpx;
+        width: 100%;
+        border: 2rpx solid gray;
+        border-radius: 5rpx;
+        box-sizing: border-box;
+    }
+
+    .selected-all {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* start */
+</style>
+ 

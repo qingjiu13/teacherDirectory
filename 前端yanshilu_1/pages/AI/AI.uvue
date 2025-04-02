@@ -1,399 +1,75 @@
 <template>
-  <view class="ai-page">
-    <view class="header">
-      <text class="title">AI助手</text>
-    </view>
     <view class="content">
-      <text class="welcome-text">欢迎使用AI助手，我能帮您解决什么问题？</text>
-      
-      <!-- 添加筛选框 -->
-      <view class="filter-container">
-        <text class="filter-title">请选择问题类型：</text>
-        <enhanced-dropdown
-          ref="typeDropdown"
-          :options="problemTypes"
-          v-model="selectedType"
-          placeholder="请选择问题类型"
-          searchable
-          grouped
-          :collect-full-data="true"
-          @change="handleTypeChange"
-          class="problem-filter"
-        />
-      </view>
-      
-      <!-- 多选筛选框示例 -->
-      <view class="filter-container" v-if="selectedType">
-        <text class="filter-title">相关标签（可多选）：</text>
-        <enhanced-dropdown
-          ref="tagDropdown"
-          :options="relatedTags"
-          v-model="selectedTags"
-          placeholder="请选择相关标签"
-          searchable
-          multiple
-          :max-selections="3"
-          @change="handleTagsChange"
-          class="problem-filter"
-        />
-      </view>
-      
-      <!-- 简单的对话界面 -->
-      <view class="chat-container">
-        <view class="chat-messages">
-          <view 
-            v-for="(message, index) in messages" 
-            :key="index"
-            :class="['message', message.type === 'ai' ? 'ai-message' : 'user-message']"
-          >
-            <text class="message-text">{{ message.content }}</text>
-          </view>
+        <view class="selected-view">
+            <choice-selected :choiceContent="choiceContent" :choiceIndex="choiceIndex" :choiceList="choiceList"
+                @onChoiceClick="onChoiceClick"></choice-selected>
         </view>
-        
-        <view class="input-area">
-          <input class="message-input" type="text" v-model="inputMessage" placeholder="请输入您的问题..." />
-          <button class="send-button" @click="sendMessage">发送</button>
-        </view>
-      </view>
     </view>
-  </view>
 </template>
 
 <script>
-/**
- * @description AI助手页面
- */
-import EnhancedDropdown from '../../components/combobox/combobox.uvue';
+    import choiceSelected from '../../components/combobox/combobox.uvue'
+    export default {
+        components: {
+            choiceSelected
+        },
+        data() {
+            return {
+                choiceList: [{
+                        choiceItemId: "0",
+                        choiceItemContent: "请选择"
+                    },
+                    {
+                        choiceItemId: "P",
+                        choiceItemContent: "苹果"
+                    },
+                    {
+                        choiceItemId: "L",
+                        choiceItemContent: "荔枝"
+                    },
+                    {
+                        choiceItemId: "X",
+                        choiceItemContent: "西瓜"
+                    },
+                    {
+                        choiceItemId: "H",
+                        choiceItemContent: "哈密瓜"
+                    }
+                ],
+                choiceContent: "请选择", //选择的内容
+                choiceIndex: 0 //选择位置
+            }
+        },
+        methods: {
+            // 修改选择的数据
+            onChoiceClick: function(position) {
+                console.log("+++++++" + position)
+                var _this = this
+                _this.choiceIndex = position
+                _this.choiceContent = _this.choiceList[position].choiceItemContent
+            },
 
-export default {
-  components: {
-    EnhancedDropdown
-  },
-  data() {
-    return {
-      // 页面数据
-      inputMessage: '',
-      messages: [
-        {
-          type: 'ai',
-          content: '你好！我是AI助手，有什么可以帮助你的吗？'
         }
-      ],
-      
-      // 筛选相关数据
-      selectedType: null,
-      selectedTags: [],
-      
-      // 模拟问题类型数据
-      problemTypes: [
-        {
-          value: 'technical',
-          label: '技术问题',
-          icon: '🔧',
-          tags: ['常见'],
-          group: '常用问题',
-          metadata: {
-            priority: 'high',
-            responseTime: 'fast'
-          }
-        },
-        {
-          value: 'product',
-          label: '产品咨询',
-          icon: '📱',
-          tags: ['热门'],
-          group: '常用问题',
-          metadata: {
-            priority: 'medium',
-            responseTime: 'normal'
-          }
-        },
-        {
-          value: 'account',
-          label: '账户问题',
-          icon: '👤',
-          tags: ['紧急'],
-          group: '常用问题',
-          metadata: {
-            priority: 'high',
-            responseTime: 'fast'
-          }
-        },
-        {
-          value: 'billing',
-          label: '计费问题',
-          icon: '💰',
-          tags: ['复杂'],
-          group: '其他问题',
-          metadata: {
-            priority: 'medium',
-            responseTime: 'slow'
-          }
-        },
-        {
-          value: 'feedback',
-          label: '意见反馈',
-          icon: '💡',
-          tags: ['非紧急'],
-          group: '其他问题',
-          metadata: {
-            priority: 'low',
-            responseTime: 'normal'
-          }
-        },
-        {
-          value: 'bug',
-          label: '软件缺陷',
-          icon: '🐞',
-          tags: ['紧急'],
-          group: '技术支持',
-          metadata: {
-            priority: 'high',
-            responseTime: 'fast'
-          }
-        },
-        {
-          value: 'feature',
-          label: '功能建议',
-          icon: '✨',
-          tags: ['非紧急'],
-          group: '技术支持',
-          metadata: {
-            priority: 'low',
-            responseTime: 'slow'
-          }
-        }
-      ],
-      
-      // 标签筛选器选项（初始为空，会根据选择的问题类型动态变化）
-      relatedTags: []
     }
-  },
-  methods: {
-    /**
-     * @description 发送消息
-     */
-    sendMessage() {
-      if (this.inputMessage.trim()) {
-        // 添加用户消息
-        this.messages.push({
-          type: 'user',
-          content: this.inputMessage
-        });
-        
-        // 模拟AI回复
-        const selectedTypeInfo = this.selectedType ? `问题类型：${this.selectedType.label}` : '';
-        const selectedTagsInfo = this.selectedTags.length > 0 ? 
-          `，标签：${this.selectedTags.map(tag => tag.label).join(', ')}` : '';
-        
-        setTimeout(() => {
-          this.messages.push({
-            type: 'ai',
-            content: `我已收到您的问题"${this.inputMessage}"。${selectedTypeInfo}${selectedTagsInfo}。我们将尽快为您解答！`
-          });
-        }, 500);
-        
-        this.inputMessage = '';
-      }
-    },
-    
-    /**
-     * @description 处理问题类型变更
-     * @param {Object} selectedType - 选中的问题类型
-     */
-    handleTypeChange(selectedType) {
-      if (selectedType) {
-        console.log('选择的问题类型:', selectedType);
-        
-        // 根据选择的问题类型动态生成相关标签
-        this.generateRelatedTags(selectedType.value);
-        
-        // 重置已选标签
-        this.selectedTags = [];
-      } else {
-        this.relatedTags = [];
-      }
-    },
-    
-    /**
-     * @description 处理标签变更
-     * @param {Array} selectedTags - 选中的标签列表
-     */
-    handleTagsChange(selectedTags) {
-      console.log('选择的标签:', selectedTags);
-      
-      // 可以在这里添加基于标签的处理逻辑
-    },
-    
-    /**
-     * @description 生成相关标签
-     * @param {String} problemType - 问题类型值
-     */
-    generateRelatedTags(problemType) {
-      // 根据问题类型生成不同的标签选项
-      const tagMappings = {
-        'technical': [
-          { value: 'framework', label: '框架问题', icon: '🔨' },
-          { value: 'api', label: 'API调用', icon: '🔄' },
-          { value: 'performance', label: '性能问题', icon: '⚡' },
-          { value: 'compatibility', label: '兼容性', icon: '🔗' }
-        ],
-        'product': [
-          { value: 'usage', label: '使用方法', icon: '📝' },
-          { value: 'feature', label: '功能咨询', icon: '✨' },
-          { value: 'comparison', label: '产品对比', icon: '⚖️' }
-        ],
-        'account': [
-          { value: 'login', label: '登录问题', icon: '🔑' },
-          { value: 'security', label: '安全相关', icon: '🔒' },
-          { value: 'profile', label: '个人资料', icon: '📋' }
-        ],
-        'billing': [
-          { value: 'invoice', label: '发票问题', icon: '📄' },
-          { value: 'payment', label: '支付方式', icon: '💳' },
-          { value: 'pricing', label: '价格咨询', icon: '💲' }
-        ],
-        'feedback': [
-          { value: 'suggestion', label: '建议', icon: '💬' },
-          { value: 'complaint', label: '投诉', icon: '⚠️' },
-          { value: 'praise', label: '表扬', icon: '👍' }
-        ],
-        'bug': [
-          { value: 'crash', label: '崩溃', icon: '💥' },
-          { value: 'ui', label: 'UI问题', icon: '🖼️' },
-          { value: 'logic', label: '逻辑错误', icon: '🧩' }
-        ],
-        'feature': [
-          { value: 'enhancement', label: '功能增强', icon: '🚀' },
-          { value: 'new', label: '新功能', icon: '🆕' },
-          { value: 'integration', label: '集成需求', icon: '🔄' }
-        ]
-      };
-      
-      this.relatedTags = tagMappings[problemType] || [];
-    },
-    
-    /**
-     * @description 获取提交给后端的数据
-     * @returns {Object} 用于提交给后端的数据
-     */
-    getSubmitData() {
-      return {
-        problemType: this.$refs.typeDropdown.getPayloadData(),
-        tags: this.$refs.tagDropdown.getPayloadData(),
-        message: this.inputMessage
-      };
-    }
-  }
-}
 </script>
 
 <style>
-.ai-page {
-  padding: 20px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+    .selected-view {
+        width: 80%;
+        margin-top: 15rpx;
+    }
 
-.header {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
+    .content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+    }
 
-.title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.welcome-text {
-  font-size: 16px;
-  color: #666;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-/* 筛选框样式 */
-.filter-container {
-  margin-bottom: 15px;
-}
-
-.filter-title {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 8px;
-  display: block;
-}
-
-.problem-filter {
-  width: 100%;
-}
-
-.chat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  background-color: #f9f9f9;
-  padding: 10px;
-  margin-top: 20px;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-.message {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  max-width: 80%;
-}
-
-.ai-message {
-  background-color: #e1f5fe;
-  align-self: flex-start;
-}
-
-.user-message {
-  background-color: #e8f5e9;
-  align-self: flex-end;
-  margin-left: auto;
-}
-
-.message-text {
-  font-size: 14px;
-}
-
-.input-area {
-  display: flex;
-  margin-top: 10px;
-}
-
-.message-input {
-  flex: 1;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  padding: 10px 15px;
-  font-size: 14px;
-}
-
-.send-button {
-  margin-left: 10px;
-  background-color: #2196f3;
-  color: white;
-  border-radius: 20px;
-  padding: 0 20px;
-  font-size: 14px;
-}
+    page {
+        height: 100%;
+        background-color: white;
+    }
 </style>

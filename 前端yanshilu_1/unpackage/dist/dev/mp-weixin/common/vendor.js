@@ -5627,10 +5627,6 @@ function vFor(source, renderItem) {
   }
   return ret;
 }
-function setRef(ref2, id, opts = {}) {
-  const { $templateRefs } = getCurrentInstance();
-  $templateRefs.push({ i: id, r: ref2, k: opts.k, f: opts.f });
-}
 function setUniElementId(id, options, ref2, refOpts) {
   const ins = getCurrentInstance();
   if (ins) {
@@ -5712,7 +5708,6 @@ const e = (target, ...sources) => extend(target, ...sources);
 const n = (value) => normalizeClass(value);
 const t = (val) => toDisplayString(val);
 const p = (props) => renderProps(props);
-const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 const sei = setUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -7571,7 +7566,7 @@ function initOnError() {
 function initRuntimeSocketService() {
   const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_mNcIBG";
+  const id = "mp-weixin_WRWN2m";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9163,6 +9158,5 @@ exports.o = o;
 exports.p = p;
 exports.resolveComponent = resolveComponent;
 exports.sei = sei;
-exports.sr = sr;
 exports.t = t;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map
