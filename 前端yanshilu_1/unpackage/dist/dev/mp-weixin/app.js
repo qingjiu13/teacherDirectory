@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
+const store_index = require("./store/index.js");
 if (!Math) {
   "./pages/index/index.js";
   "./pages/match/match.js";
@@ -30,16 +31,33 @@ if (!Math) {
 }
 const _sfc_main = common_vendor.defineComponent({
   onLaunch: function() {
-    common_vendor.index.__f__("log", "at App.uvue:5", "App Launch");
+    common_vendor.index.__f__("log", "at App.uvue:7", "App Launch");
+    this.initAppState();
   },
   onShow: function() {
-    common_vendor.index.__f__("log", "at App.uvue:8", "App Show");
+    common_vendor.index.__f__("log", "at App.uvue:12", "App Show");
   },
   onHide: function() {
-    common_vendor.index.__f__("log", "at App.uvue:11", "App Hide");
+    common_vendor.index.__f__("log", "at App.uvue:15", "App Hide");
   },
   onExit: function() {
-    common_vendor.index.__f__("log", "at App.uvue:32", "App Exit");
+    common_vendor.index.__f__("log", "at App.uvue:36", "App Exit");
+  },
+  methods: {
+    /**
+     * @description 初始化应用状态
+     * @returns {Promise<void>}
+     */
+    initAppState() {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        try {
+          yield store_index.initializeApp();
+          common_vendor.index.__f__("log", "at App.uvue:47", "应用状态初始化成功");
+        } catch (error) {
+          common_vendor.index.__f__("error", "at App.uvue:49", "应用状态初始化失败:", error);
+        }
+      });
+    }
   }
 });
 function createApp() {

@@ -1,8 +1,12 @@
 <script lang="uts">
+	import { initializeApp } from './store/index'
+	
 	let firstBackTime = 0
 	export default {
 		onLaunch: function () {
 			console.log('App Launch')
+			// 初始化应用状态
+			this.initAppState()
 		},
 		onShow: function () {
 			console.log('App Show')
@@ -31,6 +35,21 @@
 		onExit: function () {
 			console.log('App Exit')
 		},
+		methods: {
+			/**
+			 * @description 初始化应用状态
+			 * @returns {Promise<void>}
+			 */
+			async initAppState() {
+				try {
+					// 初始化Vuex状态
+					await initializeApp()
+					console.log('应用状态初始化成功')
+				} catch (error) {
+					console.error('应用状态初始化失败:', error)
+				}
+			}
+		}
 	}
 </script>
 
