@@ -1,6 +1,4 @@
 {
   "navigationBarTitleText": "精准匹配",
-  "usingComponents": {
-    "tab-bar": "../../components/tab-bar/tab-bar"
-  }
+  "usingComponents": {}
 }

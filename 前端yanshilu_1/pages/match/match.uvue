@@ -1,9 +1,6 @@
 <template>
   <view class="content">
     <text class="title">匹配页面</text>
-    
-    <!-- 底部导航栏 -->
-    <tab-bar pageName="match"></tab-bar>
   </view>
 </template>
 
@@ -11,12 +8,8 @@
 /**
  * @description 匹配页面
  */
-import TabBar from '@/components/tab-bar/tab-bar.uvue';
 
 export default {
-  components: {
-    TabBar
-  },
   onLoad() {
     console.log('匹配页面已加载');
   },
