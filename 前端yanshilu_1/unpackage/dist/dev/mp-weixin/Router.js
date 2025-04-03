@@ -25,6 +25,8 @@ const MineRoutes = {
   STUDENT_MINE: "/pages/mine/mine/student_mine",
   // 我的 - 老师
   TEACHER_MINE: "/pages/mine/mine/teacher_mine",
+  //我的 - 共用
+  MINE_COMMON: "/pages/mine/mine/mine_common",
   // 个人信息修改
   MODIFY: "/pages/mine/modify",
   // 课程相关
@@ -35,6 +37,7 @@ const MineRoutes = {
   STUDENT_ORDER: "/pages/mine/order/student_order",
   TEACHER_ORDER: "/pages/mine/order/teacher_order",
   APPRAISE: "/pages/mine/order/appraise/appraise",
+  ORDER_COMMON: "/pages/mine/order/order_common",
   // 其他设置
   QUALIFICATION: "/pages/mine/qualification",
   SERVICE: "/pages/mine/service",
@@ -159,18 +162,6 @@ const Navigator = {
     this.navigateTo(LoginRoutes.WECHAT_LOGIN);
   },
   /**
-   * @description 跳转到学生"我的"页面
-   */
-  toStudentMine() {
-    this.navigateTo(MineRoutes.STUDENT_MINE);
-  },
-  /**
-   * @description 跳转到教师"我的"页面
-   */
-  toTeacherMine() {
-    this.navigateTo(MineRoutes.TEACHER_MINE);
-  },
-  /**
    * @description 跳转到个人信息修改页面
    */
   toModify() {
@@ -191,21 +182,10 @@ const Navigator = {
   },
   /**
    * @description 跳转到订单页面
+   * 根据存储的用户角色自动显示对应内容
    */
   toOrder() {
-    this.navigateTo(MineRoutes.ORDER);
-  },
-  /**
-   * @description 跳转到学生订单页面
-   */
-  toStudentOrder() {
-    this.navigateTo(MineRoutes.STUDENT_ORDER);
-  },
-  /**
-   * @description 跳转到教师订单页面
-   */
-  toTeacherOrder() {
-    this.navigateTo(MineRoutes.TEACHER_ORDER);
+    this.navigateTo(MineRoutes.ORDER_COMMON);
   },
   /**
    * @description 跳转到评价页面
@@ -237,18 +217,14 @@ const Navigator = {
    */
   toWallet() {
     this.navigateTo(MineRoutes.WALLET);
+  },
+  /**
+   * @description 跳转到"我的"页面
+   * 根据存储的用户角色自动显示对应内容
+   */
+  toMine() {
+    this.navigateTo(MineRoutes.MINE_COMMON);
   }
 };
-const Router = {
-  // 路由分类
-  index: IndexRoutes,
-  match: MatchRoutes,
-  ai: AIRoutes,
-  message: MessageRoutes,
-  login: LoginRoutes,
-  mine: MineRoutes,
-  // 导航工具
-  navigator: Navigator
-};
-exports.Router = Router;
-//# sourceMappingURL=../.sourcemap/mp-weixin/Router.js.map
+exports.Navigator = Navigator;
+//# sourceMappingURL=../.sourcemap/mp-weixin/router.js.map

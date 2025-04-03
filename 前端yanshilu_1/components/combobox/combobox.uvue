@@ -1,14 +1,18 @@
 <template name="ChoiceSelected">
     <!-- 自定义下拉选择框 start-->
     <view class="selected-all">
-        <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick">
+        <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
             <text class="dropdown-content">{{choiceContent}}</text>
             <view>
-                <image class="dropdown-icon" src="../../static/image/arrow/arrow_down.svg" mode="widthFix"></image>
+                <image class="dropdown-icon" :class="{'dropdown-icon-rotate': isShowChoice}" src="../../static/image/arrow/arrow_down.svg" mode="widthFix"></image>
             </view>
         </view>
         <!-- 弹框内容 -->
-        <view class="dialog-view" v-if="isShowChoice">
+        <view class="dialog-view" :class="{active: isShowChoice}" v-if="isShowChoice" :style="{
+            top: dropdownTop + 'px',
+            left: dropdownLeft + 'px',
+            width: dropdownWidth + 'px'
+        }">
             <text :class="choiceIndex ==index ?'dialog-title-selected':'dialog-title'"
                 v-for="(item ,index) in choiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
         </view>
@@ -21,7 +25,10 @@
         name: "ChoiceSelected",
         data() {
             return {
-                isShowChoice: false
+                isShowChoice: false,
+                dropdownTop: 0,
+                dropdownLeft: 0,
+                dropdownWidth: 0
             };
         },
         props: {
@@ -44,7 +51,16 @@
                 if (_this.isShowChoice) {
                     _this.isShowChoice = false
                 } else {
-                    _this.isShowChoice = true
+                    // 使用uni.createSelectorQuery获取触发按钮的位置和尺寸
+                    const query = uni.createSelectorQuery().in(this);
+                    query.select('.drop-down-box, .drop-down-box-selected').boundingClientRect(data => {
+                        if (data) {
+                            _this.dropdownTop = data.top + data.height;
+                            _this.dropdownLeft = data.left;
+                            _this.dropdownWidth = data.width;
+                            _this.isShowChoice = true;
+                        }
+                    }).exec();
                 }
             },
         }
@@ -77,25 +93,48 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        width: 100%;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
+        position: fixed;
+        z-index: 9999;
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-height: 60vh;
+        overflow-y: auto;
+        transform-origin: top center;
+        opacity: 0;
+        transform: scaleY(0);
+        transition: all 0.2s ease;
+    }
+    
+    .dialog-view.active {
+        opacity: 1;
+        transform: scaleY(1);
     }
 
     .dropdown-icon {
-        width: 30rpx;
-        height: 30rpx;
-        margin-left: 15rpx;
-        margin-right: 20rpx;
+        width: 26rpx;
+        height: 26rpx;
+        margin-left: 5rpx;
+        margin-right: 10rpx;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .dropdown-icon-rotate {
+        transform: rotate(180deg);
     }
 
     .dropdown-content {
         color: black;
-        font-size: 30rpx;
-        padding-left: 20rpx;
+        font-size: 28rpx;
+        padding-left: 10rpx;
         padding-top: 5rpx;
         padding-bottom: 5rpx;
         flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .drop-down-box-selected {
@@ -106,6 +145,7 @@
         width: 100%;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
+        padding: 0 5rpx;
     }
 
     .drop-down-box {
@@ -117,6 +157,7 @@
         border: 2rpx solid gray;
         border-radius: 5rpx;
         box-sizing: border-box;
+        padding: 0 5rpx;
     }
 
     .selected-all {

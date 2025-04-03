@@ -1,34 +1,547 @@
 <template>
-  <view class="content">
-    <text class="title">匹配页面</text>
-  </view>
+	<view class="container">
+		<!-- 筛选区域 -->
+		<view class="filter-section">
+			<view class="choice-wrapper">
+				<choice-selected :choiceContent="selectedSchool || '学校'" :choiceIndex="schoolIndex" :choiceList="schoolList"
+					@onChoiceClick="onSchoolClick"></choice-selected>
+			</view>
+			
+			<view class="choice-wrapper">
+				<choice-selected :choiceContent="selectedMajor || '专业'" :choiceIndex="majorIndex" :choiceList="majorList"
+					@onChoiceClick="onMajorClick"></choice-selected>
+			</view>
+			
+			<view class="choice-wrapper">
+				<choice-selected :choiceContent="selectedSort || '排序筛选'" :choiceIndex="sortIndex" :choiceList="sortList"
+					@onChoiceClick="onSortClick"></choice-selected>
+			</view>
+		</view>
+		
+		<!-- 老师卡片列表 -->
+		<scroll-view class="card-list" scroll-y="true" id="step2">
+			<view class="teacher-card" v-for="(teacher, index) in filteredTeachers" :key="index">
+				<view class="card-left">
+					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.svg'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
+				</view>
+				<view class="card-middle">
+					<view class="teacher-name">{{ teacher.nickname }}</view>
+					<view class="teacher-info">{{ teacher.title || '教授' }} | {{ teacher.major }} | {{ teacher.score }}</view>
+					<view class="teacher-tags">
+						<view class="tag" v-for="(tag, tagIndex) in teacher.tags" :key="tagIndex">{{ tag }}</view>
+					</view>
+				</view>
+				<view class="card-right">
+					<button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
+				</view>
+			</view>
+			
+			<view class="empty-state" v-if="filteredTeachers.length === 0">
+				<text>暂无匹配的老师信息</text>
+			</view>
+		</scroll-view>
+		
+		<!-- 加载提示 -->
+		<view class="loading-mask" v-if="isLoading">
+			<view class="loading-content">
+				<text>正在连接中...</text>
+			</view>
+		</view>
+		
+		<!-- 教师详情弹窗 -->
+		<view class="teacher-detail-popup" v-if="showTeacherDetail">
+			<view class="popup-mask" @tap="closeTeacherDetail"></view>
+			<view class="popup-content">
+				<view class="teacher-header">
+					<image class="teacher-large-avatar" :src="currentTeacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
+					<view class="teacher-header-info">
+						<view class="teacher-header-name">{{ currentTeacher.nickname }}</view>
+						<view class="teacher-header-title">{{ currentTeacher.title }} | {{ currentTeacher.school }}</view>
+					</view>
+				</view>
+				
+				<view class="detail-tabs">
+					<view class="tab" :class="{ active: activeTab === 'chat' }" @tap="switchTab('chat')">
+						<text>聊天</text>
+					</view>
+					<view class="tab" :class="{ active: activeTab === 'profile' }" @tap="switchTab('profile')">
+						<text>老师详情</text>
+					</view>
+				</view>
+				
+				<view class="tab-content">
+					<view v-if="activeTab === 'chat'" class="chat-tip">
+						<button class="start-chat-btn" @tap="startChat">马上沟通</button>
+					</view>
+					
+					<view v-if="activeTab === 'profile'" class="profile-content">
+						<view class="profile-section">
+							<view class="section-title">专业背景</view>
+							<view class="section-content">{{ currentTeacher.background || '暂无介绍' }}</view>
+						</view>
+						
+						<view class="profile-section">
+							<view class="section-title">教学经验</view>
+							<view class="section-content">{{ currentTeacher.experience || '暂无介绍' }}</view>
+						</view>
+						
+						<view class="profile-section">
+							<view class="section-title">擅长领域</view>
+							<view class="section-content">
+								<view class="expertise-tags">
+									<view class="expertise-tag" v-for="(tag, index) in currentTeacher.expertise || []" :key="index">
+										{{ tag }}
+									</view>
+								</view>
+							</view>
+						</view>
+						
+						<button class="view-profile-btn" @tap="viewTeacherProfile">查看完整主页</button>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
 </template>
 
 <script>
-/**
- * @description 匹配页面
- */
+	import choiceSelected from '../../components/combobox/combobox.uvue'
+	import { Navigator } from '../../router.js'
+	
+	export default {
+		components: {
+			choiceSelected
+		},
+		onLoad() {
+			console.log('匹配页面已加载');
+		},
+		data() {
+			return {
+				// 筛选相关数据
+				schoolList: [
+					{ choiceItemId: "bjdx", choiceItemContent: "北京大学" },
+					{ choiceItemId: "qhdx", choiceItemContent: "清华大学" },
+					{ choiceItemId: "fddx", choiceItemContent: "复旦大学" },
+					{ choiceItemId: "zjdx", choiceItemContent: "浙江大学" },
+					{ choiceItemId: "njdx", choiceItemContent: "南京大学" }
+				],
+				majorList: [
+					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
+					{ choiceItemId: "rjgc", choiceItemContent: "软件工程" },
+					{ choiceItemId: "sx", choiceItemContent: "数学" },
+					{ choiceItemId: "wl", choiceItemContent: "物理" },
+					{ choiceItemId: "hx", choiceItemContent: "化学" },
+					{ choiceItemId: "sw", choiceItemContent: "生物" }
+				],
+				sortList: [
+					{ choiceItemId: "zh", choiceItemContent: "综合排序" }
+				],
+				selectedSchool: '',
+				selectedMajor: '',
+				selectedSort: '综合排序',
+				schoolIndex: 0,
+				majorIndex: 0,
+				sortIndex: 0,
 
-export default {
-  onLoad() {
-    console.log('匹配页面已加载');
-  },
-  data() {
-    return {};
-  }
-}
+				// 加载状态
+				isLoading: false,
+				
+				// 老师数据
+				teachers: [
+					{
+						id: 1,
+						nickname: '王教授',
+						avatar: '/static/image/tab-bar/default_avatar.png',
+						school: '北京大学',
+						major: '计算机科学',
+						title: '教授',
+						score: '考研400分',
+						tags: ['认证学校', '经验丰富']
+					},
+					{
+						id: 2,
+						nickname: '李博士',
+						avatar: '/static/image/tab-bar/default_avatar.png',
+						school: '清华大学',
+						major: '软件工程',
+						title: '副教授',
+						score: '考研390分',
+						tags: ['认证学校', '教学认真']
+					},
+					{
+						id: 3,
+						nickname: '张老师',
+						avatar: '/static/image/tab-bar/default_avatar.png',
+						school: '复旦大学',
+						major: '数学',
+						title: '讲师',
+						score: '考研380分',
+						tags: ['认证学校', '耐心细致']
+					},
+					{
+						id: 4,
+						nickname: '刘教授',
+						avatar: '/static/image/tab-bar/default_avatar.png',
+						school: '浙江大学',
+						major: '物理',
+						title: '教授',
+						score: '考研410分',
+						tags: ['认证学校', '通俗易懂']
+					},
+					{
+						id: 5,
+						nickname: '陈老师',
+						avatar: '/static/image/tab-bar/default_avatar.png',
+						school: '南京大学',
+						major: '化学',
+						title: '副教授',
+						score: '考研385分',
+						tags: ['认证学校', '答疑及时']
+					}
+				],
+				showTeacherDetail: false,
+				currentTeacher: null,
+				activeTab: 'chat'
+			}
+		},
+		computed: {
+			filteredTeachers() {
+				let result = [...this.teachers];
+				
+				if (this.selectedSchool) {
+					result = result.filter(teacher => teacher.school === this.selectedSchool);
+				}
+				
+				if (this.selectedMajor) {
+					result = result.filter(teacher => teacher.major === this.selectedMajor);
+				}
+				
+				// 默认按评分排序
+				result.sort((a, b) => {
+					const scoreA = parseInt(a.score.match(/\d+/)[0]);
+					const scoreB = parseInt(b.score.match(/\d+/)[0]);
+					return scoreB - scoreA;
+				});
+				
+				return result;
+			}
+		},
+		methods: {
+			// 下拉框选择处理
+			onSchoolClick(position) {
+				this.schoolIndex = position;
+				this.selectedSchool = position > 0 ? this.schoolList[position].choiceItemContent : '';
+			},
+			onMajorClick(position) {
+				this.majorIndex = position;
+				this.selectedMajor = position > 0 ? this.majorList[position].choiceItemContent : '';
+			},
+			onSortClick(position) {
+				this.sortIndex = position;
+				this.selectedSort = this.sortList[position].choiceItemContent;
+			},
+			
+			// 保留原有方法
+			handleCommunicate(teacherId) {
+				this.isLoading = true;
+				setTimeout(() => {
+					this.isLoading = false;
+					// 使用router.js中的方法跳转到聊天页面
+					Navigator.toChat(teacherId);
+				}, 1000);
+			},
+			viewTeacherDetail(teacherId) {
+				this.currentTeacher = this.teachers.find(t => t.id === teacherId);
+				this.showTeacherDetail = true;
+			},
+			closeTeacherDetail() {
+				this.showTeacherDetail = false;
+			},
+			switchTab(tab) {
+				this.activeTab = tab;
+			},
+			startChat() {
+				this.closeTeacherDetail();
+				if (this.currentTeacher) {
+					this.handleCommunicate(this.currentTeacher.id);
+				}
+			},
+			viewTeacherProfile() {
+				if (this.currentTeacher) {
+					uni.navigateTo({
+						url: `/pages/teacher/teacher?id=${this.currentTeacher.id}`
+					});
+				}
+			}
+		}
+	}
 </script>
 
 <style>
-.content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 55px; /* 为底部导航栏留出空间 */
-}
-.title {
-  font-size: 36rpx;
-  color: #333;
-}
+	.container {
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		background-color: #F5F9FC;
+		position: relative;
+		overflow: hidden;
+		width: 100%;
+	}
+	
+	.filter-section {
+		display: flex;
+		flex-direction: row;
+		padding: 12px 10px;
+		background-color: #ffffff;
+		border-radius: 15px;
+		margin: 15px 10px;
+		margin-top: 20px;
+		width: auto;
+	}
+	
+	.choice-wrapper {
+		flex: 1;
+		margin: 0 4px;
+		min-width: 90px;
+	}
+	
+	.card-list {
+		flex: 1;
+		padding: 10px 15px;
+		position: relative;
+		z-index: 1;
+	}
+	
+	.teacher-card {
+		display: flex;
+		flex-direction: row;
+		background-color: #ffffff;
+		border-radius: 16px;
+		padding: 18px;
+		margin-bottom: 15px;
+		box-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
+	}
+	
+	.card-left {
+		margin-right: 15px;
+	}
+	
+	.teacher-avatar {
+		width: 70px;
+		height: 70px;
+		border-radius: 35px;
+		background-color: #f5f5f5;
+	}
+	
+	.card-middle {
+		flex: 1;
+	}
+	
+	.teacher-name {
+		font-size: 18px;
+		font-weight: bold;
+		margin-bottom: 6px;
+		color: #333333;
+	}
+	
+	.teacher-info {
+		font-size: 14px;
+		color: #666666;
+		margin-bottom: 10px;
+	}
+	
+	.teacher-tags {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	
+	.tag {
+		font-size: 12px;
+		color: #ffffff;
+		background-color: #87CEEB;
+		padding: 3px 10px;
+		border-radius: 12px;
+		margin-right: 8px;
+		margin-bottom: 5px;
+	}
+	
+	.card-right {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		margin-left: 10px;
+	}
+	
+	.communicate-btn {
+		background-color: #1E90FF;
+		color: #ffffff;
+		font-size: 14px;
+		padding: 8px 15px;
+		border-radius: 20px;
+		border: none;
+		font-weight: 500;
+	}
+	
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		height: 200px;
+		color: #999999;
+		font-size: 16px;
+	}
+	
+	.loading-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.6);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1001;
+	}
+	
+	.loading-content {
+		background-color: #ffffff;
+		padding: 25px 30px;
+		border-radius: 16px;
+	}
+	
+	.teacher-detail-popup {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 9999;
+	}
+	
+	.popup-mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.7);
+	}
+	
+	.popup-content {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background-color: #ffffff;
+		border-top-left-radius: 25px;
+		border-top-right-radius: 25px;
+		padding-bottom: 30px;
+		max-height: 85%;
+		overflow-y: auto;
+	}
+	
+	.teacher-header {
+		display: flex;
+		padding: 25px;
+		background-color: rgba(30, 144, 255, 0.1);
+	}
+	
+	.teacher-large-avatar {
+		width: 90px;
+		height: 90px;
+		border-radius: 45px;
+		margin-right: 20px;
+	}
+	
+	.teacher-header-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	
+	.teacher-header-name {
+		font-size: 22px;
+		font-weight: bold;
+		color: #333333;
+		margin-bottom: 8px;
+	}
+	
+	.teacher-header-title {
+		font-size: 16px;
+		color: #666666;
+	}
+	
+	.detail-tabs {
+		display: flex;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+		background-color: #ffffff;
+	}
+	
+	.tab {
+		flex: 1;
+		text-align: center;
+		padding: 15px 0;
+		font-size: 16px;
+		color: #666666;
+	}
+	
+	.tab.active {
+		color: #1E90FF;
+		font-weight: bold;
+	}
+	
+	.tab-content {
+		padding: 25px;
+	}
+	
+	.start-chat-btn, .view-profile-btn {
+		width: 100%;
+		height: 50px;
+		line-height: 50px;
+		background-color: #1E90FF;
+		color: #ffffff;
+		font-size: 16px;
+		font-weight: 600;
+		border-radius: 25px;
+		text-align: center;
+		margin-top: 25px;
+		border: none;
+	}
+	
+	.profile-section {
+		margin-bottom: 25px;
+	}
+	
+	.section-title {
+		font-size: 18px;
+		color: #333333;
+		font-weight: bold;
+		margin-bottom: 15px;
+	}
+	
+	.section-content {
+		font-size: 15px;
+		color: #666666;
+		line-height: 1.6;
+	}
+	
+	.expertise-tags {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	
+	.expertise-tag {
+		padding: 8px 15px;
+		background-color: rgba(30, 144, 255, 0.1);
+		color: #1E90FF;
+		border-radius: 20px;
+		margin-right: 10px;
+		margin-bottom: 10px;
+		font-size: 13px;
+		font-weight: 500;
+	}
 </style>

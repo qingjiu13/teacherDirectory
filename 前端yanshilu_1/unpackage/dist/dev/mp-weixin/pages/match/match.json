@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "精准匹配",
-  "usingComponents": {}
+  "usingComponents": {
+    "choice-selected": "../../components/combobox/combobox"
+  }
 }
