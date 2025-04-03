@@ -1,0 +1,61 @@
+<template>
+  <view class="container">
+    <!-- 公共头部 -->
+    <header>欢迎, {{ userName }}</header>
+    
+    <!-- 动态内容区 -->
+    <view v-if="userRole === 'teacher'">
+      <include src="./teacher_mine.uvue"></include>
+    </view>
+    
+    <view v-else-if="userRole === 'student'">
+      <include src="./student_mine.uvue"></include>
+    </view>
+    
+    <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
+  </view>
+</template>
+
+<script>
+/**
+ * @description 我的页面（通用）
+ */
+import { Navigator } from '@/router/Router.js';
+
+export default {
+  data() {
+    return {
+      userRole: '', // 从全局状态或API获取
+      userName: '',
+      userData: {}
+    }
+  },
+  onLoad() {
+    // 获取用户角色信息
+    this.userRole = uni.getStorageSync('userRole');
+    this.loadUserData();
+  },
+  methods: {
+    /**
+     * @description 加载用户数据
+     */
+    loadUserData() {
+      // 根据角色加载不同数据
+    }
+  }
+}
+</script>
+
+<style>
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: 50px; /* 为系统tabBar留出空间 */
+}
+header {
+  padding: 20rpx;
+  font-size: 32rpx;
+  text-align: center;
+}
+</style>

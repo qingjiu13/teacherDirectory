@@ -1,0 +1,1 @@
+{"version":3,"file":"teacher.js","sources":["../../HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvdGVhY2hlci90ZWFjaGVyLnV2dWU"],"sourcesContent":["import MiniProgramPage from 'E:/yanshilu重新来过/前端yanshilu_1/pages/teacher/teacher.uvue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}

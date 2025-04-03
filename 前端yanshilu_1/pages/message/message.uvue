@@ -1,0 +1,54 @@
+<template>
+  <view class="container">
+    <view class="content">
+      <text class="title">消息页面</text>
+      <!-- 消息列表内容将在这里 -->
+    </view>
+    
+    <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
+  </view>
+</template>
+
+<script>
+/**
+ * @description 消息页面
+ */
+export default {
+  data() {
+    return {
+      // 消息数据
+    }
+  },
+  onLoad() {
+    // 加载消息数据
+  },
+  methods: {
+    /**
+     * @description 加载消息列表
+     */
+    loadMessages() {
+      // 实现加载消息的逻辑
+    }
+  }
+}
+</script>
+
+<style>
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 50px; /* 为系统tabBar留出空间 */
+}
+.title {
+  font-size: 36rpx;
+  color: #333;
+}
+</style>

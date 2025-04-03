@@ -1,0 +1,187 @@
+{
+	"pages": [ 
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "研师录"
+			}
+		},
+		{
+			"path": "pages/match/match",
+			"style": {
+				"navigationBarTitleText": "精准匹配"
+			}
+		},
+		{
+			"path": "pages/teacher/teacher",
+			"style": {
+				"navigationBarTitleText": "导师详情"
+			}
+		},
+		{
+			"path": "pages/AI/AI",
+			"style": {
+				"navigationBarTitleText": "AI助手"
+			}
+		},
+		{
+			"path": "pages/message/message",
+			"style": {
+				"navigationBarTitleText": "消息列表"
+			}
+		},
+		{
+			"path": "pages/message/chat",
+			"style": {
+				"navigationBarTitleText": "聊天"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/login/student/student",
+			"style": {
+				"navigationBarTitleText": "学生登录"
+			}
+		},
+		{
+			"path": "pages/login/teacher/teacher",
+			"style": {
+				"navigationBarTitleText": "教师登录"
+			}
+		},
+		{
+			"path": "pages/login/wechat_login",
+			"style": {
+				"navigationBarTitleText": "微信登录"
+			}
+		},
+		{
+			"path": "pages/mine/mine/student_mine",
+			"style": {
+				"navigationBarTitleText": "个人中心"
+			}
+		},
+		{
+			"path": "pages/mine/mine/teacher_mine",
+			"style": {
+				"navigationBarTitleText": "导师中心"
+			}
+		},
+		{
+			"path": "pages/mine/modify",
+			"style": {
+				"navigationBarTitleText": "修改资料"
+			}
+		},
+		{
+			"path": "pages/mine/course/course",
+			"style": {
+				"navigationBarTitleText": "我的课程"
+			}
+		},
+		{
+			"path": "pages/mine/course/course_detail",
+			"style": {
+				"navigationBarTitleText": "课程详情"
+			}
+		},
+		{
+			"path": "pages/mine/order",
+			"style": {
+				"navigationBarTitleText": "订单中心"
+			}
+		},
+		{
+			"path": "pages/mine/order/student_order",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+			}
+		},
+		{
+			"path": "pages/mine/order/teacher_order",
+			"style": {
+				"navigationBarTitleText": "导师订单"
+			}
+		},
+		{
+			"path": "pages/mine/order/appraise/appraise",
+			"style": {
+				"navigationBarTitleText": "评价"
+			}
+		},
+		{
+			"path": "pages/mine/qualification",
+			"style": {
+				"navigationBarTitleText": "资质认证"
+			}
+		},
+		{
+			"path": "pages/mine/service",
+			"style": {
+				"navigationBarTitleText": "服务设置"
+			}
+		},
+		{
+			"path": "pages/mine/settings",
+			"style": {
+				"navigationBarTitleText": "系统设置"
+			}
+		},
+		{
+			"path": "pages/mine/wallet",
+			"style": {
+				"navigationBarTitleText": "我的钱包"
+			}
+		},
+		{
+			"path": "pages/mine/mine/mine_common",
+			"style": {
+				"navigationBarTitleText": "我的页面中心（共用）"
+			}
+		},
+				{
+			"path": "pages/mine/order/order_common",
+			"style": {
+				"navigationBarTitleText": "我的订单（共用）"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app x",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#007aff",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/image/tab-bar/wechat.png",
+				"selectedIconPath": "static/image/tab-bar/default_avatar.png"
+			},
+			{
+				"pagePath": "pages/message/message",
+				"text": "消息",
+				"iconPath": "static/image/tab-bar/wechat.png",
+				"selectedIconPath": "static/image/tab-bar/default_avatar.png"
+			},
+			{
+				"pagePath": "pages/mine/mine/mine_common",
+				"text": "我的",
+				"iconPath": "static/image/tab-bar/wechat.png",
+				"selectedIconPath": "static/image/tab-bar/default_avatar.png"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}

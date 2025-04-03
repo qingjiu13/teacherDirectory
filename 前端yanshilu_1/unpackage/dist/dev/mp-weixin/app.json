@@ -1,0 +1,62 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/match/match",
+    "pages/teacher/teacher",
+    "pages/AI/AI",
+    "pages/message/message",
+    "pages/message/chat",
+    "pages/login/login",
+    "pages/login/student/student",
+    "pages/login/teacher/teacher",
+    "pages/login/wechat_login",
+    "pages/mine/mine/student_mine",
+    "pages/mine/mine/teacher_mine",
+    "pages/mine/modify",
+    "pages/mine/course/course",
+    "pages/mine/course/course_detail",
+    "pages/mine/order",
+    "pages/mine/order/student_order",
+    "pages/mine/order/teacher_order",
+    "pages/mine/order/appraise/appraise",
+    "pages/mine/qualification",
+    "pages/mine/service",
+    "pages/mine/settings",
+    "pages/mine/wallet",
+    "pages/mine/mine/mine_common",
+    "pages/mine/order/order_common"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app x",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#007aff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/image/tab-bar/wechat.png",
+        "selectedIconPath": "static/image/tab-bar/default_avatar.png"
+      },
+      {
+        "pagePath": "pages/message/message",
+        "text": "消息",
+        "iconPath": "static/image/tab-bar/wechat.png",
+        "selectedIconPath": "static/image/tab-bar/default_avatar.png"
+      },
+      {
+        "pagePath": "pages/mine/mine/mine_common",
+        "text": "我的",
+        "iconPath": "static/image/tab-bar/wechat.png",
+        "selectedIconPath": "static/image/tab-bar/default_avatar.png"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

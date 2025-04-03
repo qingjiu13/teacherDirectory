@@ -1,0 +1,46 @@
+<template>
+  <view class="container">
+    <!-- 公共头部 -->
+    <header>欢迎, {{ userName }}</header>
+    
+    <!-- 动态内容区 -->
+    <view v-if="userRole === 'teacher'">
+      <include src="./teacher_order.uvue"></include>
+    </view>
+    
+    <view v-else-if="userRole === 'student'">
+      <include src="./student_order.uvue"></include>
+    </view>
+    
+    <!-- 公共底部 -->
+    <footer>yanshilu</footer>
+  </view>
+</template>
+
+<script>
+// 更新Router.js的导入路径
+import { Navigator } from '@/router/Router.js';
+
+export default {
+  data() {
+    return {
+      userRole: '', // 从全局状态或API获取
+      userName: '',
+      userData: {}
+    }
+  },
+  onLoad() {
+    // 获取用户角色信息
+    this.userRole = uni.getStorageSync('userRole');
+    this.loadUserData();
+  },
+  methods: {
+    /**
+     * @description 加载用户数据
+     */
+    loadUserData() {
+      // 根据角色加载不同数据
+    }
+  }
+}
+</script>
