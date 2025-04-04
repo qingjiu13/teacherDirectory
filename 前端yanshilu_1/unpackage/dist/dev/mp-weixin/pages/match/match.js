@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const router = require("../../router.js");
+const router_Router = require("../../router/Router.js");
 const choiceSelected = () => "../../components/combobox/combobox.js";
 const _sfc_main = common_vendor.defineComponent({
   components: {
@@ -177,11 +177,11 @@ const _sfc_main = common_vendor.defineComponent({
       this.isLoading = true;
       setTimeout(() => {
         this.isLoading = false;
-        router.Navigator.toChat(teacherId);
+        router_Router.Navigator.toChat(teacherId);
       }, 1e3);
     },
     viewTeacherDetail(teacherId = null) {
-      router.Navigator.toTeacher(teacherId);
+      router_Router.Navigator.toTeacher(teacherId);
     }
   }
 });

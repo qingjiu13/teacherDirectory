@@ -76,7 +76,7 @@
 
 <script>
 	import choiceSelected from '../../components/combobox/combobox.uvue'
-	import { Navigator } from '../../router.js'
+	import { Navigator } from '@/router/Router.js'
 	
 	export default {
 		components: {

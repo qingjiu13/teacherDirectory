@@ -61,21 +61,40 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       }
       try {
+        const pages = getCurrentPages();
+        const stackDepth = pages.length;
+        if (stackDepth >= 8) {
+          common_vendor.index.__f__("warn", "at components/tab-bar/tab-bar.uvue:98", "页面栈接近上限，使用reLaunch清空页面栈");
+          switch (page) {
+            case "index":
+              router_Router.Navigator.reLaunch(router_Router.IndexRoutes.INDEX);
+              break;
+            case "message":
+              router_Router.Navigator.reLaunch(router_Router.MessageRoutes.MESSAGE);
+              break;
+            case "mine":
+              router_Router.Navigator.reLaunch(router_Router.MineRoutes.MINE_COMMON);
+              break;
+            default:
+              common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:110", "未知的页面类型:", page);
+          }
+          return null;
+        }
         switch (page) {
           case "index":
-            router_Router.Navigator.navigateTo(router_Router.IndexRoutes.INDEX);
+            router_Router.Navigator.redirectTo(router_Router.IndexRoutes.INDEX);
             break;
           case "message":
-            router_Router.Navigator.navigateTo(router_Router.MessageRoutes.MESSAGE);
+            router_Router.Navigator.redirectTo(router_Router.MessageRoutes.MESSAGE);
             break;
           case "mine":
-            router_Router.Navigator.navigateTo(router_Router.MineRoutes.MINE_COMMON);
+            router_Router.Navigator.redirectTo(router_Router.MineRoutes.MINE_COMMON);
             break;
           default:
-            common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:103", "未知的页面类型:", page);
+            common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:128", "未知的页面类型:", page);
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:106", "Tab切换失败:", e);
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:131", "Tab切换失败:", e);
       }
     }
   }
