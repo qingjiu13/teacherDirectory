@@ -2,8 +2,22 @@
     <!-- 自定义下拉选择框 start-->
     <view class="selected-all" @click.stop>
         <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
-            <text class="dropdown-content">{{displayContent}}</text>
-            <view>
+            <!-- 纯下拉选择模式 -->
+            <text v-if="mode === 'select'" class="dropdown-content">{{displayContent}}</text>
+            
+            <!-- 搜索筛选模式 -->
+            <input 
+                v-else
+                type="text" 
+                class="search-input" 
+                v-model="searchKeyword" 
+                :placeholder="searchPlaceholder" 
+                @input="onSearchInput" 
+                @focus="onSearchFocus"
+                @click.stop/>
+            
+            <!-- 统一的箭头图标 -->
+            <view class="arrow-container">
                 <image class="dropdown-icon" :class="{'dropdown-icon-rotate': isShowChoice}" src="../../static/image/arrow/arrow_down.svg" mode="widthFix"></image>
             </view>
         </view>
@@ -14,8 +28,13 @@
             width: dropdownWidth + 'px'
         }" @click.stop>
             <scroll-view scroll-y="true" class="dialog-scroll">
-                <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == index}"
-                    v-for="(item, index) in choiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
+                <view v-if="filteredChoiceList.length > 0">
+                    <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == index}"
+                        v-for="(item, index) in filteredChoiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
+                </view>
+                <view v-else class="empty-result">
+                    <text class="empty-result-text">无匹配数据</text>
+                </view>
             </scroll-view>
         </view>
     </view>
@@ -33,7 +52,10 @@
                 dropdownTop: 0,
                 dropdownLeft: 0,
                 dropdownWidth: 0,
-                displayContent: this.defaultText // 使用传入的默认文本
+                displayContent: this.defaultText, // 使用传入的默认文本
+                searchKeyword: '', // 搜索关键词
+                searchTimer: null, // 防抖定时器
+                filteredList: [] // 过滤后的列表
             };
         },
         props: {
@@ -48,6 +70,19 @@
             defaultText: {
                 type: String,
                 default: '请选择'
+            },
+            mode: {
+                type: String,
+                default: 'select', // 'select' | 'search'
+                validator: (value) => ['select', 'search'].includes(value)
+            },
+            debounce: {
+                type: Number,
+                default: 300
+            },
+            searchPlaceholder: {
+                type: String,
+                default: '请输入关键词'
             }
         },
         created() {
@@ -60,14 +95,42 @@
             if (index > -1) {
                 dropdownInstances.splice(index, 1);
             }
+            // 清除防抖定时器
+            if (this.searchTimer) {
+                clearTimeout(this.searchTimer);
+            }
+        },
+        computed: {
+            /**
+             * @description 根据搜索关键词过滤选项列表
+             * @returns {Array} 过滤后的选项列表
+             */
+            filteredChoiceList() {
+                if (!this.searchKeyword || this.mode === 'select') {
+                    return this.choiceList;
+                }
+                
+                // 根据关键词过滤选项
+                return this.choiceList.filter(item => 
+                    item.choiceItemContent.toLowerCase().includes(this.searchKeyword.toLowerCase())
+                );
+            }
         },
         watch: {
             choiceIndex(newVal) {
                 // 当choiceIndex变化时更新显示内容
                 if (newVal >= 0 && newVal < this.choiceList.length) {
-                    this.displayContent = this.choiceList[newVal].choiceItemContent;
+                    const selectedItem = this.choiceList[newVal];
+                    this.displayContent = selectedItem.choiceItemContent;
+                    // 在搜索模式下，设置搜索关键词为选中项
+                    if (this.mode === 'search') {
+                        this.searchKeyword = selectedItem.choiceItemContent;
+                    }
                 } else {
                     this.displayContent = this.defaultText;
+                    if (this.mode === 'search') {
+                        this.searchKeyword = '';
+                    }
                 }
             },
             defaultText(newVal) {
@@ -85,6 +148,20 @@
             btnChoiceClick: function(position) {
                 var _this = this;
                 _this.isShowChoice = false;
+                
+                // 在搜索模式下，我们需要找出在原始列表中的实际位置
+                if (_this.mode === 'search' && _this.searchKeyword) {
+                    const selectedItem = _this.filteredChoiceList[position];
+                    const originalIndex = _this.choiceList.findIndex(
+                        item => item.choiceItemId === selectedItem.choiceItemId
+                    );
+                    if (originalIndex !== -1) {
+                        _this.$emit("onChoiceClick", originalIndex);
+                        return;
+                    }
+                }
+                
+                // 对于普通模式或未找到匹配项
                 _this.$emit("onChoiceClick", position);
             },
             
@@ -125,6 +202,41 @@
                         instance.isShowChoice = false;
                     }
                 });
+            },
+            
+            /**
+             * @description 处理搜索输入事件，带防抖
+             * @param {Event} event - 输入事件对象
+             */
+            onSearchInput(event) {
+                const _this = this;
+                
+                // 清除之前的定时器
+                if (_this.searchTimer) {
+                    clearTimeout(_this.searchTimer);
+                }
+                
+                // 设置防抖定时器
+                _this.searchTimer = setTimeout(() => {
+                    // 触发搜索输入事件
+                    _this.$emit('search-input', _this.searchKeyword);
+                    
+                    // 确保下拉框处于打开状态
+                    if (!_this.isShowChoice) {
+                        _this.btnShowHideClick(event);
+                    }
+                }, _this.debounce);
+            },
+            
+            /**
+             * @description 处理搜索框聚焦事件
+             * @param {Event} event - 聚焦事件对象
+             */
+            onSearchFocus(event) {
+                // 如果下拉框未显示，则显示
+                if (!this.isShowChoice) {
+                    this.btnShowHideClick(event);
+                }
             }
         }
     }
@@ -235,6 +347,38 @@
         flex-direction: column;
         justify-content: center;
         width: 100%;
+    }
+    
+    /* 搜索模式相关样式 */
+    .arrow-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5rpx;
+        margin-right: 5rpx;
+        flex-shrink: 0;
+        min-width: 30rpx;
+        z-index: 2;
+    }
+    
+    .search-input {
+        flex: 1;
+        padding-left: 10rpx;
+        padding-right: 15rpx;
+        height: 50rpx;
+        font-size: 28rpx;
+        color: black;
+    }
+    
+    .empty-result {
+        display: flex;
+        justify-content: center;
+        padding: 20rpx 0;
+    }
+    
+    .empty-result-text {
+        color: #999;
+        font-size: 28rpx;
     }
 
     /* start */

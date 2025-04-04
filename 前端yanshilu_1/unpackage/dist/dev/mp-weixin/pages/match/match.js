@@ -7,7 +7,7 @@ const _sfc_main = common_vendor.defineComponent({
     choiceSelected
   },
   onLoad() {
-    common_vendor.index.__f__("log", "at pages/match/match.uvue:86", "匹配页面已加载");
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:89", "匹配页面已加载");
   },
   data() {
     return {
@@ -153,7 +153,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.appliedSelectedSchool = this.tempSelectedSchool;
       this.appliedSelectedMajor = this.tempSelectedMajor;
       this.appliedSelectedSort = this.tempSelectedSort;
-      common_vendor.index.__f__("log", "at pages/match/match.uvue:237", "应用筛选:", new UTSJSONObject({
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:240", "应用筛选:", new UTSJSONObject({
         学校: this.appliedSelectedSchool,
         专业: this.appliedSelectedMajor,
         排序: this.appliedSelectedSort
@@ -171,6 +171,13 @@ const _sfc_main = common_vendor.defineComponent({
     onSortClick(position = null) {
       this.sortIndex = position;
       this.tempSelectedSort = this.sortList[position].choiceItemContent;
+    },
+    /**
+     * @description 处理学校搜索输入事件
+     * @param {String} keyword - 搜索关键词
+     */
+    onSchoolSearch(keyword = null) {
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:268", "学校搜索:", keyword);
     },
     // 保留原有方法
     handleCommunicate(teacherId = null) {
@@ -192,27 +199,30 @@ if (!Array) {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.o($options.onSchoolClick),
-    b: common_vendor.p({
+    b: common_vendor.o($options.onSchoolSearch),
+    c: common_vendor.p({
       defaultText: "学校",
       choiceIndex: $data.schoolIndex,
-      choiceList: $data.schoolList
+      choiceList: $data.schoolList,
+      mode: "search",
+      searchPlaceholder: "搜索学校名称"
     }),
-    c: common_vendor.o($options.onMajorClick),
-    d: common_vendor.p({
+    d: common_vendor.o($options.onMajorClick),
+    e: common_vendor.p({
       defaultText: "专业",
       choiceIndex: $data.majorIndex,
       choiceList: $data.majorList
     }),
-    e: common_vendor.o($options.onSortClick),
-    f: common_vendor.p({
+    f: common_vendor.o($options.onSortClick),
+    g: common_vendor.p({
       defaultText: "排序筛选",
       choiceIndex: $data.sortIndex,
       choiceList: $data.sortList
     }),
-    g: common_vendor.o((...args) => $options.applyFilter && $options.applyFilter(...args)),
-    h: common_vendor.o(() => {
+    h: common_vendor.o((...args) => $options.applyFilter && $options.applyFilter(...args)),
+    i: common_vendor.o(() => {
     }),
-    i: common_vendor.f($options.filteredTeachers, (teacher, index, i0) => {
+    j: common_vendor.f($options.filteredTeachers, (teacher, index, i0) => {
       return {
         a: teacher.avatar || "/static/image/tab-bar/default_avatar.svg",
         b: common_vendor.o(($event) => $options.viewTeacherDetail(teacher.id), index),
@@ -230,13 +240,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         i: index
       };
     }),
-    j: $options.filteredTeachers.length === 0
+    k: $options.filteredTeachers.length === 0
   }, $options.filteredTeachers.length === 0 ? {} : {}, {
-    k: common_vendor.sei("step2", "scroll-view"),
-    l: $data.isLoading
+    l: common_vendor.sei("step2", "scroll-view"),
+    m: $data.isLoading
   }, $data.isLoading ? {} : {}, {
-    m: common_vendor.sei(_ctx.virtualHostId, "view"),
-    n: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
+    n: common_vendor.sei(_ctx.virtualHostId, "view"),
+    o: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

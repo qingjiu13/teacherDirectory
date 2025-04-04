@@ -95,5 +95,34 @@
         justify-content: center;
         width: 100%;
 }
+    
+    /* 搜索模式相关样式 */
+.arrow-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5rpx;
+        margin-right: 5rpx;
+        flex-shrink: 0;
+        min-width: 30rpx;
+        z-index: 2;
+}
+.search-input {
+        flex: 1;
+        padding-left: 10rpx;
+        padding-right: 15rpx;
+        height: 50rpx;
+        font-size: 28rpx;
+        color: black;
+}
+.empty-result {
+        display: flex;
+        justify-content: center;
+        padding: 20rpx 0;
+}
+.empty-result-text {
+        color: #999;
+        font-size: 28rpx;
+}
 
     /* start */

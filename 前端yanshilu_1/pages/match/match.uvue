@@ -9,7 +9,10 @@
 						:defaultText="'学校'" 
 						:choiceIndex="schoolIndex" 
 						:choiceList="schoolList"
-						@onChoiceClick="onSchoolClick">
+						mode="search"
+						:searchPlaceholder="'搜索学校名称'"
+						@onChoiceClick="onSchoolClick"
+						@search-input="onSchoolSearch">
 					</choice-selected>
 				</view>
 				
@@ -255,6 +258,16 @@
 				this.sortIndex = position;
 				// 只更新临时选择，不立即应用
 				this.tempSelectedSort = this.sortList[position].choiceItemContent;
+			},
+			
+			/**
+			 * @description 处理学校搜索输入事件
+			 * @param {String} keyword - 搜索关键词
+			 */
+			onSchoolSearch(keyword) {
+				console.log('学校搜索:', keyword);
+				// 在实际应用中，可以在这里处理更高级的搜索逻辑
+				// 例如从服务器获取更多匹配的学校数据
 			},
 			
 			// 保留原有方法
