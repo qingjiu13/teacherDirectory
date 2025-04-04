@@ -1,20 +1,42 @@
 <template>
-	<view class="container">
+	<view class="container" @click="onPageClick">
 		<!-- 筛选区域 -->
-		<view class="filter-section">
-			<view class="choice-wrapper">
-				<choice-selected :choiceContent="selectedSchool || '学校'" :choiceIndex="schoolIndex" :choiceList="schoolList"
-					@onChoiceClick="onSchoolClick"></choice-selected>
+		<view class="filter-section" @click.stop>
+			<!-- 第一行：学校和专业 -->
+			<view class="filter-row">
+				<view class="choice-wrapper flex-1">
+					<choice-selected 
+						:defaultText="'学校'" 
+						:choiceIndex="schoolIndex" 
+						:choiceList="schoolList"
+						@onChoiceClick="onSchoolClick">
+					</choice-selected>
+				</view>
+				
+				<view class="choice-wrapper flex-1">
+					<choice-selected 
+						:defaultText="'专业'" 
+						:choiceIndex="majorIndex" 
+						:choiceList="majorList"
+						@onChoiceClick="onMajorClick">
+					</choice-selected>
+				</view>
 			</view>
 			
-			<view class="choice-wrapper">
-				<choice-selected :choiceContent="selectedMajor || '专业'" :choiceIndex="majorIndex" :choiceList="majorList"
-					@onChoiceClick="onMajorClick"></choice-selected>
-			</view>
-			
-			<view class="choice-wrapper">
-				<choice-selected :choiceContent="selectedSort || '排序筛选'" :choiceIndex="sortIndex" :choiceList="sortList"
-					@onChoiceClick="onSortClick"></choice-selected>
+			<!-- 第二行：排序筛选和筛选按钮 -->
+			<view class="filter-row">
+				<view class="choice-wrapper flex-1">
+					<choice-selected 
+						:defaultText="'排序筛选'" 
+						:choiceIndex="sortIndex" 
+						:choiceList="sortList"
+						@onChoiceClick="onSortClick">
+					</choice-selected>
+				</view>
+				
+				<view class="filter-btn-wrapper">
+					<button class="filter-btn" @click="applyFilter">筛选</button>
+				</view>
 			</view>
 		</view>
 		
@@ -25,8 +47,10 @@
 					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.svg'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
 				</view>
 				<view class="card-middle">
-					<view class="teacher-name">{{ teacher.nickname }}</view>
-					<view class="teacher-info">{{ teacher.title || '教授' }} | {{ teacher.major }} | {{ teacher.score }}</view>
+					<view class="card-middle-top">
+						<view class="teacher-name">{{ teacher.nickname }}</view>
+						<view class="teacher-info">{{ teacher.title || '教授' }} | {{ teacher.major }} | {{ teacher.score }}</view>
+					</view>
 					<view class="teacher-tags">
 						<view class="tag" v-for="(tag, tagIndex) in teacher.tags" :key="tagIndex">{{ tag }}</view>
 					</view>
@@ -45,60 +69,6 @@
 		<view class="loading-mask" v-if="isLoading">
 			<view class="loading-content">
 				<text>正在连接中...</text>
-			</view>
-		</view>
-		
-		<!-- 教师详情弹窗 -->
-		<view class="teacher-detail-popup" v-if="showTeacherDetail">
-			<view class="popup-mask" @tap="closeTeacherDetail"></view>
-			<view class="popup-content">
-				<view class="teacher-header">
-					<image class="teacher-large-avatar" :src="currentTeacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
-					<view class="teacher-header-info">
-						<view class="teacher-header-name">{{ currentTeacher.nickname }}</view>
-						<view class="teacher-header-title">{{ currentTeacher.title }} | {{ currentTeacher.school }}</view>
-					</view>
-				</view>
-				
-				<view class="detail-tabs">
-					<view class="tab" :class="{ active: activeTab === 'chat' }" @tap="switchTab('chat')">
-						<text>聊天</text>
-					</view>
-					<view class="tab" :class="{ active: activeTab === 'profile' }" @tap="switchTab('profile')">
-						<text>老师详情</text>
-					</view>
-				</view>
-				
-				<view class="tab-content">
-					<view v-if="activeTab === 'chat'" class="chat-tip">
-						<button class="start-chat-btn" @tap="startChat">马上沟通</button>
-					</view>
-					
-					<view v-if="activeTab === 'profile'" class="profile-content">
-						<view class="profile-section">
-							<view class="section-title">专业背景</view>
-							<view class="section-content">{{ currentTeacher.background || '暂无介绍' }}</view>
-						</view>
-						
-						<view class="profile-section">
-							<view class="section-title">教学经验</view>
-							<view class="section-content">{{ currentTeacher.experience || '暂无介绍' }}</view>
-						</view>
-						
-						<view class="profile-section">
-							<view class="section-title">擅长领域</view>
-							<view class="section-content">
-								<view class="expertise-tags">
-									<view class="expertise-tag" v-for="(tag, index) in currentTeacher.expertise || []" :key="index">
-										{{ tag }}
-									</view>
-								</view>
-							</view>
-						</view>
-						
-						<button class="view-profile-btn" @tap="viewTeacherProfile">查看完整主页</button>
-					</view>
-				</view>
 			</view>
 		</view>
 	</view>
@@ -123,7 +93,15 @@
 					{ choiceItemId: "qhdx", choiceItemContent: "清华大学" },
 					{ choiceItemId: "fddx", choiceItemContent: "复旦大学" },
 					{ choiceItemId: "zjdx", choiceItemContent: "浙江大学" },
-					{ choiceItemId: "njdx", choiceItemContent: "南京大学" }
+					{ choiceItemId: "njdx", choiceItemContent: "南京大学" },
+					{ choiceItemId: "scdx", choiceItemContent: "四川大学" },
+					{ choiceItemId: "whdx", choiceItemContent: "武汉大学" },
+					{ choiceItemId: "zsdx", choiceItemContent: "中山大学" },
+					{ choiceItemId: "xjtu", choiceItemContent: "西安交通大学" },
+					{ choiceItemId: "sysu", choiceItemContent: "中山大学" },
+					{ choiceItemId: "hust", choiceItemContent: "华中科技大学" },
+					{ choiceItemId: "hit", choiceItemContent: "哈尔滨工业大学" },
+					{ choiceItemId: "sjtu", choiceItemContent: "上海交通大学" }
 				],
 				majorList: [
 					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
@@ -131,17 +109,31 @@
 					{ choiceItemId: "sx", choiceItemContent: "数学" },
 					{ choiceItemId: "wl", choiceItemContent: "物理" },
 					{ choiceItemId: "hx", choiceItemContent: "化学" },
-					{ choiceItemId: "sw", choiceItemContent: "生物" }
+					{ choiceItemId: "sw", choiceItemContent: "生物" },
+					{ choiceItemId: "jdxy", choiceItemContent: "机电工程" },
+					{ choiceItemId: "dqxy", choiceItemContent: "电气工程" },
+					{ choiceItemId: "jzxy", choiceItemContent: "建筑学" },
+					{ choiceItemId: "lyxy", choiceItemContent: "临床医学" },
+					{ choiceItemId: "yyxy", choiceItemContent: "药学" },
+					{ choiceItemId: "glxy", choiceItemContent: "管理学" },
+					{ choiceItemId: "jjxy", choiceItemContent: "经济学" },
+					{ choiceItemId: "flxy", choiceItemContent: "法学" }
 				],
 				sortList: [
 					{ choiceItemId: "zh", choiceItemContent: "综合排序" }
 				],
-				selectedSchool: '',
-				selectedMajor: '',
-				selectedSort: '综合排序',
-				schoolIndex: 0,
-				majorIndex: 0,
-				sortIndex: 0,
+				// 临时选择变量（用户选择但尚未应用）
+				tempSelectedSchool: '',
+				tempSelectedMajor: '',
+				tempSelectedSort: '综合排序',
+				// 实际应用的筛选变量（点击筛选按钮后才会更新）
+				appliedSelectedSchool: '',
+				appliedSelectedMajor: '',
+				appliedSelectedSort: '综合排序',
+				// 下拉框索引
+				schoolIndex: -1,
+				majorIndex: -1,
+				sortIndex: -1,
 
 				// 加载状态
 				isLoading: false,
@@ -156,7 +148,7 @@
 						major: '计算机科学',
 						title: '教授',
 						score: '考研400分',
-						tags: ['认证学校', '经验丰富']
+						tags: ['认证学校', '经验丰富', '答疑及时', '通俗易懂']
 					},
 					{
 						id: 2,
@@ -198,22 +190,20 @@
 						score: '考研385分',
 						tags: ['认证学校', '答疑及时']
 					}
-				],
-				showTeacherDetail: false,
-				currentTeacher: null,
-				activeTab: 'chat'
+				]
 			}
 		},
 		computed: {
 			filteredTeachers() {
 				let result = [...this.teachers];
 				
-				if (this.selectedSchool) {
-					result = result.filter(teacher => teacher.school === this.selectedSchool);
+				// 使用应用后的筛选条件，而非临时选择的条件
+				if (this.appliedSelectedSchool) {
+					result = result.filter(teacher => teacher.school === this.appliedSelectedSchool);
 				}
 				
-				if (this.selectedMajor) {
-					result = result.filter(teacher => teacher.major === this.selectedMajor);
+				if (this.appliedSelectedMajor) {
+					result = result.filter(teacher => teacher.major === this.appliedSelectedMajor);
 				}
 				
 				// 默认按评分排序
@@ -227,18 +217,44 @@
 			}
 		},
 		methods: {
+			// 页面点击事件
+			onPageClick() {
+				// 关闭所有下拉框
+				let comboboxComponents = this.$children.filter(child => child.$options.name === 'ChoiceSelected');
+				comboboxComponents.forEach(component => {
+					if (component.isShowChoice) {
+						component.isShowChoice = false;
+					}
+				});
+			},
+			// 应用筛选
+			applyFilter() {
+				// 将临时选择的筛选条件应用到实际筛选条件
+				this.appliedSelectedSchool = this.tempSelectedSchool;
+				this.appliedSelectedMajor = this.tempSelectedMajor;
+				this.appliedSelectedSort = this.tempSelectedSort;
+				
+				console.log('应用筛选:', {
+					学校: this.appliedSelectedSchool,
+					专业: this.appliedSelectedMajor,
+					排序: this.appliedSelectedSort
+				});
+			},
 			// 下拉框选择处理
 			onSchoolClick(position) {
 				this.schoolIndex = position;
-				this.selectedSchool = position > 0 ? this.schoolList[position].choiceItemContent : '';
+				// 只更新临时选择，不立即应用
+				this.tempSelectedSchool = this.schoolList[position].choiceItemContent;
 			},
 			onMajorClick(position) {
 				this.majorIndex = position;
-				this.selectedMajor = position > 0 ? this.majorList[position].choiceItemContent : '';
+				// 只更新临时选择，不立即应用
+				this.tempSelectedMajor = this.majorList[position].choiceItemContent;
 			},
 			onSortClick(position) {
 				this.sortIndex = position;
-				this.selectedSort = this.sortList[position].choiceItemContent;
+				// 只更新临时选择，不立即应用
+				this.tempSelectedSort = this.sortList[position].choiceItemContent;
 			},
 			
 			// 保留原有方法
@@ -251,27 +267,7 @@
 				}, 1000);
 			},
 			viewTeacherDetail(teacherId) {
-				this.currentTeacher = this.teachers.find(t => t.id === teacherId);
-				this.showTeacherDetail = true;
-			},
-			closeTeacherDetail() {
-				this.showTeacherDetail = false;
-			},
-			switchTab(tab) {
-				this.activeTab = tab;
-			},
-			startChat() {
-				this.closeTeacherDetail();
-				if (this.currentTeacher) {
-					this.handleCommunicate(this.currentTeacher.id);
-				}
-			},
-			viewTeacherProfile() {
-				if (this.currentTeacher) {
-					uni.navigateTo({
-						url: `/pages/teacher/teacher?id=${this.currentTeacher.id}`
-					});
-				}
+				Navigator.toTeacher(teacherId);
 			}
 		}
 	}
@@ -290,8 +286,8 @@
 	
 	.filter-section {
 		display: flex;
-		flex-direction: row;
-		padding: 12px 10px;
+		flex-direction: column;
+		padding: 15px;
 		background-color: #ffffff;
 		border-radius: 15px;
 		margin: 15px 10px;
@@ -299,10 +295,25 @@
 		width: auto;
 	}
 	
+	.filter-row {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		margin-bottom: 10px;
+	}
+	
+	.filter-row:last-child {
+		margin-bottom: 0;
+	}
+	
 	.choice-wrapper {
 		flex: 1;
 		margin: 0 4px;
 		min-width: 90px;
+	}
+	
+	.flex-1 {
+		flex: 1;
 	}
 	
 	.card-list {
@@ -320,10 +331,13 @@
 		padding: 18px;
 		margin-bottom: 15px;
 		box-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
+		position: relative;
+		min-height: 110px;
 	}
 	
 	.card-left {
 		margin-right: 15px;
+		align-self: flex-start;
 	}
 	
 	.teacher-avatar {
@@ -335,6 +349,19 @@
 	
 	.card-middle {
 		flex: 1;
+		padding-right: 65px;
+		display: flex;
+		flex-direction: column;
+		min-height: 70px;
+		justify-content: space-between;
+		width: calc(100% - 85px);
+		box-sizing: border-box;
+	}
+	
+	.card-middle-top {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
 	}
 	
 	.teacher-name {
@@ -347,13 +374,16 @@
 	.teacher-info {
 		font-size: 14px;
 		color: #666666;
-		margin-bottom: 10px;
+		margin-bottom: 12px;
 	}
 	
 	.teacher-tags {
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
+		gap: 8px;
+		width: 100%;
+		margin-top: 0;
 	}
 	
 	.tag {
@@ -362,25 +392,30 @@
 		background-color: #87CEEB;
 		padding: 3px 10px;
 		border-radius: 12px;
-		margin-right: 8px;
-		margin-bottom: 5px;
+		white-space: nowrap;
+		display: inline-flex;
+		align-items: center;
+		box-sizing: border-box;
+		flex: 0 0 auto;
 	}
 	
 	.card-right {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		margin-left: 10px;
+		position: absolute;
+		top: 18px;
+		right: 18px;
+		z-index: 2;
 	}
 	
 	.communicate-btn {
 		background-color: #1E90FF;
 		color: #ffffff;
 		font-size: 14px;
-		padding: 8px 15px;
+		padding: 6px 12px;
 		border-radius: 20px;
 		border: none;
 		font-weight: 500;
+		line-height: 1.2;
+		min-width: 80px;
 	}
 	
 	.empty-state {
@@ -412,136 +447,26 @@
 		border-radius: 16px;
 	}
 	
-	.teacher-detail-popup {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 9999;
-	}
-	
-	.popup-mask {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-color: rgba(0, 0, 0, 0.7);
-	}
-	
-	.popup-content {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		width: 100%;
-		background-color: #ffffff;
-		border-top-left-radius: 25px;
-		border-top-right-radius: 25px;
-		padding-bottom: 30px;
-		max-height: 85%;
-		overflow-y: auto;
-	}
-	
-	.teacher-header {
+	.filter-btn-wrapper {
 		display: flex;
-		padding: 25px;
-		background-color: rgba(30, 144, 255, 0.1);
-	}
-	
-	.teacher-large-avatar {
-		width: 90px;
-		height: 90px;
-		border-radius: 45px;
-		margin-right: 20px;
-	}
-	
-	.teacher-header-info {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
 		justify-content: center;
+		align-items: center;
+		margin-left: 10px;
+		width: 100px;
 	}
 	
-	.teacher-header-name {
-		font-size: 22px;
-		font-weight: bold;
-		color: #333333;
-		margin-bottom: 8px;
-	}
-	
-	.teacher-header-title {
-		font-size: 16px;
-		color: #666666;
-	}
-	
-	.detail-tabs {
-		display: flex;
-		border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-		background-color: #ffffff;
-	}
-	
-	.tab {
-		flex: 1;
-		text-align: center;
-		padding: 15px 0;
-		font-size: 16px;
-		color: #666666;
-	}
-	
-	.tab.active {
-		color: #1E90FF;
-		font-weight: bold;
-	}
-	
-	.tab-content {
-		padding: 25px;
-	}
-	
-	.start-chat-btn, .view-profile-btn {
-		width: 100%;
-		height: 50px;
-		line-height: 50px;
+	.filter-btn {
 		background-color: #1E90FF;
 		color: #ffffff;
-		font-size: 16px;
-		font-weight: 600;
-		border-radius: 25px;
-		text-align: center;
-		margin-top: 25px;
+		font-size: 14px;
+		padding: 0 15px;
+		height: 60rpx;
+		line-height: 60rpx;
+		border-radius: 10rpx;
 		border: none;
-	}
-	
-	.profile-section {
-		margin-bottom: 25px;
-	}
-	
-	.section-title {
-		font-size: 18px;
-		color: #333333;
-		font-weight: bold;
-		margin-bottom: 15px;
-	}
-	
-	.section-content {
-		font-size: 15px;
-		color: #666666;
-		line-height: 1.6;
-	}
-	
-	.expertise-tags {
-		display: flex;
-		flex-wrap: wrap;
-	}
-	
-	.expertise-tag {
-		padding: 8px 15px;
-		background-color: rgba(30, 144, 255, 0.1);
-		color: #1E90FF;
-		border-radius: 20px;
-		margin-right: 10px;
-		margin-bottom: 10px;
-		font-size: 13px;
 		font-weight: 500;
+		width: 100%;
+		text-align: center;
+		box-shadow: 0 2px 6px rgba(30, 144, 255, 0.2);
 	}
 </style>

@@ -1,8 +1,8 @@
 <template name="ChoiceSelected">
     <!-- 自定义下拉选择框 start-->
-    <view class="selected-all">
+    <view class="selected-all" @click.stop>
         <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
-            <text class="dropdown-content">{{choiceContent}}</text>
+            <text class="dropdown-content">{{displayContent}}</text>
             <view>
                 <image class="dropdown-icon" :class="{'dropdown-icon-rotate': isShowChoice}" src="../../static/image/arrow/arrow_down.svg" mode="widthFix"></image>
             </view>
@@ -12,15 +12,19 @@
             top: dropdownTop + 'px',
             left: dropdownLeft + 'px',
             width: dropdownWidth + 'px'
-        }">
-            <text :class="choiceIndex ==index ?'dialog-title-selected':'dialog-title'"
-                v-for="(item ,index) in choiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
+        }" @click.stop>
+            <scroll-view scroll-y="true" class="dialog-scroll">
+                <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == index}"
+                    v-for="(item, index) in choiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
+            </scroll-view>
         </view>
     </view>
     <!-- 自定义下拉选择框 end -->
 </template>
 
 <script>
+    let dropdownInstances = [];
+    
     export default {
         name: "ChoiceSelected",
         data() {
@@ -28,29 +32,77 @@
                 isShowChoice: false,
                 dropdownTop: 0,
                 dropdownLeft: 0,
-                dropdownWidth: 0
+                dropdownWidth: 0,
+                displayContent: this.defaultText // 使用传入的默认文本
             };
         },
         props: {
-            choiceIndex: {},
-            choiceList: {},
-            choiceContent: {}
+            choiceIndex: {
+                type: Number,
+                default: -1 // 默认-1表示未选择
+            },
+            choiceList: {
+                type: Array,
+                default: () => []
+            },
+            defaultText: {
+                type: String,
+                default: '请选择'
+            }
+        },
+        created() {
+            // 将当前实例添加到实例数组，便于全局管理
+            dropdownInstances.push(this);
+        },
+        beforeDestroy() {
+            // 移除当前实例
+            const index = dropdownInstances.indexOf(this);
+            if (index > -1) {
+                dropdownInstances.splice(index, 1);
+            }
+        },
+        watch: {
+            choiceIndex(newVal) {
+                // 当choiceIndex变化时更新显示内容
+                if (newVal >= 0 && newVal < this.choiceList.length) {
+                    this.displayContent = this.choiceList[newVal].choiceItemContent;
+                } else {
+                    this.displayContent = this.defaultText;
+                }
+            },
+            defaultText(newVal) {
+                // 如果当前没有选择任何选项，更新默认文本
+                if (this.choiceIndex < 0 || this.choiceIndex >= this.choiceList.length) {
+                    this.displayContent = newVal;
+                }
+            }
         },
         methods: {
-            // 选择
+            /**
+             * @description 处理选项点击事件，关闭下拉框并触发选择事件
+             * @param {Number} position - 选中项的索引位置
+             */
             btnChoiceClick: function(position) {
-                var _this = this
-                // _this.choiceIndex = position
-                _this.isShowChoice = false
-                // _this.choiceContent = _this.choiceList[position].choiceItemContent
-                _this.$emit("onChoiceClick",position)
+                var _this = this;
+                _this.isShowChoice = false;
+                _this.$emit("onChoiceClick", position);
             },
-            // 显示与隐藏选择内容
-            btnShowHideClick: function() {
-                var _this = this
+            
+            /**
+             * @description 切换下拉框的显示与隐藏状态
+             * @param {Event} event - 点击事件对象
+             */
+            btnShowHideClick: function(event) {
+                // 阻止事件冒泡
+                event.stopPropagation();
+                
+                var _this = this;
                 if (_this.isShowChoice) {
-                    _this.isShowChoice = false
+                    _this.isShowChoice = false;
                 } else {
+                    // 关闭其他所有下拉框
+                    this.closeOtherDropdowns();
+                    
                     // 使用uni.createSelectorQuery获取触发按钮的位置和尺寸
                     const query = uni.createSelectorQuery().in(this);
                     query.select('.drop-down-box, .drop-down-box-selected').boundingClientRect(data => {
@@ -63,6 +115,17 @@
                     }).exec();
                 }
             },
+            
+            /**
+             * @description 关闭其他下拉框，只保留当前实例的下拉框
+             */
+            closeOtherDropdowns() {
+                dropdownInstances.forEach(instance => {
+                    if (instance !== this && instance.isShowChoice) {
+                        instance.isShowChoice = false;
+                    }
+                });
+            }
         }
     }
 </script>
@@ -71,40 +134,46 @@
     /* end */
     .dialog-title-selected {
         color: white;
-        font-size: 30rpx;
+        font-size: 28rpx;
         padding-left: 20rpx;
-        padding-top: 6rpx;
-        padding-bottom: 6rpx;
+        padding-top: 8rpx;
+        padding-bottom: 8rpx;
         padding-right: 15rpx;
         background-color: #55ffff;
     }
 
     .dialog-title {
         color: black;
-        font-size: 30rpx;
+        font-size: 28rpx;
         padding-left: 20rpx;
-        padding-top: 6rpx;
-        padding-bottom: 6rpx;
+        padding-top: 8rpx;
+        padding-bottom: 8rpx;
         padding-right: 15rpx;
         background-color: white;
+    }
+    
+    .dialog-scroll {
+        width: 100%;
+        max-height: 300rpx; /* 限制滚动区域的最大高度 */
+        -webkit-overflow-scrolling: touch; /* 提升iOS滚动体验 */
     }
 
     .dialog-view {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
         position: fixed;
         z-index: 9999;
         background-color: #ffffff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        max-height: 60vh;
-        overflow-y: auto;
+        max-height: 400rpx; /* 限制整个下拉框的最大高度 */
         transform-origin: top center;
         opacity: 0;
         transform: scaleY(0);
         transition: all 0.2s ease;
+        overflow: hidden; /* 确保内容不会溢出 */
+        border-radius: 0 0 10rpx 10rpx; /* 增加底部圆角 */
     }
     
     .dialog-view.active {
@@ -146,6 +215,7 @@
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
         padding: 0 5rpx;
+        border-radius: 10rpx; /* 添加圆角 */
     }
 
     .drop-down-box {
@@ -155,7 +225,7 @@
         min-height: 60rpx;
         width: 100%;
         border: 2rpx solid gray;
-        border-radius: 5rpx;
+        border-radius: 10rpx; /* 添加圆角 */
         box-sizing: border-box;
         padding: 0 5rpx;
     }
