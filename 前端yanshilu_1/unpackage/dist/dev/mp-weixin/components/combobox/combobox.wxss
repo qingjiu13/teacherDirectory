@@ -39,7 +39,7 @@
         transform: scaleY(0);
         transition: all 0.2s ease;
         overflow: hidden; /* 确保内容不会溢出 */
-        border-radius: 0 0 8rpx 8rpx; /* 添加底部圆角 */
+        border-radius: 0 0 10rpx 10rpx; /* 增加底部圆角 */
 }
 .dialog-view.active {
         opacity: 1;
@@ -76,6 +76,7 @@
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
         padding: 0 5rpx;
+        border-radius: 10rpx; /* 添加圆角 */
 }
 .drop-down-box {
         display: flex;
@@ -84,7 +85,7 @@
         min-height: 60rpx;
         width: 100%;
         border: 2rpx solid gray;
-        border-radius: 5rpx;
+        border-radius: 10rpx; /* 添加圆角 */
         box-sizing: border-box;
         padding: 0 5rpx;
 }

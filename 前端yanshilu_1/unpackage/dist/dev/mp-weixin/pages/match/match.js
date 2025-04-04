@@ -7,7 +7,7 @@ const _sfc_main = common_vendor.defineComponent({
     choiceSelected
   },
   onLoad() {
-    common_vendor.index.__f__("log", "at pages/match/match.uvue:128", "匹配页面已加载");
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:86", "匹配页面已加载");
   },
   data() {
     return {
@@ -46,9 +46,15 @@ const _sfc_main = common_vendor.defineComponent({
       sortList: [
         new UTSJSONObject({ choiceItemId: "zh", choiceItemContent: "综合排序" })
       ],
-      selectedSchool: "",
-      selectedMajor: "",
-      selectedSort: "综合排序",
+      // 临时选择变量（用户选择但尚未应用）
+      tempSelectedSchool: "",
+      tempSelectedMajor: "",
+      tempSelectedSort: "综合排序",
+      // 实际应用的筛选变量（点击筛选按钮后才会更新）
+      appliedSelectedSchool: "",
+      appliedSelectedMajor: "",
+      appliedSelectedSort: "综合排序",
+      // 下拉框索引
       schoolIndex: -1,
       majorIndex: -1,
       sortIndex: -1,
@@ -64,7 +70,7 @@ const _sfc_main = common_vendor.defineComponent({
           major: "计算机科学",
           title: "教授",
           score: "考研400分",
-          tags: ["认证学校", "经验丰富"]
+          tags: ["认证学校", "经验丰富", "答疑及时", "通俗易懂"]
         }),
         new UTSJSONObject({
           id: 2,
@@ -106,23 +112,20 @@ const _sfc_main = common_vendor.defineComponent({
           score: "考研385分",
           tags: ["认证学校", "答疑及时"]
         })
-      ],
-      showTeacherDetail: false,
-      currentTeacher: null,
-      activeTab: "chat"
+      ]
     };
   },
   computed: {
     filteredTeachers() {
       let result = [...this.teachers];
-      if (this.selectedSchool) {
+      if (this.appliedSelectedSchool) {
         result = result.filter((teacher) => {
-          return teacher.school === this.selectedSchool;
+          return teacher.school === this.appliedSelectedSchool;
         });
       }
-      if (this.selectedMajor) {
+      if (this.appliedSelectedMajor) {
         result = result.filter((teacher) => {
-          return teacher.major === this.selectedMajor;
+          return teacher.major === this.appliedSelectedMajor;
         });
       }
       result.sort((a, b) => {
@@ -134,18 +137,40 @@ const _sfc_main = common_vendor.defineComponent({
     }
   },
   methods: {
+    // 页面点击事件
+    onPageClick() {
+      let comboboxComponents = this.$children.filter((child) => {
+        return child.$options.name === "ChoiceSelected";
+      });
+      comboboxComponents.forEach((component) => {
+        if (component.isShowChoice) {
+          component.isShowChoice = false;
+        }
+      });
+    },
+    // 应用筛选
+    applyFilter() {
+      this.appliedSelectedSchool = this.tempSelectedSchool;
+      this.appliedSelectedMajor = this.tempSelectedMajor;
+      this.appliedSelectedSort = this.tempSelectedSort;
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:237", "应用筛选:", new UTSJSONObject({
+        学校: this.appliedSelectedSchool,
+        专业: this.appliedSelectedMajor,
+        排序: this.appliedSelectedSort
+      }));
+    },
     // 下拉框选择处理
     onSchoolClick(position = null) {
       this.schoolIndex = position;
-      this.selectedSchool = this.schoolList[position].choiceItemContent;
+      this.tempSelectedSchool = this.schoolList[position].choiceItemContent;
     },
     onMajorClick(position = null) {
       this.majorIndex = position;
-      this.selectedMajor = this.majorList[position].choiceItemContent;
+      this.tempSelectedMajor = this.majorList[position].choiceItemContent;
     },
     onSortClick(position = null) {
       this.sortIndex = position;
-      this.selectedSort = this.sortList[position].choiceItemContent;
+      this.tempSelectedSort = this.sortList[position].choiceItemContent;
     },
     // 保留原有方法
     handleCommunicate(teacherId = null) {
@@ -156,29 +181,7 @@ const _sfc_main = common_vendor.defineComponent({
       }, 1e3);
     },
     viewTeacherDetail(teacherId = null) {
-      this.currentTeacher = UTS.arrayFind(this.teachers, (t) => {
-        return t.id === teacherId;
-      });
-      this.showTeacherDetail = true;
-    },
-    closeTeacherDetail() {
-      this.showTeacherDetail = false;
-    },
-    switchTab(tab = null) {
-      this.activeTab = tab;
-    },
-    startChat() {
-      this.closeTeacherDetail();
-      if (this.currentTeacher) {
-        this.handleCommunicate(this.currentTeacher.id);
-      }
-    },
-    viewTeacherProfile() {
-      if (this.currentTeacher) {
-        common_vendor.index.navigateTo({
-          url: `/pages/teacher/teacher?id=${this.currentTeacher.id}`
-        });
-      }
+      router.Navigator.toTeacher(teacherId);
     }
   }
 });
@@ -206,7 +209,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       choiceIndex: $data.sortIndex,
       choiceList: $data.sortList
     }),
-    g: common_vendor.f($options.filteredTeachers, (teacher, index, i0) => {
+    g: common_vendor.o((...args) => $options.applyFilter && $options.applyFilter(...args)),
+    h: common_vendor.o(() => {
+    }),
+    i: common_vendor.f($options.filteredTeachers, (teacher, index, i0) => {
       return {
         a: teacher.avatar || "/static/image/tab-bar/default_avatar.svg",
         b: common_vendor.o(($event) => $options.viewTeacherDetail(teacher.id), index),
@@ -224,39 +230,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         i: index
       };
     }),
-    h: $options.filteredTeachers.length === 0
+    j: $options.filteredTeachers.length === 0
   }, $options.filteredTeachers.length === 0 ? {} : {}, {
-    i: common_vendor.sei("step2", "scroll-view"),
-    j: $data.isLoading
+    k: common_vendor.sei("step2", "scroll-view"),
+    l: $data.isLoading
   }, $data.isLoading ? {} : {}, {
-    k: $data.showTeacherDetail
-  }, $data.showTeacherDetail ? common_vendor.e({
-    l: common_vendor.o((...args) => $options.closeTeacherDetail && $options.closeTeacherDetail(...args)),
-    m: $data.currentTeacher.avatar || "/static/image/tab-bar/default_avatar.png",
-    n: common_vendor.t($data.currentTeacher.nickname),
-    o: common_vendor.t($data.currentTeacher.title),
-    p: common_vendor.t($data.currentTeacher.school),
-    q: $data.activeTab === "chat" ? 1 : "",
-    r: common_vendor.o(($event) => $options.switchTab("chat")),
-    s: $data.activeTab === "profile" ? 1 : "",
-    t: common_vendor.o(($event) => $options.switchTab("profile")),
-    v: $data.activeTab === "chat"
-  }, $data.activeTab === "chat" ? {
-    w: common_vendor.o((...args) => $options.startChat && $options.startChat(...args))
-  } : {}, {
-    x: $data.activeTab === "profile"
-  }, $data.activeTab === "profile" ? {
-    y: common_vendor.t($data.currentTeacher.background || "暂无介绍"),
-    z: common_vendor.t($data.currentTeacher.experience || "暂无介绍"),
-    A: common_vendor.f($data.currentTeacher.expertise || [], (tag, index, i0) => {
-      return {
-        a: common_vendor.t(tag),
-        b: index
-      };
-    }),
-    B: common_vendor.o((...args) => $options.viewTeacherProfile && $options.viewTeacherProfile(...args))
-  } : {}) : {}, {
-    C: common_vendor.sei(_ctx.virtualHostId, "view")
+    m: common_vendor.sei(_ctx.virtualHostId, "view"),
+    n: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

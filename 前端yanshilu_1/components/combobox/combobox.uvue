@@ -1,6 +1,6 @@
 <template name="ChoiceSelected">
     <!-- 自定义下拉选择框 start-->
-    <view class="selected-all">
+    <view class="selected-all" @click.stop>
         <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
             <text class="dropdown-content">{{displayContent}}</text>
             <view>
@@ -12,7 +12,7 @@
             top: dropdownTop + 'px',
             left: dropdownLeft + 'px',
             width: dropdownWidth + 'px'
-        }">
+        }" @click.stop>
             <scroll-view scroll-y="true" class="dialog-scroll">
                 <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == index}"
                     v-for="(item, index) in choiceList" :key="item.choiceItemId" @click="btnChoiceClick(index)">{{item.choiceItemContent}}</text>
@@ -23,6 +23,8 @@
 </template>
 
 <script>
+    let dropdownInstances = [];
+    
     export default {
         name: "ChoiceSelected",
         data() {
@@ -48,6 +50,17 @@
                 default: '请选择'
             }
         },
+        created() {
+            // 将当前实例添加到实例数组，便于全局管理
+            dropdownInstances.push(this);
+        },
+        beforeDestroy() {
+            // 移除当前实例
+            const index = dropdownInstances.indexOf(this);
+            if (index > -1) {
+                dropdownInstances.splice(index, 1);
+            }
+        },
         watch: {
             choiceIndex(newVal) {
                 // 当choiceIndex变化时更新显示内容
@@ -65,18 +78,31 @@
             }
         },
         methods: {
-            // 选择
+            /**
+             * @description 处理选项点击事件，关闭下拉框并触发选择事件
+             * @param {Number} position - 选中项的索引位置
+             */
             btnChoiceClick: function(position) {
                 var _this = this;
                 _this.isShowChoice = false;
                 _this.$emit("onChoiceClick", position);
             },
-            // 显示与隐藏选择内容
-            btnShowHideClick: function() {
+            
+            /**
+             * @description 切换下拉框的显示与隐藏状态
+             * @param {Event} event - 点击事件对象
+             */
+            btnShowHideClick: function(event) {
+                // 阻止事件冒泡
+                event.stopPropagation();
+                
                 var _this = this;
                 if (_this.isShowChoice) {
                     _this.isShowChoice = false;
                 } else {
+                    // 关闭其他所有下拉框
+                    this.closeOtherDropdowns();
+                    
                     // 使用uni.createSelectorQuery获取触发按钮的位置和尺寸
                     const query = uni.createSelectorQuery().in(this);
                     query.select('.drop-down-box, .drop-down-box-selected').boundingClientRect(data => {
@@ -88,6 +114,17 @@
                         }
                     }).exec();
                 }
+            },
+            
+            /**
+             * @description 关闭其他下拉框，只保留当前实例的下拉框
+             */
+            closeOtherDropdowns() {
+                dropdownInstances.forEach(instance => {
+                    if (instance !== this && instance.isShowChoice) {
+                        instance.isShowChoice = false;
+                    }
+                });
             }
         }
     }
@@ -136,7 +173,7 @@
         transform: scaleY(0);
         transition: all 0.2s ease;
         overflow: hidden; /* 确保内容不会溢出 */
-        border-radius: 0 0 8rpx 8rpx; /* 添加底部圆角 */
+        border-radius: 0 0 10rpx 10rpx; /* 增加底部圆角 */
     }
     
     .dialog-view.active {
@@ -178,6 +215,7 @@
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
         padding: 0 5rpx;
+        border-radius: 10rpx; /* 添加圆角 */
     }
 
     .drop-down-box {
@@ -187,7 +225,7 @@
         min-height: 60rpx;
         width: 100%;
         border: 2rpx solid gray;
-        border-radius: 5rpx;
+        border-radius: 10rpx; /* 添加圆角 */
         box-sizing: border-box;
         padding: 0 5rpx;
     }
