@@ -1,19 +1,299 @@
 @import "../../uvue.wxss";
 :host{display:flex;flex-direction:column}
 
-.selected-view {
-        width: 80%;
-        margin-top: 15rpx;
+.page-container {
+		position: relative;
+		width: 100%;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		padding: 20rpx;
+		box-sizing: border-box;
+		background-color: #f5f5f5;
+		overflow: hidden; /* 防止内容溢出 */
 }
-.content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        background-color: white;
+	
+	/* 筛选区域 */
+.filter-section {
+		width: 100%;
+		padding: 20rpx 15rpx;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		box-sizing: border-box;
 }
-page {
-        height: 100%;
-        background-color: white;
+.filter-row {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		margin-bottom: 20rpx;
+		box-sizing: border-box;
+}
+.filter-row:last-child {
+		margin-bottom: 0;
+}
+.filter-item {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		box-sizing: border-box;
+		width: 100%;
+}
+.full-width {
+		width: 100%;
+}
+.filter-label {
+		font-size: 28rpx;
+		color: #333;
+		white-space: nowrap;
+		margin-right: 10rpx;
+		width: 140rpx; /* 改为固定宽度，不用min-width */
+		padding-left: 10rpx;
+		text-align: left;
+		box-sizing: border-box;
+}
+.choice-wrapper {
+		flex: 1;
+		box-sizing: border-box;
+		width: calc(100% - 150rpx); /* 考虑标签宽度和间距 */
+		padding-right: 10rpx; /* 防止右侧超出边界 */
+}
+.flex-1 {
+		flex: 1;
+}
+	
+	/* 消息区域 */
+.message-section {
+		flex: 1;
+		width: 100%;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		overflow: hidden;
+		position: relative;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+.message-scroll {
+		height: 100%;
+		padding: 30rpx;
+}
+.empty-message {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+}
+.empty-message text {
+		color: #999;
+		font-size: 28rpx;
+}
+.message-list {
+		display: flex;
+		flex-direction: column;
+}
+.message-item {
+		max-width: 90%;
+		margin-bottom: 30rpx;
+		position: relative;
+		animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10rpx);
+}
+to { opacity: 1; transform: translateY(0);
+}
+}
+.message-item.user {
+		align-self: flex-end;
+}
+.message-item.ai {
+		align-self: flex-start;
+}
+.message-item.system {
+		align-self: center;
+		max-width: 70%;
+		margin: 10rpx 0 30rpx;
+}
+.message-content {
+		padding: 20rpx 30rpx;
+		border-radius: 16rpx;
+		font-size: 28rpx;
+		line-height: 1.5;
+		word-break: break-word;
+}
+.message-item.user .message-content {
+		background-color: #1E90FF;
+		color: #fff;
+		border-radius: 16rpx 0 16rpx 16rpx;
+}
+.message-item.ai .message-content {
+		background-color: #f0f0f0;
+		color: #333;
+		border-radius: 0 16rpx 16rpx 16rpx;
+}
+.message-item.system .message-content {
+		background-color: rgba(0, 0, 0, 0.05);
+		color: #666;
+		border-radius: 30rpx;
+		font-size: 24rpx;
+}
+.message-header {
+		margin-bottom: 10rpx;
+}
+.ai-title {
+		font-size: 24rpx;
+		color: #666;
+		padding-left: 10rpx;
+}
+.message-status {
+		margin-top: 10rpx;
+		font-size: 24rpx;
+		color: #999;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+}
+.sending-dots {
+		animation: dotsAnimation 1.5s infinite;
+}
+@keyframes dotsAnimation {
+0% { opacity: 0.3;
+}
+50% { opacity: 1;
+}
+100% { opacity: 0.3;
+}
+}
+.error-text {
+		color: #ff4d4f;
+		margin-right: 10rpx;
+}
+.retry-btn {
+		padding: 5rpx 15rpx;
+		background-color: #f0f0f0;
+		border-radius: 10rpx;
+}
+.retry-btn text {
+		color: #1E90FF;
+		font-size: 22rpx;
+}
+.message-item.streaming .message-content {
+		position: relative;
+}
+.message-item.streaming .message-content::after {
+		content: "|";
+		display: inline-block;
+		color: #1E90FF;
+		animation: blink 1s step-end infinite;
+		margin-left: 2rpx;
+		font-weight: bold;
+}
+@keyframes blink {
+0%, 100% { opacity: 1;
+}
+50% { opacity: 0;
+}
+}
+	
+	/* 功能区域 - 调整位置到消息区域和输入区域之间 */
+.function-section {
+		width: 100%;
+		padding: 15rpx;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		box-sizing: border-box;
+}
+.function-list {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+}
+.function-item {
+		padding: 15rpx 30rpx;
+		border-radius: 30rpx;
+		background-color: #f0f0f0;
+		transition: all 0.3s;
+}
+.function-item.active {
+		background-color: #1E90FF;
+}
+.function-item-text {
+		font-size: 28rpx;
+		color: #333;
+}
+.function-item.active .function-item-text {
+		color: #ffffff;
+}
+	
+	/* 输入区域 */
+.input-section {
+		width: 100%;
+		height: 100rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 10rpx;
+		box-sizing: border-box;
+}
+.message-input {
+		flex: 1;
+		height: 80rpx;
+		background-color: #ffffff;
+		border: 2rpx solid #ddd;
+		border-radius: 40rpx;
+		padding: 0 30rpx;
+		margin-right: 20rpx;
+		font-size: 28rpx;
+		box-sizing: border-box;
+}
+.send-button {
+		width: 140rpx;
+		height: 80rpx;
+		background-color: #1E90FF;
+		color: #fff;
+		border-radius: 40rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		padding: 0;
+		box-sizing: border-box;
+		transition: all 0.3s; /* 添加过渡效果 */
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1); /* 添加阴影 */
+}
+.send-button:disabled {
+		background-color: #f0f0f0; /* 更改为浅灰色背景，与功能按钮一致 */
+		color: #999; /* 更暗的文字颜色 */
+		border: 2rpx solid #ddd; /* 添加边框 */
+		box-shadow: none; /* 禁用状态不显示阴影 */
+}
+.send-button text {
+		font-size: 28rpx;
+}
+	
+	/* 加载遮罩 */
+.loading-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 999;
+}
+.loading-content {
+		background-color: #ffffff;
+		padding: 30rpx 60rpx;
+		border-radius: 20rpx;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+}
+.loading-content text {
+		font-size: 28rpx;
+		color: #333;
 }

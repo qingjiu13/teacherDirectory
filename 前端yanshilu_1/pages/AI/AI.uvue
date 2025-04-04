@@ -1,75 +1,1013 @@
 <template>
-    <view class="content">
-        <view class="selected-view">
-            <choice-selected :choiceContent="choiceContent" :choiceIndex="choiceIndex" :choiceList="choiceList"
-                @onChoiceClick="onChoiceClick"></choice-selected>
-        </view>
-    </view>
+	<view class="page-container" @click="onPageClick">
+		<!-- 筛选区域 -->
+		<view class="filter-section" @click.stop>
+			<!-- 第一行：学校 -->
+			<view class="filter-row">
+				<view class="filter-item full-width">
+					<text class="filter-label">所在学校：</text>
+					<view class="choice-wrapper">
+						<!-- #ifdef MP-WEIXIN -->
+						<choice-selected 
+							:defaultText="'请选择学校'" 
+							:choiceIndex="schoolIndex" 
+							:choiceList="schoolList"
+							mode="search"
+							:searchPlaceholder="'搜索学校'"
+							@onChoiceClick="onSchoolClick"
+							@search-input="onSchoolSearch">
+						</choice-selected>
+						<!-- #endif -->
+						
+						<!-- #ifndef MP-WEIXIN -->
+						<choice-selected 
+							:defaultText="'请选择学校'" 
+							:choiceIndex="schoolIndex" 
+							:choiceList="schoolList"
+							mode="search"
+							:searchPlaceholder="'搜索学校'"
+							@onChoiceClick="onSchoolClick"
+							@search-input="onSchoolSearch">
+						</choice-selected>
+						<!-- #endif -->
+					</view>
+				</view>
+			</view>
+			
+			<!-- 第二行：专业 -->
+			<view class="filter-row">
+				<view class="filter-item full-width">
+					<text class="filter-label">专业：</text>
+					<view class="choice-wrapper">
+						<choice-selected 
+							:defaultText="'请选择专业'" 
+							:choiceIndex="majorIndex" 
+							:choiceList="majorList"
+							@onChoiceClick="onMajorClick">
+						</choice-selected>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 消息区域 -->
+		<view class="message-section">
+			<scroll-view 
+				scroll-y="true" 
+				class="message-scroll" 
+				:scroll-into-view="autoScrollId"
+				@scrolltoupper="onScrollToUpper"
+				@scroll="onScroll"
+				ref="messageScroll">
+				
+				<view v-if="messages.length === 0" class="empty-message">
+					<text>您可以开始提问了...</text>
+				</view>
+				
+				<view v-else class="message-list">
+					<view v-for="(msg, index) in messages" 
+						:key="index" 
+						:id="'msg-' + index"
+						class="message-item" 
+						:class="[msg.type, {'streaming': msg.streaming}]">
+						<view class="message-header" v-if="msg.type === 'ai'">
+							<text class="ai-title">研师录AI</text>
+						</view>
+						<view class="message-content">
+							<text>{{msg.content}}</text>
+						</view>
+						<view class="message-status" v-if="msg.status === 'sending'">
+							<text class="sending-dots">...</text>
+						</view>
+						<view class="message-status" v-if="msg.status === 'error'">
+							<text class="error-text">发送失败</text>
+							<view class="retry-btn" @click="retryMessage(index)">
+								<text>重试</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</scroll-view>
+		</view>
+		
+		<!-- 功能模式区域 - 移到消息区域下方 -->
+		<view class="function-section">
+			<view class="function-list">
+				<view class="function-item" 
+					:class="{active: currentMode === 'general'}" 
+					@click="switchMode('general')">
+					<text class="function-item-text">通用</text>
+				</view>
+				<view class="function-item" 
+					:class="{active: currentMode === 'school'}" 
+					@click="switchMode('school')">
+					<text class="function-item-text">择校</text>
+				</view>
+				<view class="function-item" 
+					:class="{active: currentMode === 'career'}" 
+					@click="switchMode('career')">
+					<text class="function-item-text">职业规划</text>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 输入区域 -->
+		<view class="input-section">
+			<input class="message-input" 
+				v-model="inputValue" 
+				placeholder="请输入您的问题..." 
+				:disabled="isProcessing"
+				@confirm="sendMessage" />
+			<button class="send-button" @click="sendMessage" :disabled="isProcessing || !inputValue.trim()">
+				<text>{{isProcessing ? '请稍候' : '发送'}}</text>
+			</button>
+		</view>
+		
+		<!-- 加载提示 -->
+		<view class="loading-mask" v-if="isFullLoading">
+			<view class="loading-content">
+				<text>{{loadingText}}</text>
+			</view>
+		</view>
+	</view>
 </template>
 
 <script>
-    import choiceSelected from '../../components/combobox/combobox.uvue'
-    export default {
-        components: {
-            choiceSelected
-        },
-        data() {
-            return {
-                choiceList: [{
-                        choiceItemId: "0",
-                        choiceItemContent: "请选择"
-                    },
-                    {
-                        choiceItemId: "P",
-                        choiceItemContent: "苹果"
-                    },
-                    {
-                        choiceItemId: "L",
-                        choiceItemContent: "荔枝"
-                    },
-                    {
-                        choiceItemId: "X",
-                        choiceItemContent: "西瓜"
-                    },
-                    {
-                        choiceItemId: "H",
-                        choiceItemContent: "哈密瓜"
-                    }
-                ],
-                choiceContent: "请选择", //选择的内容
-                choiceIndex: 0 //选择位置
-            }
-        },
-        methods: {
-            // 修改选择的数据
-            onChoiceClick: function(position) {
-                console.log("+++++++" + position)
-                var _this = this
-                _this.choiceIndex = position
-                _this.choiceContent = _this.choiceList[position].choiceItemContent
-            },
-
-        }
-    }
+	import choiceSelected from '../../components/combobox/combobox'
+	import { sendChatMessage, abortRequest } from '../../api/API.js'
+	
+	// 消息类型常量
+	const MESSAGE_TYPE = {
+		USER: 'user',
+		AI: 'ai',
+		SYSTEM: 'system'
+	}
+	
+	// 消息状态常量
+	const MESSAGE_STATUS = {
+		SENDING: 'sending',
+		SENT: 'sent',
+		ERROR: 'error'
+	}
+	
+	// 对话模式常量
+	const CHAT_MODE = {
+		GENERAL: 'general',
+		SCHOOL: 'school',
+		CAREER: 'career'
+	}
+	
+	export default {
+		components: {
+			choiceSelected
+		},
+		data() {
+			return {
+				// 用户基本信息
+				userInfo: {
+					school: '',
+					major: ''
+				},
+				
+				// 消息相关
+				inputValue: '',
+				messages: [],
+				isProcessing: false, // 是否正在处理消息
+				isFullLoading: false, // 是否显示全屏加载
+				loadingText: '正在加载...',
+				autoScrollId: '', // 用于自动滚动的ID
+				
+				// 对话模式
+				currentMode: CHAT_MODE.GENERAL,
+				
+				// 学校和专业选择相关
+				schoolIndex: -1,
+				majorIndex: -1,
+				schoolList: [
+					{ choiceItemId: "bjdx", choiceItemContent: "北京大学" },
+					{ choiceItemId: "qhdx", choiceItemContent: "清华大学" },
+					{ choiceItemId: "fddx", choiceItemContent: "复旦大学" },
+					{ choiceItemId: "zjdx", choiceItemContent: "浙江大学" },
+					{ choiceItemId: "njdx", choiceItemContent: "南京大学" },
+					{ choiceItemId: "scdx", choiceItemContent: "四川大学" },
+					{ choiceItemId: "whdx", choiceItemContent: "武汉大学" },
+					{ choiceItemId: "zsdx", choiceItemContent: "中山大学" },
+					{ choiceItemId: "xjtu", choiceItemContent: "西安交通大学" },
+					{ choiceItemId: "hust", choiceItemContent: "华中科技大学" },
+					{ choiceItemId: "hit", choiceItemContent: "哈尔滨工业大学" },
+					{ choiceItemId: "sjtu", choiceItemContent: "上海交通大学" }
+				],
+				majorList: [
+					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
+					{ choiceItemId: "rjgc", choiceItemContent: "软件工程" },
+					{ choiceItemId: "sx", choiceItemContent: "数学" },
+					{ choiceItemId: "wl", choiceItemContent: "物理" },
+					{ choiceItemId: "hx", choiceItemContent: "化学" },
+					{ choiceItemId: "sw", choiceItemContent: "生物" },
+					{ choiceItemId: "jdxy", choiceItemContent: "机电工程" },
+					{ choiceItemId: "dqxy", choiceItemContent: "电气工程" },
+					{ choiceItemId: "jzxy", choiceItemContent: "建筑学" },
+					{ choiceItemId: "lyxy", choiceItemContent: "临床医学" },
+					{ choiceItemId: "yyxy", choiceItemContent: "药学" },
+					{ choiceItemId: "glxy", choiceItemContent: "管理学" },
+					{ choiceItemId: "jjxy", choiceItemContent: "经济学" },
+					{ choiceItemId: "flxy", choiceItemContent: "法学" }
+				],
+				
+				// 滚动相关
+				isAutoScrollEnabled: true,
+				
+				// 当前会话的请求控制器
+				currentController: null,
+				
+				// 自定义的上下文信息
+				contextInfo: {}
+			}
+		},
+		onLoad() {
+			/**
+			 * @description 页面加载时的处理逻辑
+			 */
+			// 尝试获取用户信息并初始化
+			this.getUserInfo();
+			
+			// 添加欢迎消息
+			this.addSystemMessage('欢迎使用研师录AI助手，请选择您的所在学校和专业，然后开始提问');
+		},
+		onUnload() {
+			// 页面卸载时中断所有未完成的请求
+			this.abortCurrentRequest();
+		},
+		onReady() {
+			// 页面渲染完成
+			// 解决在某些平台上可能因为异步操作导致的定位问题
+			setTimeout(() => {
+				this.updateLayout();
+			}, 300);
+		},
+		methods: {
+			/**
+			 * @description 更新布局，解决可能的定位问题
+			 */
+			updateLayout() {
+				// 微信小程序环境下特殊处理
+				// #ifdef MP-WEIXIN
+				// 这里可以添加特定于微信小程序的布局调整
+				// #endif
+			},
+			
+			/**
+			 * @description 获取用户信息
+			 */
+			getUserInfo() {
+				try {
+					const userInfo = uni.getStorageSync('userInfo');
+					if (userInfo) {
+						const parsedInfo = JSON.parse(userInfo);
+						this.userInfo = parsedInfo;
+						
+						// 根据保存的用户信息设置选择框的索引
+						if (this.userInfo.school) {
+							const schoolIndex = this.schoolList.findIndex(
+								item => item.choiceItemContent === this.userInfo.school
+							);
+							if (schoolIndex !== -1) {
+								this.schoolIndex = schoolIndex;
+							}
+						}
+						
+						if (this.userInfo.major) {
+							const majorIndex = this.majorList.findIndex(
+								item => item.choiceItemContent === this.userInfo.major
+							);
+							if (majorIndex !== -1) {
+								this.majorIndex = majorIndex;
+							}
+						}
+					}
+				} catch (e) {
+					console.error('获取用户信息失败:', e);
+				}
+			},
+			
+			/**
+			 * @description 保存用户信息
+			 */
+			saveUserInfo() {
+				try {
+					uni.setStorageSync('userInfo', JSON.stringify(this.userInfo));
+				} catch (e) {
+					console.error('保存用户信息失败:', e);
+					this.showToast('保存用户信息失败，可能影响后续对话');
+				}
+			},
+			
+			/**
+			 * @description 页面点击事件，用于关闭下拉框
+			 */
+			onPageClick() {
+				// 这里不需要做额外操作，combobox组件会处理自己的关闭逻辑
+			},
+			
+			/**
+			 * @description 学校选择事件处理
+			 * @param {Number} position - 选择的索引位置
+			 */
+			onSchoolClick(position) {
+				this.schoolIndex = position;
+				this.userInfo.school = this.schoolList[position].choiceItemContent;
+				this.saveUserInfo();
+				// 更新对话上下文
+				this.updateContextInfo();
+			},
+			
+			/**
+			 * @description 专业选择事件处理
+			 * @param {Number} position - 选择的索引位置
+			 */
+			onMajorClick(position) {
+				this.majorIndex = position;
+				this.userInfo.major = this.majorList[position].choiceItemContent;
+				this.saveUserInfo();
+				// 更新对话上下文
+				this.updateContextInfo();
+			},
+			
+			/**
+			 * @description 处理学校搜索输入
+			 * @param {String} keyword - 搜索关键词
+			 */
+			onSchoolSearch(keyword) {
+				console.log('学校搜索:', keyword);
+				// 这里可以实现动态学校搜索逻辑，例如从服务器获取匹配的学校
+				// 简单实现：如果需要从服务器获取，可以在这里添加API调用
+			},
+			
+			/**
+			 * @description 切换对话模式
+			 * @param {String} mode - 对话模式
+			 */
+			switchMode(mode) {
+				if (this.currentMode === mode) return;
+				
+				this.currentMode = mode;
+				
+				// 更新对话上下文
+				this.updateContextInfo();
+				
+				// 添加系统消息
+				let modeName = '通用';
+				if (mode === CHAT_MODE.SCHOOL) {
+					modeName = '择校';
+				} else if (mode === CHAT_MODE.CAREER) {
+					modeName = '职业规划';
+				}
+				
+				this.addSystemMessage(`已切换到${modeName}模式`);
+			},
+			
+			/**
+			 * @description 更新对话上下文信息
+			 */
+			updateContextInfo() {
+				this.contextInfo = {
+					mode: this.currentMode,
+					userSchool: this.userInfo.school || '',
+					userMajor: this.userInfo.major || ''
+				};
+			},
+			
+			/**
+			 * @description 添加系统消息
+			 * @param {String} content - 消息内容
+			 */
+			addSystemMessage(content) {
+				this.messages.push({
+					type: MESSAGE_TYPE.SYSTEM,
+					content: content,
+					status: MESSAGE_STATUS.SENT
+				});
+				this.scrollToBottom();
+			},
+			
+			/**
+			 * @description 发送消息
+			 */
+			async sendMessage() {
+				if (!this.inputValue.trim() || this.isProcessing) {
+					return;
+				}
+				
+				// 获取输入内容并清空输入框
+				const messageContent = this.inputValue.trim();
+				this.inputValue = '';
+				
+				// 添加用户消息
+				const userMessageIndex = this.messages.length;
+				this.messages.push({
+					type: MESSAGE_TYPE.USER,
+					content: messageContent,
+					status: MESSAGE_STATUS.SENT
+				});
+				
+				// 添加AI消息（初始为加载状态）
+				const aiMessageIndex = this.messages.length;
+				this.messages.push({
+					type: MESSAGE_TYPE.AI,
+					content: '',
+					status: MESSAGE_STATUS.SENDING,
+					streaming: true
+				});
+				
+				this.scrollToBottom();
+				this.isProcessing = true;
+				
+				try {
+					// 创建上下文
+					this.updateContextInfo();
+					
+					// 准备请求参数
+					const params = {
+						message: messageContent,
+						context: this.contextInfo,
+						history: this.getMessageHistory()
+					};
+					
+					// 创建请求控制器（用于中断请求）
+					this.abortCurrentRequest(); // 中断之前的请求
+					
+					// 兼容性处理 - 微信小程序不支持 AbortController
+					let controller = null;
+					// #ifndef MP-WEIXIN
+					controller = new AbortController();
+					// #endif
+					
+					this.currentController = controller;
+					
+					// 发送请求并处理流式响应
+					let signal = null;
+					// #ifndef MP-WEIXIN
+					signal = controller ? controller.signal : null;
+					// #endif
+					
+					await this.sendStreamRequest(params, aiMessageIndex, signal);
+					
+					// 请求完成后更新状态
+					this.updateMessageStatus(aiMessageIndex, MESSAGE_STATUS.SENT);
+					this.messages[aiMessageIndex].streaming = false;
+					
+				} catch (error) {
+					console.error('发送消息失败:', error);
+					
+					// 检查是否是用户主动取消的请求
+					if (error.name === 'AbortError') {
+						console.log('请求被用户取消');
+						// 用户取消请求时，移除最后的AI消息（通常是不完整的）
+						this.messages.splice(aiMessageIndex, 1);
+					} else {
+						// 其他错误，更新消息状态为错误
+						this.updateMessageStatus(aiMessageIndex, MESSAGE_STATUS.ERROR);
+						this.messages[aiMessageIndex].streaming = false;
+						this.messages[aiMessageIndex].content = error.message || '获取回复失败，请重试';
+					}
+				} finally {
+					this.isProcessing = false;
+					this.currentController = null;
+				}
+			},
+			
+			/**
+			 * @description 发送流式请求并处理响应
+			 * @param {Object} params - 请求参数
+			 * @param {Number} messageIndex - 消息索引
+			 * @param {AbortSignal} signal - 中断信号
+			 */
+			async sendStreamRequest(params, messageIndex, signal) {
+				try {
+					await sendChatMessage(
+						params,
+						(chunk) => {
+							// 每收到一个数据块，就更新消息内容
+							if (chunk && typeof chunk === 'string') {
+								this.messages[messageIndex].content += chunk;
+							}
+							this.scrollToBottom();
+						},
+						signal
+					);
+				} catch (error) {
+					throw error;
+				}
+			},
+			
+			/**
+			 * @description 重试发送失败的消息
+			 * @param {Number} index - 消息索引
+			 */
+			retryMessage(index) {
+				// 只能重试AI消息
+				if (index < 1 || this.messages[index].type !== MESSAGE_TYPE.AI) {
+					return;
+				}
+				
+				// 获取对应的用户消息
+				const userMessage = this.messages[index - 1];
+				if (userMessage.type !== MESSAGE_TYPE.USER) {
+					return;
+				}
+				
+				// 更新消息状态
+				this.updateMessageStatus(index, MESSAGE_STATUS.SENDING);
+				this.messages[index].content = '';
+				this.messages[index].streaming = true;
+				
+				// 重新发送消息
+				this.isProcessing = true;
+				
+				// 创建请求控制器
+				this.abortCurrentRequest();
+				
+				// 兼容性处理 - 微信小程序不支持 AbortController
+				let controller = null;
+				// #ifndef MP-WEIXIN
+				controller = new AbortController();
+				// #endif
+				
+				this.currentController = controller;
+				
+				// 准备请求参数
+				const params = {
+					message: userMessage.content,
+					context: this.contextInfo,
+					history: this.getMessageHistory(index - 1) // 获取到失败消息之前的历史
+				};
+				
+				// 获取信号
+				let signal = null;
+				// #ifndef MP-WEIXIN
+				signal = controller ? controller.signal : null;
+				// #endif
+				
+				// 发送请求
+				this.sendStreamRequest(params, index, signal)
+					.then(() => {
+						// 请求成功
+						this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
+						this.messages[index].streaming = false;
+					})
+					.catch((error) => {
+						console.error('重试发送消息失败:', error);
+						
+						// 检查是否是用户主动取消的请求
+						if (error.name === 'AbortError') {
+							console.log('重试请求被用户取消');
+						} else {
+							// 其他错误，更新消息状态为错误
+							this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
+							this.messages[index].content = error.message || '获取回复失败，请重试';
+						}
+					})
+					.finally(() => {
+						this.isProcessing = false;
+						this.currentController = null;
+					});
+			},
+			
+			/**
+			 * @description 中断当前请求
+			 */
+			abortCurrentRequest() {
+				if (this.currentController) {
+					// #ifndef MP-WEIXIN
+					this.currentController.abort();
+					// #endif
+					this.currentController = null;
+				}
+			},
+			
+			/**
+			 * @description 更新消息状态
+			 * @param {Number} index - 消息索引
+			 * @param {String} status - 新状态
+			 */
+			updateMessageStatus(index, status) {
+				if (index >= 0 && index < this.messages.length) {
+					this.messages[index].status = status;
+				}
+			},
+			
+			/**
+			 * @description 获取消息历史用于发送到API
+			 * @param {Number} [limit] - 可选，限制历史消息的数量
+			 * @returns {Array} 消息历史数组
+			 */
+			getMessageHistory(limit) {
+				// 筛选出有效的对话消息（用户和AI的消息）
+				let history = this.messages.filter(msg => 
+					msg.type === MESSAGE_TYPE.USER || 
+					(msg.type === MESSAGE_TYPE.AI && msg.status === MESSAGE_STATUS.SENT)
+				);
+				
+				// 如果指定了limit，则只获取最近的limit条消息
+				if (typeof limit === 'number' && limit >= 0 && limit < history.length) {
+					history = history.slice(0, limit);
+				}
+				
+				// 转换为API需要的格式
+				return history.map(msg => ({
+					role: msg.type === MESSAGE_TYPE.USER ? 'user' : 'assistant',
+					content: msg.content
+				}));
+			},
+			
+			/**
+			 * @description 滚动到底部
+			 */
+			scrollToBottom() {
+				if (!this.isAutoScrollEnabled) return;
+				
+				if (this.messages.length > 0) {
+					this.autoScrollId = 'msg-' + (this.messages.length - 1);
+				}
+			},
+			
+			/**
+			 * @description 处理滚动到顶部事件（加载更多历史消息）
+			 */
+			onScrollToUpper(e) {
+				// 如果需要加载更多历史消息，可以在这里实现
+				console.log('滚动到顶部');
+			},
+			
+			/**
+			 * @description 处理滚动事件（用于控制是否启用自动滚动）
+			 */
+			onScroll(e) {
+				// 这里可以实现根据用户滚动位置决定是否启用自动滚动
+				// 例如，当用户手动向上滚动时禁用自动滚动，当滚动到底部时再启用
+			},
+			
+			/**
+			 * @description 显示提示
+			 * @param {String} message - 提示信息
+			 */
+			showToast(message) {
+				uni.showToast({
+					title: message,
+					icon: 'none',
+					duration: 2000
+				});
+			},
+			
+			/**
+			 * @description 显示加载提示
+			 * @param {String} [text] - 加载提示文本
+			 */
+			showLoading(text = '正在加载...') {
+				this.loadingText = text;
+				this.isFullLoading = true;
+			},
+			
+			/**
+			 * @description 隐藏加载提示
+			 */
+			hideLoading() {
+				this.isFullLoading = false;
+			}
+		}
+	}
 </script>
 
 <style>
-    .selected-view {
-        width: 80%;
-        margin-top: 15rpx;
-    }
-
-    .content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        background-color: white;
-    }
-
-    page {
-        height: 100%;
-        background-color: white;
-    }
+	.page-container {
+		position: relative;
+		width: 100%;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		padding: 20rpx;
+		box-sizing: border-box;
+		background-color: #f5f5f5;
+		overflow: hidden; /* 防止内容溢出 */
+	}
+	
+	/* 筛选区域 */
+	.filter-section {
+		width: 100%;
+		padding: 20rpx 15rpx;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		box-sizing: border-box;
+	}
+	
+	.filter-row {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		margin-bottom: 20rpx;
+		box-sizing: border-box;
+	}
+	
+	.filter-row:last-child {
+		margin-bottom: 0;
+	}
+	
+	.filter-item {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		box-sizing: border-box;
+		width: 100%;
+	}
+	
+	.full-width {
+		width: 100%;
+	}
+	
+	.filter-label {
+		font-size: 28rpx;
+		color: #333;
+		white-space: nowrap;
+		margin-right: 10rpx;
+		width: 140rpx; /* 改为固定宽度，不用min-width */
+		padding-left: 10rpx;
+		text-align: left;
+		box-sizing: border-box;
+	}
+	
+	.choice-wrapper {
+		flex: 1;
+		box-sizing: border-box;
+		width: calc(100% - 150rpx); /* 考虑标签宽度和间距 */
+		padding-right: 10rpx; /* 防止右侧超出边界 */
+	}
+	
+	.flex-1 {
+		flex: 1;
+	}
+	
+	/* 消息区域 */
+	.message-section {
+		flex: 1;
+		width: 100%;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		overflow: hidden;
+		position: relative;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+	}
+	
+	.message-scroll {
+		height: 100%;
+		padding: 30rpx;
+	}
+	
+	.empty-message {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.empty-message text {
+		color: #999;
+		font-size: 28rpx;
+	}
+	
+	.message-list {
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.message-item {
+		max-width: 90%;
+		margin-bottom: 30rpx;
+		position: relative;
+		animation: fadeIn 0.3s ease-in-out;
+	}
+	
+	@keyframes fadeIn {
+		from { opacity: 0; transform: translateY(10rpx); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+	
+	.message-item.user {
+		align-self: flex-end;
+	}
+	
+	.message-item.ai {
+		align-self: flex-start;
+	}
+	
+	.message-item.system {
+		align-self: center;
+		max-width: 70%;
+		margin: 10rpx 0 30rpx;
+	}
+	
+	.message-content {
+		padding: 20rpx 30rpx;
+		border-radius: 16rpx;
+		font-size: 28rpx;
+		line-height: 1.5;
+		word-break: break-word;
+	}
+	
+	.message-item.user .message-content {
+		background-color: #1E90FF;
+		color: #fff;
+		border-radius: 16rpx 0 16rpx 16rpx;
+	}
+	
+	.message-item.ai .message-content {
+		background-color: #f0f0f0;
+		color: #333;
+		border-radius: 0 16rpx 16rpx 16rpx;
+	}
+	
+	.message-item.system .message-content {
+		background-color: rgba(0, 0, 0, 0.05);
+		color: #666;
+		border-radius: 30rpx;
+		font-size: 24rpx;
+	}
+	
+	.message-header {
+		margin-bottom: 10rpx;
+	}
+	
+	.ai-title {
+		font-size: 24rpx;
+		color: #666;
+		padding-left: 10rpx;
+	}
+	
+	.message-status {
+		margin-top: 10rpx;
+		font-size: 24rpx;
+		color: #999;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+	
+	.sending-dots {
+		animation: dotsAnimation 1.5s infinite;
+	}
+	
+	@keyframes dotsAnimation {
+		0% { opacity: 0.3; }
+		50% { opacity: 1; }
+		100% { opacity: 0.3; }
+	}
+	
+	.error-text {
+		color: #ff4d4f;
+		margin-right: 10rpx;
+	}
+	
+	.retry-btn {
+		padding: 5rpx 15rpx;
+		background-color: #f0f0f0;
+		border-radius: 10rpx;
+	}
+	
+	.retry-btn text {
+		color: #1E90FF;
+		font-size: 22rpx;
+	}
+	
+	.message-item.streaming .message-content {
+		position: relative;
+	}
+	
+	.message-item.streaming .message-content::after {
+		content: "|";
+		display: inline-block;
+		color: #1E90FF;
+		animation: blink 1s step-end infinite;
+		margin-left: 2rpx;
+		font-weight: bold;
+	}
+	
+	@keyframes blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0; }
+	}
+	
+	/* 功能区域 - 调整位置到消息区域和输入区域之间 */
+	.function-section {
+		width: 100%;
+		padding: 15rpx;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		box-sizing: border-box;
+	}
+	
+	.function-list {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+	}
+	
+	.function-item {
+		padding: 15rpx 30rpx;
+		border-radius: 30rpx;
+		background-color: #f0f0f0;
+		transition: all 0.3s;
+	}
+	
+	.function-item.active {
+		background-color: #1E90FF;
+	}
+	
+	.function-item-text {
+		font-size: 28rpx;
+		color: #333;
+	}
+	
+	.function-item.active .function-item-text {
+		color: #ffffff;
+	}
+	
+	/* 输入区域 */
+	.input-section {
+		width: 100%;
+		height: 100rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 10rpx;
+		box-sizing: border-box;
+	}
+	
+	.message-input {
+		flex: 1;
+		height: 80rpx;
+		background-color: #ffffff;
+		border: 2rpx solid #ddd;
+		border-radius: 40rpx;
+		padding: 0 30rpx;
+		margin-right: 20rpx;
+		font-size: 28rpx;
+		box-sizing: border-box;
+	}
+	
+	.send-button {
+		width: 140rpx;
+		height: 80rpx;
+		background-color: #1E90FF;
+		color: #fff;
+		border-radius: 40rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: none;
+		padding: 0;
+		box-sizing: border-box;
+		transition: all 0.3s; /* 添加过渡效果 */
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1); /* 添加阴影 */
+	}
+	
+	.send-button:disabled {
+		background-color: #f0f0f0; /* 更改为浅灰色背景，与功能按钮一致 */
+		color: #999; /* 更暗的文字颜色 */
+		border: 2rpx solid #ddd; /* 添加边框 */
+		box-shadow: none; /* 禁用状态不显示阴影 */
+	}
+	
+	.send-button text {
+		font-size: 28rpx;
+	}
+	
+	/* 加载遮罩 */
+	.loading-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 999;
+	}
+	
+	.loading-content {
+		background-color: #ffffff;
+		padding: 30rpx 60rpx;
+		border-radius: 20rpx;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+	}
+	
+	.loading-content text {
+		font-size: 28rpx;
+		color: #333;
+	}
 </style>

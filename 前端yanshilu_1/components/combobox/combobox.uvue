@@ -2,14 +2,16 @@
     <!-- 自定义下拉选择框 start-->
     <view class="selected-all" @click.stop>
         <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
-            <!-- 纯下拉选择模式 -->
-            <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'dropdown-placeholder' : 'dropdown-content']">{{displayContent}}</text>
-            
-            <!-- 搜索筛选模式 -->
-            <view v-else class="search-wrapper">
+            <!-- 统一的内容容器 -->
+            <view class="input-content-wrapper">
+                <!-- 纯下拉选择模式 -->
+                <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'input-placeholder' : 'input-text']">{{displayContent}}</text>
+                
+                <!-- 搜索筛选模式 -->
                 <input 
+                    v-else
                     type="text" 
-                    class="search-input" 
+                    class="input-text" 
                     v-model="searchKeyword" 
                     :placeholder="searchPlaceholder" 
                     @input="onSearchInput" 
@@ -311,52 +313,62 @@
         transform: rotate(180deg);
     }
 
-    .dropdown-content {
-        color: black;
-        font-size: 28rpx;
-        padding-left: 10rpx;
-        padding-top: 5rpx;
-        padding-bottom: 5rpx;
-        flex-grow: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    /* 统一的内容容器 */
+    .input-content-wrapper {
+        flex: 1;
+        height: 60rpx;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
     }
     
-    .dropdown-placeholder {
-        color: #999;
+    /* 统一的文本样式 */
+    .input-text {
+        flex: 1;
         font-size: 28rpx;
-        padding-left: 10rpx;
-        padding-top: 5rpx;
-        padding-bottom: 5rpx;
-        flex-grow: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        color: #333;
+        height: 50rpx;
+        line-height: 50rpx;
+        padding-left: 20rpx;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .input-placeholder {
+        flex: 1;
+        font-size: 28rpx;
+        color: #999;
+        height: 50rpx;
+        line-height: 50rpx;
+        padding-left: 20rpx;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .drop-down-box-selected {
         display: flex;
         flex-direction: row;
         align-items: center;
-        min-height: 60rpx;
+        height: 60rpx;
         width: 100%;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
-        padding: 0 5rpx;
-        border-radius: 10rpx; /* 添加圆角 */
+        padding: 0 10rpx;
+        border-radius: 10rpx;
     }
 
     .drop-down-box {
         display: flex;
         flex-direction: row;
         align-items: center;
-        min-height: 60rpx;
+        height: 60rpx;
         width: 100%;
         border: 2rpx solid gray;
-        border-radius: 10rpx; /* 添加圆角 */
+        border-radius: 10rpx;
         box-sizing: border-box;
-        padding: 0 5rpx;
+        padding: 0 10rpx;
     }
 
     .selected-all {
@@ -366,31 +378,16 @@
         width: 100%;
     }
     
-    /* 搜索模式相关样式 */
+    /* 箭头容器 */
     .arrow-container {
         display: flex;
         align-items: center;
         justify-content: center;
         margin-left: 5rpx;
-        margin-right: 5rpx;
+        width: 30rpx;
+        height: 60rpx;
         flex-shrink: 0;
-        min-width: 30rpx;
         z-index: 2;
-    }
-    
-    .search-wrapper {
-        flex: 1;
-        display: flex;
-        align-items: center;
-    }
-    
-    .search-input {
-        flex: 1;
-        padding-left: 10rpx;
-        padding-right: 15rpx;
-        height: 50rpx;
-        font-size: 28rpx;
-        color: black;
     }
     
     .empty-result {

@@ -183,7 +183,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     a: $props.mode === "select"
   }, $props.mode === "select" ? {
     b: common_vendor.t($data.displayContent),
-    c: common_vendor.n($props.choiceIndex === -1 ? "dropdown-placeholder" : "dropdown-content")
+    c: common_vendor.n($props.choiceIndex === -1 ? "input-placeholder" : "input-text")
   } : {
     d: $props.searchPlaceholder,
     e: common_vendor.o([($event) => $data.searchKeyword = $event.detail.value, (...args) => $options.onSearchInput && $options.onSearchInput(...args)]),
