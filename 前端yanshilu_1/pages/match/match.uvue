@@ -78,7 +78,7 @@
 </template>
 
 <script>
-	import choiceSelected from '../../components/combobox/combobox.uvue'
+	import choiceSelected from '../../components/combobox/combobox'
 	import { Navigator } from '@/router/Router.js'
 	
 	export default {

@@ -118,6 +118,11 @@
         min-width: 30rpx;
         z-index: 2;
 }
+.search-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+}
 .search-input {
         flex: 1;
         padding-left: 10rpx;

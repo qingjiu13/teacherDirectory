@@ -6,15 +6,15 @@
             <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'dropdown-placeholder' : 'dropdown-content']">{{displayContent}}</text>
             
             <!-- 搜索筛选模式 -->
-            <input 
-                v-else
-                type="text" 
-                class="search-input" 
-                v-model="searchKeyword" 
-                :placeholder="searchPlaceholder" 
-                @input="onSearchInput" 
-                @focus="onSearchFocus"
-                @click.stop/>
+            <view v-else class="search-wrapper">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    v-model="searchKeyword" 
+                    :placeholder="searchPlaceholder" 
+                    @input="onSearchInput" 
+                    @focus="onInputFocus"/>
+            </view>
             
             <!-- 统一的箭头图标 -->
             <view class="arrow-container">
@@ -55,7 +55,8 @@
                 displayContent: this.defaultText, // 使用传入的默认文本
                 searchKeyword: '', // 搜索关键词
                 searchTimer: null, // 防抖定时器
-                filteredList: [] // 过滤后的列表
+                filteredList: [], // 过滤后的列表
+                isFocused: false // 是否处于聚焦状态
             };
         },
         props: {
@@ -229,10 +230,14 @@
             },
             
             /**
-             * @description 处理搜索框聚焦事件
+             * @description 处理输入框聚焦事件
              * @param {Event} event - 聚焦事件对象
              */
-            onSearchFocus(event) {
+            onInputFocus(event) {
+                this.isFocused = true;
+                // 如果下拉框未显示，阻止下拉框被关闭
+                event.stopPropagation();
+                
                 // 如果下拉框未显示，则显示
                 if (!this.isShowChoice) {
                     this.btnShowHideClick(event);
@@ -371,6 +376,12 @@
         flex-shrink: 0;
         min-width: 30rpx;
         z-index: 2;
+    }
+    
+    .search-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
     }
     
     .search-input {
