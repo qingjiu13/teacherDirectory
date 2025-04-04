@@ -3,38 +3,43 @@
     /* end */
 .dialog-title-selected {
         color: white;
-        font-size: 30rpx;
+        font-size: 28rpx;
         padding-left: 20rpx;
-        padding-top: 6rpx;
-        padding-bottom: 6rpx;
+        padding-top: 8rpx;
+        padding-bottom: 8rpx;
         padding-right: 15rpx;
         background-color: #55ffff;
 }
 .dialog-title {
         color: black;
-        font-size: 30rpx;
+        font-size: 28rpx;
         padding-left: 20rpx;
-        padding-top: 6rpx;
-        padding-bottom: 6rpx;
+        padding-top: 8rpx;
+        padding-bottom: 8rpx;
         padding-right: 15rpx;
         background-color: white;
+}
+.dialog-scroll {
+        width: 100%;
+        max-height: 300rpx; /* 限制滚动区域的最大高度 */
+        -webkit-overflow-scrolling: touch; /* 提升iOS滚动体验 */
 }
 .dialog-view {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
         position: fixed;
         z-index: 9999;
         background-color: #ffffff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        max-height: 60vh;
-        overflow-y: auto;
+        max-height: 400rpx; /* 限制整个下拉框的最大高度 */
         transform-origin: top center;
         opacity: 0;
         transform: scaleY(0);
         transition: all 0.2s ease;
+        overflow: hidden; /* 确保内容不会溢出 */
+        border-radius: 0 0 8rpx 8rpx; /* 添加底部圆角 */
 }
 .dialog-view.active {
         opacity: 1;

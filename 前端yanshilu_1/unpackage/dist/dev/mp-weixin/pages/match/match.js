@@ -7,7 +7,7 @@ const _sfc_main = common_vendor.defineComponent({
     choiceSelected
   },
   onLoad() {
-    common_vendor.index.__f__("log", "at pages/match/match.uvue:116", "匹配页面已加载");
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:128", "匹配页面已加载");
   },
   data() {
     return {
@@ -17,7 +17,15 @@ const _sfc_main = common_vendor.defineComponent({
         new UTSJSONObject({ choiceItemId: "qhdx", choiceItemContent: "清华大学" }),
         new UTSJSONObject({ choiceItemId: "fddx", choiceItemContent: "复旦大学" }),
         new UTSJSONObject({ choiceItemId: "zjdx", choiceItemContent: "浙江大学" }),
-        new UTSJSONObject({ choiceItemId: "njdx", choiceItemContent: "南京大学" })
+        new UTSJSONObject({ choiceItemId: "njdx", choiceItemContent: "南京大学" }),
+        new UTSJSONObject({ choiceItemId: "scdx", choiceItemContent: "四川大学" }),
+        new UTSJSONObject({ choiceItemId: "whdx", choiceItemContent: "武汉大学" }),
+        new UTSJSONObject({ choiceItemId: "zsdx", choiceItemContent: "中山大学" }),
+        new UTSJSONObject({ choiceItemId: "xjtu", choiceItemContent: "西安交通大学" }),
+        new UTSJSONObject({ choiceItemId: "sysu", choiceItemContent: "中山大学" }),
+        new UTSJSONObject({ choiceItemId: "hust", choiceItemContent: "华中科技大学" }),
+        new UTSJSONObject({ choiceItemId: "hit", choiceItemContent: "哈尔滨工业大学" }),
+        new UTSJSONObject({ choiceItemId: "sjtu", choiceItemContent: "上海交通大学" })
       ],
       majorList: [
         new UTSJSONObject({ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" }),
@@ -25,7 +33,15 @@ const _sfc_main = common_vendor.defineComponent({
         new UTSJSONObject({ choiceItemId: "sx", choiceItemContent: "数学" }),
         new UTSJSONObject({ choiceItemId: "wl", choiceItemContent: "物理" }),
         new UTSJSONObject({ choiceItemId: "hx", choiceItemContent: "化学" }),
-        new UTSJSONObject({ choiceItemId: "sw", choiceItemContent: "生物" })
+        new UTSJSONObject({ choiceItemId: "sw", choiceItemContent: "生物" }),
+        new UTSJSONObject({ choiceItemId: "jdxy", choiceItemContent: "机电工程" }),
+        new UTSJSONObject({ choiceItemId: "dqxy", choiceItemContent: "电气工程" }),
+        new UTSJSONObject({ choiceItemId: "jzxy", choiceItemContent: "建筑学" }),
+        new UTSJSONObject({ choiceItemId: "lyxy", choiceItemContent: "临床医学" }),
+        new UTSJSONObject({ choiceItemId: "yyxy", choiceItemContent: "药学" }),
+        new UTSJSONObject({ choiceItemId: "glxy", choiceItemContent: "管理学" }),
+        new UTSJSONObject({ choiceItemId: "jjxy", choiceItemContent: "经济学" }),
+        new UTSJSONObject({ choiceItemId: "flxy", choiceItemContent: "法学" })
       ],
       sortList: [
         new UTSJSONObject({ choiceItemId: "zh", choiceItemContent: "综合排序" })
@@ -33,9 +49,9 @@ const _sfc_main = common_vendor.defineComponent({
       selectedSchool: "",
       selectedMajor: "",
       selectedSort: "综合排序",
-      schoolIndex: 0,
-      majorIndex: 0,
-      sortIndex: 0,
+      schoolIndex: -1,
+      majorIndex: -1,
+      sortIndex: -1,
       // 加载状态
       isLoading: false,
       // 老师数据
@@ -121,11 +137,11 @@ const _sfc_main = common_vendor.defineComponent({
     // 下拉框选择处理
     onSchoolClick(position = null) {
       this.schoolIndex = position;
-      this.selectedSchool = position > 0 ? this.schoolList[position].choiceItemContent : "";
+      this.selectedSchool = this.schoolList[position].choiceItemContent;
     },
     onMajorClick(position = null) {
       this.majorIndex = position;
-      this.selectedMajor = position > 0 ? this.majorList[position].choiceItemContent : "";
+      this.selectedMajor = this.majorList[position].choiceItemContent;
     },
     onSortClick(position = null) {
       this.sortIndex = position;
@@ -174,19 +190,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.o($options.onSchoolClick),
     b: common_vendor.p({
-      choiceContent: $data.selectedSchool || "学校",
+      defaultText: "学校",
       choiceIndex: $data.schoolIndex,
       choiceList: $data.schoolList
     }),
     c: common_vendor.o($options.onMajorClick),
     d: common_vendor.p({
-      choiceContent: $data.selectedMajor || "专业",
+      defaultText: "专业",
       choiceIndex: $data.majorIndex,
       choiceList: $data.majorList
     }),
     e: common_vendor.o($options.onSortClick),
     f: common_vendor.p({
-      choiceContent: $data.selectedSort || "排序筛选",
+      defaultText: "排序筛选",
       choiceIndex: $data.sortIndex,
       choiceList: $data.sortList
     }),

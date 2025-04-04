@@ -3,18 +3,30 @@
 		<!-- 筛选区域 -->
 		<view class="filter-section">
 			<view class="choice-wrapper">
-				<choice-selected :choiceContent="selectedSchool || '学校'" :choiceIndex="schoolIndex" :choiceList="schoolList"
-					@onChoiceClick="onSchoolClick"></choice-selected>
+				<choice-selected 
+					:defaultText="'学校'" 
+					:choiceIndex="schoolIndex" 
+					:choiceList="schoolList"
+					@onChoiceClick="onSchoolClick">
+				</choice-selected>
 			</view>
 			
 			<view class="choice-wrapper">
-				<choice-selected :choiceContent="selectedMajor || '专业'" :choiceIndex="majorIndex" :choiceList="majorList"
-					@onChoiceClick="onMajorClick"></choice-selected>
+				<choice-selected 
+					:defaultText="'专业'" 
+					:choiceIndex="majorIndex" 
+					:choiceList="majorList"
+					@onChoiceClick="onMajorClick">
+				</choice-selected>
 			</view>
 			
 			<view class="choice-wrapper">
-				<choice-selected :choiceContent="selectedSort || '排序筛选'" :choiceIndex="sortIndex" :choiceList="sortList"
-					@onChoiceClick="onSortClick"></choice-selected>
+				<choice-selected 
+					:defaultText="'排序筛选'" 
+					:choiceIndex="sortIndex" 
+					:choiceList="sortList"
+					@onChoiceClick="onSortClick">
+				</choice-selected>
 			</view>
 		</view>
 		
@@ -123,7 +135,15 @@
 					{ choiceItemId: "qhdx", choiceItemContent: "清华大学" },
 					{ choiceItemId: "fddx", choiceItemContent: "复旦大学" },
 					{ choiceItemId: "zjdx", choiceItemContent: "浙江大学" },
-					{ choiceItemId: "njdx", choiceItemContent: "南京大学" }
+					{ choiceItemId: "njdx", choiceItemContent: "南京大学" },
+					{ choiceItemId: "scdx", choiceItemContent: "四川大学" },
+					{ choiceItemId: "whdx", choiceItemContent: "武汉大学" },
+					{ choiceItemId: "zsdx", choiceItemContent: "中山大学" },
+					{ choiceItemId: "xjtu", choiceItemContent: "西安交通大学" },
+					{ choiceItemId: "sysu", choiceItemContent: "中山大学" },
+					{ choiceItemId: "hust", choiceItemContent: "华中科技大学" },
+					{ choiceItemId: "hit", choiceItemContent: "哈尔滨工业大学" },
+					{ choiceItemId: "sjtu", choiceItemContent: "上海交通大学" }
 				],
 				majorList: [
 					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
@@ -131,7 +151,15 @@
 					{ choiceItemId: "sx", choiceItemContent: "数学" },
 					{ choiceItemId: "wl", choiceItemContent: "物理" },
 					{ choiceItemId: "hx", choiceItemContent: "化学" },
-					{ choiceItemId: "sw", choiceItemContent: "生物" }
+					{ choiceItemId: "sw", choiceItemContent: "生物" },
+					{ choiceItemId: "jdxy", choiceItemContent: "机电工程" },
+					{ choiceItemId: "dqxy", choiceItemContent: "电气工程" },
+					{ choiceItemId: "jzxy", choiceItemContent: "建筑学" },
+					{ choiceItemId: "lyxy", choiceItemContent: "临床医学" },
+					{ choiceItemId: "yyxy", choiceItemContent: "药学" },
+					{ choiceItemId: "glxy", choiceItemContent: "管理学" },
+					{ choiceItemId: "jjxy", choiceItemContent: "经济学" },
+					{ choiceItemId: "flxy", choiceItemContent: "法学" }
 				],
 				sortList: [
 					{ choiceItemId: "zh", choiceItemContent: "综合排序" }
@@ -139,9 +167,9 @@
 				selectedSchool: '',
 				selectedMajor: '',
 				selectedSort: '综合排序',
-				schoolIndex: 0,
-				majorIndex: 0,
-				sortIndex: 0,
+				schoolIndex: -1,
+				majorIndex: -1,
+				sortIndex: -1,
 
 				// 加载状态
 				isLoading: false,
@@ -230,11 +258,11 @@
 			// 下拉框选择处理
 			onSchoolClick(position) {
 				this.schoolIndex = position;
-				this.selectedSchool = position > 0 ? this.schoolList[position].choiceItemContent : '';
+				this.selectedSchool = this.schoolList[position].choiceItemContent;
 			},
 			onMajorClick(position) {
 				this.majorIndex = position;
-				this.selectedMajor = position > 0 ? this.majorList[position].choiceItemContent : '';
+				this.selectedMajor = this.majorList[position].choiceItemContent;
 			},
 			onSortClick(position) {
 				this.sortIndex = position;

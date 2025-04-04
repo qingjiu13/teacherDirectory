@@ -8,13 +8,41 @@ const _sfc_main = common_vendor.defineComponent({
       isShowChoice: false,
       dropdownTop: 0,
       dropdownLeft: 0,
-      dropdownWidth: 0
+      dropdownWidth: 0,
+      displayContent: this.defaultText
+      // 使用传入的默认文本
     };
   },
   props: {
-    choiceIndex: {},
-    choiceList: {},
-    choiceContent: {}
+    choiceIndex: {
+      type: Number,
+      default: -1
+      // 默认-1表示未选择
+    },
+    choiceList: {
+      type: Array,
+      default: () => {
+        return [];
+      }
+    },
+    defaultText: {
+      type: String,
+      default: "请选择"
+    }
+  },
+  watch: {
+    choiceIndex(newVal = null) {
+      if (newVal >= 0 && newVal < this.choiceList.length) {
+        this.displayContent = this.choiceList[newVal].choiceItemContent;
+      } else {
+        this.displayContent = this.defaultText;
+      }
+    },
+    defaultText(newVal = null) {
+      if (this.choiceIndex < 0 || this.choiceIndex >= this.choiceList.length) {
+        this.displayContent = newVal;
+      }
+    }
   },
   methods: {
     // 选择
@@ -44,7 +72,7 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.t($props.choiceContent),
+    a: common_vendor.t($data.displayContent),
     b: $data.isShowChoice ? 1 : "",
     c: common_assets._imports_0,
     d: common_vendor.sei("r0-83613ed8", "view", "dropdownTrigger"),
@@ -55,7 +83,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     h: common_vendor.f($props.choiceList, (item, index, i0) => {
       return {
         a: common_vendor.t(item.choiceItemContent),
-        b: common_vendor.n($props.choiceIndex == index ? "dialog-title-selected" : "dialog-title"),
+        b: $props.choiceIndex == index ? 1 : "",
         c: item.choiceItemId,
         d: common_vendor.o(($event) => $options.btnChoiceClick(index), item.choiceItemId)
       };
