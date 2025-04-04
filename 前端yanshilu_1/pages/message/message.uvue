@@ -5,7 +5,8 @@
       <!-- 消息列表内容将在这里 -->
     </view>
     
-    <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
+    <!-- 添加自定义底部导航栏 -->
+    <TabBar pageName="message" />
   </view>
 </template>
 
@@ -13,7 +14,12 @@
 /**
  * @description 消息页面
  */
+import TabBar from '../../components/tab-bar/tab-bar.uvue'
+
 export default {
+  components: {
+    TabBar
+  },
   data() {
     return {
       // 消息数据
@@ -45,7 +51,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-bottom: 50px; /* 为系统tabBar留出空间 */
+  padding-bottom: 55px; /* 为自定义tabBar留出空间 */
 }
 .title {
   font-size: 36rpx;

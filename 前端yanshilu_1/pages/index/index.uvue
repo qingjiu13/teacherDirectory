@@ -11,20 +11,24 @@
         <view class="button-text">精准匹配</view>
       </view>
     </view>
-    <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
     
     <!-- 引入可拖动卡通图标组件 -->
     <AICartoon />
+    
+    <!-- 添加自定义底部导航栏 -->
+    <TabBar pageName="index" />
   </view>
 </template>
 
 <script>
 import { Navigator } from '@/router/Router.js'
-import AICartoon from '../../components/AI-cartoon/AI-cartoon.uvue'
+import AICartoon from '@/components/AI-cartoon/AI-cartoon.uvue'
+import TabBar from '@/components/tab-bar/tab-bar.uvue'
 
 export default {
   components: {
-    AICartoon
+    AICartoon,
+    TabBar
   },
   methods: {
     /**

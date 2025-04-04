@@ -226,5 +226,8 @@ const Navigator = {
     this.navigateTo(MineRoutes.MINE_COMMON);
   }
 };
+exports.IndexRoutes = IndexRoutes;
+exports.MessageRoutes = MessageRoutes;
+exports.MineRoutes = MineRoutes;
 exports.Navigator = Navigator;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/router/Router.js.map

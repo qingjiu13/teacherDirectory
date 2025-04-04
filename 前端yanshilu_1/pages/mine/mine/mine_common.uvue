@@ -12,7 +12,8 @@
       <include src="./student_mine.uvue"></include>
     </view>
     
-    <!-- 底部导航栏已通过全局tabBar配置，不需要手动引入 -->
+    <!-- 添加自定义底部导航栏 -->
+    <TabBar pageName="mine" />
   </view>
 </template>
 
@@ -21,8 +22,12 @@
  * @description 我的页面（通用）
  */
 import { Navigator } from '@/router/Router.js';
+import TabBar from '../../../components/tab-bar/tab-bar.uvue';
 
 export default {
+  components: {
+    TabBar
+  },
   data() {
     return {
       userRole: '', // 从全局状态或API获取
@@ -51,7 +56,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding-bottom: 50px; /* 为系统tabBar留出空间 */
+  padding-bottom: 55px; /* 为自定义tabBar留出空间 */
 }
 header {
   padding: 20rpx;
