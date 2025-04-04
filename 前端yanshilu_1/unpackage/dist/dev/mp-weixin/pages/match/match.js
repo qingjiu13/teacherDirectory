@@ -205,7 +205,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       choiceIndex: $data.schoolIndex,
       choiceList: $data.schoolList,
       mode: "search",
-      searchPlaceholder: "搜索学校名称"
+      searchPlaceholder: "学校"
     }),
     d: common_vendor.o($options.onMajorClick),
     e: common_vendor.p({

@@ -67,6 +67,17 @@
         overflow: hidden;
         text-overflow: ellipsis;
 }
+.dropdown-placeholder {
+        color: #999;
+        font-size: 28rpx;
+        padding-left: 10rpx;
+        padding-top: 5rpx;
+        padding-bottom: 5rpx;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+}
 .drop-down-box-selected {
         display: flex;
         flex-direction: row;

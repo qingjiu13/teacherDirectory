@@ -10,7 +10,7 @@
 						:choiceIndex="schoolIndex" 
 						:choiceList="schoolList"
 						mode="search"
-						:searchPlaceholder="'搜索学校名称'"
+						:searchPlaceholder="'学校'"
 						@onChoiceClick="onSchoolClick"
 						@search-input="onSchoolSearch">
 					</choice-selected>

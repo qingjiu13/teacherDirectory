@@ -3,7 +3,7 @@
     <view class="selected-all" @click.stop>
         <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
             <!-- 纯下拉选择模式 -->
-            <text v-if="mode === 'select'" class="dropdown-content">{{displayContent}}</text>
+            <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'dropdown-placeholder' : 'dropdown-content']">{{displayContent}}</text>
             
             <!-- 搜索筛选模式 -->
             <input 
@@ -308,6 +308,18 @@
 
     .dropdown-content {
         color: black;
+        font-size: 28rpx;
+        padding-left: 10rpx;
+        padding-top: 5rpx;
+        padding-bottom: 5rpx;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .dropdown-placeholder {
+        color: #999;
         font-size: 28rpx;
         padding-left: 10rpx;
         padding-top: 5rpx;

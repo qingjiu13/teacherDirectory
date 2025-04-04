@@ -179,25 +179,26 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $props.mode === "select"
   }, $props.mode === "select" ? {
-    b: common_vendor.t($data.displayContent)
+    b: common_vendor.t($data.displayContent),
+    c: common_vendor.n($props.choiceIndex === -1 ? "dropdown-placeholder" : "dropdown-content")
   } : {
-    c: $props.searchPlaceholder,
-    d: common_vendor.o([($event) => $data.searchKeyword = $event.detail.value, (...args) => $options.onSearchInput && $options.onSearchInput(...args)]),
-    e: common_vendor.o((...args) => $options.onSearchFocus && $options.onSearchFocus(...args)),
-    f: common_vendor.o(() => {
+    d: $props.searchPlaceholder,
+    e: common_vendor.o([($event) => $data.searchKeyword = $event.detail.value, (...args) => $options.onSearchInput && $options.onSearchInput(...args)]),
+    f: common_vendor.o((...args) => $options.onSearchFocus && $options.onSearchFocus(...args)),
+    g: common_vendor.o(() => {
     }),
-    g: $data.searchKeyword
+    h: $data.searchKeyword
   }, {
-    h: $data.isShowChoice ? 1 : "",
-    i: common_assets._imports_0,
-    j: common_vendor.sei("r0-83613ed8", "view", "dropdownTrigger"),
-    k: common_vendor.n($data.isShowChoice ? "drop-down-box-selected" : "drop-down-box"),
-    l: common_vendor.o((...args) => $options.btnShowHideClick && $options.btnShowHideClick(...args)),
-    m: $data.isShowChoice
+    i: $data.isShowChoice ? 1 : "",
+    j: common_assets._imports_0,
+    k: common_vendor.sei("r0-83613ed8", "view", "dropdownTrigger"),
+    l: common_vendor.n($data.isShowChoice ? "drop-down-box-selected" : "drop-down-box"),
+    m: common_vendor.o((...args) => $options.btnShowHideClick && $options.btnShowHideClick(...args)),
+    n: $data.isShowChoice
   }, $data.isShowChoice ? common_vendor.e({
-    n: $options.filteredChoiceList.length > 0
+    o: $options.filteredChoiceList.length > 0
   }, $options.filteredChoiceList.length > 0 ? {
-    o: common_vendor.f($options.filteredChoiceList, (item, index, i0) => {
+    p: common_vendor.f($options.filteredChoiceList, (item, index, i0) => {
       return {
         a: common_vendor.t(item.choiceItemContent),
         b: $props.choiceIndex == index ? 1 : "",
@@ -206,15 +207,15 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    p: $data.isShowChoice ? 1 : "",
-    q: $data.dropdownTop + "px",
-    r: $data.dropdownLeft + "px",
-    s: $data.dropdownWidth + "px",
-    t: common_vendor.o(() => {
+    q: $data.isShowChoice ? 1 : "",
+    r: $data.dropdownTop + "px",
+    s: $data.dropdownLeft + "px",
+    t: $data.dropdownWidth + "px",
+    v: common_vendor.o(() => {
     })
   }) : {}, {
-    v: common_vendor.sei(_ctx.virtualHostId, "view"),
-    w: common_vendor.o(() => {
+    w: common_vendor.sei(_ctx.virtualHostId, "view"),
+    x: common_vendor.o(() => {
     })
   });
 }
