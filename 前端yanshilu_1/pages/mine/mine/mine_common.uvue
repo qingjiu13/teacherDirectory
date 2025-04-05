@@ -30,7 +30,7 @@
         <text class="menu-text">我的服务</text>
       </view>
       
-      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER_COMMON)">
+      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER)">
         <view class="icon-circle success">
           <text class="icon-text">✓</text>
         </view>
@@ -75,7 +75,7 @@
     
     <!-- 学生功能菜单 -->
     <view v-else class="menu-list">
-      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER_COMMON)">
+      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER)">
         <view class="icon-circle success">
           <text class="icon-text">✓</text>
         </view>

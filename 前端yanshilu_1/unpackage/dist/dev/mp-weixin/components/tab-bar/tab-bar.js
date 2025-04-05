@@ -16,7 +16,7 @@ const _sfc_main = common_vendor.defineComponent({
       tabRoutes: new UTSJSONObject({
         "index": router_Router.IndexRoutes.INDEX,
         "message": router_Router.MessageRoutes.MESSAGE,
-        "mine": router_Router.MineRoutes.MINE_COMMON
+        "mine": router_Router.MineRoutes.MINE
       }),
       /**
        * @description 页面图标路径映射
@@ -73,7 +73,7 @@ const _sfc_main = common_vendor.defineComponent({
               router_Router.Navigator.reLaunch(router_Router.MessageRoutes.MESSAGE);
               break;
             case "mine":
-              router_Router.Navigator.reLaunch(router_Router.MineRoutes.MINE_COMMON);
+              router_Router.Navigator.reLaunch(router_Router.MineRoutes.MINE);
               break;
             default:
               common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:110", "未知的页面类型:", page);
@@ -88,7 +88,7 @@ const _sfc_main = common_vendor.defineComponent({
             router_Router.Navigator.redirectTo(router_Router.MessageRoutes.MESSAGE);
             break;
           case "mine":
-            router_Router.Navigator.redirectTo(router_Router.MineRoutes.MINE_COMMON);
+            router_Router.Navigator.redirectTo(router_Router.MineRoutes.MINE);
             break;
           default:
             common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.uvue:128", "未知的页面类型:", page);

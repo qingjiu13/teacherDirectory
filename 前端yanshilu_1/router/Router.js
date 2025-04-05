@@ -58,8 +58,7 @@ export const MineRoutes = {
 	COURSE_DETAIL: '/pages/mine/course/course_detail',
 	
 	// 订单相关
-	ORDER: '/pages/mine/order',
-	ORDER_COMMON:'/pages/mine/order/order_common',
+	ORDER: '/pages/mine/order/order_common',
 	APPRAISE: '/pages/mine/order/appraise/appraise',
 	
 	// 其他设置
@@ -251,7 +250,7 @@ export const Navigator = {
 	 * 根据存储的用户角色自动显示对应内容
 	 */
 	toOrder() {
-		this.navigateTo(MineRoutes.ORDER_COMMON);
+		this.navigateTo(MineRoutes.ORDER);
 	},
 	
 	/**

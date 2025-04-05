@@ -61,15 +61,9 @@
 			}
 		},
 		{
-			"path": "pages/mine/mine/student_mine",
+			"path": "pages/mine/mine/mine_common",
 			"style": {
-				"navigationBarTitleText": "个人中心"
-			}
-		},
-		{
-			"path": "pages/mine/mine/teacher_mine",
-			"style": {
-				"navigationBarTitleText": "导师中心"
+				"navigationBarTitleText": "个人中心（共用）"
 			}
 		},
 		{
@@ -93,19 +87,13 @@
 		{
 			"path": "pages/mine/order",
 			"style": {
-				"navigationBarTitleText": "订单中心"
-			}
-		},
-		{
-			"path": "pages/mine/order/student_order",
-			"style": {
 				"navigationBarTitleText": "我的订单"
 			}
 		},
 		{
-			"path": "pages/mine/order/teacher_order",
+			"path": "pages/mine/order/order_common",
 			"style": {
-				"navigationBarTitleText": "导师订单"
+				"navigationBarTitleText": "我的订单（共用）"
 			}
 		},
 		{
@@ -136,18 +124,6 @@
 			"path": "pages/mine/wallet",
 			"style": {
 				"navigationBarTitleText": "我的钱包"
-			}
-		},
-		{
-			"path": "pages/mine/mine/mine_common",
-			"style": {
-				"navigationBarTitleText": "我的页面中心（共用）"
-			}
-		},
-				{
-			"path": "pages/mine/order/order_common",
-			"style": {
-				"navigationBarTitleText": "我的订单（共用）"
 			}
 		}
 	],

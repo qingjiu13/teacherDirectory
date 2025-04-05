@@ -40,7 +40,13 @@ const api = {
               name: username,
               avatar: "https://example.com/avatar.png",
               tags: ["标签1", "标签2"],
-              balance: role === "teacher" ? 1e3 : null
+              balance: role === "teacher" ? 1e3 : null,
+              bio: role === "teacher" ? "资深导师，专注于学术指导" : "热爱学习的学生",
+              contact: {
+                phone: "138****1234",
+                email: `${username}@example.com`,
+                wechat: username
+              }
             },
             role
           }
@@ -64,18 +70,19 @@ const api = {
             avatar: "https://example.com/avatar.png",
             tags: ["标签1", "标签2", "标签3"],
             balance: role === "teacher" ? 1500 : null,
-            orders: {
-              student: {
-                pendingPayment: role === "student" ? [{ id: "s1", title: "待付款订单1" }] : [],
-                pendingService: role === "student" ? [{ id: "s2", title: "待服务订单1" }] : [],
-                completed: role === "student" ? [{ id: "s3", title: "已完成订单1" }] : [],
-                cancelled: role === "student" ? [{ id: "s4", title: "已取消订单1" }] : []
-              },
-              teacher: {
-                pendingService: role === "teacher" ? [{ id: "t1", title: "待服务订单1" }] : [],
-                completed: role === "teacher" ? [{ id: "t2", title: "已完成订单1" }] : [],
-                cancelled: role === "teacher" ? [{ id: "t3", title: "已取消订单1" }] : []
-              }
+            bio: role === "teacher" ? "资深导师，专注于学术指导" : "热爱学习的学生",
+            contact: {
+              phone: "138****1234",
+              email: `${role}@example.com`,
+              wechat: `${role}_user`
+            },
+            notifications: {
+              unread: 3,
+              messages: [
+                { id: "m1", type: "system", content: "系统通知", read: false, time: Date.now() - 36e5 },
+                { id: "m2", type: "chat", content: "新聊天消息", read: false, time: Date.now() - 72e5 },
+                { id: "m3", type: "order", content: "订单状态更新", read: false, time: Date.now() - 108e5 }
+              ]
             }
           }
         });
@@ -116,8 +123,29 @@ const storage = {
     common_vendor.index.setStorageSync("role", auth2.role);
     common_vendor.index.setStorageSync("userBaseInfo", {
       name: auth2.userInfo.name,
-      avatar: auth2.userInfo.avatar
+      avatar: auth2.userInfo.avatar,
+      tags: auth2.userInfo.tags || []
     });
+  },
+  /**
+   * @description 保存用户详细信息到本地存储
+   * @param {Object} userInfo - 用户详细信息
+   */
+  saveUserDetailInfo(userInfo) {
+    common_vendor.index.setStorageSync("userDetailInfo", JSON.stringify(userInfo));
+  },
+  /**
+   * @description 获取用户详细信息
+   * @returns {Object|null} 用户详细信息
+   */
+  getUserDetailInfo() {
+    const info = common_vendor.index.getStorageSync("userDetailInfo");
+    try {
+      return info ? JSON.parse(info) : null;
+    } catch (e) {
+      common_vendor.index.__f__("error", "at store/modules/auth.js:161", "解析用户详细信息失败:", e);
+      return null;
+    }
   },
   /**
    * @description 清除认证信息
@@ -129,6 +157,7 @@ const storage = {
     common_vendor.index.removeStorageSync("isLoggedIn");
     common_vendor.index.removeStorageSync("role");
     common_vendor.index.removeStorageSync("userBaseInfo");
+    common_vendor.index.removeStorageSync("userDetailInfo");
   },
   /**
    * @description 获取token
@@ -160,16 +189,31 @@ const state = {
     name: "",
     avatar: "",
     tags: [],
+    bio: "",
+    contact: {
+      phone: "",
+      email: "",
+      wechat: ""
+    },
     balance: null,
-    orders: {
-      student: { pendingPayment: [], pendingService: [], completed: [], cancelled: [] },
-      teacher: { pendingService: [], completed: [], cancelled: [] }
+    notifications: {
+      unread: 0,
+      messages: []
     }
   },
   token: storage.getToken(),
   refreshToken: storage.getRefreshToken(),
-  tokenExpireTime: storage.getTokenExpireTime()
+  tokenExpireTime: storage.getTokenExpireTime(),
+  permissions: {
+    canPublishCourse: false,
+    canWithdraw: false,
+    isVerified: false
+  }
 };
+const userDetailInfo = storage.getUserDetailInfo();
+if (userDetailInfo) {
+  state.userInfo = { ...state.userInfo, ...userDetailInfo };
+}
 const mutations = {
   /**
    * @description 设置登录状态
@@ -211,6 +255,24 @@ const mutations = {
    */
   SET_USER_INFO(state2, userInfo) {
     state2.userInfo = userInfo;
+    storage.saveUserDetailInfo(userInfo);
+  },
+  /**
+   * @description 更新用户部分信息
+   * @param {Object} state - Vuex状态
+   * @param {Object} partialInfo - 部分用户信息
+   */
+  UPDATE_USER_INFO(state2, partialInfo) {
+    state2.userInfo = { ...state2.userInfo, ...partialInfo };
+    storage.saveUserDetailInfo(state2.userInfo);
+  },
+  /**
+   * @description 设置用户权限
+   * @param {Object} state - Vuex状态
+   * @param {Object} permissions - 权限对象
+   */
+  SET_PERMISSIONS(state2, permissions) {
+    state2.permissions = { ...state2.permissions, ...permissions };
   },
   /**
    * @description 清除认证状态
@@ -225,11 +287,22 @@ const mutations = {
       name: "",
       avatar: "",
       tags: [],
+      bio: "",
+      contact: {
+        phone: "",
+        email: "",
+        wechat: ""
+      },
       balance: null,
-      orders: {
-        student: { pendingPayment: [], pendingService: [], completed: [], cancelled: [] },
-        teacher: { pendingService: [], completed: [], cancelled: [] }
+      notifications: {
+        unread: 0,
+        messages: []
       }
+    };
+    state2.permissions = {
+      canPublishCourse: false,
+      canWithdraw: false,
+      isVerified: false
     };
     storage.clearAuth();
   },
@@ -258,11 +331,17 @@ const actions = {
         commit("SET_ROLE", role);
         commit("SET_AUTH", { token, refreshToken, expiresIn, role, userInfo });
         commit("SET_USER_INFO", userInfo);
+        const permissions = {
+          canPublishCourse: role === "teacher",
+          canWithdraw: role === "teacher",
+          isVerified: role === "teacher"
+        };
+        commit("SET_PERMISSIONS", permissions);
         return { success: true, message: "登录成功" };
       }
       return { success: false, message: "登录失败" };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/auth.js:296", "登录失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/auth.js:380", "登录失败:", error);
       return { success: false, message: error.message || "登录失败" };
     }
   },
@@ -279,11 +358,17 @@ const actions = {
       const response = await api.getUserInfo(state2.token);
       if (response.success) {
         commit("SET_USER_INFO", response.data);
+        const permissions = {
+          canPublishCourse: state2.role === "teacher",
+          canWithdraw: state2.role === "teacher" && response.data.balance > 0,
+          isVerified: state2.role === "teacher"
+        };
+        commit("SET_PERMISSIONS", permissions);
         return { success: true, data: response.data };
       }
       return { success: false, message: "获取用户信息失败" };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/auth.js:320", "获取用户信息失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/auth.js:411", "获取用户信息失败:", error);
       return { success: false, message: error.message || "获取用户信息失败" };
     }
   },
@@ -312,7 +397,7 @@ const actions = {
       }
       return { success: false, message: "令牌刷新失败" };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/auth.js:354", "令牌刷新失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/auth.js:444", "令牌刷新失败:", error);
       commit("CLEAR_AUTH");
       return { success: false, message: error.message || "令牌刷新失败" };
     }
@@ -353,6 +438,16 @@ const actions = {
       commit("CLEAR_AUTH");
       return { success: false, message: "登录状态无效" };
     }
+  },
+  /**
+   * @description 更新用户信息
+   * @param {Object} context - Vuex上下文
+   * @param {Object} userInfo - 更新的用户信息
+   * @returns {Promise<Object>} 更新结果
+   */
+  async updateUserInfo({ commit, state: state2 }, userInfo) {
+    commit("UPDATE_USER_INFO", userInfo);
+    return { success: true, message: "用户信息更新成功" };
   }
 };
 const getters = {
@@ -399,47 +494,35 @@ const getters = {
    */
   userTags: (state2) => state2.userInfo.tags,
   /**
-   * @description 获取学生待付款订单
+   * @description 获取用户简介
    * @param {Object} state - Vuex状态
-   * @returns {Array} 待付款订单列表
+   * @returns {string} 用户简介
    */
-  studentPendingPaymentOrders: (state2) => state2.userInfo.orders.student.pendingPayment,
+  userBio: (state2) => state2.userInfo.bio,
   /**
-   * @description 获取学生待服务订单
+   * @description 获取用户联系信息
    * @param {Object} state - Vuex状态
-   * @returns {Array} 待服务订单列表
+   * @returns {Object} 用户联系信息
    */
-  studentPendingServiceOrders: (state2) => state2.userInfo.orders.student.pendingService,
+  userContact: (state2) => state2.userInfo.contact,
   /**
-   * @description 获取学生已完成订单
+   * @description 获取未读消息数
    * @param {Object} state - Vuex状态
-   * @returns {Array} 已完成订单列表
+   * @returns {number} 未读消息数
    */
-  studentCompletedOrders: (state2) => state2.userInfo.orders.student.completed,
+  unreadMessageCount: (state2) => state2.userInfo.notifications.unread,
   /**
-   * @description 获取学生已取消订单
+   * @description 获取通知消息
    * @param {Object} state - Vuex状态
-   * @returns {Array} 已取消订单列表
+   * @returns {Array} 通知消息列表
    */
-  studentCancelledOrders: (state2) => state2.userInfo.orders.student.cancelled,
+  notifications: (state2) => state2.userInfo.notifications.messages,
   /**
-   * @description 获取老师待服务订单
+   * @description 获取用户权限
    * @param {Object} state - Vuex状态
-   * @returns {Array} 待服务订单列表
+   * @returns {Object} 用户权限
    */
-  teacherPendingServiceOrders: (state2) => state2.userInfo.orders.teacher.pendingService,
-  /**
-   * @description 获取老师已完成订单
-   * @param {Object} state - Vuex状态
-   * @returns {Array} 已完成订单列表
-   */
-  teacherCompletedOrders: (state2) => state2.userInfo.orders.teacher.completed,
-  /**
-   * @description 获取老师已取消订单
-   * @param {Object} state - Vuex状态
-   * @returns {Array} 已取消订单列表
-   */
-  teacherCancelledOrders: (state2) => state2.userInfo.orders.teacher.cancelled
+  userPermissions: (state2) => state2.permissions
 };
 const jwtUtils = {
   /**
@@ -451,7 +534,7 @@ const jwtUtils = {
     try {
       return common_vendor.jwtDecode(token);
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/auth.js:516", "JWT解析失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/auth.js:601", "JWT解析失败:", error);
       return null;
     }
   },

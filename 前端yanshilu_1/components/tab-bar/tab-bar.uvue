@@ -38,7 +38,7 @@
 				tabRoutes: {
 					'index': IndexRoutes.INDEX,
 					'message': MessageRoutes.MESSAGE,
-					'mine': MineRoutes.MINE_COMMON
+					'mine': MineRoutes.MINE
 				},
 				/**
 				 * @description 页面图标路径映射
@@ -104,7 +104,7 @@
 								Navigator.reLaunch(MessageRoutes.MESSAGE);
 								break;
 							case 'mine':
-								Navigator.reLaunch(MineRoutes.MINE_COMMON);
+								Navigator.reLaunch(MineRoutes.MINE);
 								break;
 							default:
 								console.error('未知的页面类型:', page);
@@ -122,7 +122,7 @@
 							Navigator.redirectTo(MessageRoutes.MESSAGE);
 							break;
 						case 'mine':
-							Navigator.redirectTo(MineRoutes.MINE_COMMON);
+							Navigator.redirectTo(MineRoutes.MINE);
 							break;
 						default:
 							console.error('未知的页面类型:', page);

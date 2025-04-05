@@ -145,14 +145,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     h: $data.userRole === "teacher"
   }, $data.userRole === "teacher" ? {
     i: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SERVICE)),
-    j: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER_COMMON)),
+    j: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
     k: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
     l: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.QUALIFICATION)),
     m: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.WALLET)),
     n: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
     o: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS))
   } : {
-    p: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER_COMMON)),
+    p: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
     q: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
     r: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
     s: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS))
