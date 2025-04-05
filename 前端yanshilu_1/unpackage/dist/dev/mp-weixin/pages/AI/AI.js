@@ -98,6 +98,17 @@ const _sfc_main = common_vendor.defineComponent({
   },
   methods: {
     /**
+     * @description 处理页面点击事件，用于关闭所有打开的下拉框
+     */
+    onPageClick() {
+      if (this.$refs && this.$refs.schoolDropdown) {
+        this.$refs.schoolDropdown.closeDropdown && this.$refs.schoolDropdown.closeDropdown();
+      }
+      if (this.$refs && this.$refs.majorDropdown) {
+        this.$refs.majorDropdown.closeDropdown && this.$refs.majorDropdown.closeDropdown();
+      }
+    },
+    /**
      * @description 更新布局，解决可能的定位问题
      */
     updateLayout() {
@@ -129,7 +140,7 @@ const _sfc_main = common_vendor.defineComponent({
           }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:289", "获取用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:305", "获取用户信息失败:", e);
       }
     },
     /**
@@ -139,14 +150,9 @@ const _sfc_main = common_vendor.defineComponent({
       try {
         common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userInfo));
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:300", "保存用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:316", "保存用户信息失败:", e);
         this.showToast("保存用户信息失败，可能影响后续对话");
       }
-    },
-    /**
-     * @description 页面点击事件，用于关闭下拉框
-     */
-    onPageClick() {
     },
     /**
      * @description 学校选择事件处理
@@ -173,7 +179,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} keyword - 搜索关键词
      */
     onSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:341", "学校搜索:", keyword);
+      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:350", "学校搜索:", keyword);
     },
     /**
      * @description 切换对话模式
@@ -254,9 +260,9 @@ const _sfc_main = common_vendor.defineComponent({
           this.updateMessageStatus(aiMessageIndex, MESSAGE_STATUS.SENT);
           this.messages[aiMessageIndex].streaming = false;
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:460", "发送消息失败:", error);
+          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:469", "发送消息失败:", error);
           if (error.name === "AbortError") {
-            common_vendor.index.__f__("log", "at pages/AI/AI.uvue:464", "请求被用户取消");
+            common_vendor.index.__f__("log", "at pages/AI/AI.uvue:473", "请求被用户取消");
             this.messages.splice(aiMessageIndex, 1);
           } else {
             this.updateMessageStatus(aiMessageIndex, MESSAGE_STATUS.ERROR);
@@ -319,9 +325,9 @@ const _sfc_main = common_vendor.defineComponent({
         this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
         this.messages[index].streaming = false;
       }).catch((error = null) => {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:559", "重试发送消息失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:568", "重试发送消息失败:", error);
         if (error.name === "AbortError") {
-          common_vendor.index.__f__("log", "at pages/AI/AI.uvue:563", "重试请求被用户取消");
+          common_vendor.index.__f__("log", "at pages/AI/AI.uvue:572", "重试请求被用户取消");
         } else {
           this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
           this.messages[index].content = error.message || "获取回复失败，请重试";
@@ -382,7 +388,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 处理滚动到顶部事件（加载更多历史消息）
      */
     onScrollToUpper(e = null) {
-      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:639", "滚动到顶部");
+      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:648", "滚动到顶部");
     },
     /**
      * @description 处理滚动事件（用于控制是否启用自动滚动）
@@ -422,26 +428,28 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o($options.onSchoolClick),
-    b: common_vendor.o($options.onSchoolSearch),
-    c: common_vendor.p({
+    a: common_vendor.sr("schoolDropdown", "be726fe0-0"),
+    b: common_vendor.o($options.onSchoolClick),
+    c: common_vendor.o($options.onSchoolSearch),
+    d: common_vendor.p({
       defaultText: "请选择学校",
       choiceIndex: $data.schoolIndex,
       choiceList: $data.schoolList,
       mode: "search",
       searchPlaceholder: "搜索学校"
     }),
-    d: common_vendor.o($options.onMajorClick),
-    e: common_vendor.p({
+    e: common_vendor.sr("majorDropdown", "be726fe0-1"),
+    f: common_vendor.o($options.onMajorClick),
+    g: common_vendor.p({
       defaultText: "请选择专业",
       choiceIndex: $data.majorIndex,
       choiceList: $data.majorList
     }),
-    f: common_vendor.o(() => {
+    h: common_vendor.o(() => {
     }),
-    g: $data.messages.length === 0
+    i: $data.messages.length === 0
   }, $data.messages.length === 0 ? {} : {
-    h: common_vendor.f($data.messages, (msg, index, i0) => {
+    j: common_vendor.f($data.messages, (msg, index, i0) => {
       return common_vendor.e({
         a: msg.type === "ai"
       }, msg.type === "ai" ? {} : {}, {
@@ -461,29 +469,29 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       });
     })
   }, {
-    i: common_vendor.sei("r0-be726fe0", "scroll-view", "messageScroll"),
-    j: $data.autoScrollId,
-    k: common_vendor.o((...args) => $options.onScrollToUpper && $options.onScrollToUpper(...args)),
-    l: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
-    m: $data.currentMode === "general" ? 1 : "",
-    n: common_vendor.o(($event) => $options.switchMode("general")),
-    o: $data.currentMode === "school" ? 1 : "",
-    p: common_vendor.o(($event) => $options.switchMode("school")),
-    q: $data.currentMode === "career" ? 1 : "",
-    r: common_vendor.o(($event) => $options.switchMode("career")),
-    s: $data.isProcessing,
-    t: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
-    v: $data.inputValue,
-    w: common_vendor.o(($event) => $data.inputValue = $event.detail.value),
-    x: common_vendor.t($data.isProcessing ? "请稍候" : "发送"),
-    y: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
-    z: $data.isProcessing || !$data.inputValue.trim(),
-    A: $data.isFullLoading
+    k: common_vendor.sei("r0-be726fe0", "scroll-view", "messageScroll"),
+    l: $data.autoScrollId,
+    m: common_vendor.o((...args) => $options.onScrollToUpper && $options.onScrollToUpper(...args)),
+    n: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
+    o: $data.currentMode === "general" ? 1 : "",
+    p: common_vendor.o(($event) => $options.switchMode("general")),
+    q: $data.currentMode === "school" ? 1 : "",
+    r: common_vendor.o(($event) => $options.switchMode("school")),
+    s: $data.currentMode === "career" ? 1 : "",
+    t: common_vendor.o(($event) => $options.switchMode("career")),
+    v: $data.isProcessing,
+    w: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
+    x: $data.inputValue,
+    y: common_vendor.o(($event) => $data.inputValue = $event.detail.value),
+    z: common_vendor.t($data.isProcessing ? "请稍候" : "发送"),
+    A: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
+    B: $data.isProcessing || !$data.inputValue.trim(),
+    C: $data.isFullLoading
   }, $data.isFullLoading ? {
-    B: common_vendor.t($data.loadingText)
+    D: common_vendor.t($data.loadingText)
   } : {}, {
-    C: common_vendor.sei(_ctx.virtualHostId, "view"),
-    D: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
+    E: common_vendor.sei(_ctx.virtualHostId, "view"),
+    F: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

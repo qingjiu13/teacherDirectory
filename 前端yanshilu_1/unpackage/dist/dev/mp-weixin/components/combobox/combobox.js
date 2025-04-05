@@ -175,6 +175,15 @@ const _sfc_main = common_vendor.defineComponent({
       if (!this.isShowChoice) {
         this.btnShowHideClick(event);
       }
+    },
+    /**
+     * @description 关闭当前下拉框
+     * @public 供外部调用
+     */
+    closeDropdown() {
+      if (this.isShowChoice) {
+        this.isShowChoice = false;
+      }
     }
   }
 });

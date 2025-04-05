@@ -225,8 +225,8 @@
 				// 关闭所有下拉框
 				let comboboxComponents = this.$children.filter(child => child.$options.name === 'ChoiceSelected');
 				comboboxComponents.forEach(component => {
-					if (component.isShowChoice) {
-						component.isShowChoice = false;
+					if (component.closeDropdown) {
+						component.closeDropdown();
 					}
 				});
 			},

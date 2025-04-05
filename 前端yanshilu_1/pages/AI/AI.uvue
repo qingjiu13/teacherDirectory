@@ -15,7 +15,8 @@
 							mode="search"
 							:searchPlaceholder="'搜索学校'"
 							@onChoiceClick="onSchoolClick"
-							@search-input="onSchoolSearch">
+							@search-input="onSchoolSearch"
+							ref="schoolDropdown">
 						</choice-selected>
 						<!-- #endif -->
 						
@@ -27,7 +28,8 @@
 							mode="search"
 							:searchPlaceholder="'搜索学校'"
 							@onChoiceClick="onSchoolClick"
-							@search-input="onSchoolSearch">
+							@search-input="onSchoolSearch"
+							ref="schoolDropdown">
 						</choice-selected>
 						<!-- #endif -->
 					</view>
@@ -43,7 +45,8 @@
 							:defaultText="'请选择专业'" 
 							:choiceIndex="majorIndex" 
 							:choiceList="majorList"
-							@onChoiceClick="onMajorClick">
+							@onChoiceClick="onMajorClick"
+							ref="majorDropdown">
 						</choice-selected>
 					</view>
 				</view>
@@ -247,6 +250,19 @@
 		},
 		methods: {
 			/**
+			 * @description 处理页面点击事件，用于关闭所有打开的下拉框
+			 */
+			onPageClick() {
+				// 获取所有的下拉框组件实例
+				if (this.$refs && this.$refs.schoolDropdown) {
+					this.$refs.schoolDropdown.closeDropdown && this.$refs.schoolDropdown.closeDropdown();
+				}
+				if (this.$refs && this.$refs.majorDropdown) {
+					this.$refs.majorDropdown.closeDropdown && this.$refs.majorDropdown.closeDropdown();
+				}
+			},
+			
+			/**
 			 * @description 更新布局，解决可能的定位问题
 			 */
 			updateLayout() {
@@ -300,13 +316,6 @@
 					console.error('保存用户信息失败:', e);
 					this.showToast('保存用户信息失败，可能影响后续对话');
 				}
-			},
-			
-			/**
-			 * @description 页面点击事件，用于关闭下拉框
-			 */
-			onPageClick() {
-				// 这里不需要做额外操作，combobox组件会处理自己的关闭逻辑
 			},
 			
 			/**

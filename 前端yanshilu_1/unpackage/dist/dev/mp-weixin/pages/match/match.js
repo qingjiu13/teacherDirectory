@@ -143,8 +143,8 @@ const _sfc_main = common_vendor.defineComponent({
         return child.$options.name === "ChoiceSelected";
       });
       comboboxComponents.forEach((component) => {
-        if (component.isShowChoice) {
-          component.isShowChoice = false;
+        if (component.closeDropdown) {
+          component.closeDropdown();
         }
       });
     },
