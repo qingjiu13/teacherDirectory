@@ -47,15 +47,9 @@ export const LoginRoutes = {
  * @description 我的相关路由
  */
 export const MineRoutes = {
-	// 我的 - 学生
-	STUDENT_MINE: '/pages/mine/mine/student_mine',
+	// 我的页面
+	MINE: '/pages/mine/mine/mine_common',
 	
-	// 我的 - 老师
-	TEACHER_MINE: '/pages/mine/mine/teacher_mine',
-	
-	//我的 - 共用
-	MINE_COMMON:'/pages/mine/mine/mine_common',
-
 	// 个人信息修改
 	MODIFY: '/pages/mine/modify',
 	
@@ -65,10 +59,8 @@ export const MineRoutes = {
 	
 	// 订单相关
 	ORDER: '/pages/mine/order',
-	STUDENT_ORDER: '/pages/mine/order/student_order',
-	TEACHER_ORDER: '/pages/mine/order/teacher_order',
-	APPRAISE: '/pages/mine/order/appraise/appraise',
 	ORDER_COMMON:'/pages/mine/order/order_common',
+	APPRAISE: '/pages/mine/order/appraise/appraise',
 	
 	// 其他设置
 	QUALIFICATION: '/pages/mine/qualification',
@@ -300,10 +292,9 @@ export const Navigator = {
 	
 	/**
 	 * @description 跳转到"我的"页面
-	 * 根据存储的用户角色自动显示对应内容
 	 */
 	toMine() {
-		this.navigateTo(MineRoutes.MINE_COMMON);
+		this.navigateTo(MineRoutes.MINE);
 	}
 };
 

@@ -44,6 +44,14 @@ const MineRoutes = {
   SETTINGS: "/pages/mine/settings",
   WALLET: "/pages/mine/wallet"
 };
+({
+  ...IndexRoutes,
+  ...MatchRoutes,
+  ...AIRoutes,
+  ...MessageRoutes,
+  ...LoginRoutes,
+  ...MineRoutes
+});
 const Navigator = {
   /**
    * @description 普通页面跳转

@@ -1,15 +1,115 @@
 <template>
   <view class="container">
-    <!-- 公共头部 -->
-    <header>欢迎, {{ userName }}</header>
-    
-    <!-- 动态内容区 -->
-    <view v-if="userRole === 'teacher'">
-      <include src="./teacher_mine.uvue"></include>
+    <!-- 用户信息区 -->
+    <view class="user-info">
+      <view class="user-info-row">
+        <image class="avatar" :src="userData.avatarUrl || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleAvatarClick"></image>
+        <view class="login-tag-container">
+          <text class="login-text" @click="handleLoginClick">{{ userData.nickname || userName || '登录' }}</text>
+          <view class="tag-btn" v-if="userData.tag">
+            <text>{{ userData.tag }}</text>
+          </view>
+          <view class="tag-btn" v-else>
+            <text>标签</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 修改个人信息按钮 -->
+      <view class="edit-profile-btn" @click="handleEditProfile">
+        <text>修改个人信息</text>
+      </view>
     </view>
     
-    <view v-else-if="userRole === 'student'">
-      <include src="./student_mine.uvue"></include>
+    <!-- 教师功能菜单 -->
+    <view v-if="userRole === 'teacher'" class="menu-list">
+      <view class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
+        <view class="icon-circle info">
+          <text class="icon-text">⏱</text>
+        </view>
+        <text class="menu-text">我的服务</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER_COMMON)">
+        <view class="icon-circle success">
+          <text class="icon-text">✓</text>
+        </view>
+        <text class="menu-text">我的订单</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.COURSE)">
+        <view class="icon-circle info">
+          <text class="icon-text">📚</text>
+        </view>
+        <text class="menu-text">我的课程</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.QUALIFICATION)">
+        <view class="icon-circle info">
+          <text class="icon-text">📃</text>
+        </view>
+        <text class="menu-text">资质认证</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.WALLET)">
+        <view class="icon-circle warning">
+          <text class="icon-text">💰</text>
+        </view>
+        <text class="menu-text">我的钱包</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo('/pages/subscribe/subscribe')">
+        <view class="icon-circle info">
+          <text class="icon-text">📢</text>
+        </view>
+        <text class="menu-text">关注公众号</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.SETTINGS)">
+        <view class="icon-circle info">
+          <text class="icon-text">⚙️</text>
+        </view>
+        <text class="menu-text">设置</text>
+      </view>
+    </view>
+    
+    <!-- 学生功能菜单 -->
+    <view v-else class="menu-list">
+      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER_COMMON)">
+        <view class="icon-circle success">
+          <text class="icon-text">✓</text>
+        </view>
+        <text class="menu-text">我的订单</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.COURSE)">
+        <view class="icon-circle info">
+          <text class="icon-text">📚</text>
+        </view>
+        <text class="menu-text">我的课程</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo('/pages/subscribe/subscribe')">
+        <view class="icon-circle info">
+          <text class="icon-text">📢</text>
+        </view>
+        <text class="menu-text">关注公众号</text>
+      </view>
+      
+      <view class="menu-item" @click="navigateTo(MineRoutes.SETTINGS)">
+        <view class="icon-circle info">
+          <text class="icon-text">⚙️</text>
+        </view>
+        <text class="menu-text">设置</text>
+      </view>
+    </view>
+    
+    <!-- 退出登录按钮 - 对所有角色都显示 -->
+    <view class="menu-item" @click="handleLogout()" v-if="isLoggedIn">
+      <view class="icon-circle warning">
+        <text class="icon-text">⚠</text>
+      </view>
+      <text class="menu-text">退出登录</text>
     </view>
     
     <!-- 添加自定义底部导航栏 -->
@@ -21,7 +121,7 @@
 /**
  * @description 我的页面（通用）
  */
-import { Navigator } from '@/router/Router.js';
+import { Navigator, MineRoutes } from '@/router/Router.js';
 import TabBar from '../../../components/tab-bar/tab-bar.uvue';
 
 export default {
@@ -30,22 +130,153 @@ export default {
   },
   data() {
     return {
-      userRole: '', // 从全局状态或API获取
+      userRole: 'student', // 默认为学生角色
       userName: '',
-      userData: {}
+      userData: {},
+      isLoggedIn: false,
+      MineRoutes // 引入路由对象方便模板使用
     }
   },
   onLoad() {
     // 获取用户角色信息
-    this.userRole = uni.getStorageSync('userRole');
+    const storedUserRole = uni.getStorageSync('userRole');
+    if (storedUserRole) {
+      this.userRole = storedUserRole;
+    }
+    
     this.loadUserData();
+    console.log("当前用户角色:", this.userRole); // 调试输出
+  },
+  onShow() {
+    // 每次显示页面时检查登录状态，以便更新页面显示
+    this.loadUserData();
+    
+    // 获取最新的用户角色信息
+    const storedUserRole = uni.getStorageSync('userRole');
+    if (storedUserRole) {
+      this.userRole = storedUserRole;
+      console.log("onShow 更新用户角色:", this.userRole); // 调试输出
+    }
   },
   methods: {
     /**
      * @description 加载用户数据
      */
     loadUserData() {
-      // 根据角色加载不同数据
+      // 检查登录状态
+      const token = uni.getStorageSync('token');
+      this.isLoggedIn = !!token;
+      
+      if (this.isLoggedIn) {
+        // 获取用户信息
+        const userInfo = uni.getStorageSync('userInfo');
+        if (userInfo) {
+          try {
+            this.userData = typeof userInfo === 'string' ? JSON.parse(userInfo) : userInfo;
+            this.userName = this.userData.nickname || '用户';
+            
+            // 如果存储中有用户角色，使用存储的角色
+            if (this.userData.role) {
+              this.userRole = this.userData.role;
+              // 同步更新到storage
+              uni.setStorageSync('userRole', this.userData.role);
+            }
+          } catch (e) {
+            console.error('解析用户信息失败:', e);
+          }
+        }
+      } else {
+        this.userData = {};
+        this.userName = '';
+        // 未登录时默认显示学生界面
+        this.userRole = 'student';
+      }
+      
+      console.log("加载用户数据后的角色:", this.userRole); // 调试输出
+    },
+    
+    /**
+     * @description 处理头像点击
+     */
+    handleAvatarClick() {
+      if (!this.isLoggedIn) {
+        // 未登录，跳转到登录页
+        Navigator.toLogin();
+      } else {
+        // 已登录，跳转到个人资料页
+        this.handleEditProfile();
+      }
+    },
+    
+    /**
+     * @description 处理登录文本点击
+     */
+    handleLoginClick() {
+      if (!this.isLoggedIn) {
+        // 未登录，跳转到登录页
+        Navigator.toLogin();
+      } else {
+        // 已登录，跳转到个人资料页
+        this.handleEditProfile();
+      }
+    },
+    
+    /**
+     * @description 跳转到修改个人信息页面
+     */
+    handleEditProfile() {
+      if (!this.isLoggedIn) {
+        Navigator.toLogin();
+        return;
+      }
+      
+      // 跳转到个人信息修改页面
+      Navigator.toModify();
+    },
+    
+    /**
+     * @description 页面跳转方法
+     * @param {string} url - 目标页面路径
+     */
+    navigateTo(url) {
+      // 有些页面需要登录才能访问
+      if (!this.isLoggedIn) {
+        // 未登录，跳转到登录页
+        Navigator.toLogin();
+        return;
+      }
+      
+      // 正常跳转
+      Navigator.navigateTo(url);
+    },
+    
+    /**
+     * @description 处理退出登录
+     */
+    handleLogout() {
+      uni.showModal({
+        title: '提示',
+        content: '确定要退出登录吗？',
+        success: (res) => {
+          if (res.confirm) {
+            // 清除登录信息
+            uni.removeStorageSync('token');
+            uni.removeStorageSync('userInfo');
+            uni.removeStorageSync('userRole');
+            
+            // 更新页面显示
+            this.isLoggedIn = false;
+            this.userData = {};
+            this.userName = '';
+            this.userRole = 'student'; // 退出后默认显示学生界面
+            
+            uni.showToast({
+              title: '已退出登录',
+              icon: 'success'
+            });
+          }
+        }
+      });
     }
   }
 }
@@ -57,10 +288,127 @@ export default {
   flex-direction: column;
   min-height: 100%;
   padding-bottom: 55px; /* 为自定义tabBar留出空间 */
+  background-color: #ffffff;
 }
-header {
-  padding: 20rpx;
+
+/* 用户信息区样式 */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-info-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.login-tag-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.login-text {
   font-size: 32rpx;
-  text-align: center;
+  font-weight: bold;
+  margin-right: 20rpx;
+}
+
+.tag-btn {
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  padding: 8rpx 30rpx;
+}
+
+.tag-btn text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 修改个人信息按钮 */
+.edit-profile-btn {
+  background-color: #f5f5f5;
+  border-radius: 10rpx;
+  padding: 15rpx 30rpx;
+  margin-top: 10rpx;
+  align-self: flex-start;
+}
+
+.edit-profile-btn text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* 菜单列表 */
+.menu-list {
+  width: 100%;
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 30rpx 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.icon-circle {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 30rpx;
+  flex-shrink: 0;
+}
+
+.success {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.warning {
+  background-color: rgba(255, 82, 82, 0.1);
+}
+
+.info {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.icon-text {
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.success .icon-text {
+  color: #4CAF50;
+}
+
+.warning .icon-text {
+  color: #FF5252;
+}
+
+.info .icon-text {
+  color: #2196F3;
+}
+
+.menu-text {
+  font-size: 30rpx;
+  color: #333;
+  text-align: left;
 }
 </style>

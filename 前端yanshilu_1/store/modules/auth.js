@@ -51,6 +51,12 @@ const api = {
               avatar: 'https://example.com/avatar.png',
               tags: ['标签1', '标签2'],
               balance: role === 'teacher' ? 1000 : null,
+              bio: role === 'teacher' ? '资深导师，专注于学术指导' : '热爱学习的学生',
+              contact: {
+                phone: '138****1234',
+                email: `${username}@example.com`,
+                wechat: username
+              }
             },
             role
           }
@@ -75,18 +81,19 @@ const api = {
             avatar: 'https://example.com/avatar.png',
             tags: ['标签1', '标签2', '标签3'],
             balance: role === 'teacher' ? 1500 : null,
-            orders: {
-              student: {
-                pendingPayment: role === 'student' ? [{ id: 's1', title: '待付款订单1' }] : [],
-                pendingService: role === 'student' ? [{ id: 's2', title: '待服务订单1' }] : [],
-                completed: role === 'student' ? [{ id: 's3', title: '已完成订单1' }] : [],
-                cancelled: role === 'student' ? [{ id: 's4', title: '已取消订单1' }] : []
-              },
-              teacher: {
-                pendingService: role === 'teacher' ? [{ id: 't1', title: '待服务订单1' }] : [],
-                completed: role === 'teacher' ? [{ id: 't2', title: '已完成订单1' }] : [],
-                cancelled: role === 'teacher' ? [{ id: 't3', title: '已取消订单1' }] : []
-              }
+            bio: role === 'teacher' ? '资深导师，专注于学术指导' : '热爱学习的学生',
+            contact: {
+              phone: '138****1234',
+              email: `${role}@example.com`,
+              wechat: `${role}_user`
+            },
+            notifications: {
+              unread: 3,
+              messages: [
+                {id: 'm1', type: 'system', content: '系统通知', read: false, time: Date.now() - 3600000},
+                {id: 'm2', type: 'chat', content: '新聊天消息', read: false, time: Date.now() - 7200000},
+                {id: 'm3', type: 'order', content: '订单状态更新', read: false, time: Date.now() - 10800000}
+              ]
             }
           }
         });
@@ -129,8 +136,31 @@ const storage = {
     uni.setStorageSync('role', auth.role);
     uni.setStorageSync('userBaseInfo', {
       name: auth.userInfo.name,
-      avatar: auth.userInfo.avatar
+      avatar: auth.userInfo.avatar,
+      tags: auth.userInfo.tags || []
     });
+  },
+  
+  /**
+   * @description 保存用户详细信息到本地存储
+   * @param {Object} userInfo - 用户详细信息
+   */
+  saveUserDetailInfo(userInfo) {
+    uni.setStorageSync('userDetailInfo', JSON.stringify(userInfo));
+  },
+  
+  /**
+   * @description 获取用户详细信息
+   * @returns {Object|null} 用户详细信息
+   */
+  getUserDetailInfo() {
+    const info = uni.getStorageSync('userDetailInfo');
+    try {
+      return info ? JSON.parse(info) : null;
+    } catch (e) {
+      console.error('解析用户详细信息失败:', e);
+      return null;
+    }
   },
   
   /**
@@ -143,6 +173,7 @@ const storage = {
     uni.removeStorageSync('isLoggedIn');
     uni.removeStorageSync('role');
     uni.removeStorageSync('userBaseInfo');
+    uni.removeStorageSync('userDetailInfo');
   },
   
   /**
@@ -178,16 +209,32 @@ const state = {
     name: '',
     avatar: '',
     tags: [],
+    bio: '',
+    contact: {
+      phone: '',
+      email: '',
+      wechat: ''
+    },
     balance: null,
-    orders: {
-      student: { pendingPayment: [], pendingService: [], completed: [], cancelled: [] },
-      teacher: { pendingService: [], completed: [], cancelled: [] }
+    notifications: {
+      unread: 0,
+      messages: []
     }
   },
   token: storage.getToken(),
   refreshToken: storage.getRefreshToken(),
-  tokenExpireTime: storage.getTokenExpireTime()
+  tokenExpireTime: storage.getTokenExpireTime(),
+  permissions: {
+    canPublishCourse: false,
+    canWithdraw: false,
+    isVerified: false
+  }
 };
+
+const userDetailInfo = storage.getUserDetailInfo();
+if (userDetailInfo) {
+  state.userInfo = { ...state.userInfo, ...userDetailInfo };
+}
 
 const mutations = {
   /**
@@ -235,6 +282,26 @@ const mutations = {
    */
   SET_USER_INFO(state, userInfo) {
     state.userInfo = userInfo;
+    storage.saveUserDetailInfo(userInfo);
+  },
+  
+  /**
+   * @description 更新用户部分信息
+   * @param {Object} state - Vuex状态
+   * @param {Object} partialInfo - 部分用户信息
+   */
+  UPDATE_USER_INFO(state, partialInfo) {
+    state.userInfo = { ...state.userInfo, ...partialInfo };
+    storage.saveUserDetailInfo(state.userInfo);
+  },
+  
+  /**
+   * @description 设置用户权限
+   * @param {Object} state - Vuex状态
+   * @param {Object} permissions - 权限对象
+   */
+  SET_PERMISSIONS(state, permissions) {
+    state.permissions = { ...state.permissions, ...permissions };
   },
   
   /**
@@ -250,14 +317,24 @@ const mutations = {
       name: '',
       avatar: '',
       tags: [],
+      bio: '',
+      contact: {
+        phone: '',
+        email: '',
+        wechat: ''
+      },
       balance: null,
-      orders: {
-        student: { pendingPayment: [], pendingService: [], completed: [], cancelled: [] },
-        teacher: { pendingService: [], completed: [], cancelled: [] }
+      notifications: {
+        unread: 0,
+        messages: []
       }
     };
+    state.permissions = {
+      canPublishCourse: false,
+      canWithdraw: false,
+      isVerified: false
+    };
     
-    // 清除本地存储
     storage.clearAuth();
   },
   
@@ -289,6 +366,13 @@ const actions = {
         commit('SET_AUTH', { token, refreshToken, expiresIn, role, userInfo });
         commit('SET_USER_INFO', userInfo);
         
+        const permissions = {
+          canPublishCourse: role === 'teacher',
+          canWithdraw: role === 'teacher',
+          isVerified: role === 'teacher'
+        };
+        commit('SET_PERMISSIONS', permissions);
+        
         return { success: true, message: '登录成功' };
       }
       return { success: false, message: '登录失败' };
@@ -304,7 +388,6 @@ const actions = {
    * @returns {Promise<Object>} 用户信息获取结果
    */
   async getUserInfo({ commit, state, dispatch }) {
-    // 如果token即将过期，先刷新token
     if (state.tokenExpireTime && state.tokenExpireTime - Date.now() < 10 * 60 * 1000) {
       await dispatch('refreshToken');
     }
@@ -313,6 +396,14 @@ const actions = {
       const response = await api.getUserInfo(state.token);
       if (response.success) {
         commit('SET_USER_INFO', response.data);
+        
+        const permissions = {
+          canPublishCourse: state.role === 'teacher',
+          canWithdraw: state.role === 'teacher' && response.data.balance > 0,
+          isVerified: state.role === 'teacher'
+        };
+        commit('SET_PERMISSIONS', permissions);
+        
         return { success: true, data: response.data };
       }
       return { success: false, message: '获取用户信息失败' };
@@ -337,7 +428,6 @@ const actions = {
       if (response.success) {
         const { token, refreshToken, expiresIn } = response.data;
         
-        // 解析JWT获取过期时间
         const decodedToken = jwtUtils.decode(token);
         
         commit('SET_AUTH', {
@@ -377,7 +467,6 @@ const actions = {
       return { success: false, message: '未登录' };
     }
     
-    // 使用JWT工具检查是否有效
     const isTokenValid = jwtUtils.isValid(state.token);
     
     if (!isTokenValid && state.refreshToken) {
@@ -391,7 +480,6 @@ const actions = {
       return { success: false, message: '登录已过期' };
     }
     
-    // 获取用户信息以验证token有效性
     const userInfoResult = await dispatch('getUserInfo');
     if (userInfoResult.success) {
       return { success: true, message: '登录状态有效' };
@@ -399,6 +487,17 @@ const actions = {
       commit('CLEAR_AUTH');
       return { success: false, message: '登录状态无效' };
     }
+  },
+  
+  /**
+   * @description 更新用户信息
+   * @param {Object} context - Vuex上下文
+   * @param {Object} userInfo - 更新的用户信息
+   * @returns {Promise<Object>} 更新结果
+   */
+  async updateUserInfo({ commit, state }, userInfo) {
+    commit('UPDATE_USER_INFO', userInfo);
+    return { success: true, message: '用户信息更新成功' };
   }
 };
 
@@ -453,53 +552,39 @@ const getters = {
   userTags: state => state.userInfo.tags,
   
   /**
-   * @description 获取学生待付款订单
+   * @description 获取用户简介
    * @param {Object} state - Vuex状态
-   * @returns {Array} 待付款订单列表
+   * @returns {string} 用户简介
    */
-  studentPendingPaymentOrders: state => state.userInfo.orders.student.pendingPayment,
+  userBio: state => state.userInfo.bio,
   
   /**
-   * @description 获取学生待服务订单
+   * @description 获取用户联系信息
    * @param {Object} state - Vuex状态
-   * @returns {Array} 待服务订单列表
+   * @returns {Object} 用户联系信息
    */
-  studentPendingServiceOrders: state => state.userInfo.orders.student.pendingService,
+  userContact: state => state.userInfo.contact,
   
   /**
-   * @description 获取学生已完成订单
+   * @description 获取未读消息数
    * @param {Object} state - Vuex状态
-   * @returns {Array} 已完成订单列表
+   * @returns {number} 未读消息数
    */
-  studentCompletedOrders: state => state.userInfo.orders.student.completed,
+  unreadMessageCount: state => state.userInfo.notifications.unread,
   
   /**
-   * @description 获取学生已取消订单
+   * @description 获取通知消息
    * @param {Object} state - Vuex状态
-   * @returns {Array} 已取消订单列表
+   * @returns {Array} 通知消息列表
    */
-  studentCancelledOrders: state => state.userInfo.orders.student.cancelled,
+  notifications: state => state.userInfo.notifications.messages,
   
   /**
-   * @description 获取老师待服务订单
+   * @description 获取用户权限
    * @param {Object} state - Vuex状态
-   * @returns {Array} 待服务订单列表
+   * @returns {Object} 用户权限
    */
-  teacherPendingServiceOrders: state => state.userInfo.orders.teacher.pendingService,
-  
-  /**
-   * @description 获取老师已完成订单
-   * @param {Object} state - Vuex状态
-   * @returns {Array} 已完成订单列表
-   */
-  teacherCompletedOrders: state => state.userInfo.orders.teacher.completed,
-  
-  /**
-   * @description 获取老师已取消订单
-   * @param {Object} state - Vuex状态
-   * @returns {Array} 已取消订单列表
-   */
-  teacherCancelledOrders: state => state.userInfo.orders.teacher.cancelled
+  userPermissions: state => state.permissions
 };
 
 // JWT处理工具
@@ -530,7 +615,6 @@ const jwtUtils = {
       const decoded = this.decode(token);
       if (!decoded) return false;
       
-      // 检查是否过期
       const currentTime = Date.now() / 1000;
       return decoded.exp > currentTime;
     } catch (error) {
