@@ -19,17 +19,31 @@
       <view class="edit-profile-btn" @click="handleEditProfile">
         <text>修改个人信息</text>
       </view>
+      
+      <!-- 调试用：角色切换按钮 -->
+      <view class="debug-section">
+        <view class="role-switch-container">
+          <view class="role-btn" :class="{ active: userRole === 'student' }" @click="switchRole('student')">
+            <text>学生模式</text>
+          </view>
+          <view class="role-btn" :class="{ active: userRole === 'teacher' }" @click="switchRole('teacher')">
+            <text>老师模式</text>
+          </view>
+        </view>
+      </view>
     </view>
     
-    <!-- 教师功能菜单 -->
-    <view v-if="userRole === 'teacher'" class="menu-list">
-      <view class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
+    <!-- 菜单列表 -->
+    <view class="menu-list">
+      <!-- 老师特有功能菜单 -->
+      <view v-if="userRole === 'teacher'" class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
         <view class="icon-circle info">
           <text class="icon-text">⏱</text>
         </view>
         <text class="menu-text">我的服务</text>
       </view>
       
+      <!-- 共有菜单项：我的订单 -->
       <view class="menu-item" @click="navigateTo(MineRoutes.ORDER)">
         <view class="icon-circle success">
           <text class="icon-text">✓</text>
@@ -37,6 +51,7 @@
         <text class="menu-text">我的订单</text>
       </view>
       
+      <!-- 共有菜单项：我的课程 -->
       <view class="menu-item" @click="navigateTo(MineRoutes.COURSE)">
         <view class="icon-circle info">
           <text class="icon-text">📚</text>
@@ -44,20 +59,23 @@
         <text class="menu-text">我的课程</text>
       </view>
       
-      <view class="menu-item" @click="navigateTo(MineRoutes.QUALIFICATION)">
+      <!-- 老师特有菜单项：资质认证 -->
+      <view v-if="userRole === 'teacher'" class="menu-item" @click="navigateTo(MineRoutes.QUALIFICATION)">
         <view class="icon-circle info">
           <text class="icon-text">📃</text>
         </view>
         <text class="menu-text">资质认证</text>
       </view>
       
-      <view class="menu-item" @click="navigateTo(MineRoutes.WALLET)">
+      <!-- 老师特有菜单项：我的钱包 -->
+      <view v-if="userRole === 'teacher'" class="menu-item" @click="navigateTo(MineRoutes.WALLET)">
         <view class="icon-circle warning">
           <text class="icon-text">💰</text>
         </view>
         <text class="menu-text">我的钱包</text>
       </view>
       
+      <!-- 共有菜单项：关注公众号 -->
       <view class="menu-item" @click="navigateTo('/pages/subscribe/subscribe')">
         <view class="icon-circle info">
           <text class="icon-text">📢</text>
@@ -65,37 +83,7 @@
         <text class="menu-text">关注公众号</text>
       </view>
       
-      <view class="menu-item" @click="navigateTo(MineRoutes.SETTINGS)">
-        <view class="icon-circle info">
-          <text class="icon-text">⚙️</text>
-        </view>
-        <text class="menu-text">设置</text>
-      </view>
-    </view>
-    
-    <!-- 学生功能菜单 -->
-    <view v-else class="menu-list">
-      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER)">
-        <view class="icon-circle success">
-          <text class="icon-text">✓</text>
-        </view>
-        <text class="menu-text">我的订单</text>
-      </view>
-      
-      <view class="menu-item" @click="navigateTo(MineRoutes.COURSE)">
-        <view class="icon-circle info">
-          <text class="icon-text">📚</text>
-        </view>
-        <text class="menu-text">我的课程</text>
-      </view>
-      
-      <view class="menu-item" @click="navigateTo('/pages/subscribe/subscribe')">
-        <view class="icon-circle info">
-          <text class="icon-text">📢</text>
-        </view>
-        <text class="menu-text">关注公众号</text>
-      </view>
-      
+      <!-- 共有菜单项：设置 -->
       <view class="menu-item" @click="navigateTo(MineRoutes.SETTINGS)">
         <view class="icon-circle info">
           <text class="icon-text">⚙️</text>
@@ -133,36 +121,114 @@ export default {
       userRole: 'student', // 默认为学生角色
       userName: '',
       userData: {},
-      isLoggedIn: false,
-      MineRoutes // 引入路由对象方便模板使用
+      isLoggedIn: true, // 默认设为true方便调试
+      MineRoutes, // 引入路由对象方便模板使用
+      // 模拟数据
+      mockTeacherData: {
+        id: 'teacher123',
+        nickname: '王教授',
+        avatarUrl: '/static/image/tab-bar/default_avatar.png',
+        tag: '已认证',
+        role: 'teacher',
+        school: '北京大学',
+        major: '计算机科学',
+        score: 4.9,
+        wallet: {
+          balance: 2580.50,
+          income: 5000.00
+        },
+        qualifications: {
+          isVerified: true,
+          certificates: ['教师资格证', '心理咨询师证']
+        },
+        services: [
+          { id: 1, title: '高数一对一', price: 300 },
+          { id: 2, title: '编程辅导', price: 250 }
+        ]
+      },
+      mockStudentData: {
+        id: 'student456',
+        nickname: '小明同学',
+        avatarUrl: '/static/image/tab-bar/default_avatar.png',
+        tag: '学生',
+        role: 'student',
+        school: '清华大学',
+        major: '机械工程',
+        grade: '大二',
+        courses: [
+          { id: 101, title: '高等数学', progress: 60 },
+          { id: 102, title: 'C++编程基础', progress: 85 }
+        ]
+      }
     }
   },
   onLoad() {
-    // 获取用户角色信息
-    const storedUserRole = uni.getStorageSync('userRole');
-    if (storedUserRole) {
-      this.userRole = storedUserRole;
-    }
+    // 获取用户角色信息或使用默认值
+    const storedUserRole = uni.getStorageSync('userRole') || 'student';
+    this.userRole = storedUserRole;
     
-    this.loadUserData();
+    // 加载测试数据
+    this.loadMockData();
     console.log("当前用户角色:", this.userRole); // 调试输出
   },
   onShow() {
-    // 每次显示页面时检查登录状态，以便更新页面显示
-    this.loadUserData();
-    
-    // 获取最新的用户角色信息
+    // 每次显示页面时检查角色状态
     const storedUserRole = uni.getStorageSync('userRole');
     if (storedUserRole) {
       this.userRole = storedUserRole;
+      // 重新加载对应的测试数据
+      this.loadMockData();
       console.log("onShow 更新用户角色:", this.userRole); // 调试输出
     }
   },
   methods: {
     /**
-     * @description 加载用户数据
+     * @description 加载模拟数据
+     */
+    loadMockData() {
+      // 根据当前角色加载对应的模拟数据
+      if (this.userRole === 'teacher') {
+        this.userData = this.mockTeacherData;
+      } else {
+        this.userData = this.mockStudentData;
+      }
+      
+      this.userName = this.userData.nickname;
+      
+      // 保存当前角色到storage
+      uni.setStorageSync('userRole', this.userRole);
+      uni.setStorageSync('userInfo', JSON.stringify(this.userData));
+      uni.setStorageSync('token', 'mock_token_for_testing'); // 模拟token
+      
+      this.isLoggedIn = true; // 测试模式下始终为登录状态
+      console.log("加载模拟数据:", this.userData);
+    },
+    
+    /**
+     * @description 切换用户角色（用于调试）
+     * @param {String} role - 目标角色
+     */
+    switchRole(role) {
+      if (this.userRole !== role) {
+        this.userRole = role;
+        this.loadMockData();
+        uni.showToast({
+          title: role === 'teacher' ? '已切换为老师模式' : '已切换为学生模式',
+          icon: 'none'
+        });
+      }
+    },
+    
+    /**
+     * @description 加载用户数据（保留原方法，但在调试模式不使用）
      */
     loadUserData() {
+      // 在测试模式下，使用模拟数据而不是从storage加载
+      if (uni.getStorageSync('debug_mode') === 'true') {
+        this.loadMockData();
+        return;
+      }
+      
       // 检查登录状态
       const token = uni.getStorageSync('token');
       this.isLoggedIn = !!token;
@@ -199,38 +265,23 @@ export default {
      * @description 处理头像点击
      */
     handleAvatarClick() {
-      if (!this.isLoggedIn) {
-        // 未登录，跳转到登录页
-        Navigator.toLogin();
-      } else {
-        // 已登录，跳转到个人资料页
-        this.handleEditProfile();
-      }
+      // 简化处理，不检查登录状态
+      this.handleEditProfile();
     },
     
     /**
      * @description 处理登录文本点击
      */
     handleLoginClick() {
-      if (!this.isLoggedIn) {
-        // 未登录，跳转到登录页
-        Navigator.toLogin();
-      } else {
-        // 已登录，跳转到个人资料页
-        this.handleEditProfile();
-      }
+      // 简化处理，不检查登录状态
+      this.handleEditProfile();
     },
     
     /**
      * @description 跳转到修改个人信息页面
      */
     handleEditProfile() {
-      if (!this.isLoggedIn) {
-        Navigator.toLogin();
-        return;
-      }
-      
-      // 跳转到个人信息修改页面
+      // 简化处理，不检查登录状态
       Navigator.toModify();
     },
     
@@ -239,14 +290,7 @@ export default {
      * @param {string} url - 目标页面路径
      */
     navigateTo(url) {
-      // 有些页面需要登录才能访问
-      if (!this.isLoggedIn) {
-        // 未登录，跳转到登录页
-        Navigator.toLogin();
-        return;
-      }
-      
-      // 正常跳转
+      // 简化处理，不检查登录状态
       Navigator.navigateTo(url);
     },
     
@@ -350,6 +394,43 @@ export default {
 .edit-profile-btn text {
   font-size: 28rpx;
   color: #333;
+}
+
+/* 调试工具样式 */
+.debug-section {
+  width: 100%;
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.role-switch-container {
+  display: flex;
+  flex-direction: row;
+  background-color: #f0f0f0;
+  border-radius: 40rpx;
+  padding: 6rpx;
+  margin: 10rpx 0;
+}
+
+.role-btn {
+  padding: 10rpx 30rpx;
+  border-radius: 30rpx;
+  margin: 0 5rpx;
+}
+
+.role-btn text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.role-btn.active {
+  background-color: #2196F3;
+}
+
+.role-btn.active text {
+  color: #ffffff;
 }
 
 /* 菜单列表 */

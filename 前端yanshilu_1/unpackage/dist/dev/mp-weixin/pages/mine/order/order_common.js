@@ -4,7 +4,7 @@ require("../../../router/Router.js");
 const _sfc_main = common_vendor.defineComponent({
   data() {
     return {
-      userRole: "student",
+      userRole: "teacher",
       userName: "",
       userData: new UTSJSONObject({}),
       isLoggedIn: false,

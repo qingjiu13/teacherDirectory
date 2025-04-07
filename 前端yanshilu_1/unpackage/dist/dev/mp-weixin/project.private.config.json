@@ -10,7 +10,7 @@
       "list": [
         {
           "name": "pages/mine/order",
-          "pathName": "pages/mine/order",
+          "pathName": "pages/mine/order/order_common",
           "query": "",
           "launchMode": "default",
           "scene": null

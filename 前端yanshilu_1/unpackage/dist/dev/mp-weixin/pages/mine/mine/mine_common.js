@@ -11,32 +11,100 @@ const _sfc_main = common_vendor.defineComponent({
       userRole: "student",
       userName: "",
       userData: new UTSJSONObject({}),
-      isLoggedIn: false,
-      MineRoutes: router_Router.MineRoutes
-      // 引入路由对象方便模板使用
+      isLoggedIn: true,
+      MineRoutes: router_Router.MineRoutes,
+      // 模拟数据
+      mockTeacherData: new UTSJSONObject({
+        id: "teacher123",
+        nickname: "王教授",
+        avatarUrl: "/static/image/tab-bar/default_avatar.png",
+        tag: "已认证",
+        role: "teacher",
+        school: "北京大学",
+        major: "计算机科学",
+        score: 4.9,
+        wallet: new UTSJSONObject({
+          balance: 2580.5,
+          income: 5e3
+        }),
+        qualifications: new UTSJSONObject({
+          isVerified: true,
+          certificates: ["教师资格证", "心理咨询师证"]
+        }),
+        services: [
+          new UTSJSONObject({ id: 1, title: "高数一对一", price: 300 }),
+          new UTSJSONObject({ id: 2, title: "编程辅导", price: 250 })
+        ]
+      }),
+      mockStudentData: new UTSJSONObject({
+        id: "student456",
+        nickname: "小明同学",
+        avatarUrl: "/static/image/tab-bar/default_avatar.png",
+        tag: "学生",
+        role: "student",
+        school: "清华大学",
+        major: "机械工程",
+        grade: "大二",
+        courses: [
+          new UTSJSONObject({ id: 101, title: "高等数学", progress: 60 }),
+          new UTSJSONObject({ id: 102, title: "C++编程基础", progress: 85 })
+        ]
+      })
     };
   },
   onLoad() {
-    const storedUserRole = common_vendor.index.getStorageSync("userRole");
-    if (storedUserRole) {
-      this.userRole = storedUserRole;
-    }
-    this.loadUserData();
-    common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:148", "当前用户角色:", this.userRole);
+    const storedUserRole = common_vendor.index.getStorageSync("userRole") || "student";
+    this.userRole = storedUserRole;
+    this.loadMockData();
+    common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:172", "当前用户角色:", this.userRole);
   },
   onShow() {
-    this.loadUserData();
     const storedUserRole = common_vendor.index.getStorageSync("userRole");
     if (storedUserRole) {
       this.userRole = storedUserRole;
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:158", "onShow 更新用户角色:", this.userRole);
+      this.loadMockData();
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:181", "onShow 更新用户角色:", this.userRole);
     }
   },
   methods: {
     /**
-     * @description 加载用户数据
+     * @description 加载模拟数据
+     */
+    loadMockData() {
+      if (this.userRole === "teacher") {
+        this.userData = this.mockTeacherData;
+      } else {
+        this.userData = this.mockStudentData;
+      }
+      this.userName = this.userData.nickname;
+      common_vendor.index.setStorageSync("userRole", this.userRole);
+      common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userData));
+      common_vendor.index.setStorageSync("token", "mock_token_for_testing");
+      this.isLoggedIn = true;
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:204", "加载模拟数据:", this.userData);
+    },
+    /**
+     * @description 切换用户角色（用于调试）
+     * @param {String} role - 目标角色
+     */
+    switchRole(role = null) {
+      if (this.userRole !== role) {
+        this.userRole = role;
+        this.loadMockData();
+        common_vendor.index.showToast({
+          title: role === "teacher" ? "已切换为老师模式" : "已切换为学生模式",
+          icon: "none"
+        });
+      }
+    },
+    /**
+     * @description 加载用户数据（保留原方法，但在调试模式不使用）
      */
     loadUserData() {
+      if (common_vendor.index.getStorageSync("debug_mode") === "true") {
+        this.loadMockData();
+        return null;
+      }
       const token = common_vendor.index.getStorageSync("token");
       this.isLoggedIn = !!token;
       if (this.isLoggedIn) {
@@ -50,7 +118,7 @@ const _sfc_main = common_vendor.defineComponent({
               common_vendor.index.setStorageSync("userRole", this.userData.role);
             }
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:185", "解析用户信息失败:", e);
+            common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:251", "解析用户信息失败:", e);
           }
         }
       } else {
@@ -58,36 +126,24 @@ const _sfc_main = common_vendor.defineComponent({
         this.userName = "";
         this.userRole = "student";
       }
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:195", "加载用户数据后的角色:", this.userRole);
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:261", "加载用户数据后的角色:", this.userRole);
     },
     /**
      * @description 处理头像点击
      */
     handleAvatarClick() {
-      if (!this.isLoggedIn) {
-        router_Router.Navigator.toLogin();
-      } else {
-        this.handleEditProfile();
-      }
+      this.handleEditProfile();
     },
     /**
      * @description 处理登录文本点击
      */
     handleLoginClick() {
-      if (!this.isLoggedIn) {
-        router_Router.Navigator.toLogin();
-      } else {
-        this.handleEditProfile();
-      }
+      this.handleEditProfile();
     },
     /**
      * @description 跳转到修改个人信息页面
      */
     handleEditProfile() {
-      if (!this.isLoggedIn) {
-        router_Router.Navigator.toLogin();
-        return null;
-      }
       router_Router.Navigator.toModify();
     },
     /**
@@ -95,10 +151,6 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {string} url - 目标页面路径
      */
     navigateTo(url = null) {
-      if (!this.isLoggedIn) {
-        router_Router.Navigator.toLogin();
-        return null;
-      }
       router_Router.Navigator.navigateTo(url);
     },
     /**
@@ -142,29 +194,34 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     f: common_vendor.t($data.userData.tag)
   } : {}, {
     g: common_vendor.o((...args) => $options.handleEditProfile && $options.handleEditProfile(...args)),
-    h: $data.userRole === "teacher"
+    h: $data.userRole === "student" ? 1 : "",
+    i: common_vendor.o(($event) => $options.switchRole("student")),
+    j: $data.userRole === "teacher" ? 1 : "",
+    k: common_vendor.o(($event) => $options.switchRole("teacher")),
+    l: $data.userRole === "teacher"
   }, $data.userRole === "teacher" ? {
-    i: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SERVICE)),
-    j: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
-    k: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
-    l: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.QUALIFICATION)),
-    m: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.WALLET)),
-    n: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
-    o: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS))
-  } : {
-    p: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
-    q: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
-    r: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
-    s: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS))
-  }, {
-    t: $data.isLoggedIn
-  }, $data.isLoggedIn ? {
-    v: common_vendor.o(($event) => $options.handleLogout())
+    m: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SERVICE))
   } : {}, {
-    w: common_vendor.p({
+    n: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
+    o: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
+    p: $data.userRole === "teacher"
+  }, $data.userRole === "teacher" ? {
+    q: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.QUALIFICATION))
+  } : {}, {
+    r: $data.userRole === "teacher"
+  }, $data.userRole === "teacher" ? {
+    s: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.WALLET))
+  } : {}, {
+    t: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
+    v: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS)),
+    w: $data.isLoggedIn
+  }, $data.isLoggedIn ? {
+    x: common_vendor.o(($event) => $options.handleLogout())
+  } : {}, {
+    y: common_vendor.p({
       pageName: "mine"
     }),
-    x: common_vendor.sei(_ctx.virtualHostId, "view")
+    z: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
