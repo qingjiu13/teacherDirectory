@@ -47,7 +47,7 @@
 		<scroll-view class="card-list" scroll-y="true" id="step2">
 			<view class="teacher-card" v-for="(teacher, index) in filteredTeachers" :key="index">
 				<view class="card-left">
-					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.svg'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
+					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
 				</view>
 				<view class="card-middle">
 					<view class="card-middle-top">

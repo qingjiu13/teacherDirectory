@@ -224,7 +224,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     j: common_vendor.f($options.filteredTeachers, (teacher, index, i0) => {
       return {
-        a: teacher.avatar || "/static/image/tab-bar/default_avatar.svg",
+        a: teacher.avatar || "/static/image/tab-bar/default_avatar.png",
         b: common_vendor.o(($event) => $options.viewTeacherDetail(teacher.id), index),
         c: common_vendor.t(teacher.nickname),
         d: common_vendor.t(teacher.title || "教授"),

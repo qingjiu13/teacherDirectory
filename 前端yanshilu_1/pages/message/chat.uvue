@@ -44,6 +44,15 @@
 				// 在实际应用中，这里应该根据teacherId查询获取教师信息
 				this.loadTeacherInfo();
 			}
+			// 添加对teacherId参数的支持
+			else if (options.teacherId) {
+				this.teacherId = options.teacherId;
+				this.teacherName = options.teacherName || '老师';
+				// 如果有教师名称但没有ID信息，仍然尝试加载
+				if (!options.teacherName) {
+					this.loadTeacherInfo();
+				}
+			}
 		},
 		methods: {
 			/**

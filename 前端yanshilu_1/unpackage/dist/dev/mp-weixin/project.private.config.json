@@ -3,14 +3,14 @@
   "projectname": "前端yanshilu_1",
   "setting": {
     "compileHotReLoad": true,
-    "preloadBackgroundData": true
+    "preloadBackgroundData": false
   },
   "condition": {
     "miniprogram": {
       "list": [
         {
-          "name": "",
-          "pathName": "pages/mine/order/appraise/appraise",
+          "name": "pages/mine/order",
+          "pathName": "pages/mine/order",
           "query": "",
           "launchMode": "default",
           "scene": null

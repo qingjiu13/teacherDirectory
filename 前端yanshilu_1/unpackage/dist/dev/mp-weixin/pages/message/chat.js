@@ -18,6 +18,12 @@ const _sfc_main = common_vendor.defineComponent({
     if (options.userId) {
       this.teacherId = options.userId;
       this.loadTeacherInfo();
+    } else if (options.teacherId) {
+      this.teacherId = options.teacherId;
+      this.teacherName = options.teacherName || "老师";
+      if (!options.teacherName) {
+        this.loadTeacherInfo();
+      }
     }
   },
   methods: {
