@@ -1,30 +1,10 @@
-import { createSSRApp } from 'vue'
 import { createStore } from 'vuex'
-// 导入根级别状态管理
-import rootGetters from './getters'
-import rootMutations from './mutations'
-import rootActions from './actions'
+
 // 导入模块
-import auth from './modules/auth'
-import message from './modules/message'
-import course from './modules/course'
-import order from './modules/order'
-
-// 不需要显式调用Vue.use(Vuex)，因为我们使用的是组合式API
-
-/**
- * @description Vuex根状态
- */
-const state = {
-  isLoading: false,
-  error: null,
-  appVersion: '1.0.0',
-  appConfig: {
-    theme: uni.getStorageSync('appConfig')?.theme || 'light',
-    fontSize: uni.getStorageSync('appConfig')?.fontSize || 'medium',
-    language: uni.getStorageSync('appConfig')?.language || 'zh-CN'
-  }
-}
+import common from './modules/common'
+import user from './modules/user'
+import aiChat from './modules/ai-chat'
+import teacher from './modules/teacher'
 
 /**
  * @description 创建Vuex存储实例
@@ -32,15 +12,11 @@ const state = {
  */
 function createVuexStore() {
   return createStore({
-    state,
-    getters: rootGetters,
-    mutations: rootMutations,
-    actions: rootActions,
     modules: {
-      auth,
-      message,
-      course,
-      order
+      common,
+      user,
+      'ai-chat': aiChat,
+      teacher
     },
     // 严格模式，防止直接修改状态
     strict: process.env.NODE_ENV !== 'production'
@@ -55,11 +31,11 @@ const store = createVuexStore();
 /**
  * @description 初始化应用
  * 在app.vue中调用这个方法进行初始化
- * @returns {Promise<void>} 初始化结果
+ * @returns {Promise<Object>} 初始化结果
  */
 export const initializeApp = async () => {
   try {
-    await store.dispatch('initApp');
+    await store.dispatch('common/initApp');
     console.log('应用初始化成功');
     return { success: true };
   } catch (error) {
