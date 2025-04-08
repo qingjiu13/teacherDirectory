@@ -58,6 +58,7 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function createApp() {
   const app = common_vendor.createSSRApp(_sfc_main);
+  app.use(store_index.store);
   return {
     app
   };

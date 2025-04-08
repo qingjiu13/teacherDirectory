@@ -1,145 +1,190 @@
 /**
  * @description AI聊天相关API服务
  */
+// 删除axios导入，使用uni-app提供的请求API
+import { API_BASE_URL, AIQA_TEST_URL } from '../../config';
+
+const API_PREFIX = `${API_BASE_URL}/ai-chat`;
+
+// 错误码和消息映射
+const ERROR_MESSAGES = {
+  NETWORK_ERROR: '网络连接失败，请检查您的网络设置',
+  TIMEOUT_ERROR: '请求超时，请稍后再试',
+  SERVER_ERROR: '服务器错误，请稍后再试',
+  AUTH_ERROR: '身份验证失败，请重新登录',
+  INVALID_PARAM: '参数错误',
+  RATE_LIMIT: '请求过于频繁，请稍后再试',
+  UNKNOWN_ERROR: '未知错误，请稍后再试'
+};
 
 /**
- * @description 获取历史会话列表
+ * @description 使用uni.request封装网络请求
+ * @param {Object} options - 请求选项
+ * @returns {Promise<Object>} 请求结果
+ */
+const request = (options) => {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: options.url,
+      data: options.data,
+      method: options.method || 'GET',
+      header: options.headers || {},
+      success: (res) => {
+        resolve(res);
+      },
+      fail: (err) => {
+        reject(err);
+      }
+    });
+  });
+};
+
+/**
+ * @description 处理响应错误
+ * @param {Object} error - 错误对象
+ * @returns {Object} 格式化的错误对象
+ */
+const handleError = (error) => {
+  let errorMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
+  
+  if (error.statusCode) {
+    // 处理HTTP状态码错误
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      errorMessage = ERROR_MESSAGES.AUTH_ERROR;
+    } else if (error.statusCode === 404) {
+      errorMessage = '请求的资源不存在';
+    } else if (error.statusCode === 429) {
+      errorMessage = ERROR_MESSAGES.RATE_LIMIT;
+    } else if (error.statusCode >= 500) {
+      errorMessage = ERROR_MESSAGES.SERVER_ERROR;
+    }
+    
+    // 尝试从响应中获取更详细的错误信息
+    if (error.data && error.data.message) {
+      errorMessage = error.data.message;
+    }
+  } else {
+    // 网络错误或其他错误
+    errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
+  }
+  
+  return {
+    message: errorMessage,
+    originalError: error
+  };
+};
+
+/**
+ * @description 获取会话列表
  * @returns {Promise<Object>} 会话列表
  */
-export const getConversations = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: [
-          { 
-            id: 'c1', 
-            title: '英语学习会话', 
-            lastMessage: '如何学好英语写作?', 
-            timestamp: Date.now() - 3600000,
-            unread: false
-          },
-          { 
-            id: 'c2', 
-            title: '数学问题求解', 
-            lastMessage: '请解释一下微积分基本定理', 
-            timestamp: Date.now() - 86400000,
-            unread: false
-          },
-          { 
-            id: 'c3', 
-            title: '编程辅导', 
-            lastMessage: '如何优化这段代码?', 
-            timestamp: Date.now() - 172800000,
-            unread: false
-          }
-        ]
-      });
-    }, 300);
-  });
+export const getConversations = async () => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations`
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('获取会话列表失败:', error);
+    return { success: false, error: handleError(error) };
+  }
 };
 
 /**
- * @description 获取特定会话的消息历史
+ * @description 获取会话消息
  * @param {string} conversationId - 会话ID
- * @returns {Promise<Object>} 消息历史
+ * @returns {Promise<Object>} 会话消息
  */
-export const getMessages = (conversationId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: {
-          conversationId,
-          title: conversationId === 'c1' ? '英语学习会话' : 
-                 conversationId === 'c2' ? '数学问题求解' : '编程辅导',
-          messages: [
-            {
-              id: `m${Date.now()}-1`,
-              role: 'user',
-              content: '你好，我想学习一些新知识',
-              timestamp: Date.now() - 3600000
-            },
-            {
-              id: `m${Date.now()}-2`,
-              role: 'assistant',
-              content: '你好！我很乐意帮助你学习新知识。请告诉我你对哪个领域或主题感兴趣，我们可以从那里开始。',
-              timestamp: Date.now() - 3580000
-            },
-            {
-              id: `m${Date.now()}-3`,
-              role: 'user',
-              content: conversationId === 'c1' ? '如何学好英语写作?' : 
-                       conversationId === 'c2' ? '请解释一下微积分基本定理' : '如何优化这段代码?',
-              timestamp: Date.now() - 3500000
-            }
-          ]
-        }
-      });
-    }, 500);
-  });
+export const getMessages = async (conversationId) => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations/${conversationId}/messages`
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('获取会话消息失败:', error);
+    return { success: false, error: handleError(error) };
+  }
 };
 
 /**
- * @description 发送消息到AI
- * @param {Object} message - 消息对象
- * @param {string} message.conversationId - 会话ID
- * @param {string} message.content - 消息内容
- * @returns {Promise<Object>} AI回复
+ * @description 发送消息
+ * @param {Object} params - 请求参数
+ * @param {string} params.message - 消息内容
+ * @param {string} [params.conversationId] - 会话ID，不传则创建新会话
+ * @param {Object} [params.context] - 上下文信息
+ * @returns {Promise<Object>} 消息响应
  */
-export const sendMessage = (message) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: {
-          id: `m${Date.now()}-response`,
-          role: 'assistant',
-          content: message.conversationId === 'c1' ? 
-            '要提高英语写作能力，可以从以下几个方面入手：1. 多阅读英语原版材料；2. 每天坚持写作练习；3. 学习句型和词汇；4. 寻求反馈和修改；5. 使用写作工具辅助学习。' : 
-            message.conversationId === 'c2' ? 
-            '微积分基本定理是连接微分学和积分学的桥梁，它表明定积分可以通过原函数的差值计算。具体来说，如果函数f在闭区间[a,b]上连续，F是f的一个原函数，那么∫(a,b)f(x)dx = F(b) - F(a)。' : 
-            '代码优化可以从算法效率、内存使用、代码结构等多方面考虑。建议使用更高效的算法、避免重复计算、减少不必要的内存分配、使用适当的数据结构等。没有看到具体代码，无法提供更详细的优化建议。',
-          timestamp: Date.now()
-        }
-      });
-    }, 1000);
-  });
+export const sendMessage = async (params) => {
+  try {
+    const requestData = {
+      message: params.message,
+      conversationId: params.conversationId,
+      context: params.context || {}
+    };
+    
+    const response = await request({
+      url: `${API_PREFIX}/chat`,
+      method: 'POST',
+      data: requestData
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('发送消息失败:', error);
+    return { success: false, error: handleError(error) };
+  }
 };
 
 /**
  * @description 创建新会话
- * @returns {Promise<Object>} 新会话信息
+ * @returns {Promise<Object>} 创建结果
  */
-export const createConversation = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: {
-          id: `c${Date.now()}`,
-          title: '新会话',
-          lastMessage: '',
-          timestamp: Date.now(),
-          unread: false
-        }
-      });
-    }, 300);
-  });
+export const createConversation = async () => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations`,
+      method: 'POST'
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('创建会话失败:', error);
+    return { success: false, error: handleError(error) };
+  }
 };
 
 /**
  * @description 删除会话
  * @param {string} conversationId - 会话ID
- * @returns {Promise<Object>} 操作结果
+ * @returns {Promise<Object>} 删除结果
  */
-export const deleteConversation = (conversationId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: '会话已删除'
-      });
-    }, 300);
-  });
+export const deleteConversation = async (conversationId) => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations/${conversationId}`,
+      method: 'DELETE'
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('删除会话失败:', error);
+    return { success: false, error: handleError(error) };
+  }
+};
+
+/**
+ * @description 测试AIQA接口
+ * @param {string} question - 用户提问
+ * @returns {Promise<Object>} 请求结果
+ */
+export const testAIQA = async (question) => {
+  try {
+    const url = `${AIQA_TEST_URL}?question=${encodeURIComponent(question)}`;
+    
+    const response = await request({
+      url: url
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('测试AIQA失败:', error);
+    return { success: false, error: handleError(error) };
+  }
 }; 

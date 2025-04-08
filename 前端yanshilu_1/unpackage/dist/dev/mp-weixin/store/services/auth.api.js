@@ -48,7 +48,7 @@ const login = (credentials) => {
 const getUserInfo = (token) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const role = token.startsWith("teacher") ? "teacher" : "student";
+      const role = token && typeof token === "string" && token.startsWith("teacher") ? "teacher" : "student";
       resolve({
         success: true,
         data: {
@@ -90,7 +90,47 @@ const refreshToken = (refreshToken2) => {
     }, 300);
   });
 };
-exports.getUserInfo = getUserInfo;
-exports.login = login;
-exports.refreshToken = refreshToken;
+const jwt = {
+  /**
+   * @description 解码JWT令牌
+   * @param {string} token - JWT令牌
+   * @returns {Object|null} 解码后的载荷
+   */
+  decode(token) {
+    try {
+      if (!token)
+        return null;
+      return common_vendor.jwtDecode(token);
+    } catch (error) {
+      common_vendor.index.__f__("error", "at store/services/auth.api.js:137", "Token解析失败:", error);
+      return null;
+    }
+  },
+  /**
+   * @description 校验JWT令牌是否有效
+   * @param {string} token - JWT令牌
+   * @returns {boolean} 是否有效
+   */
+  isValid(token) {
+    if (!token || typeof token !== "string")
+      return false;
+    try {
+      const decoded = this.decode(token);
+      if (!decoded)
+        return false;
+      const currentTime = Date.now() / 1e3;
+      return decoded.exp > currentTime;
+    } catch (error) {
+      return false;
+    }
+  }
+};
+const auth = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  getUserInfo,
+  jwt,
+  login,
+  refreshToken
+}, Symbol.toStringTag, { value: "Module" }));
+exports.auth = auth;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/store/services/auth.api.js.map

@@ -3,6 +3,7 @@
  */
 
 import { Base64 } from 'js-base64';
+import { jwtDecode } from 'jwt-decode';
 
 /**
  * @description 模拟登录请求
@@ -70,7 +71,8 @@ export const login = (credentials) => {
 export const getUserInfo = (token) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const role = token.startsWith('teacher') ? 'teacher' : 'student';
+      // 添加对token的检查，确保token存在且为字符串
+      const role = token && typeof token === 'string' && token.startsWith('teacher') ? 'teacher' : 'student';
       resolve({
         success: true,
         data: {
@@ -143,6 +145,7 @@ export const jwt = {
    * @returns {boolean} 是否有效
    */
   isValid(token) {
+    if (!token || typeof token !== 'string') return false;
     try {
       const decoded = this.decode(token);
       if (!decoded) return false;

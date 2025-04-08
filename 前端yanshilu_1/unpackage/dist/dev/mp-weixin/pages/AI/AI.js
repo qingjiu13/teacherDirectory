@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const api_API = require("../../api/API.js");
+const store_index = require("../../store/index.js");
 const choiceSelected = () => "../../components/combobox/combobox.js";
 const MESSAGE_TYPE = new UTSJSONObject(
   {
@@ -26,6 +26,18 @@ const CHAT_MODE = new UTSJSONObject({
 const _sfc_main = common_vendor.defineComponent({
   components: {
     choiceSelected
+  },
+  computed: {
+    // 从Vuex中获取状态
+    testResult() {
+      return store_index.store.getters["aiChat/testResult"];
+    },
+    isTesting() {
+      return store_index.store.getters["aiChat/isTesting"];
+    },
+    isLoading() {
+      return store_index.store.getters["aiChat/isLoading"];
+    }
   },
   data() {
     return {
@@ -140,7 +152,7 @@ const _sfc_main = common_vendor.defineComponent({
           }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:305", "获取用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:318", "获取用户信息失败:", e);
       }
     },
     /**
@@ -150,7 +162,7 @@ const _sfc_main = common_vendor.defineComponent({
       try {
         common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userInfo));
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:316", "保存用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:329", "保存用户信息失败:", e);
         this.showToast("保存用户信息失败，可能影响后续对话");
       }
     },
@@ -179,7 +191,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} keyword - 搜索关键词
      */
     onSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:350", "学校搜索:", keyword);
+      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:363", "学校搜索:", keyword);
     },
     /**
      * @description 切换对话模式
@@ -241,57 +253,28 @@ const _sfc_main = common_vendor.defineComponent({
           type: MESSAGE_TYPE.AI,
           content: "",
           status: MESSAGE_STATUS.SENDING,
-          streaming: true
+          streaming: false
+          // 改为false，不使用流式传输
         });
         this.scrollToBottom();
         this.isProcessing = true;
         try {
-          this.updateContextInfo();
-          const params = new UTSJSONObject({
-            message: messageContent,
-            context: this.contextInfo,
-            history: this.getMessageHistory()
-          });
-          this.abortCurrentRequest();
-          let controller = null;
-          this.currentController = controller;
-          let signal = null;
-          yield this.sendStreamRequest(params, aiMessageIndex, signal);
-          this.updateMessageStatus(aiMessageIndex, MESSAGE_STATUS.SENT);
-          this.messages[aiMessageIndex].streaming = false;
-        } catch (error) {
-          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:469", "发送消息失败:", error);
-          if (error.name === "AbortError") {
-            common_vendor.index.__f__("log", "at pages/AI/AI.uvue:473", "请求被用户取消");
-            this.messages.splice(aiMessageIndex, 1);
+          const response = yield store_index.store.dispatch("aiChat/testAIQA", messageContent);
+          if (response.success) {
+            this.messages[aiMessageIndex].content = response.data;
+            this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
           } else {
-            this.updateMessageStatus(aiMessageIndex, MESSAGE_STATUS.ERROR);
-            this.messages[aiMessageIndex].streaming = false;
-            this.messages[aiMessageIndex].content = error.message || "获取回复失败，请重试";
+            this.messages[aiMessageIndex].content = response.message || "获取回复失败，请重试";
+            this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
           }
+        } catch (error) {
+          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:462", "发送消息失败:", error);
+          this.messages[aiMessageIndex].content = error.message || "获取回复失败，请重试";
+          this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
         } finally {
           this.isProcessing = false;
-          this.currentController = null;
-        }
-      });
-    },
-    /**
-     * @description 发送流式请求并处理响应
-     * @param {Object} params - 请求参数
-     * @param {Number} messageIndex - 消息索引
-     * @param {AbortSignal} signal - 中断信号
-     */
-    sendStreamRequest(params = null, messageIndex = null, signal = null) {
-      return common_vendor.__awaiter(this, void 0, void 0, function* () {
-        try {
-          yield api_API.sendChatMessage(params, (chunk = null) => {
-            if (chunk && typeof chunk === "string") {
-              this.messages[messageIndex].content += chunk;
-            }
-            this.scrollToBottom();
-          }, signal);
-        } catch (error) {
-          throw error;
+          this.messages[aiMessageIndex].streaming = false;
+          this.scrollToBottom();
         }
       });
     },
@@ -300,41 +283,36 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {Number} index - 消息索引
      */
     retryMessage(index = null) {
-      if (index < 1 || this.messages[index].type !== MESSAGE_TYPE.AI) {
-        return null;
-      }
-      const userMessage = this.messages[index - 1];
-      if (userMessage.type !== MESSAGE_TYPE.USER) {
-        return null;
-      }
-      this.updateMessageStatus(index, MESSAGE_STATUS.SENDING);
-      this.messages[index].content = "";
-      this.messages[index].streaming = true;
-      this.isProcessing = true;
-      this.abortCurrentRequest();
-      let controller = null;
-      this.currentController = controller;
-      const params = new UTSJSONObject({
-        message: userMessage.content,
-        context: this.contextInfo,
-        history: this.getMessageHistory(index - 1)
-        // 获取到失败消息之前的历史
-      });
-      let signal = null;
-      this.sendStreamRequest(params, index, signal).then(() => {
-        this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
-        this.messages[index].streaming = false;
-      }).catch((error = null) => {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:568", "重试发送消息失败:", error);
-        if (error.name === "AbortError") {
-          common_vendor.index.__f__("log", "at pages/AI/AI.uvue:572", "重试请求被用户取消");
-        } else {
-          this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
-          this.messages[index].content = error.message || "获取回复失败，请重试";
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        if (index < 1 || this.messages[index].type !== MESSAGE_TYPE.AI) {
+          return Promise.resolve(null);
         }
-      }).finally(() => {
-        this.isProcessing = false;
-        this.currentController = null;
+        const userMessage = this.messages[index - 1];
+        if (userMessage.type !== MESSAGE_TYPE.USER) {
+          return Promise.resolve(null);
+        }
+        this.updateMessageStatus(index, MESSAGE_STATUS.SENDING);
+        this.messages[index].content = "";
+        this.messages[index].streaming = false;
+        this.isProcessing = true;
+        try {
+          const response = yield store_index.store.dispatch("aiChat/testAIQA", userMessage.content);
+          if (response.success) {
+            this.messages[index].content = response.data;
+            this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
+          } else {
+            this.messages[index].content = response.message || "获取回复失败，请重试";
+            this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
+          }
+        } catch (error) {
+          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:511", "重试发送消息失败:", error);
+          this.messages[index].content = error.message || "获取回复失败，请重试";
+          this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
+        } finally {
+          this.isProcessing = false;
+          this.messages[index].streaming = false;
+          this.scrollToBottom();
+        }
       });
     },
     /**
@@ -388,7 +366,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 处理滚动到顶部事件（加载更多历史消息）
      */
     onScrollToUpper(e = null) {
-      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:648", "滚动到顶部");
+      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:584", "滚动到顶部");
     },
     /**
      * @description 处理滚动事件（用于控制是否启用自动滚动）

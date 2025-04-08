@@ -126,8 +126,12 @@ const getBookings = (params = {}) => {
     }, 500);
   });
 };
-exports.bookTeacher = bookTeacher;
-exports.getBookings = getBookings;
-exports.getTeacherDetail = getTeacherDetail;
-exports.getTeachers = getTeachers;
+const teacher = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  bookTeacher,
+  getBookings,
+  getTeacherDetail,
+  getTeachers
+}, Symbol.toStringTag, { value: "Module" }));
+exports.teacher = teacher;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/store/services/teacher.api.js.map

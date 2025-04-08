@@ -1,113 +1,139 @@
 "use strict";
-const getConversations = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: [
-          {
-            id: "c1",
-            title: "英语学习会话",
-            lastMessage: "如何学好英语写作?",
-            timestamp: Date.now() - 36e5,
-            unread: false
-          },
-          {
-            id: "c2",
-            title: "数学问题求解",
-            lastMessage: "请解释一下微积分基本定理",
-            timestamp: Date.now() - 864e5,
-            unread: false
-          },
-          {
-            id: "c3",
-            title: "编程辅导",
-            lastMessage: "如何优化这段代码?",
-            timestamp: Date.now() - 1728e5,
-            unread: false
-          }
-        ]
-      });
-    }, 300);
+const common_vendor = require("../../common/vendor.js");
+const config_index = require("../../config/index.js");
+const API_PREFIX = `${config_index.API_BASE_URL}/ai-chat`;
+const ERROR_MESSAGES = {
+  NETWORK_ERROR: "网络连接失败，请检查您的网络设置",
+  TIMEOUT_ERROR: "请求超时，请稍后再试",
+  SERVER_ERROR: "服务器错误，请稍后再试",
+  AUTH_ERROR: "身份验证失败，请重新登录",
+  INVALID_PARAM: "参数错误",
+  RATE_LIMIT: "请求过于频繁，请稍后再试",
+  UNKNOWN_ERROR: "未知错误，请稍后再试"
+};
+const request = (options) => {
+  return new Promise((resolve, reject) => {
+    common_vendor.index.request({
+      url: options.url,
+      data: options.data,
+      method: options.method || "GET",
+      header: options.headers || {},
+      success: (res) => {
+        resolve(res);
+      },
+      fail: (err) => {
+        reject(err);
+      }
+    });
   });
 };
-const getMessages = (conversationId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: {
-          conversationId,
-          title: conversationId === "c1" ? "英语学习会话" : conversationId === "c2" ? "数学问题求解" : "编程辅导",
-          messages: [
-            {
-              id: `m${Date.now()}-1`,
-              role: "user",
-              content: "你好，我想学习一些新知识",
-              timestamp: Date.now() - 36e5
-            },
-            {
-              id: `m${Date.now()}-2`,
-              role: "assistant",
-              content: "你好！我很乐意帮助你学习新知识。请告诉我你对哪个领域或主题感兴趣，我们可以从那里开始。",
-              timestamp: Date.now() - 358e4
-            },
-            {
-              id: `m${Date.now()}-3`,
-              role: "user",
-              content: conversationId === "c1" ? "如何学好英语写作?" : conversationId === "c2" ? "请解释一下微积分基本定理" : "如何优化这段代码?",
-              timestamp: Date.now() - 35e5
-            }
-          ]
-        }
-      });
-    }, 500);
-  });
+const handleError = (error) => {
+  let errorMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
+  if (error.statusCode) {
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      errorMessage = ERROR_MESSAGES.AUTH_ERROR;
+    } else if (error.statusCode === 404) {
+      errorMessage = "请求的资源不存在";
+    } else if (error.statusCode === 429) {
+      errorMessage = ERROR_MESSAGES.RATE_LIMIT;
+    } else if (error.statusCode >= 500) {
+      errorMessage = ERROR_MESSAGES.SERVER_ERROR;
+    }
+    if (error.data && error.data.message) {
+      errorMessage = error.data.message;
+    }
+  } else {
+    errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
+  }
+  return {
+    message: errorMessage,
+    originalError: error
+  };
 };
-const sendMessage = (message) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: {
-          id: `m${Date.now()}-response`,
-          role: "assistant",
-          content: message.conversationId === "c1" ? "要提高英语写作能力，可以从以下几个方面入手：1. 多阅读英语原版材料；2. 每天坚持写作练习；3. 学习句型和词汇；4. 寻求反馈和修改；5. 使用写作工具辅助学习。" : message.conversationId === "c2" ? "微积分基本定理是连接微分学和积分学的桥梁，它表明定积分可以通过原函数的差值计算。具体来说，如果函数f在闭区间[a,b]上连续，F是f的一个原函数，那么∫(a,b)f(x)dx = F(b) - F(a)。" : "代码优化可以从算法效率、内存使用、代码结构等多方面考虑。建议使用更高效的算法、避免重复计算、减少不必要的内存分配、使用适当的数据结构等。没有看到具体代码，无法提供更详细的优化建议。",
-          timestamp: Date.now()
-        }
-      });
-    }, 1e3);
-  });
+const getConversations = async () => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations`
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:88", "获取会话列表失败:", error);
+    return { success: false, error: handleError(error) };
+  }
 };
-const createConversation = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        data: {
-          id: `c${Date.now()}`,
-          title: "新会话",
-          lastMessage: "",
-          timestamp: Date.now(),
-          unread: false
-        }
-      });
-    }, 300);
-  });
+const getMessages = async (conversationId) => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations/${conversationId}/messages`
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:105", "获取会话消息失败:", error);
+    return { success: false, error: handleError(error) };
+  }
 };
-const deleteConversation = (conversationId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: "会话已删除"
-      });
-    }, 300);
-  });
+const sendMessage = async (params) => {
+  try {
+    const requestData = {
+      message: params.message,
+      conversationId: params.conversationId,
+      context: params.context || {}
+    };
+    const response = await request({
+      url: `${API_PREFIX}/chat`,
+      method: "POST",
+      data: requestData
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:133", "发送消息失败:", error);
+    return { success: false, error: handleError(error) };
+  }
 };
-exports.createConversation = createConversation;
-exports.deleteConversation = deleteConversation;
-exports.getConversations = getConversations;
-exports.getMessages = getMessages;
-exports.sendMessage = sendMessage;
+const createConversation = async () => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations`,
+      method: "POST"
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:150", "创建会话失败:", error);
+    return { success: false, error: handleError(error) };
+  }
+};
+const deleteConversation = async (conversationId) => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations/${conversationId}`,
+      method: "DELETE"
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:168", "删除会话失败:", error);
+    return { success: false, error: handleError(error) };
+  }
+};
+const testAIQA = async (question) => {
+  try {
+    const url = `${config_index.AIQA_TEST_URL}?question=${encodeURIComponent(question)}`;
+    const response = await request({
+      url
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:187", "测试AIQA失败:", error);
+    return { success: false, error: handleError(error) };
+  }
+};
+const aiChat = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  createConversation,
+  deleteConversation,
+  getConversations,
+  getMessages,
+  sendMessage,
+  testAIQA
+}, Symbol.toStringTag, { value: "Module" }));
+exports.aiChat = aiChat;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/store/services/ai-chat.api.js.map
