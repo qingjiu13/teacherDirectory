@@ -111,6 +111,7 @@
  */
 import { Navigator, MineRoutes } from '@/router/Router.js';
 import TabBar from '../../../components/tab-bar/tab-bar.uvue';
+import store, { loadTeacherData, loadStudentData } from '@/store/index.js';
 
 export default {
   components: {
@@ -123,6 +124,7 @@ export default {
       userData: {},
       isLoggedIn: true, // 默认设为true方便调试
       MineRoutes, // 引入路由对象方便模板使用
+      isLoading: false, // 加载状态
       // 模拟数据
       mockTeacherData: {
         id: 'teacher123',
@@ -162,23 +164,62 @@ export default {
       }
     }
   },
-  onLoad() {
-    // 获取用户角色信息或使用默认值
-    const storedUserRole = uni.getStorageSync('userRole') || 'student';
-    this.userRole = storedUserRole;
+  async onLoad() {
+    // 设置加载状态
+    this.isLoading = true;
     
-    // 加载测试数据
-    this.loadMockData();
-    console.log("当前用户角色:", this.userRole); // 调试输出
+    try {
+      // 获取用户角色信息或使用默认值
+      const storedUserRole = uni.getStorageSync('userRole') || 'student';
+      this.userRole = storedUserRole;
+      
+      // 根据角色加载数据
+      if (this.userRole === 'teacher') {
+        // 加载教师特有数据
+        await loadTeacherData();
+        console.log('教师数据已加载');
+      } else {
+        // 加载学生特有数据
+        await loadStudentData();
+        console.log('学生数据已加载');
+      }
+      
+      // 加载测试数据
+      this.loadMockData();
+      console.log("当前用户角色:", this.userRole);
+    } catch (error) {
+      console.error('加载用户数据失败:', error);
+    } finally {
+      this.isLoading = false;
+    }
   },
-  onShow() {
+  async onShow() {
     // 每次显示页面时检查角色状态
     const storedUserRole = uni.getStorageSync('userRole');
-    if (storedUserRole) {
-      this.userRole = storedUserRole;
-      // 重新加载对应的测试数据
-      this.loadMockData();
-      console.log("onShow 更新用户角色:", this.userRole); // 调试输出
+    
+    if (storedUserRole && storedUserRole !== this.userRole) {
+      this.isLoading = true;
+      
+      try {
+        this.userRole = storedUserRole;
+        
+        // 角色变更时重新加载相应数据
+        if (this.userRole === 'teacher') {
+          await loadTeacherData();
+          console.log('教师数据已重新加载');
+        } else {
+          await loadStudentData();
+          console.log('学生数据已重新加载');
+        }
+        
+        // 重新加载对应的测试数据
+        this.loadMockData();
+        console.log("onShow 更新用户角色:", this.userRole);
+      } catch (error) {
+        console.error('角色切换时加载数据失败:', error);
+      } finally {
+        this.isLoading = false;
+      }
     }
   },
   methods: {

@@ -1,129 +1,186 @@
 <template>
 	<view class="page-container" @click="onPageClick">
-		<!-- 筛选区域 -->
-		<view class="filter-section" @click.stop>
-			<!-- 第一行：学校 -->
-			<view class="filter-row">
-				<view class="filter-item full-width">
-					<text class="filter-label">所在学校：</text>
-					<view class="choice-wrapper">
-						<!-- #ifdef MP-WEIXIN -->
-						<choice-selected 
-							:defaultText="'请选择学校'" 
-							:choiceIndex="schoolIndex" 
-							:choiceList="schoolList"
-							mode="search"
-							:searchPlaceholder="'搜索学校'"
-							@onChoiceClick="onSchoolClick"
-							@search-input="onSchoolSearch"
-							ref="schoolDropdown">
-						</choice-selected>
-						<!-- #endif -->
-						
-						<!-- #ifndef MP-WEIXIN -->
-						<choice-selected 
-							:defaultText="'请选择学校'" 
-							:choiceIndex="schoolIndex" 
-							:choiceList="schoolList"
-							mode="search"
-							:searchPlaceholder="'搜索学校'"
-							@onChoiceClick="onSchoolClick"
-							@search-input="onSchoolSearch"
-							ref="schoolDropdown">
-						</choice-selected>
-						<!-- #endif -->
-					</view>
-				</view>
-			</view>
+		<!-- 新增导航栏和侧边栏 -->
+		<view class="nav-sidebar-container">
+			<!-- 侧边栏遮罩层 -->
+			<view class="sidebar-mask" v-if="sidebarVisible" @click="closeSidebar" :style="{opacity: sidebarVisible ? 0.5 : 0}"></view>
 			
-			<!-- 第二行：专业 -->
-			<view class="filter-row">
-				<view class="filter-item full-width">
-					<text class="filter-label">专业：</text>
-					<view class="choice-wrapper">
-						<choice-selected 
-							:defaultText="'请选择专业'" 
-							:choiceIndex="majorIndex" 
-							:choiceList="majorList"
-							@onChoiceClick="onMajorClick"
-							ref="majorDropdown">
-						</choice-selected>
+			<!-- 历史记录侧边栏 -->
+			<view class="history-sidebar" :class="{visible: sidebarVisible}">
+				<view class="sidebar-header">
+					<text class="sidebar-title">历史记录</text>
+				</view>
+				<scroll-view class="history-list" scroll-y="true">
+					<view class="empty-history" v-if="historyChats.length === 0">
+						<text>暂无历史记录</text>
 					</view>
-				</view>
-			</view>
-		</view>
-		
-		<!-- 消息区域 -->
-		<view class="message-section">
-			<scroll-view 
-				scroll-y="true" 
-				class="message-scroll" 
-				:scroll-into-view="autoScrollId"
-				@scrolltoupper="onScrollToUpper"
-				@scroll="onScroll"
-				ref="messageScroll">
-				
-				<view v-if="messages.length === 0" class="empty-message">
-					<text>您可以开始提问了...</text>
-				</view>
-				
-				<view v-else class="message-list">
-					<view v-for="(msg, index) in messages" 
-						:key="index" 
-						:id="'msg-' + index"
-						class="message-item" 
-						:class="[msg.type, {'streaming': msg.streaming}]">
-						<view class="message-header" v-if="msg.type === 'ai'">
-							<text class="ai-title">研师录AI</text>
-						</view>
-						<view class="message-content">
-							<text>{{msg.content}}</text>
-						</view>
-						<view class="message-status" v-if="msg.status === 'sending'">
-							<text class="sending-dots">...</text>
-						</view>
-						<view class="message-status" v-if="msg.status === 'error'">
-							<text class="error-text">发送失败</text>
-							<view class="retry-btn" @click="retryMessage(index)">
-								<text>重试</text>
+					<view v-else>
+						<view 
+							v-for="(item, index) in historyChats" 
+							:key="index" 
+							class="history-item"
+							:class="{'active': currentChatId === item.id}"
+							@click="loadChatHistory(item.id)">
+							<view class="history-item-content">
+								<text class="history-title">{{item.title || '对话 ' + (index + 1)}}</text>
+								<text class="history-time">{{formatTime(item.updatedAt || item.createdAt)}}</text>
+							</view>
+							<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+								<text class="delete-icon">×</text>
 							</view>
 						</view>
 					</view>
+				</scroll-view>
+			</view>
+			
+			<!-- 主内容包装器（包含导航栏和主内容） -->
+			<view class="main-wrapper" :class="{shifted: sidebarVisible}">
+				<!-- 顶部导航栏 -->
+				<view class="nav-bar">
+					<view class="nav-left">
+						<view class="history-btn" @click.stop="toggleSidebar">
+							<text class="iconfont">&#xe67c;</text>
+						</view>
+					</view>
+					<view class="nav-title">
+						<text>研师录AI</text>
+					</view>
+					<view class="nav-right">
+						<view class="new-chat-btn" @click.stop="startNewChat">
+							<text>新对话</text>
+						</view>
+					</view>
 				</view>
-			</scroll-view>
-		</view>
-		
-		<!-- 功能模式区域 - 移到消息区域下方 -->
-		<view class="function-section">
-			<view class="function-list">
-				<view class="function-item" 
-					:class="{active: currentMode === 'general'}" 
-					@click="switchMode('general')">
-					<text class="function-item-text">通用</text>
-				</view>
-				<view class="function-item" 
-					:class="{active: currentMode === 'school'}" 
-					@click="switchMode('school')">
-					<text class="function-item-text">择校</text>
-				</view>
-				<view class="function-item" 
-					:class="{active: currentMode === 'career'}" 
-					@click="switchMode('career')">
-					<text class="function-item-text">职业规划</text>
+				
+				<!-- 主内容区域 -->
+				<view class="main-content">
+					<!-- 筛选区域 -->
+					<view class="filter-section" @click.stop>
+						<!-- 第一行：学校 -->
+						<view class="filter-row">
+							<view class="filter-item full-width">
+								<text class="filter-label">所在学校：</text>
+								<view class="choice-wrapper">
+									<!-- #ifdef MP-WEIXIN -->
+									<choice-selected 
+										:defaultText="'请选择学校'" 
+										:choiceIndex="schoolIndex" 
+										:choiceList="schoolList"
+										mode="search"
+										:searchPlaceholder="'搜索学校'"
+										@onChoiceClick="onSchoolClick"
+										@search-input="onSchoolSearch"
+										ref="schoolDropdown">
+									</choice-selected>
+									<!-- #endif -->
+									
+									<!-- #ifndef MP-WEIXIN -->
+									<choice-selected 
+										:defaultText="'请选择学校'" 
+										:choiceIndex="schoolIndex" 
+										:choiceList="schoolList"
+										mode="search"
+										:searchPlaceholder="'搜索学校'"
+										@onChoiceClick="onSchoolClick"
+										@search-input="onSchoolSearch"
+										ref="schoolDropdown">
+									</choice-selected>
+									<!-- #endif -->
+								</view>
+							</view>
+						</view>
+						
+						<!-- 第二行：专业 -->
+						<view class="filter-row">
+							<view class="filter-item full-width">
+								<text class="filter-label">专业：</text>
+								<view class="choice-wrapper">
+									<choice-selected 
+										:defaultText="'请选择专业'" 
+										:choiceIndex="majorIndex" 
+										:choiceList="majorList"
+										@onChoiceClick="onMajorClick"
+										ref="majorDropdown">
+									</choice-selected>
+								</view>
+							</view>
+						</view>
+					</view>
+					
+					<!-- 消息区域 -->
+					<view class="message-section">
+						<scroll-view 
+							scroll-y="true" 
+							class="message-scroll" 
+							:scroll-into-view="autoScrollId"
+							@scrolltoupper="onScrollToUpper"
+							@scroll="onScroll"
+							ref="messageScroll">
+							
+							<view v-if="messages.length === 0" class="empty-message">
+								<text>您可以开始提问了...</text>
+							</view>
+							
+							<view v-else class="message-list">
+								<view v-for="(msg, index) in messages" 
+									:key="index" 
+									:id="'msg-' + index"
+									class="message-item" 
+									:class="[msg.type, {'streaming': msg.streaming}]">
+									<view class="message-header" v-if="msg.type === 'ai'">
+										<text class="ai-title">研师录AI</text>
+									</view>
+									<view class="message-content">
+										<text>{{msg.content}}</text>
+									</view>
+									<view class="message-status" v-if="msg.status === 'sending'">
+										<text class="sending-dots">...</text>
+									</view>
+									<view class="message-status" v-if="msg.status === 'error'">
+										<text class="error-text">发送失败</text>
+										<view class="retry-btn" @click="retryMessage(index)">
+											<text>重试</text>
+										</view>
+									</view>
+								</view>
+							</view>
+						</scroll-view>
+					</view>
+					
+					<!-- 功能模式区域 - 移到消息区域下方 -->
+					<view class="function-section">
+						<view class="function-list">
+							<view class="function-item" 
+								:class="{active: currentMode === 'general'}" 
+								@click="switchMode('general')">
+								<text class="function-item-text">通用</text>
+							</view>
+							<view class="function-item" 
+								:class="{active: currentMode === 'school'}" 
+								@click="switchMode('school')">
+								<text class="function-item-text">择校</text>
+							</view>
+							<view class="function-item" 
+								:class="{active: currentMode === 'career'}" 
+								@click="switchMode('career')">
+								<text class="function-item-text">职业规划</text>
+							</view>
+						</view>
+					</view>
+					
+					<!-- 输入区域 -->
+					<view class="input-section">
+						<input class="message-input" 
+							v-model="inputValue" 
+							placeholder="请输入您的问题..." 
+							:disabled="isProcessing"
+							@confirm="sendMessage" />
+						<button class="send-button" @click="sendMessage" :disabled="isProcessing || !inputValue.trim()">
+							<text>{{isProcessing ? '请稍候' : '发送'}}</text>
+						</button>
+					</view>
 				</view>
 			</view>
-		</view>
-		
-		<!-- 输入区域 -->
-		<view class="input-section">
-			<input class="message-input" 
-				v-model="inputValue" 
-				placeholder="请输入您的问题..." 
-				:disabled="isProcessing"
-				@confirm="sendMessage" />
-			<button class="send-button" @click="sendMessage" :disabled="isProcessing || !inputValue.trim()">
-				<text>{{isProcessing ? '请稍候' : '发送'}}</text>
-			</button>
 		</view>
 		
 		<!-- 加载提示 -->
@@ -175,6 +232,10 @@
 			},
 			isLoading() {
 				return store.getters['aiChat/isLoading'];
+			},
+			// 新增计算属性，从Vuex获取历史会话
+			historyChats() {
+				return store.getters['aiChat/historyChats'] || [];
 			}
 		},
 		data() {
@@ -237,7 +298,30 @@
 				currentController: null,
 				
 				// 自定义的上下文信息
-				contextInfo: {}
+				contextInfo: {},
+				
+				// 新增导航栏和侧边栏相关
+				sidebarVisible: false,
+				chatHistory: [],
+				currentChatId: null // 当前会话ID
+			}
+		},
+		watch: {
+			// 监听historyChats变化，更新本地的chatHistory
+			historyChats: {
+				handler(newVal) {
+					if (newVal && newVal.length) {
+						this.chatHistory = newVal.map(chat => {
+							return {
+								id: chat.id,
+								title: chat.title || chat.messages[0]?.content.substring(0, 20) || '新对话',
+								time: this.formatTime(chat.createdAt || new Date()),
+								messages: chat.messages
+							};
+						});
+					}
+				},
+				immediate: true
 			}
 		},
 		onLoad() {
@@ -249,6 +333,13 @@
 			
 			// 添加欢迎消息
 			this.addSystemMessage('欢迎使用研师录AI助手，请选择您的所在学校和专业，然后开始提问');
+			
+			// 加载历史会话
+			this.loadChatHistoryFromStorage();
+		},
+		onShow() {
+			// 页面显示时刷新历史记录
+			this.loadChatHistoryFromStorage();
 		},
 		onUnload() {
 			// 页面卸载时中断所有未完成的请求
@@ -413,7 +504,25 @@
 			},
 			
 			/**
-			 * @description 发送消息
+			 * @description 开始新对话
+			 */
+			startNewChat() {
+				// 1. 清空当前会话内容
+				this.messages = [];
+				
+				// 2. 更新当前会话ID
+				this.currentChatId = 'chat_' + Date.now();
+				store.dispatch('aiChat/setCurrentChat', this.currentChatId);
+				
+				// 3. 添加欢迎消息
+				this.addSystemMessage('开始新对话，请输入您的问题');
+				
+				// 4. 关闭侧边栏
+				this.closeSidebar();
+			},
+			
+			/**
+			 * @description 发送消息 (修改以支持保存历史记录)
 			 */
 			async sendMessage() {
 				if (!this.inputValue.trim() || this.isProcessing) {
@@ -448,16 +557,27 @@
 					// 确保上下文信息是最新的
 					this.updateContextInfo();
 					
-					// 调用AIQA测试接口，通过Vuex dispatch，传递问题和上下文
+					// 如果没有当前会话ID，创建一个新的
+					if (!this.currentChatId) {
+						this.currentChatId = 'chat_' + Date.now();
+						// 在Vuex中设置当前会话ID
+						store.dispatch('aiChat/setCurrentChat', this.currentChatId);
+					}
+					
+					// 调用AIQA测试接口，通过Vuex dispatch，传递问题、上下文和会话ID
 					const response = await store.dispatch('aiChat/testAIQA', {
 						question: messageContent,
-						contextInfo: this.contextInfo
+						contextInfo: this.contextInfo,
+						chatId: this.currentChatId
 					});
 					
 					if (response.success) {
 						// 更新AI消息内容
 						this.messages[aiMessageIndex].content = response.data;
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
+						
+						// 保存会话记录
+						this.saveChatHistory();
 					} else {
 						// 处理错误 - 优先使用后端返回的错误信息
 						const errorMessage = response.error && response.error.message ? 
@@ -508,16 +628,20 @@
 					// 确保上下文信息是最新的
 					this.updateContextInfo();
 					
-					// 调用AIQA测试接口，通过Vuex dispatch
+					// 调用AIQA测试接口，通过Vuex dispatch，传递问题、上下文和会话ID
 					const response = await store.dispatch('aiChat/testAIQA', {
 						question: userMessage.content,
-						contextInfo: this.contextInfo
+						contextInfo: this.contextInfo,
+						chatId: this.currentChatId
 					});
 					
 					if (response.success) {
 						// 更新AI消息内容
 						this.messages[index].content = response.data;
 						this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
+						
+						// 保存会话记录
+						this.saveChatHistory();
 					} else {
 						// 处理错误 - 优先使用后端返回的错误信息
 						const errorMessage = response.error && response.error.message ? 
@@ -640,6 +764,137 @@
 			 */
 			hideLoading() {
 				this.isFullLoading = false;
+			},
+			
+			// 新增导航栏和侧边栏相关方法
+			toggleSidebar() {
+				this.sidebarVisible = !this.sidebarVisible;
+			},
+			closeSidebar() {
+				this.sidebarVisible = false;
+			},
+			loadChatHistory(chatId) {
+				if (!chatId) return;
+				
+				try {
+					// 从Vuex加载历史会话
+					store.dispatch('aiChat/loadChat', chatId).then(response => {
+						if (response.success && response.data) {
+							// 设置当前会话ID
+							this.currentChatId = chatId;
+							
+							// 替换当前消息列表
+							this.messages = JSON.parse(JSON.stringify(response.data.messages));
+							
+							// 关闭侧边栏
+							this.closeSidebar();
+							
+							// 滚动到底部
+							this.$nextTick(() => {
+								this.scrollToBottom();
+							});
+						} else {
+							this.showToast('加载历史对话失败: ' + (response.message || '未找到会话'));
+						}
+					});
+				} catch (error) {
+					console.error('加载历史对话失败:', error);
+					this.showToast('加载历史对话失败');
+				}
+			},
+			/**
+			 * @description 从Vuex加载历史会话
+			 */
+			loadChatHistoryFromStorage() {
+				try {
+					// 从Vuex获取历史会话
+					store.dispatch('aiChat/getHistoryChats').then(response => {
+						if (response.success) {
+							console.log('从Vuex加载历史会话成功');
+						} else {
+							console.error('从Vuex加载历史会话失败:', response.message);
+						}
+					});
+				} catch (error) {
+					console.error('加载历史会话错误:', error);
+					this.chatHistory = [];
+				}
+			},
+			/**
+			 * @description 保存聊天历史到Vuex
+			 */
+			saveChatHistory() {
+				try {
+					if (!this.currentChatId || this.messages.length === 0) return;
+					
+					// 寻找第一条用户消息作为标题
+					const firstUserMessage = this.messages.find(msg => msg.type === MESSAGE_TYPE.USER);
+					const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
+					
+					// 创建聊天记录对象
+					const chatData = {
+						id: this.currentChatId,
+						title: title,
+						messages: this.messages,
+						createdAt: new Date(),
+						updatedAt: new Date()
+					};
+					
+					// 保存到Vuex
+					store.dispatch('aiChat/saveChat', chatData).then(response => {
+						if (response.success) {
+							console.log('保存聊天历史到Vuex成功');
+						} else {
+							console.error('保存聊天历史到Vuex失败:', response.message);
+						}
+					});
+				} catch (error) {
+					console.error('保存聊天历史失败:', error);
+				}
+			},
+			/**
+			 * @description 删除历史记录
+			 * @param {String} chatId - 历史记录ID
+			 * @param {Event} e - 事件对象，用于阻止冒泡
+			 */
+			deleteChatHistory(chatId, e) {
+				// 阻止冒泡，避免触发点击加载历史记录
+				e && e.stopPropagation();
+				
+				try {
+					// 使用Vuex删除历史记录
+					store.dispatch('aiChat/deleteChat', chatId).then(response => {
+						if (response.success) {
+							// 如果删除的是当前会话，则清空当前会话
+							if (this.currentChatId === chatId) {
+								this.startNewChat();
+							}
+							this.showToast('删除成功');
+						} else {
+							this.showToast('删除失败: ' + response.message);
+						}
+					});
+				} catch (error) {
+					console.error('删除历史记录失败:', error);
+					this.showToast('删除失败');
+				}
+			},
+			/**
+			 * @description 格式化时间
+			 * @param {Date|String} time - 时间对象或时间字符串
+			 * @returns {String} 格式化后的时间字符串
+			 */
+			formatTime(time) {
+				if (!time) return '';
+				
+				const date = new Date(time);
+				const year = date.getFullYear();
+				const month = String(date.getMonth() + 1).padStart(2, '0');
+				const day = String(date.getDate()).padStart(2, '0');
+				const hours = String(date.getHours()).padStart(2, '0');
+				const minutes = String(date.getMinutes()).padStart(2, '0');
+				
+				return `${year}-${month}-${day} ${hours}:${minutes}`;
 			}
 		}
 	}
@@ -652,7 +907,7 @@
 		height: 100vh;
 		display: flex;
 		flex-direction: column;
-		padding: 20rpx;
+		padding: 0; /* 移除页面容器的内边距 */
 		box-sizing: border-box;
 		background-color: #f5f5f5;
 		overflow: hidden; /* 防止内容溢出 */
@@ -663,10 +918,13 @@
 		width: 100%;
 		padding: 20rpx 15rpx;
 		background-color: #ffffff;
-		border-radius: 16rpx;
+		border-radius: 0 0 16rpx 16rpx; /* 调整圆角，让顶部与导航栏无缝连接 */
 		margin-bottom: 20rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 		box-sizing: border-box;
+		margin-top: 0;
+		position: relative;
+		z-index: 10;
 	}
 	
 	.filter-row {
@@ -976,5 +1234,237 @@
 	.loading-content text {
 		font-size: 28rpx;
 		color: #333;
+	}
+	
+	/* 新增导航栏和侧边栏相关样式 */
+	.nav-sidebar-container {
+		position: relative;
+		width: 100%;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+	
+	.sidebar-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 998;
+		transition: opacity 0.3s ease;
+	}
+	
+	.history-sidebar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 66vw; /* 占屏幕宽度的2/3 */
+		height: 100vh;
+		background-color: #ffffff;
+		transform: translateX(-100%);
+		transition: transform 0.3s ease;
+		z-index: 999;
+		box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.1);
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.history-sidebar.visible {
+		transform: translateX(0);
+	}
+	
+	.sidebar-header {
+		padding: 30rpx 20rpx;
+		border-bottom: 1rpx solid #eee;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 80rpx;
+	}
+	
+	.sidebar-title {
+		font-size: 32rpx;
+		color: #333;
+		font-weight: 500;
+	}
+	
+	.history-list {
+		flex: 1;
+		height: calc(100vh - 80rpx);
+		padding: 0;
+		background-color: #f9f9f9;
+	}
+	
+	.empty-history {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 40rpx;
+		color: #999;
+	}
+	
+	.empty-history text {
+		color: #999;
+		font-size: 28rpx;
+	}
+	
+	.history-item {
+		padding: 30rpx 20rpx;
+		background-color: #ffffff;
+		margin-bottom: 2rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1rpx solid #f0f0f0;
+		transition: all 0.2s;
+	}
+	
+	.history-item:active {
+		background-color: #f5f5f5;
+	}
+	
+	.history-item.active {
+		background-color: #e6f7ff;
+		border-left: 4rpx solid #1890ff;
+	}
+	
+	.history-item-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+	
+	.history-title {
+		font-size: 28rpx;
+		color: #333;
+		margin-bottom: 10rpx;
+		/* 单行文本截断 */
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 80%;
+	}
+	
+	.history-time {
+		font-size: 24rpx;
+		color: #999;
+	}
+	
+	.history-delete {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 50%;
+		background-color: #f5f5f5;
+		margin-left: 20rpx;
+	}
+	
+	.delete-icon {
+		font-size: 36rpx;
+		color: #ff4d4f;
+		line-height: 1;
+	}
+	
+	.nav-bar {
+		height: 90rpx;
+		background-color: #ffffff;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 20rpx;
+		border-bottom: none; /* 移除底部边框 */
+		position: relative;
+		z-index: 11; /* 提高z-index，确保显示在筛选区域上方 */
+	}
+	
+	.nav-left {
+		width: 33%;
+		display: flex;
+		align-items: center;
+	}
+	
+	.history-btn {
+		width: 80rpx;
+		height: 80rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.history-btn .iconfont {
+		font-size: 48rpx;
+		color: #333;
+	}
+	
+	/* 使用图标替代文字，如果没有图标字体可以使用以下替代样式 */
+	.history-btn .iconfont:before {
+		content: "≡"; /* 使用三横线作为菜单图标 */
+	}
+	
+	.nav-title {
+		width: 34%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	
+	.nav-title text {
+		font-size: 36rpx;
+		color: #333;
+		font-weight: 500;
+	}
+	
+	.nav-right {
+		width: 33%;
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+	}
+	
+	.new-chat-btn {
+		padding: 14rpx 28rpx;
+		background-color: #1E90FF;
+		border-radius: 40rpx;
+		box-shadow: 0 2rpx 8rpx rgba(30, 144, 255, 0.3);
+		transition: all 0.3s;
+	}
+	
+	.new-chat-btn:active {
+		opacity: 0.8;
+		transform: scale(0.98);
+	}
+	
+	.new-chat-btn text {
+		font-size: 28rpx;
+		color: #fff;
+	}
+	
+	.main-wrapper {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		transition: transform 0.3s ease, opacity 0.3s ease;
+		background-color: #f5f5f5;
+		padding-bottom: 20rpx; /* 底部增加内边距 */
+	}
+	
+	.main-wrapper.shifted {
+		transform: translateX(66vw);
+		opacity: 0.85;
+	}
+	
+	.main-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		padding: 0 20rpx; /* 仅添加左右内边距 */
 	}
 </style>

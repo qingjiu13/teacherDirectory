@@ -1,7 +1,6 @@
 /**
  * @description AI聊天相关API服务
  */
-// 删除axios导入，使用uni-app提供的请求API
 import { API_BASE_URL, AIQA_TEST_URL } from '../../config';
 
 const API_PREFIX = `${API_BASE_URL}/ai-chat`;

@@ -131,4 +131,43 @@ export default {
 - 使用命名空间访问模块状态和操作
 - 避免不必要的状态共享，减少模块间耦合
 - 添加详细的代码注释，特别是对复杂逻辑的解释
-- 保持一致的代码风格和命名规范 
+- 保持一致的代码风格和命名规范
+
+## API按需加载
+
+在应用优化过程中，我们将API调用与用户点击事件绑定，避免在程序启动时就加载所有数据。主要更新如下：
+
+### 更新的文件
+
+1. `store/index.js` - 修改了初始化函数，将API调用拆分为按需加载的独立函数
+   - `initializeApp()` - 轻量级版本，只检查登录状态
+   - `loadTeacherData()` - 教师数据按需加载
+   - `loadStudentData()` - 学生数据按需加载
+   - `loadMatchRecommendations()` - 匹配推荐数据按需加载
+
+2. 页面更新
+   - `pages/match/match.uvue` - 匹配页面加载时调用`loadMatchRecommendations()`
+   - `pages/teacher/teacher.uvue` - 教师页面加载时调用`loadTeacherData()`
+   - `pages/mine/mine/mine_common.uvue` - 根据用户角色调用相应的数据加载函数
+   - `pages/AI/AI.uvue` - AI聊天页面按需加载聊天历史
+
+### 使用方法
+
+在需要加载特定模块数据的页面中，导入相应的加载函数并在合适的生命周期钩子中调用:
+
+```js
+import store, { loadTeacherData } from '@/store/index.js'
+
+export default {
+  async onLoad() {
+    try {
+      await loadTeacherData();
+      // 后续操作...
+    } catch (error) {
+      console.error('加载数据失败:', error);
+    }
+  }
+}
+```
+
+这种方式确保数据只在用户需要时才加载，提高了应用的启动速度和性能。 

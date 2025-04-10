@@ -80,13 +80,34 @@
 <script>
 	import choiceSelected from '../../components/combobox/combobox'
 	import { Navigator } from '@/router/Router.js'
+	import store, { loadMatchRecommendations } from '@/store/index.js'
 	
 	export default {
 		components: {
 			choiceSelected
 		},
-		onLoad() {
+		async onLoad() {
 			console.log('匹配页面已加载');
+			
+			// 显示加载状态
+			this.isLoading = true;
+			
+			try {
+				// 调用store中的匹配推荐数据加载函数
+				const result = await loadMatchRecommendations();
+				if (result.success && result.data) {
+					// 如果API返回了老师数据，更新本地数据
+					this.teachers = Array.isArray(result.data) ? result.data : [];
+				}
+				console.log('匹配推荐数据已加载');
+			} catch (error) {
+				console.error('加载匹配推荐数据失败:', error);
+				// 出错时确保teachers是数组
+				this.teachers = [];
+			} finally {
+				// 无论成功失败，都关闭加载状态
+				this.isLoading = false;
+			}
 		},
 		data() {
 			return {
@@ -141,64 +162,14 @@
 				// 加载状态
 				isLoading: false,
 				
-				// 老师数据
-				teachers: [
-					{
-						id: 1,
-						nickname: '王教授',
-						avatar: '/static/image/tab-bar/default_avatar.png',
-						school: '北京大学',
-						major: '计算机科学',
-						title: '教授',
-						score: '考研400分',
-						tags: ['认证学校', '经验丰富', '答疑及时', '通俗易懂']
-					},
-					{
-						id: 2,
-						nickname: '李博士',
-						avatar: '/static/image/tab-bar/default_avatar.png',
-						school: '清华大学',
-						major: '软件工程',
-						title: '副教授',
-						score: '考研390分',
-						tags: ['认证学校', '教学认真']
-					},
-					{
-						id: 3,
-						nickname: '张老师',
-						avatar: '/static/image/tab-bar/default_avatar.png',
-						school: '复旦大学',
-						major: '数学',
-						title: '讲师',
-						score: '考研380分',
-						tags: ['认证学校', '耐心细致']
-					},
-					{
-						id: 4,
-						nickname: '刘教授',
-						avatar: '/static/image/tab-bar/default_avatar.png',
-						school: '浙江大学',
-						major: '物理',
-						title: '教授',
-						score: '考研410分',
-						tags: ['认证学校', '通俗易懂']
-					},
-					{
-						id: 5,
-						nickname: '陈老师',
-						avatar: '/static/image/tab-bar/default_avatar.png',
-						school: '南京大学',
-						major: '化学',
-						title: '副教授',
-						score: '考研385分',
-						tags: ['认证学校', '答疑及时']
-					}
-				]
+				// 老师数据 - 确保初始化为数组
+				teachers: []
 			}
 		},
 		computed: {
 			filteredTeachers() {
-				let result = [...this.teachers];
+				// 确保teachers是数组
+				let result = Array.isArray(this.teachers) ? [...this.teachers] : [];
 				
 				// 使用应用后的筛选条件，而非临时选择的条件
 				if (this.appliedSelectedSchool) {
@@ -211,8 +182,15 @@
 				
 				// 默认按评分排序
 				result.sort((a, b) => {
-					const scoreA = parseInt(a.score.match(/\d+/)[0]);
-					const scoreB = parseInt(b.score.match(/\d+/)[0]);
+					// 检查是否包含分数并提取数字
+					const getScore = (scoreStr) => {
+						if (!scoreStr) return 0;
+						const match = scoreStr.toString().match(/\d+/);
+						return match ? parseInt(match[0]) : 0;
+					};
+					
+					const scoreA = getScore(a.score);
+					const scoreB = getScore(b.score);
 					return scoreB - scoreA;
 				});
 				

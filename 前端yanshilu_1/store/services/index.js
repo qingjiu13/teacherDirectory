@@ -11,6 +11,10 @@ import * as course from './course.api';
 import * as order from './order.api';
 import * as common from './common.api';
 import * as match from './match.api';
+import mockData from './mock-data';
+
+// 导出模拟数据，方便在其他地方使用
+export const mock = mockData;
 
 // 统一导出为services对象
 export const services = {
@@ -21,7 +25,8 @@ export const services = {
   course,   // 课程相关API
   order,    // 订单相关API
   common,   // 通用API
-  match     // 匹配功能API
+  match,    // 匹配功能API
+  mock      // 模拟数据
 };
 
 // 保持单独导出以兼容已有代码

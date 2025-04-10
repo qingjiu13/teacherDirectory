@@ -59,30 +59,70 @@ const store = createStore({
 export const services = apiServices;
 
 /**
- * @description 应用初始化函数
+ * @description 应用初始化函数 - 轻量级版本
+ * 只检查登录状态，不主动加载其他数据
  * @returns {Promise<Object>} 初始化结果
  */
 export const initializeApp = async () => {
   try {
-    // 检查用户登录状态并获取用户信息
+    // 只检查用户登录状态，不立即加载其他模块数据
     const userInfo = await store.dispatch('auth/checkAuthStatus');
-    if (userInfo) {
-      // 如果用户已登录，根据角色加载相应模块数据
-      const { role } = userInfo;
-      if (role === 'teacher') {
-        // 加载教师特有数据
-        await store.dispatch('teacher/loadInitialData');
-      } else if (role === 'student') {
-        // 加载学生特有数据
-        await store.dispatch('student/loadInitialData');
-      }
-      
-      // 加载通用模块数据
-      await store.dispatch('match/resetAndGetRecommended');
-    }
-    return { success: true };
+    return { 
+      success: true,
+      userInfo
+    };
   } catch (error) {
     console.error('应用初始化失败:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * @description 加载教师模块数据
+ * 在教师页面点击或进入教师相关页面时调用
+ * @returns {Promise<Object>} 加载结果
+ */
+export const loadTeacherData = async () => {
+  try {
+    await store.dispatch('teacher/loadInitialData');
+    return { success: true };
+  } catch (error) {
+    console.error('加载教师数据失败:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * @description 加载学生模块数据
+ * 在学生页面点击或进入学生相关页面时调用
+ * @returns {Promise<Object>} 加载结果
+ */
+export const loadStudentData = async () => {
+  try {
+    await store.dispatch('student/loadInitialData');
+    return { success: true };
+  } catch (error) {
+    console.error('加载学生数据失败:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * @description 加载匹配推荐数据
+ * 在匹配页面点击或进入匹配页面时调用
+ * @returns {Promise<Object>} 匹配结果
+ */
+export const loadMatchRecommendations = async () => {
+  try {
+    // 调用match模块的getRecommendedTeachers action，不再使用resetAndGetRecommended
+    // 因为我们需要返回教师数据
+    const teachers = await store.dispatch('match/getRecommendedTeachers');
+    return { 
+      success: true, 
+      data: teachers 
+    };
+  } catch (error) {
+    console.error('加载匹配推荐失败:', error);
     return { success: false, error };
   }
 };

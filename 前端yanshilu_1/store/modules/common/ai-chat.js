@@ -11,7 +11,10 @@ const state = {
   messages: [],
   conversationId: null,
   lastResponse: null,
-  testResult: null
+  testResult: null,
+  // 新增历史会话管理
+  historyChats: [],
+  currentChatId: null
 };
 
 // Getters
@@ -22,7 +25,10 @@ const getters = {
   messages: state => state.messages,
   lastResponse: state => state.lastResponse,
   conversationId: state => state.conversationId,
-  testResult: state => state.testResult
+  testResult: state => state.testResult,
+  // 新增历史会话相关getters
+  historyChats: state => state.historyChats,
+  currentChatId: state => state.currentChatId
 };
 
 // 引入常量类型
@@ -35,6 +41,12 @@ const SET_CONVERSATION_ID = 'SET_CONVERSATION_ID';
 const SET_LAST_RESPONSE = 'SET_LAST_RESPONSE';
 const CLEAR_CONVERSATION = 'CLEAR_CONVERSATION';
 const SET_TEST_RESULT = 'SET_TEST_RESULT';
+// 新增历史会话相关常量
+const SET_HISTORY_CHATS = 'SET_HISTORY_CHATS';
+const ADD_HISTORY_CHAT = 'ADD_HISTORY_CHAT';
+const UPDATE_HISTORY_CHAT = 'UPDATE_HISTORY_CHAT';
+const REMOVE_HISTORY_CHAT = 'REMOVE_HISTORY_CHAT';
+const SET_CURRENT_CHAT_ID = 'SET_CURRENT_CHAT_ID';
 
 // Mutations
 const mutations = {
@@ -66,6 +78,26 @@ const mutations = {
   },
   [SET_TEST_RESULT](state, result) {
     state.testResult = result;
+  },
+  // 新增历史会话相关mutations
+  [SET_HISTORY_CHATS](state, chats) {
+    state.historyChats = chats;
+  },
+  [ADD_HISTORY_CHAT](state, chat) {
+    // 添加到列表前端，最新的对话在最前面
+    state.historyChats.unshift(chat);
+  },
+  [UPDATE_HISTORY_CHAT](state, updatedChat) {
+    const index = state.historyChats.findIndex(chat => chat.id === updatedChat.id);
+    if (index !== -1) {
+      state.historyChats.splice(index, 1, updatedChat);
+    }
+  },
+  [REMOVE_HISTORY_CHAT](state, chatId) {
+    state.historyChats = state.historyChats.filter(chat => chat.id !== chatId);
+  },
+  [SET_CURRENT_CHAT_ID](state, chatId) {
+    state.currentChatId = chatId;
   }
 };
 
@@ -216,13 +248,19 @@ const actions = {
    * @param {Object} payload - 请求参数
    * @param {string} payload.question - 用户提问
    * @param {Object} payload.contextInfo - 用户上下文信息
+   * @param {string} [payload.chatId] - 聊天会话ID
    * @returns {Promise<Object>} 测试结果
    */
-  async testAIQA({ commit }, { question, contextInfo = {} }) {
+  async testAIQA({ commit, dispatch }, { question, contextInfo = {}, chatId = null }) {
     try {
       commit(SET_LOADING, true);
       commit(SET_TESTING, true);
       commit(SET_ERROR, null);
+      
+      // 如果有会话ID，设置当前会话ID
+      if (chatId) {
+        commit(SET_CURRENT_CHAT_ID, chatId);
+      }
       
       // 调用服务，传递问题和上下文信息
       const result = await services.aiChat.testAIQA(question, contextInfo);
@@ -250,6 +288,148 @@ const actions = {
    */
   clearTestResult({ commit }) {
     commit(SET_TEST_RESULT, null);
+  },
+  
+  /**
+   * @description 获取历史会话列表
+   * @param {Object} context - Vuex上下文
+   * @returns {Promise<Object>} 历史会话
+   */
+  async getHistoryChats({ commit }) {
+    try {
+      commit(SET_LOADING, true);
+      
+      // 默认情况下从本地存储获取
+      const localChats = uni.getStorageSync('chat_history') || '[]';
+      const chats = JSON.parse(localChats);
+      
+      // 更新vuex状态
+      commit(SET_HISTORY_CHATS, chats);
+      
+      return { success: true, data: chats };
+    } catch (error) {
+      console.error('获取历史会话失败:', error);
+      return { success: false, error, message: error.message };
+    } finally {
+      commit(SET_LOADING, false);
+    }
+  },
+  
+  /**
+   * @description 保存或更新聊天记录
+   * @param {Object} context - Vuex上下文
+   * @param {Object} chatData - 聊天数据
+   * @returns {Promise<Object>} 保存结果
+   */
+  async saveChat({ commit, state }, chatData) {
+    try {
+      // 从本地获取所有历史记录
+      const localChats = uni.getStorageSync('chat_history') || '[]';
+      let chats = JSON.parse(localChats);
+      
+      // 查找当前聊天是否存在
+      const existingIndex = chats.findIndex(chat => chat.id === chatData.id);
+      
+      if (existingIndex !== -1) {
+        // 存在则更新
+        chats[existingIndex] = {
+          ...chatData,
+          updatedAt: new Date()
+        };
+        commit(UPDATE_HISTORY_CHAT, chats[existingIndex]);
+      } else {
+        // 不存在则添加
+        const newChat = {
+          ...chatData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        chats.unshift(newChat);
+        commit(ADD_HISTORY_CHAT, newChat);
+      }
+      
+      // 限制最大保存数量
+      if (chats.length > 50) {
+        chats = chats.slice(0, 50);
+      }
+      
+      // 保存到本地
+      uni.setStorageSync('chat_history', JSON.stringify(chats));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('保存聊天记录失败:', error);
+      return { success: false, error, message: error.message };
+    }
+  },
+  
+  /**
+   * @description 删除聊天记录
+   * @param {Object} context - Vuex上下文
+   * @param {string} chatId - 聊天ID
+   * @returns {Promise<Object>} 删除结果
+   */
+  async deleteChat({ commit, state }, chatId) {
+    try {
+      // 从本地获取所有历史记录
+      const localChats = uni.getStorageSync('chat_history') || '[]';
+      let chats = JSON.parse(localChats);
+      
+      // 过滤掉要删除的记录
+      chats = chats.filter(chat => chat.id !== chatId);
+      
+      // 更新本地存储
+      uni.setStorageSync('chat_history', JSON.stringify(chats));
+      
+      // 更新Vuex状态
+      commit(REMOVE_HISTORY_CHAT, chatId);
+      
+      // 如果删除的是当前会话，清空当前会话
+      if (state.currentChatId === chatId) {
+        commit(SET_CURRENT_CHAT_ID, null);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('删除聊天记录失败:', error);
+      return { success: false, error, message: error.message };
+    }
+  },
+  
+  /**
+   * @description 设置当前会话
+   * @param {Object} context - Vuex上下文
+   * @param {string} chatId - 聊天ID
+   */
+  setCurrentChat({ commit }, chatId) {
+    commit(SET_CURRENT_CHAT_ID, chatId);
+  },
+  
+  /**
+   * @description 加载指定会话
+   * @param {Object} context - Vuex上下文
+   * @param {string} chatId - 聊天ID
+   * @returns {Promise<Object>} 会话数据
+   */
+  async loadChat({ commit, state, dispatch }, chatId) {
+    try {
+      // 从本地或服务器获取聊天记录
+      const localChats = uni.getStorageSync('chat_history') || '[]';
+      const chats = JSON.parse(localChats);
+      
+      const chat = chats.find(c => c.id === chatId);
+      if (!chat) {
+        throw new Error('找不到指定的会话记录');
+      }
+      
+      // 设置当前会话ID
+      commit(SET_CURRENT_CHAT_ID, chatId);
+      
+      return { success: true, data: chat };
+    } catch (error) {
+      console.error('加载会话记录失败:', error);
+      return { success: false, error, message: error.message };
+    }
   }
 };
 

@@ -3,16 +3,23 @@
  * 老师和学生身份共享的匹配功能
  */
 
-import { match } from '../../services';
+import { match, mock } from '../../services';
 
 // 初始状态
 const state = {
-  // 筛选条件
+  recommended: {
+    current: [], // 当前推荐列表
+    total: 0, // 总数
+    page: 1, // 当前页
+    loading: false, // 加载中状态
+    error: null // 错误信息
+  },
   filters: {
     school: '',
     major: '',
     keyword: '',
-    sortBy: '综合排序'
+    sortBy: 'rating',
+    order: 'desc'
   },
   
   // 学校和专业列表
@@ -48,6 +55,11 @@ const state = {
 
 // Getters
 const getters = {
+  recommended: state => state.recommended,
+  filters: state => state.filters,
+  isLoading: state => state.recommended.loading,
+  hasError: state => state.recommended.error !== null,
+  
   /**
    * @description 获取筛选后的老师列表
    * @param {Object} state - Vuex状态
@@ -103,13 +115,6 @@ const getters = {
   },
   
   /**
-   * @description 获取是否处于加载状态
-   * @param {Object} state - Vuex状态
-   * @returns {Boolean} 是否处于加载状态
-   */
-  isLoading: state => state.loading,
-  
-  /**
    * @description 获取错误信息
    * @param {Object} state - Vuex状态
    * @returns {Object} 错误信息
@@ -125,6 +130,7 @@ const getters = {
 };
 
 // 引入常量类型
+const SET_RECOMMENDED = 'SET_RECOMMENDED';
 const SET_LOADING = 'SET_LOADING';
 const SET_LOADING_TYPE = 'SET_LOADING_TYPE';
 const SET_ERROR = 'SET_ERROR';
@@ -138,65 +144,63 @@ const RESET_FILTERS = 'RESET_FILTERS';
 
 // Mutations
 const mutations = {
-  /**
-   * @description 设置全局加载状态
-   * @param {Object} state - Vuex状态
-   * @param {Boolean} status - 加载状态
-   */
-  [SET_LOADING](state, status) {
-    state.loading = status;
+  [SET_RECOMMENDED](state, { teachers, total, page }) {
+    // 确保推荐字段已初始化
+    if (!state.recommended) {
+      state.recommended = {
+        current: [],
+        total: 0,
+        page: 1,
+        loading: false,
+        error: null
+      };
+    }
+    
+    // 更新推荐列表
+    state.recommended.current = teachers || [];
+    state.recommended.total = total || 0;
+    state.recommended.page = page || 1;
   },
-  
-  /**
-   * @description 设置错误信息
-   * @param {Object} state - Vuex状态
-   * @param {Object} error - 错误信息
-   */
+  [SET_LOADING](state, loading) {
+    // 确保推荐字段已初始化
+    if (!state.recommended) {
+      state.recommended = {
+        current: [],
+        total: 0,
+        page: 1,
+        loading: false,
+        error: null
+      };
+    }
+    
+    state.recommended.loading = loading;
+  },
   [SET_ERROR](state, error) {
-    state.error = error;
+    // 确保推荐字段已初始化
+    if (!state.recommended) {
+      state.recommended = {
+        current: [],
+        total: 0,
+        page: 1,
+        loading: false,
+        error: null
+      };
+    }
+    
+    state.recommended.error = error;
   },
-  
-  /**
-   * @description 设置特定类型的加载状态
-   * @param {Object} state - Vuex状态
-   * @param {Object} payload - 加载状态信息
-   */
   [SET_LOADING_TYPE](state, { type, value }) {
     state.loadingTypes[type] = value;
   },
-  
-  /**
-   * @description 设置筛选条件
-   * @param {Object} state - Vuex状态
-   * @param {Object} filters - 筛选条件
-   */
   [SET_FILTERS](state, filters) {
     state.filters = { ...state.filters, ...filters };
   },
-  
-  /**
-   * @description 设置学校列表
-   * @param {Object} state - Vuex状态
-   * @param {Array} schools - 学校列表
-   */
   [SET_SCHOOL_LIST](state, schools) {
     state.schoolList = schools;
   },
-  
-  /**
-   * @description 设置专业列表
-   * @param {Object} state - Vuex状态
-   * @param {Array} majors - 专业列表
-   */
   [SET_MAJOR_LIST](state, majors) {
     state.majorList = majors;
   },
-  
-  /**
-   * @description 设置老师列表
-   * @param {Object} state - Vuex状态
-   * @param {Object} data - 老师列表数据和分页信息
-   */
   [SET_TEACHERS](state, data) {
     const { list, pagination } = data;
     state.teachers = list;
@@ -205,35 +209,19 @@ const mutations = {
     state.totalCount = pagination.total;
     state.pageSize = pagination.pageSize;
   },
-  
-  /**
-   * @description 设置选中的教师ID
-   * @param {Object} state - Vuex状态
-   * @param {Number} id - 教师ID
-   */
   [SET_SELECTED_TEACHER](state, id) {
     state.selectedTeacherId = id;
   },
-  
-  /**
-   * @description 设置教师详情
-   * @param {Object} state - Vuex状态
-   * @param {Object} detail - 教师详情
-   */
   [SET_TEACHER_DETAIL](state, detail) {
     state.teacherDetail = detail;
   },
-  
-  /**
-   * @description 重置筛选条件
-   * @param {Object} state - Vuex状态
-   */
   [RESET_FILTERS](state) {
     state.filters = {
       school: '',
       major: '',
       keyword: '',
-      sortBy: '综合排序'
+      sortBy: 'rating',
+      order: 'desc'
     };
   }
 };
@@ -242,43 +230,98 @@ const mutations = {
 const actions = {
   /**
    * @description 获取推荐老师列表
-   * @param {Object} context - Vuex上下文
-   * @param {Object} params - 查询参数
-   * @returns {Promise<Object>} 结果对象
+   * @param {Object} params 过滤参数
+   * @returns {Promise<Array>} 老师列表
    */
-  async getRecommendedTeachers({ commit, rootState }, params = {}) {
+  async getRecommendedTeachers({ commit, state }, params = {}) {
+    commit(SET_LOADING, true);
+    commit(SET_ERROR, null);
+    
     try {
-      commit(SET_LOADING, true);
-      commit(SET_LOADING_TYPE, { type: 'teachers', value: true });
-      commit(SET_ERROR, null);
+      // 组合筛选参数
+      const queryParams = {
+        ...state.filters,
+        ...params,
+        page: params.page || 1,
+        limit: params.limit || 10
+      };
       
-      // 添加用户角色到参数
-      const role = rootState.auth.userInfo?.role || 'student';
-      const response = await match.getRecommendedTeachers({ 
-        ...params, 
-        role,
-        page: params.page || state.currentPage,
-        limit: params.limit || state.pageSize
-      });
+      console.log('获取推荐老师, 参数:', queryParams);
       
-      if (!response.success) {
-        throw response.error || { message: '获取推荐老师失败' };
+      // 模拟API调用，不实际请求后端
+      // 使用模拟数据
+      await mock.mockDelay(500);
+      
+      // 过滤模拟数据
+      let filteredTeachers = [...mock.mockTeachers];
+      
+      // 根据筛选条件过滤
+      if (queryParams.school) {
+        filteredTeachers = filteredTeachers.filter(
+          teacher => teacher.school.includes(queryParams.school)
+        );
       }
       
-      commit(SET_TEACHERS, {
-        list: response.data.list,
-        pagination: response.data.pagination
-      });
+      if (queryParams.major) {
+        filteredTeachers = filteredTeachers.filter(
+          teacher => teacher.major.includes(queryParams.major)
+        );
+      }
       
-      return { success: true, data: response.data.list };
+      // 根据排序条件排序
+      if (queryParams.sortBy === 'rating') {
+        filteredTeachers.sort((a, b) => {
+          const getScore = (scoreStr) => {
+            if (!scoreStr) return 0;
+            const match = String(scoreStr).match(/\d+/);
+            return match ? parseInt(match[0]) : 0;
+          };
+          
+          const scoreA = getScore(a.score);
+          const scoreB = getScore(b.score);
+          return queryParams.order === 'desc' ? scoreB - scoreA : scoreA - scoreB;
+        });
+      }
+      
+      const result = {
+        success: true,
+        data: {
+          teachers: filteredTeachers,
+          total: filteredTeachers.length,
+          page: queryParams.page
+        }
+      };
+      
+      if (result.success) {
+        const { teachers, total, page } = result.data;
+        commit(SET_RECOMMENDED, { teachers, total, page });
+        return teachers;
+      } else {
+        throw new Error(result.message || '获取推荐老师失败');
+      }
     } catch (error) {
       console.error('获取推荐老师失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message || '获取推荐老师失败' };
+      commit(SET_ERROR, error.message || '获取推荐老师失败');
+      return [];
     } finally {
       commit(SET_LOADING, false);
-      commit(SET_LOADING_TYPE, { type: 'teachers', value: false });
     }
+  },
+  
+  /**
+   * @description 重置筛选条件并获取最新推荐
+   */
+  async resetAndGetRecommended({ commit, dispatch }) {
+    commit(RESET_FILTERS);
+    return await dispatch('getRecommendedTeachers');
+  },
+  
+  /**
+   * @description 设置筛选条件
+   * @param {Object} filters 筛选条件
+   */
+  setFilters({ commit }, filters) {
+    commit(SET_FILTERS, filters);
   },
   
   /**
@@ -447,16 +490,6 @@ const actions = {
       commit(SET_LOADING, false);
       commit(SET_LOADING_TYPE, { type: 'teacherDetail', value: false });
     }
-  },
-  
-  /**
-   * @description 重置过滤器并获取推荐老师
-   * @param {Object} context - Vuex上下文
-   * @returns {Promise<Object>} 结果对象
-   */
-  async resetAndGetRecommended({ commit, dispatch }) {
-    commit(RESET_FILTERS);
-    return dispatch('getRecommendedTeachers');
   },
   
   /**
