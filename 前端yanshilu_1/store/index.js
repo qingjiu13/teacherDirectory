@@ -16,6 +16,7 @@ import app from './modules/common/app';
 import message from './modules/common/message';
 import settings from './modules/common/settings';
 import aiChat from './modules/common/ai-chat';
+import match from './modules/common/match';
 
 // 导入角色相关模块
 import user from './modules/common/user';
@@ -48,6 +49,7 @@ const store = createStore({
     aiChat,          // AI聊天功能
     courses,         // 课程相关
     orders,          // 订单相关
+    match            // 匹配功能
   }
 });
 
@@ -74,6 +76,9 @@ export const initializeApp = async () => {
         // 加载学生特有数据
         await store.dispatch('student/loadInitialData');
       }
+      
+      // 加载通用模块数据
+      await store.dispatch('match/resetAndGetRecommended');
     }
     return { success: true };
   } catch (error) {

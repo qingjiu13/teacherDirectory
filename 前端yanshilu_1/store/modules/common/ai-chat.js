@@ -104,7 +104,7 @@ const actions = {
       const response = await services.aiChat.sendMessage(requestParams);
       
       if (!response.success) {
-        throw new Error(response.error?.message || '发送消息失败');
+        throw response.error || { message: response.message || '发送消息失败' };
       }
       
       // 保存会话ID（如果是新会话）
@@ -125,19 +125,19 @@ const actions = {
       return response.data;
     } catch (error) {
       console.error('发送聊天消息失败:', error);
-      commit(SET_ERROR, error.message || '发送聊天消息失败');
+      commit(SET_ERROR, error);
       
       // 添加错误消息
       const errorMessage = {
         id: `error-${Date.now()}`,
-        content: '抱歉，我遇到了一些问题，请稍后再试。',
+        content: error.message || '系统错误',
         role: 'assistant',
         isError: true,
         timestamp: new Date().toISOString()
       };
       commit(ADD_MESSAGE, errorMessage);
       
-      return { success: false, error };
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -160,14 +160,14 @@ const actions = {
         commit(SET_MESSAGES, response.data.messages || []);
         commit(SET_CONVERSATION_ID, conversationId);
       } else {
-        throw new Error(response.error?.message || '获取历史消息失败');
+        throw response.error || { message: response.message || '获取历史消息失败' };
       }
       
       return response;
     } catch (error) {
       console.error('获取历史消息失败:', error);
-      commit(SET_ERROR, error.message || '获取历史消息失败');
-      return { success: false, error };
+      commit(SET_ERROR, error);
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -189,14 +189,14 @@ const actions = {
       if (response.success) {
         commit(SET_CONVERSATION_ID, response.data.conversationId);
       } else {
-        throw new Error(response.error?.message || '创建会话失败');
+        throw response.error || { message: response.message || '创建会话失败' };
       }
       
       return response;
     } catch (error) {
       console.error('创建会话失败:', error);
-      commit(SET_ERROR, error.message || '创建会话失败');
-      return { success: false, error };
+      commit(SET_ERROR, error);
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -213,28 +213,31 @@ const actions = {
   /**
    * @description 测试AIQA接口
    * @param {Object} context - Vuex上下文
-   * @param {string} question - 用户提问
+   * @param {Object} payload - 请求参数
+   * @param {string} payload.question - 用户提问
+   * @param {Object} payload.contextInfo - 用户上下文信息
    * @returns {Promise<Object>} 测试结果
    */
-  async testAIQA({ commit }, question) {
+  async testAIQA({ commit }, { question, contextInfo = {} }) {
     try {
       commit(SET_LOADING, true);
       commit(SET_TESTING, true);
       commit(SET_ERROR, null);
       
-      const result = await services.aiChat.testAIQA(question);
+      // 调用服务，传递问题和上下文信息
+      const result = await services.aiChat.testAIQA(question, contextInfo);
       
       if (result.success) {
         commit(SET_TEST_RESULT, result.data);
       } else {
-        commit(SET_ERROR, result.error || { message: '获取AI回复失败' });
+        commit(SET_ERROR, result.error || { message: result.message || '测试AIQA失败' });
       }
       
       return result;
     } catch (error) {
       console.error('测试AIQA失败:', error);
-      commit(SET_ERROR, error.message || '测试AIQA失败');
-      return { success: false, error };
+      commit(SET_ERROR, error);
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
       commit(SET_TESTING, false);

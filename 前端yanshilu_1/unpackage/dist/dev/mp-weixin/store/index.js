@@ -5,6 +5,7 @@ const store_modules_common_app = require("./modules/common/app.js");
 const store_modules_common_message = require("./modules/common/message.js");
 const store_modules_common_settings = require("./modules/common/settings.js");
 const store_modules_common_aiChat = require("./modules/common/ai-chat.js");
+const store_modules_common_match = require("./modules/common/match.js");
 const store_modules_common_user = require("./modules/common/user.js");
 const store_modules_teacher_index = require("./modules/teacher/index.js");
 const store_modules_student_index = require("./modules/student/index.js");
@@ -34,8 +35,10 @@ const store = common_vendor.createStore({
     // AI聊天功能
     courses: store_modules_common_courses.courses,
     // 课程相关
-    orders: store_modules_common_orders.orders
+    orders: store_modules_common_orders.orders,
     // 订单相关
+    match: store_modules_common_match.match
+    // 匹配功能
   }
 });
 const initializeApp = async () => {
@@ -48,10 +51,11 @@ const initializeApp = async () => {
       } else if (role === "student") {
         await store.dispatch("student/loadInitialData");
       }
+      await store.dispatch("match/resetAndGetRecommended");
     }
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:80", "应用初始化失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:85", "应用初始化失败:", error);
     return { success: false, error };
   }
 };

@@ -69,7 +69,6 @@ const actions = {
    * @returns {Promise<Object>} 发送结果
    */
   async sendChatMessage({ commit, state: state2 }, { message, context = {} }) {
-    var _a;
     try {
       commit(SET_LOADING, true);
       commit(SET_ERROR, null);
@@ -87,7 +86,7 @@ const actions = {
       };
       const response = await store_services_index.services.aiChat.sendMessage(requestParams);
       if (!response.success) {
-        throw new Error(((_a = response.error) == null ? void 0 : _a.message) || "发送消息失败");
+        throw response.error || { message: response.message || "发送消息失败" };
       }
       if (response.data.conversationId && !state2.conversationId) {
         commit(SET_CONVERSATION_ID, response.data.conversationId);
@@ -103,16 +102,16 @@ const actions = {
       return response.data;
     } catch (error) {
       common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:127", "发送聊天消息失败:", error);
-      commit(SET_ERROR, error.message || "发送聊天消息失败");
+      commit(SET_ERROR, error);
       const errorMessage = {
         id: `error-${Date.now()}`,
-        content: "抱歉，我遇到了一些问题，请稍后再试。",
+        content: error.message || "系统错误",
         role: "assistant",
         isError: true,
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       };
       commit(ADD_MESSAGE, errorMessage);
-      return { success: false, error };
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -124,7 +123,6 @@ const actions = {
    * @returns {Promise<Object>} 历史消息
    */
   async getConversationHistory({ commit }, conversationId) {
-    var _a;
     try {
       commit(SET_LOADING, true);
       commit(SET_ERROR, null);
@@ -133,13 +131,13 @@ const actions = {
         commit(SET_MESSAGES, response.data.messages || []);
         commit(SET_CONVERSATION_ID, conversationId);
       } else {
-        throw new Error(((_a = response.error) == null ? void 0 : _a.message) || "获取历史消息失败");
+        throw response.error || { message: response.message || "获取历史消息失败" };
       }
       return response;
     } catch (error) {
       common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:168", "获取历史消息失败:", error);
-      commit(SET_ERROR, error.message || "获取历史消息失败");
-      return { success: false, error };
+      commit(SET_ERROR, error);
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -150,7 +148,6 @@ const actions = {
    * @returns {Promise<Object>} 创建结果
    */
   async createNewConversation({ commit }) {
-    var _a;
     try {
       commit(SET_LOADING, true);
       commit(SET_ERROR, null);
@@ -159,13 +156,13 @@ const actions = {
       if (response.success) {
         commit(SET_CONVERSATION_ID, response.data.conversationId);
       } else {
-        throw new Error(((_a = response.error) == null ? void 0 : _a.message) || "创建会话失败");
+        throw response.error || { message: response.message || "创建会话失败" };
       }
       return response;
     } catch (error) {
       common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:197", "创建会话失败:", error);
-      commit(SET_ERROR, error.message || "创建会话失败");
-      return { success: false, error };
+      commit(SET_ERROR, error);
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -180,25 +177,27 @@ const actions = {
   /**
    * @description 测试AIQA接口
    * @param {Object} context - Vuex上下文
-   * @param {string} question - 用户提问
+   * @param {Object} payload - 请求参数
+   * @param {string} payload.question - 用户提问
+   * @param {Object} payload.contextInfo - 用户上下文信息
    * @returns {Promise<Object>} 测试结果
    */
-  async testAIQA({ commit }, question) {
+  async testAIQA({ commit }, { question, contextInfo = {} }) {
     try {
       commit(SET_LOADING, true);
       commit(SET_TESTING, true);
       commit(SET_ERROR, null);
-      const result = await store_services_index.services.aiChat.testAIQA(question);
+      const result = await store_services_index.services.aiChat.testAIQA(question, contextInfo);
       if (result.success) {
         commit(SET_TEST_RESULT, result.data);
       } else {
-        commit(SET_ERROR, result.error || { message: "获取AI回复失败" });
+        commit(SET_ERROR, result.error || { message: result.message || "测试AIQA失败" });
       }
       return result;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:235", "测试AIQA失败:", error);
-      commit(SET_ERROR, error.message || "测试AIQA失败");
-      return { success: false, error };
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:238", "测试AIQA失败:", error);
+      commit(SET_ERROR, error);
+      return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
       commit(SET_TESTING, false);

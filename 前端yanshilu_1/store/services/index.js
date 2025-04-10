@@ -10,6 +10,7 @@ import * as student from './student.api';
 import * as course from './course.api';
 import * as order from './order.api';
 import * as common from './common.api';
+import * as match from './match.api';
 
 // 统一导出为services对象
 export const services = {
@@ -19,7 +20,8 @@ export const services = {
   student,  // 学生特有API
   course,   // 课程相关API
   order,    // 订单相关API
-  common    // 通用API
+  common,   // 通用API
+  match     // 匹配功能API
 };
 
 // 保持单独导出以兼容已有代码
@@ -30,5 +32,6 @@ export {
   student,
   course,
   order,
-  common
+  common,
+  match
 }; 

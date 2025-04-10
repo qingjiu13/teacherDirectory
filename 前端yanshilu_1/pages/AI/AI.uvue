@@ -445,22 +445,33 @@
 				this.isProcessing = true;
 				
 				try {
-					// 调用AIQA测试接口，通过Vuex dispatch
-					const response = await store.dispatch('aiChat/testAIQA', messageContent);
+					// 确保上下文信息是最新的
+					this.updateContextInfo();
+					
+					// 调用AIQA测试接口，通过Vuex dispatch，传递问题和上下文
+					const response = await store.dispatch('aiChat/testAIQA', {
+						question: messageContent,
+						contextInfo: this.contextInfo
+					});
 					
 					if (response.success) {
 						// 更新AI消息内容
 						this.messages[aiMessageIndex].content = response.data;
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
 					} else {
-						// 处理错误
-						this.messages[aiMessageIndex].content = response.message || '获取回复失败，请重试';
+						// 处理错误 - 优先使用后端返回的错误信息
+						const errorMessage = response.error && response.error.message ? 
+							response.error.message : 
+							(response.message || '获取回复失败，请稍后重试');
+						
+						this.messages[aiMessageIndex].content = errorMessage;
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
 					}
-					
 				} catch (error) {
 					console.error('发送消息失败:', error);
-					this.messages[aiMessageIndex].content = error.message || '获取回复失败，请重试';
+					// 优先使用完整的错误对象中的信息
+					const errorMessage = (error && error.message) ? error.message : '获取回复失败，请稍后重试';
+					this.messages[aiMessageIndex].content = errorMessage;
 					this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
 				} finally {
 					this.isProcessing = false;
@@ -488,28 +499,39 @@
 				// 更新消息状态
 				this.updateMessageStatus(index, MESSAGE_STATUS.SENDING);
 				this.messages[index].content = '';
-				this.messages[index].streaming = false; // 不使用流式传输
+				this.messages[index].streaming = false;
 				
 				// 重新发送消息
 				this.isProcessing = true;
 				
 				try {
+					// 确保上下文信息是最新的
+					this.updateContextInfo();
+					
 					// 调用AIQA测试接口，通过Vuex dispatch
-					const response = await store.dispatch('aiChat/testAIQA', userMessage.content);
+					const response = await store.dispatch('aiChat/testAIQA', {
+						question: userMessage.content,
+						contextInfo: this.contextInfo
+					});
 					
 					if (response.success) {
 						// 更新AI消息内容
 						this.messages[index].content = response.data;
 						this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
 					} else {
-						// 处理错误
-						this.messages[index].content = response.message || '获取回复失败，请重试';
+						// 处理错误 - 优先使用后端返回的错误信息
+						const errorMessage = response.error && response.error.message ? 
+							response.error.message : 
+							(response.message || '获取回复失败，请稍后重试');
+						
+						this.messages[index].content = errorMessage;
 						this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
 					}
-					
 				} catch (error) {
 					console.error('重试发送消息失败:', error);
-					this.messages[index].content = error.message || '获取回复失败，请重试';
+					// 优先使用完整的错误对象中的信息
+					const errorMessage = (error && error.message) ? error.message : '获取回复失败，请稍后重试';
+					this.messages[index].content = errorMessage;
 					this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
 				} finally {
 					this.isProcessing = false;

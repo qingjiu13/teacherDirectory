@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const config_index = require("../../config/index.js");
-const API_PREFIX = `${config_index.API_BASE_URL}/ai-chat`;
+const API_PREFIX = `${config_index.API_BASE_URL}/api/match`;
 const ERROR_MESSAGES = {
   NETWORK_ERROR: "网络连接失败，请检查您的网络设置",
   TIMEOUT_ERROR: "请求超时，请稍后再试",
@@ -54,94 +54,97 @@ const handleError = (error) => {
     statusCode: error.statusCode || 0
   };
 };
-const getConversations = async () => {
+const getRecommendedTeachers = async (params = {}) => {
   try {
     const response = await request({
-      url: `${API_PREFIX}/conversations`
+      url: `${API_PREFIX}/teachers/recommended`,
+      method: "GET",
+      data: params
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:91", "获取会话列表失败:", error);
+    common_vendor.index.__f__("error", "at store/services/match.api.js:97", "获取推荐老师列表失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
-const getMessages = async (conversationId) => {
+const searchTeachers = async (params = {}) => {
   try {
     const response = await request({
-      url: `${API_PREFIX}/conversations/${conversationId}/messages`
+      url: `${API_PREFIX}/teachers/search`,
+      method: "GET",
+      data: params
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:108", "获取会话消息失败:", error);
+    common_vendor.index.__f__("error", "at store/services/match.api.js:122", "搜索老师失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
-const sendMessage = async (params) => {
+const getSchoolList = async (keyword = "") => {
   try {
-    const requestData = {
-      message: params.message,
-      conversationId: params.conversationId,
-      context: params.context || {}
-    };
     const response = await request({
-      url: `${API_PREFIX}/chat`,
+      url: `${API_PREFIX}/schools`,
+      method: "GET",
+      data: { keyword }
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/match.api.js:141", "获取学校列表失败:", error);
+    return { success: false, error: handleError(error) };
+  }
+};
+const getMajorList = async (school = "") => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/majors`,
+      method: "GET",
+      data: { school }
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/services/match.api.js:160", "获取专业列表失败:", error);
+    return { success: false, error: handleError(error) };
+  }
+};
+const applyForCommunication = async (teacherId, message = "") => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/communicate`,
       method: "POST",
-      data: requestData
+      data: { teacherId, message }
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:136", "发送消息失败:", error);
+    common_vendor.index.__f__("error", "at store/services/match.api.js:180", "申请与老师沟通失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
-const createConversation = async () => {
+const getTeacherDetail = async (teacherId) => {
   try {
     const response = await request({
-      url: `${API_PREFIX}/conversations`,
-      method: "POST"
+      url: `${API_PREFIX}/teachers/${teacherId}`,
+      method: "GET"
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:153", "创建会话失败:", error);
+    common_vendor.index.__f__("error", "at store/services/match.api.js:198", "获取老师详细信息失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
-const deleteConversation = async (conversationId) => {
-  try {
-    const response = await request({
-      url: `${API_PREFIX}/conversations/${conversationId}`,
-      method: "DELETE"
-    });
-    return { success: true, data: response.data };
-  } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:171", "删除会话失败:", error);
-    return { success: false, error: handleError(error) };
-  }
-};
-const testAIQA = async (question, contextInfo = {}) => {
-  try {
-    const response = await request({
-      url: config_index.AIQA_TEST_URL,
-      method: "POST",
-      data: {
-        question,
-        context: contextInfo
-      }
-    });
-    return { success: true, data: response.data };
-  } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:195", "测试AIQA失败:", error);
-    return { success: false, error: handleError(error) };
-  }
-};
-const aiChat = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const match = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  createConversation,
-  deleteConversation,
-  getConversations,
-  getMessages,
-  sendMessage,
-  testAIQA
+  applyForCommunication,
+  getMajorList,
+  getRecommendedTeachers,
+  getSchoolList,
+  getTeacherDetail,
+  searchTeachers
 }, Symbol.toStringTag, { value: "Module" }));
-exports.aiChat = aiChat;
-//# sourceMappingURL=../../../.sourcemap/mp-weixin/store/services/ai-chat.api.js.map
+exports.applyForCommunication = applyForCommunication;
+exports.getMajorList = getMajorList;
+exports.getRecommendedTeachers = getRecommendedTeachers;
+exports.getSchoolList = getSchoolList;
+exports.getTeacherDetail = getTeacherDetail;
+exports.match = match;
+exports.searchTeachers = searchTeachers;
+//# sourceMappingURL=../../../.sourcemap/mp-weixin/store/services/match.api.js.map

@@ -1,10 +1,10 @@
 /**
- * @description AI聊天相关API服务
+ * @description 匹配功能API服务
+ * 提供老师匹配、筛选和沟通相关功能
  */
-// 删除axios导入，使用uni-app提供的请求API
-import { API_BASE_URL, AIQA_TEST_URL } from '../../config';
+import { API_BASE_URL } from '../../config';
 
-const API_PREFIX = `${API_BASE_URL}/ai-chat`;
+const API_PREFIX = `${API_BASE_URL}/api/match`;
 
 // 错误码和消息映射
 const ERROR_MESSAGES = {
@@ -78,121 +78,124 @@ const handleError = (error) => {
 };
 
 /**
- * @description 获取会话列表
- * @returns {Promise<Object>} 会话列表
+ * @description 获取推荐老师列表
+ * @param {Object} params - 查询参数
+ * @param {String} params.role - 当前用户角色，'teacher'或'student'
+ * @param {Number} params.page - 页码
+ * @param {Number} params.limit - 每页数量
+ * @returns {Promise<Object>} 返回老师列表和分页信息
  */
-export const getConversations = async () => {
+export const getRecommendedTeachers = async (params = {}) => {
   try {
     const response = await request({
-      url: `${API_PREFIX}/conversations`
+      url: `${API_PREFIX}/teachers/recommended`,
+      method: 'GET',
+      data: params
     });
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('获取会话列表失败:', error);
+    console.error('获取推荐老师列表失败:', error);
     return { success: false, error: handleError(error) };
   }
 };
 
 /**
- * @description 获取会话消息
- * @param {string} conversationId - 会话ID
- * @returns {Promise<Object>} 会话消息
+ * @description 搜索老师
+ * @param {Object} params - 搜索参数
+ * @param {String} params.keyword - 搜索关键词
+ * @param {String} params.school - 学校筛选
+ * @param {String} params.major - 专业筛选
+ * @param {String} params.sortBy - 排序方式
+ * @param {Number} params.page - 页码
+ * @param {Number} params.limit - 每页数量
+ * @returns {Promise<Object>} 返回老师列表和分页信息
  */
-export const getMessages = async (conversationId) => {
+export const searchTeachers = async (params = {}) => {
   try {
     const response = await request({
-      url: `${API_PREFIX}/conversations/${conversationId}/messages`
+      url: `${API_PREFIX}/teachers/search`,
+      method: 'GET',
+      data: params
     });
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('获取会话消息失败:', error);
+    console.error('搜索老师失败:', error);
     return { success: false, error: handleError(error) };
   }
 };
 
 /**
- * @description 发送消息
- * @param {Object} params - 请求参数
- * @param {string} params.message - 消息内容
- * @param {string} [params.conversationId] - 会话ID，不传则创建新会话
- * @param {Object} [params.context] - 上下文信息
- * @returns {Promise<Object>} 消息响应
+ * @description 获取学校列表
+ * @param {String} keyword - 搜索关键词
+ * @returns {Promise<Array>} 返回学校列表
  */
-export const sendMessage = async (params) => {
+export const getSchoolList = async (keyword = '') => {
   try {
-    const requestData = {
-      message: params.message,
-      conversationId: params.conversationId,
-      context: params.context || {}
-    };
-    
     const response = await request({
-      url: `${API_PREFIX}/chat`,
+      url: `${API_PREFIX}/schools`,
+      method: 'GET',
+      data: { keyword }
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('获取学校列表失败:', error);
+    return { success: false, error: handleError(error) };
+  }
+};
+
+/**
+ * @description 获取专业列表
+ * @param {String} school - 学校名称（可选，传入时获取该学校的专业列表）
+ * @returns {Promise<Array>} 返回专业列表
+ */
+export const getMajorList = async (school = '') => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/majors`,
+      method: 'GET',
+      data: { school }
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('获取专业列表失败:', error);
+    return { success: false, error: handleError(error) };
+  }
+};
+
+/**
+ * @description 申请与老师沟通
+ * @param {Number} teacherId - 老师ID
+ * @param {String} message - 初始消息（可选）
+ * @returns {Promise<Object>} 返回申请结果
+ */
+export const applyForCommunication = async (teacherId, message = '') => {
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/communicate`,
       method: 'POST',
-      data: requestData
+      data: { teacherId, message }
     });
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('发送消息失败:', error);
+    console.error('申请与老师沟通失败:', error);
     return { success: false, error: handleError(error) };
   }
 };
 
 /**
- * @description 创建新会话
- * @returns {Promise<Object>} 创建结果
+ * @description 获取老师详细信息
+ * @param {Number} teacherId - 老师ID
+ * @returns {Promise<Object>} 返回老师详细信息
  */
-export const createConversation = async () => {
+export const getTeacherDetail = async (teacherId) => {
   try {
     const response = await request({
-      url: `${API_PREFIX}/conversations`,
-      method: 'POST'
+      url: `${API_PREFIX}/teachers/${teacherId}`,
+      method: 'GET'
     });
     return { success: true, data: response.data };
   } catch (error) {
-    console.error('创建会话失败:', error);
-    return { success: false, error: handleError(error) };
-  }
-};
-
-/**
- * @description 删除会话
- * @param {string} conversationId - 会话ID
- * @returns {Promise<Object>} 删除结果
- */
-export const deleteConversation = async (conversationId) => {
-  try {
-    const response = await request({
-      url: `${API_PREFIX}/conversations/${conversationId}`,
-      method: 'DELETE'
-    });
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error('删除会话失败:', error);
-    return { success: false, error: handleError(error) };
-  }
-};
-
-/**
- * @description 测试AIQA接口
- * @param {string} question - 用户提问
- * @param {Object} contextInfo - 用户上下文信息
- * @returns {Promise<Object>} 请求结果
- */
-export const testAIQA = async (question, contextInfo = {}) => {
-  try {
-    // 改为POST请求，将问题和上下文信息作为请求体发送
-    const response = await request({
-      url: AIQA_TEST_URL,
-      method: 'POST',
-      data: {
-        question: question,
-        context: contextInfo
-      }
-    });
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error('测试AIQA失败:', error);
+    console.error('获取老师详细信息失败:', error);
     return { success: false, error: handleError(error) };
   }
 }; 
