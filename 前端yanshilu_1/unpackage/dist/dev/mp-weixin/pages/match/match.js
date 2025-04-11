@@ -1,13 +1,29 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
+const store_index = require("../../store/index.js");
 const choiceSelected = () => "../../components/combobox/combobox.js";
 const _sfc_main = common_vendor.defineComponent({
   components: {
     choiceSelected
   },
   onLoad() {
-    common_vendor.index.__f__("log", "at pages/match/match.uvue:89", "匹配页面已加载");
+    return common_vendor.__awaiter(this, void 0, void 0, function* () {
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:90", "匹配页面已加载");
+      this.isLoading = true;
+      try {
+        const result = yield store_index.loadMatchRecommendations();
+        if (result.success && result.data) {
+          this.teachers = Array.isArray(result.data) ? result.data : [];
+        }
+        common_vendor.index.__f__("log", "at pages/match/match.uvue:102", "匹配推荐数据已加载");
+      } catch (error) {
+        common_vendor.index.__f__("error", "at pages/match/match.uvue:104", "加载匹配推荐数据失败:", error);
+        this.teachers = [];
+      } finally {
+        this.isLoading = false;
+      }
+    });
   },
   data() {
     return {
@@ -60,64 +76,13 @@ const _sfc_main = common_vendor.defineComponent({
       sortIndex: -1,
       // 加载状态
       isLoading: false,
-      // 老师数据
-      teachers: [
-        new UTSJSONObject({
-          id: 1,
-          nickname: "王教授",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "北京大学",
-          major: "计算机科学",
-          title: "教授",
-          score: "考研400分",
-          tags: ["认证学校", "经验丰富", "答疑及时", "通俗易懂"]
-        }),
-        new UTSJSONObject({
-          id: 2,
-          nickname: "李博士",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "清华大学",
-          major: "软件工程",
-          title: "副教授",
-          score: "考研390分",
-          tags: ["认证学校", "教学认真"]
-        }),
-        new UTSJSONObject({
-          id: 3,
-          nickname: "张老师",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "复旦大学",
-          major: "数学",
-          title: "讲师",
-          score: "考研380分",
-          tags: ["认证学校", "耐心细致"]
-        }),
-        new UTSJSONObject({
-          id: 4,
-          nickname: "刘教授",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "浙江大学",
-          major: "物理",
-          title: "教授",
-          score: "考研410分",
-          tags: ["认证学校", "通俗易懂"]
-        }),
-        new UTSJSONObject({
-          id: 5,
-          nickname: "陈老师",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "南京大学",
-          major: "化学",
-          title: "副教授",
-          score: "考研385分",
-          tags: ["认证学校", "答疑及时"]
-        })
-      ]
+      // 老师数据 - 确保初始化为数组
+      teachers: []
     };
   },
   computed: {
     filteredTeachers() {
-      let result = [...this.teachers];
+      let result = Array.isArray(this.teachers) ? [...this.teachers] : [];
       if (this.appliedSelectedSchool) {
         result = result.filter((teacher) => {
           return teacher.school === this.appliedSelectedSchool;
@@ -129,8 +94,14 @@ const _sfc_main = common_vendor.defineComponent({
         });
       }
       result.sort((a, b) => {
-        const scoreA = parseInt(a.score.match(/\d+/)[0]);
-        const scoreB = parseInt(b.score.match(/\d+/)[0]);
+        const getScore = (scoreStr = null) => {
+          if (!scoreStr)
+            return 0;
+          const match = scoreStr.toString().match(/\d+/);
+          return match ? parseInt(match[0]) : 0;
+        };
+        const scoreA = getScore(a.score);
+        const scoreB = getScore(b.score);
         return scoreB - scoreA;
       });
       return result;
@@ -153,7 +124,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.appliedSelectedSchool = this.tempSelectedSchool;
       this.appliedSelectedMajor = this.tempSelectedMajor;
       this.appliedSelectedSort = this.tempSelectedSort;
-      common_vendor.index.__f__("log", "at pages/match/match.uvue:240", "应用筛选:", new UTSJSONObject({
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:218", "应用筛选:", new UTSJSONObject({
         学校: this.appliedSelectedSchool,
         专业: this.appliedSelectedMajor,
         排序: this.appliedSelectedSort
@@ -177,7 +148,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} keyword - 搜索关键词
      */
     onSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/match/match.uvue:268", "学校搜索:", keyword);
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:246", "学校搜索:", keyword);
     },
     // 保留原有方法
     handleCommunicate(teacherId = null) {

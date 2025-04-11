@@ -133,5 +133,15 @@
 		"navigationBarBackgroundColor": "#FFFFFF",
 		"backgroundColor": "#F8F8F8"
 	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^history-sidebar$": "components/ai-chat/HistorySidebar",
+			"^message-list$": "components/ai-chat/MessageList",
+			"^filter-section$": "components/ai-chat/FilterSection", 
+			"^mode-selector$": "components/ai-chat/ModeSelector",
+			"^input-section$": "components/ai-chat/InputSection"
+		}
+	},
 	"uniIdRouter": {}
 }

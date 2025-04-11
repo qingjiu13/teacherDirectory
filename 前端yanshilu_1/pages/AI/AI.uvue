@@ -6,32 +6,13 @@
 			<view class="sidebar-mask" v-if="sidebarVisible" @click="closeSidebar" :style="{opacity: sidebarVisible ? 0.5 : 0}"></view>
 			
 			<!-- 历史记录侧边栏 -->
-			<view class="history-sidebar" :class="{visible: sidebarVisible}">
-				<view class="sidebar-header">
-					<text class="sidebar-title">历史记录</text>
-				</view>
-				<scroll-view class="history-list" scroll-y="true">
-					<view class="empty-history" v-if="historyChats.length === 0">
-						<text>暂无历史记录</text>
-					</view>
-					<view v-else>
-						<view 
-							v-for="(item, index) in historyChats" 
-							:key="index" 
-							class="history-item"
-							:class="{'active': currentChatId === item.id}"
-							@click="loadChatHistory(item.id)">
-							<view class="history-item-content">
-								<text class="history-title">{{item.title || '对话 ' + (index + 1)}}</text>
-								<text class="history-time">{{formatTime(item.updatedAt || item.createdAt)}}</text>
-							</view>
-							<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
-								<text class="delete-icon">×</text>
-							</view>
-						</view>
-					</view>
-				</scroll-view>
-			</view>
+			<history-sidebar
+				:visible="sidebarVisible"
+				:history-chats="historyChats"
+				:current-chat-id="currentChatId"
+				@load-chat="loadChatHistory"
+				@delete-chat="deleteChatHistory">
+			</history-sidebar>
 			
 			<!-- 主内容包装器（包含导航栏和主内容） -->
 			<view class="main-wrapper" :class="{shifted: sidebarVisible}">
@@ -55,130 +36,39 @@
 				<!-- 主内容区域 -->
 				<view class="main-content">
 					<!-- 筛选区域 -->
-					<view class="filter-section" @click.stop>
-						<!-- 第一行：学校 -->
-						<view class="filter-row">
-							<view class="filter-item full-width">
-								<text class="filter-label">所在学校：</text>
-								<view class="choice-wrapper">
-									<!-- #ifdef MP-WEIXIN -->
-									<choice-selected 
-										:defaultText="'请选择学校'" 
-										:choiceIndex="schoolIndex" 
-										:choiceList="schoolList"
-										mode="search"
-										:searchPlaceholder="'搜索学校'"
-										@onChoiceClick="onSchoolClick"
-										@search-input="onSchoolSearch"
-										ref="schoolDropdown">
-									</choice-selected>
-									<!-- #endif -->
-									
-									<!-- #ifndef MP-WEIXIN -->
-									<choice-selected 
-										:defaultText="'请选择学校'" 
-										:choiceIndex="schoolIndex" 
-										:choiceList="schoolList"
-										mode="search"
-										:searchPlaceholder="'搜索学校'"
-										@onChoiceClick="onSchoolClick"
-										@search-input="onSchoolSearch"
-										ref="schoolDropdown">
-									</choice-selected>
-									<!-- #endif -->
-								</view>
-							</view>
-						</view>
-						
-						<!-- 第二行：专业 -->
-						<view class="filter-row">
-							<view class="filter-item full-width">
-								<text class="filter-label">专业：</text>
-								<view class="choice-wrapper">
-									<choice-selected 
-										:defaultText="'请选择专业'" 
-										:choiceIndex="majorIndex" 
-										:choiceList="majorList"
-										@onChoiceClick="onMajorClick"
-										ref="majorDropdown">
-									</choice-selected>
-								</view>
-							</view>
-						</view>
-					</view>
+					<filter-section
+						:school-index="schoolIndex"
+						:school-list="schoolList"
+						:major-index="majorIndex"
+						:major-list="majorList"
+						@school-change="onSchoolClick"
+						@major-change="onMajorClick"
+						@school-search="onSchoolSearch"
+						ref="filterSection">
+					</filter-section>
 					
 					<!-- 消息区域 -->
-					<view class="message-section">
-						<scroll-view 
-							scroll-y="true" 
-							class="message-scroll" 
-							:scroll-into-view="autoScrollId"
-							@scrolltoupper="onScrollToUpper"
-							@scroll="onScroll"
-							ref="messageScroll">
-							
-							<view v-if="messages.length === 0" class="empty-message">
-								<text>您可以开始提问了...</text>
-							</view>
-							
-							<view v-else class="message-list">
-								<view v-for="(msg, index) in messages" 
-									:key="index" 
-									:id="'msg-' + index"
-									class="message-item" 
-									:class="[msg.type, {'streaming': msg.streaming}]">
-									<view class="message-header" v-if="msg.type === 'ai'">
-										<text class="ai-title">研师录AI</text>
-									</view>
-									<view class="message-content">
-										<text>{{msg.content}}</text>
-									</view>
-									<view class="message-status" v-if="msg.status === 'sending'">
-										<text class="sending-dots">...</text>
-									</view>
-									<view class="message-status" v-if="msg.status === 'error'">
-										<text class="error-text">发送失败</text>
-										<view class="retry-btn" @click="retryMessage(index)">
-											<text>重试</text>
-										</view>
-									</view>
-								</view>
-							</view>
-						</scroll-view>
-					</view>
+					<message-list
+						:messages="messages"
+						:auto-scroll-id="autoScrollId"
+						@scroll-to-upper="onScrollToUpper"
+						@scroll="onScroll"
+						@retry-message="retryMessage"
+						@update-auto-scroll-id="autoScrollId = $event"
+						ref="messageList">
+					</message-list>
 					
-					<!-- 功能模式区域 - 移到消息区域下方 -->
-					<view class="function-section">
-						<view class="function-list">
-							<view class="function-item" 
-								:class="{active: currentMode === 'general'}" 
-								@click="switchMode('general')">
-								<text class="function-item-text">通用</text>
-							</view>
-							<view class="function-item" 
-								:class="{active: currentMode === 'school'}" 
-								@click="switchMode('school')">
-								<text class="function-item-text">择校</text>
-							</view>
-							<view class="function-item" 
-								:class="{active: currentMode === 'career'}" 
-								@click="switchMode('career')">
-								<text class="function-item-text">职业规划</text>
-							</view>
-						</view>
-					</view>
+					<!-- 功能模式区域 -->
+					<mode-selector
+						:current-mode="currentMode"
+						@mode-change="switchMode">
+					</mode-selector>
 					
 					<!-- 输入区域 -->
-					<view class="input-section">
-						<input class="message-input" 
-							v-model="inputValue" 
-							placeholder="请输入您的问题..." 
-							:disabled="isProcessing"
-							@confirm="sendMessage" />
-						<button class="send-button" @click="sendMessage" :disabled="isProcessing || !inputValue.trim()">
-							<text>{{isProcessing ? '请稍候' : '发送'}}</text>
-						</button>
-					</view>
+					<input-section
+						:is-processing="isProcessing"
+						@send="sendMessage">
+					</input-section>
 				</view>
 			</view>
 		</view>
@@ -194,6 +84,11 @@
 
 <script>
 	import choiceSelected from '../../components/combobox/combobox'
+	import HistorySidebar from '../../components/ai-chat/HistorySidebar'
+	import MessageList from '../../components/ai-chat/MessageList'
+	import FilterSection from '../../components/ai-chat/FilterSection'
+	import ModeSelector from '../../components/ai-chat/ModeSelector'
+	import InputSection from '../../components/ai-chat/InputSection'
 	import { services } from '../../store'
 	import store from '../../store'
 	
@@ -220,7 +115,12 @@
 	
 	export default {
 		components: {
-			choiceSelected
+			choiceSelected,
+			HistorySidebar,
+			MessageList,
+			FilterSection,
+			ModeSelector,
+			InputSection
 		},
 		computed: {
 			// 从Vuex中获取状态
@@ -233,9 +133,26 @@
 			isLoading() {
 				return store.getters['aiChat/isLoading'];
 			},
-			// 新增计算属性，从Vuex获取历史会话
+			// 历史会话
 			historyChats() {
 				return store.getters['aiChat/historyChats'] || [];
+			},
+			// 当前选择的学校名称
+			currentSchool() {
+				return this.schoolIndex >= 0 ? this.schoolList[this.schoolIndex].choiceItemContent : '';
+			},
+			// 当前选择的专业名称
+			currentMajor() {
+				return this.majorIndex >= 0 ? this.majorList[this.majorIndex].choiceItemContent : '';
+			},
+			// 获取当前模式名称
+			currentModeName() {
+				const modeNames = {
+					[CHAT_MODE.GENERAL]: '通用',
+					[CHAT_MODE.SCHOOL]: '择校',
+					[CHAT_MODE.CAREER]: '职业规划'
+				};
+				return modeNames[this.currentMode] || '通用';
 			}
 		},
 		data() {
@@ -247,7 +164,6 @@
 				},
 				
 				// 消息相关
-				inputValue: '',
 				messages: [],
 				isProcessing: false, // 是否正在处理消息
 				isFullLoading: false, // 是否显示全屏加载
@@ -300,25 +216,17 @@
 				// 自定义的上下文信息
 				contextInfo: {},
 				
-				// 新增导航栏和侧边栏相关
+				// 导航栏和侧边栏相关
 				sidebarVisible: false,
-				chatHistory: [],
 				currentChatId: null // 当前会话ID
 			}
 		},
 		watch: {
-			// 监听historyChats变化，更新本地的chatHistory
+			// 监听historyChats变化
 			historyChats: {
 				handler(newVal) {
 					if (newVal && newVal.length) {
-						this.chatHistory = newVal.map(chat => {
-							return {
-								id: chat.id,
-								title: chat.title || chat.messages[0]?.content.substring(0, 20) || '新对话',
-								time: this.formatTime(chat.createdAt || new Date()),
-								messages: chat.messages
-							};
-						});
+						// 历史会话在Store中维护，这里不需要额外逻辑
 					}
 				},
 				immediate: true
@@ -346,8 +254,7 @@
 			this.abortCurrentRequest();
 		},
 		onReady() {
-			// 页面渲染完成
-			// 解决在某些平台上可能因为异步操作导致的定位问题
+			// 页面渲染完成后更新布局
 			setTimeout(() => {
 				this.updateLayout();
 			}, 300);
@@ -357,12 +264,9 @@
 			 * @description 处理页面点击事件，用于关闭所有打开的下拉框
 			 */
 			onPageClick() {
-				// 获取所有的下拉框组件实例
-				if (this.$refs && this.$refs.schoolDropdown) {
-					this.$refs.schoolDropdown.closeDropdown && this.$refs.schoolDropdown.closeDropdown();
-				}
-				if (this.$refs && this.$refs.majorDropdown) {
-					this.$refs.majorDropdown.closeDropdown && this.$refs.majorDropdown.closeDropdown();
+				// 关闭筛选区域的下拉框
+				if (this.$refs && this.$refs.filterSection) {
+					this.$refs.filterSection.closeAllDropdowns();
 				}
 			},
 			
@@ -387,26 +291,33 @@
 						this.userInfo = parsedInfo;
 						
 						// 根据保存的用户信息设置选择框的索引
-						if (this.userInfo.school) {
-							const schoolIndex = this.schoolList.findIndex(
-								item => item.choiceItemContent === this.userInfo.school
-							);
-							if (schoolIndex !== -1) {
-								this.schoolIndex = schoolIndex;
-							}
-						}
-						
-						if (this.userInfo.major) {
-							const majorIndex = this.majorList.findIndex(
-								item => item.choiceItemContent === this.userInfo.major
-							);
-							if (majorIndex !== -1) {
-								this.majorIndex = majorIndex;
-							}
-						}
+						this.setUserSelectionIndexes();
 					}
 				} catch (e) {
 					console.error('获取用户信息失败:', e);
+				}
+			},
+			
+			/**
+			 * @description 根据用户信息设置学校和专业的索引
+			 */
+			setUserSelectionIndexes() {
+				if (this.userInfo.school) {
+					const schoolIndex = this.schoolList.findIndex(
+						item => item.choiceItemContent === this.userInfo.school
+					);
+					if (schoolIndex !== -1) {
+						this.schoolIndex = schoolIndex;
+					}
+				}
+				
+				if (this.userInfo.major) {
+					const majorIndex = this.majorList.findIndex(
+						item => item.choiceItemContent === this.userInfo.major
+					);
+					if (majorIndex !== -1) {
+						this.majorIndex = majorIndex;
+					}
 				}
 			},
 			
@@ -428,9 +339,8 @@
 			 */
 			onSchoolClick(position) {
 				this.schoolIndex = position;
-				this.userInfo.school = this.schoolList[position].choiceItemContent;
+				this.userInfo.school = this.currentSchool;
 				this.saveUserInfo();
-				// 更新对话上下文
 				this.updateContextInfo();
 			},
 			
@@ -440,9 +350,8 @@
 			 */
 			onMajorClick(position) {
 				this.majorIndex = position;
-				this.userInfo.major = this.majorList[position].choiceItemContent;
+				this.userInfo.major = this.currentMajor;
 				this.saveUserInfo();
-				// 更新对话上下文
 				this.updateContextInfo();
 			},
 			
@@ -451,9 +360,7 @@
 			 * @param {String} keyword - 搜索关键词
 			 */
 			onSchoolSearch(keyword) {
-				console.log('学校搜索:', keyword);
 				// 这里可以实现动态学校搜索逻辑，例如从服务器获取匹配的学校
-				// 简单实现：如果需要从服务器获取，可以在这里添加API调用
 			},
 			
 			/**
@@ -464,19 +371,8 @@
 				if (this.currentMode === mode) return;
 				
 				this.currentMode = mode;
-				
-				// 更新对话上下文
 				this.updateContextInfo();
-				
-				// 添加系统消息
-				let modeName = '通用';
-				if (mode === CHAT_MODE.SCHOOL) {
-					modeName = '择校';
-				} else if (mode === CHAT_MODE.CAREER) {
-					modeName = '职业规划';
-				}
-				
-				this.addSystemMessage(`已切换到${modeName}模式`);
+				this.addSystemMessage(`已切换到${this.currentModeName}模式`);
 			},
 			
 			/**
@@ -485,8 +381,8 @@
 			updateContextInfo() {
 				this.contextInfo = {
 					mode: this.currentMode,
-					userSchool: this.userInfo.school || '',
-					userMajor: this.userInfo.major || ''
+					userSchool: this.currentSchool,
+					userMajor: this.currentMajor
 				};
 			},
 			
@@ -507,64 +403,62 @@
 			 * @description 开始新对话
 			 */
 			startNewChat() {
-				// 1. 清空当前会话内容
 				this.messages = [];
-				
-				// 2. 更新当前会话ID
 				this.currentChatId = 'chat_' + Date.now();
 				store.dispatch('aiChat/setCurrentChat', this.currentChatId);
-				
-				// 3. 添加欢迎消息
 				this.addSystemMessage('开始新对话，请输入您的问题');
-				
-				// 4. 关闭侧边栏
 				this.closeSidebar();
 			},
 			
 			/**
-			 * @description 发送消息 (修改以支持保存历史记录)
+			 * @description 处理消息发送和重试的统一方法
+			 * @param {String} messageContent - 消息内容
+			 * @param {Number} [retryIndex] - 重试消息的索引，如果是新消息则为null
 			 */
-			async sendMessage() {
-				if (!this.inputValue.trim() || this.isProcessing) {
-					return;
+			async handleMessage(messageContent, retryIndex = null) {
+				if (!messageContent || this.isProcessing) return;
+				
+				let userMessageIndex, aiMessageIndex;
+				
+				// 处理新消息或重试
+				if (retryIndex === null) {
+					// 新消息
+					userMessageIndex = this.messages.length;
+					this.messages.push({
+						type: MESSAGE_TYPE.USER,
+						content: messageContent,
+						status: MESSAGE_STATUS.SENT
+					});
+					
+					aiMessageIndex = this.messages.length;
+					this.messages.push({
+						type: MESSAGE_TYPE.AI,
+						content: '',
+						status: MESSAGE_STATUS.SENDING,
+						streaming: false
+					});
+				} else {
+					// 重试消息
+					userMessageIndex = retryIndex - 1;
+					aiMessageIndex = retryIndex;
+					this.messages[aiMessageIndex].content = '';
+					this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENDING;
+					this.messages[aiMessageIndex].streaming = false;
 				}
-				
-				// 获取输入内容并清空输入框
-				const messageContent = this.inputValue.trim();
-				this.inputValue = '';
-				
-				// 添加用户消息
-				const userMessageIndex = this.messages.length;
-				this.messages.push({
-					type: MESSAGE_TYPE.USER,
-					content: messageContent,
-					status: MESSAGE_STATUS.SENT
-				});
-				
-				// 添加AI消息（初始为加载状态）
-				const aiMessageIndex = this.messages.length;
-				this.messages.push({
-					type: MESSAGE_TYPE.AI,
-					content: '',
-					status: MESSAGE_STATUS.SENDING,
-					streaming: false // 改为false，不使用流式传输
-				});
 				
 				this.scrollToBottom();
 				this.isProcessing = true;
 				
 				try {
-					// 确保上下文信息是最新的
 					this.updateContextInfo();
 					
-					// 如果没有当前会话ID，创建一个新的
+					// 确保有当前会话ID
 					if (!this.currentChatId) {
 						this.currentChatId = 'chat_' + Date.now();
-						// 在Vuex中设置当前会话ID
 						store.dispatch('aiChat/setCurrentChat', this.currentChatId);
 					}
 					
-					// 调用AIQA测试接口，通过Vuex dispatch，传递问题、上下文和会话ID
+					// 直接通过Vuex调用后端API
 					const response = await store.dispatch('aiChat/testAIQA', {
 						question: messageContent,
 						contextInfo: this.contextInfo,
@@ -572,26 +466,17 @@
 					});
 					
 					if (response.success) {
-						// 更新AI消息内容
 						this.messages[aiMessageIndex].content = response.data;
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
-						
-						// 保存会话记录
 						this.saveChatHistory();
 					} else {
-						// 处理错误 - 优先使用后端返回的错误信息
-						const errorMessage = response.error && response.error.message ? 
-							response.error.message : 
-							(response.message || '获取回复失败，请稍后重试');
-						
-						this.messages[aiMessageIndex].content = errorMessage;
+						// 直接使用后端返回的错误信息
+						this.messages[aiMessageIndex].content = response.error?.message || response.message || '获取回复失败';
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
 					}
 				} catch (error) {
-					console.error('发送消息失败:', error);
-					// 优先使用完整的错误对象中的信息
-					const errorMessage = (error && error.message) ? error.message : '获取回复失败，请稍后重试';
-					this.messages[aiMessageIndex].content = errorMessage;
+					// 错误信息由后端提供
+					this.messages[aiMessageIndex].content = '与服务器通信异常';
 					this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
 				} finally {
 					this.isProcessing = false;
@@ -601,10 +486,18 @@
 			},
 			
 			/**
+			 * @description 发送消息
+			 * @param {String} messageContent - 消息内容
+			 */
+			sendMessage(messageContent) {
+				this.handleMessage(messageContent);
+			},
+			
+			/**
 			 * @description 重试发送失败的消息
 			 * @param {Number} index - 消息索引
 			 */
-			async retryMessage(index) {
+			retryMessage(index) {
 				// 只能重试AI消息
 				if (index < 1 || this.messages[index].type !== MESSAGE_TYPE.AI) {
 					return;
@@ -616,52 +509,7 @@
 					return;
 				}
 				
-				// 更新消息状态
-				this.updateMessageStatus(index, MESSAGE_STATUS.SENDING);
-				this.messages[index].content = '';
-				this.messages[index].streaming = false;
-				
-				// 重新发送消息
-				this.isProcessing = true;
-				
-				try {
-					// 确保上下文信息是最新的
-					this.updateContextInfo();
-					
-					// 调用AIQA测试接口，通过Vuex dispatch，传递问题、上下文和会话ID
-					const response = await store.dispatch('aiChat/testAIQA', {
-						question: userMessage.content,
-						contextInfo: this.contextInfo,
-						chatId: this.currentChatId
-					});
-					
-					if (response.success) {
-						// 更新AI消息内容
-						this.messages[index].content = response.data;
-						this.updateMessageStatus(index, MESSAGE_STATUS.SENT);
-						
-						// 保存会话记录
-						this.saveChatHistory();
-					} else {
-						// 处理错误 - 优先使用后端返回的错误信息
-						const errorMessage = response.error && response.error.message ? 
-							response.error.message : 
-							(response.message || '获取回复失败，请稍后重试');
-						
-						this.messages[index].content = errorMessage;
-						this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
-					}
-				} catch (error) {
-					console.error('重试发送消息失败:', error);
-					// 优先使用完整的错误对象中的信息
-					const errorMessage = (error && error.message) ? error.message : '获取回复失败，请稍后重试';
-					this.messages[index].content = errorMessage;
-					this.updateMessageStatus(index, MESSAGE_STATUS.ERROR);
-				} finally {
-					this.isProcessing = false;
-					this.messages[index].streaming = false;
-					this.scrollToBottom();
-				}
+				this.handleMessage(userMessage.content, index);
 			},
 			
 			/**
@@ -677,41 +525,6 @@
 			},
 			
 			/**
-			 * @description 更新消息状态
-			 * @param {Number} index - 消息索引
-			 * @param {String} status - 新状态
-			 */
-			updateMessageStatus(index, status) {
-				if (index >= 0 && index < this.messages.length) {
-					this.messages[index].status = status;
-				}
-			},
-			
-			/**
-			 * @description 获取消息历史用于发送到API
-			 * @param {Number} [limit] - 可选，限制历史消息的数量
-			 * @returns {Array} 消息历史数组
-			 */
-			getMessageHistory(limit) {
-				// 筛选出有效的对话消息（用户和AI的消息）
-				let history = this.messages.filter(msg => 
-					msg.type === MESSAGE_TYPE.USER || 
-					(msg.type === MESSAGE_TYPE.AI && msg.status === MESSAGE_STATUS.SENT)
-				);
-				
-				// 如果指定了limit，则只获取最近的limit条消息
-				if (typeof limit === 'number' && limit >= 0 && limit < history.length) {
-					history = history.slice(0, limit);
-				}
-				
-				// 转换为API需要的格式
-				return history.map(msg => ({
-					role: msg.type === MESSAGE_TYPE.USER ? 'user' : 'assistant',
-					content: msg.content
-				}));
-			},
-			
-			/**
 			 * @description 滚动到底部
 			 */
 			scrollToBottom() {
@@ -723,61 +536,66 @@
 			},
 			
 			/**
-			 * @description 处理滚动到顶部事件（加载更多历史消息）
+			 * @description 处理滚动到顶部事件
 			 */
 			onScrollToUpper(e) {
-				// 如果需要加载更多历史消息，可以在这里实现
-				console.log('滚动到顶部');
+				// 滚动到顶部的处理逻辑
 			},
 			
 			/**
-			 * @description 处理滚动事件（用于控制是否启用自动滚动）
+			 * @description 处理滚动事件
 			 */
 			onScroll(e) {
-				// 这里可以实现根据用户滚动位置决定是否启用自动滚动
-				// 例如，当用户手动向上滚动时禁用自动滚动，当滚动到底部时再启用
+				// 滚动事件处理逻辑
 			},
 			
 			/**
 			 * @description 显示提示
 			 * @param {String} message - 提示信息
+			 * @param {String} [icon='none'] - 提示图标
+			 * @param {Number} [duration=2000] - 提示持续时间
 			 */
-			showToast(message) {
+			showToast(message, icon = 'none', duration = 2000) {
 				uni.showToast({
 					title: message,
-					icon: 'none',
-					duration: 2000
+					icon: icon,
+					duration: duration
 				});
 			},
 			
 			/**
-			 * @description 显示加载提示
-			 * @param {String} [text] - 加载提示文本
+			 * @description 显示/隐藏加载提示
+			 * @param {String|Boolean} text - 加载提示文本，如果为false则隐藏
 			 */
-			showLoading(text = '正在加载...') {
-				this.loadingText = text;
-				this.isFullLoading = true;
+			toggleLoading(text = '正在加载...') {
+				if (text === false) {
+					this.isFullLoading = false;
+				} else {
+					this.loadingText = text;
+					this.isFullLoading = true;
+				}
 			},
 			
-			/**
-			 * @description 隐藏加载提示
-			 */
-			hideLoading() {
-				this.isFullLoading = false;
-			},
-			
-			// 新增导航栏和侧边栏相关方法
+			// 侧边栏相关方法
 			toggleSidebar() {
 				this.sidebarVisible = !this.sidebarVisible;
 			},
+			
 			closeSidebar() {
 				this.sidebarVisible = false;
 			},
+			
+			/**
+			 * @description 加载指定的聊天历史
+			 * @param {String} chatId - 聊天历史ID
+			 */
 			loadChatHistory(chatId) {
 				if (!chatId) return;
 				
 				try {
-					// 从Vuex加载历史会话
+					this.toggleLoading('正在加载历史对话...');
+					
+					// 直接通过Vuex加载历史会话
 					store.dispatch('aiChat/loadChat', chatId).then(response => {
 						if (response.success && response.data) {
 							// 设置当前会话ID
@@ -794,91 +612,67 @@
 								this.scrollToBottom();
 							});
 						} else {
-							this.showToast('加载历史对话失败: ' + (response.message || '未找到会话'));
+							this.showToast('加载历史对话失败');
 						}
+					}).finally(() => {
+						this.toggleLoading(false);
 					});
 				} catch (error) {
-					console.error('加载历史对话失败:', error);
 					this.showToast('加载历史对话失败');
+					this.toggleLoading(false);
 				}
 			},
+			
 			/**
 			 * @description 从Vuex加载历史会话
 			 */
 			loadChatHistoryFromStorage() {
-				try {
-					// 从Vuex获取历史会话
-					store.dispatch('aiChat/getHistoryChats').then(response => {
-						if (response.success) {
-							console.log('从Vuex加载历史会话成功');
-						} else {
-							console.error('从Vuex加载历史会话失败:', response.message);
-						}
-					});
-				} catch (error) {
-					console.error('加载历史会话错误:', error);
-					this.chatHistory = [];
-				}
+				// 直接从Vuex获取历史会话
+				store.dispatch('aiChat/getHistoryChats');
 			},
+			
 			/**
 			 * @description 保存聊天历史到Vuex
 			 */
 			saveChatHistory() {
-				try {
-					if (!this.currentChatId || this.messages.length === 0) return;
-					
-					// 寻找第一条用户消息作为标题
-					const firstUserMessage = this.messages.find(msg => msg.type === MESSAGE_TYPE.USER);
-					const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
-					
-					// 创建聊天记录对象
-					const chatData = {
-						id: this.currentChatId,
-						title: title,
-						messages: this.messages,
-						createdAt: new Date(),
-						updatedAt: new Date()
-					};
-					
-					// 保存到Vuex
-					store.dispatch('aiChat/saveChat', chatData).then(response => {
-						if (response.success) {
-							console.log('保存聊天历史到Vuex成功');
-						} else {
-							console.error('保存聊天历史到Vuex失败:', response.message);
-						}
-					});
-				} catch (error) {
-					console.error('保存聊天历史失败:', error);
-				}
+				if (!this.currentChatId || this.messages.length === 0) return;
+				
+				// 寻找第一条用户消息作为标题
+				const firstUserMessage = this.messages.find(msg => msg.type === MESSAGE_TYPE.USER);
+				const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
+				
+				// 创建聊天记录对象
+				const chatData = {
+					id: this.currentChatId,
+					title: title,
+					messages: this.messages,
+					createdAt: new Date(),
+					updatedAt: new Date()
+				};
+				
+				// 保存到Vuex
+				store.dispatch('aiChat/saveChat', chatData);
 			},
+			
 			/**
 			 * @description 删除历史记录
 			 * @param {String} chatId - 历史记录ID
-			 * @param {Event} e - 事件对象，用于阻止冒泡
 			 */
-			deleteChatHistory(chatId, e) {
-				// 阻止冒泡，避免触发点击加载历史记录
-				e && e.stopPropagation();
-				
-				try {
-					// 使用Vuex删除历史记录
-					store.dispatch('aiChat/deleteChat', chatId).then(response => {
-						if (response.success) {
-							// 如果删除的是当前会话，则清空当前会话
-							if (this.currentChatId === chatId) {
-								this.startNewChat();
-							}
-							this.showToast('删除成功');
-						} else {
-							this.showToast('删除失败: ' + response.message);
+			deleteChatHistory(chatId) {
+				// 使用Vuex删除历史记录
+				store.dispatch('aiChat/deleteChat', chatId).then(response => {
+					if (response.success) {
+						// 如果删除的是当前会话，则清空当前会话
+						if (this.currentChatId === chatId) {
+							this.startNewChat();
 						}
-					});
-				} catch (error) {
-					console.error('删除历史记录失败:', error);
-					this.showToast('删除失败');
-				}
+						this.showToast('删除成功');
+					} else {
+						this.showToast('删除失败');
+					}
+				});
 			},
+			
 			/**
 			 * @description 格式化时间
 			 * @param {Date|String} time - 时间对象或时间字符串
@@ -913,303 +707,6 @@
 		overflow: hidden; /* 防止内容溢出 */
 	}
 	
-	/* 筛选区域 */
-	.filter-section {
-		width: 100%;
-		padding: 20rpx 15rpx;
-		background-color: #ffffff;
-		border-radius: 0 0 16rpx 16rpx; /* 调整圆角，让顶部与导航栏无缝连接 */
-		margin-bottom: 20rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-		box-sizing: border-box;
-		margin-top: 0;
-		position: relative;
-		z-index: 10;
-	}
-	
-	.filter-row {
-		display: flex;
-		flex-direction: row;
-		width: 100%;
-		margin-bottom: 20rpx;
-		box-sizing: border-box;
-	}
-	
-	.filter-row:last-child {
-		margin-bottom: 0;
-	}
-	
-	.filter-item {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		box-sizing: border-box;
-		width: 100%;
-	}
-	
-	.full-width {
-		width: 100%;
-	}
-	
-	.filter-label {
-		font-size: 28rpx;
-		color: #333;
-		white-space: nowrap;
-		margin-right: 10rpx;
-		width: 140rpx; /* 改为固定宽度，不用min-width */
-		padding-left: 10rpx;
-		text-align: left;
-		box-sizing: border-box;
-	}
-	
-	.choice-wrapper {
-		flex: 1;
-		box-sizing: border-box;
-		width: calc(100% - 150rpx); /* 考虑标签宽度和间距 */
-		padding-right: 10rpx; /* 防止右侧超出边界 */
-	}
-	
-	.flex-1 {
-		flex: 1;
-	}
-	
-	/* 消息区域 */
-	.message-section {
-		flex: 1;
-		width: 100%;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		margin-bottom: 20rpx;
-		overflow: hidden;
-		position: relative;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-	}
-	
-	.message-scroll {
-		height: 100%;
-		padding: 30rpx;
-	}
-	
-	.empty-message {
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	
-	.empty-message text {
-		color: #999;
-		font-size: 28rpx;
-	}
-	
-	.message-list {
-		display: flex;
-		flex-direction: column;
-	}
-	
-	.message-item {
-		max-width: 90%;
-		margin-bottom: 30rpx;
-		position: relative;
-		animation: fadeIn 0.3s ease-in-out;
-	}
-	
-	@keyframes fadeIn {
-		from { opacity: 0; transform: translateY(10rpx); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-	
-	.message-item.user {
-		align-self: flex-end;
-	}
-	
-	.message-item.ai {
-		align-self: flex-start;
-	}
-	
-	.message-item.system {
-		align-self: center;
-		max-width: 70%;
-		margin: 10rpx 0 30rpx;
-	}
-	
-	.message-content {
-		padding: 20rpx 30rpx;
-		border-radius: 16rpx;
-		font-size: 28rpx;
-		line-height: 1.5;
-		word-break: break-word;
-	}
-	
-	.message-item.user .message-content {
-		background-color: #1E90FF;
-		color: #fff;
-		border-radius: 16rpx 0 16rpx 16rpx;
-	}
-	
-	.message-item.ai .message-content {
-		background-color: #f0f0f0;
-		color: #333;
-		border-radius: 0 16rpx 16rpx 16rpx;
-	}
-	
-	.message-item.system .message-content {
-		background-color: rgba(0, 0, 0, 0.05);
-		color: #666;
-		border-radius: 30rpx;
-		font-size: 24rpx;
-	}
-	
-	.message-header {
-		margin-bottom: 10rpx;
-	}
-	
-	.ai-title {
-		font-size: 24rpx;
-		color: #666;
-		padding-left: 10rpx;
-	}
-	
-	.message-status {
-		margin-top: 10rpx;
-		font-size: 24rpx;
-		color: #999;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-	}
-	
-	.sending-dots {
-		animation: dotsAnimation 1.5s infinite;
-	}
-	
-	@keyframes dotsAnimation {
-		0% { opacity: 0.3; }
-		50% { opacity: 1; }
-		100% { opacity: 0.3; }
-	}
-	
-	.error-text {
-		color: #ff4d4f;
-		margin-right: 10rpx;
-	}
-	
-	.retry-btn {
-		padding: 5rpx 15rpx;
-		background-color: #f0f0f0;
-		border-radius: 10rpx;
-	}
-	
-	.retry-btn text {
-		color: #1E90FF;
-		font-size: 22rpx;
-	}
-	
-	.message-item.streaming .message-content {
-		position: relative;
-	}
-	
-	.message-item.streaming .message-content::after {
-		content: "|";
-		display: inline-block;
-		color: #1E90FF;
-		animation: blink 1s step-end infinite;
-		margin-left: 2rpx;
-		font-weight: bold;
-	}
-	
-	@keyframes blink {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0; }
-	}
-	
-	/* 功能区域 - 调整位置到消息区域和输入区域之间 */
-	.function-section {
-		width: 100%;
-		padding: 15rpx;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		margin-bottom: 20rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-		box-sizing: border-box;
-	}
-	
-	.function-list {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-around;
-	}
-	
-	.function-item {
-		padding: 15rpx 30rpx;
-		border-radius: 30rpx;
-		background-color: #f0f0f0;
-		transition: all 0.3s;
-	}
-	
-	.function-item.active {
-		background-color: #1E90FF;
-	}
-	
-	.function-item-text {
-		font-size: 28rpx;
-		color: #333;
-	}
-	
-	.function-item.active .function-item-text {
-		color: #ffffff;
-	}
-	
-	/* 输入区域 */
-	.input-section {
-		width: 100%;
-		height: 100rpx;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		padding: 0 10rpx;
-		box-sizing: border-box;
-	}
-	
-	.message-input {
-		flex: 1;
-		height: 80rpx;
-		background-color: #ffffff;
-		border: 2rpx solid #ddd;
-		border-radius: 40rpx;
-		padding: 0 30rpx;
-		margin-right: 20rpx;
-		font-size: 28rpx;
-		box-sizing: border-box;
-	}
-	
-	.send-button {
-		width: 140rpx;
-		height: 80rpx;
-		background-color: #1E90FF;
-		color: #fff;
-		border-radius: 40rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: none;
-		padding: 0;
-		box-sizing: border-box;
-		transition: all 0.3s; /* 添加过渡效果 */
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1); /* 添加阴影 */
-	}
-	
-	.send-button:disabled {
-		background-color: #f0f0f0; /* 更改为浅灰色背景，与功能按钮一致 */
-		color: #999; /* 更暗的文字颜色 */
-		border: 2rpx solid #ddd; /* 添加边框 */
-		box-shadow: none; /* 禁用状态不显示阴影 */
-	}
-	
-	.send-button text {
-		font-size: 28rpx;
-	}
-	
 	/* 加载遮罩 */
 	.loading-mask {
 		position: fixed;
@@ -1236,7 +733,7 @@
 		color: #333;
 	}
 	
-	/* 新增导航栏和侧边栏相关样式 */
+	/* 侧边栏容器样式 */
 	.nav-sidebar-container {
 		position: relative;
 		width: 100%;
@@ -1257,122 +754,28 @@
 		transition: opacity 0.3s ease;
 	}
 	
-	.history-sidebar {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 66vw; /* 占屏幕宽度的2/3 */
-		height: 100vh;
-		background-color: #ffffff;
-		transform: translateX(-100%);
-		transition: transform 0.3s ease;
-		z-index: 999;
-		box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.1);
-		display: flex;
-		flex-direction: column;
-	}
-	
-	.history-sidebar.visible {
-		transform: translateX(0);
-	}
-	
-	.sidebar-header {
-		padding: 30rpx 20rpx;
-		border-bottom: 1rpx solid #eee;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		height: 80rpx;
-	}
-	
-	.sidebar-title {
-		font-size: 32rpx;
-		color: #333;
-		font-weight: 500;
-	}
-	
-	.history-list {
-		flex: 1;
-		height: calc(100vh - 80rpx);
-		padding: 0;
-		background-color: #f9f9f9;
-	}
-	
-	.empty-history {
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 40rpx;
-		color: #999;
-	}
-	
-	.empty-history text {
-		color: #999;
-		font-size: 28rpx;
-	}
-	
-	.history-item {
-		padding: 30rpx 20rpx;
-		background-color: #ffffff;
-		margin-bottom: 2rpx;
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		border-bottom: 1rpx solid #f0f0f0;
-		transition: all 0.2s;
-	}
-	
-	.history-item:active {
-		background-color: #f5f5f5;
-	}
-	
-	.history-item.active {
-		background-color: #e6f7ff;
-		border-left: 4rpx solid #1890ff;
-	}
-	
-	.history-item-content {
+	.main-wrapper {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
-	}
-	
-	.history-title {
-		font-size: 28rpx;
-		color: #333;
-		margin-bottom: 10rpx;
-		/* 单行文本截断 */
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		max-width: 80%;
-	}
-	
-	.history-time {
-		font-size: 24rpx;
-		color: #999;
-	}
-	
-	.history-delete {
-		width: 60rpx;
-		height: 60rpx;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		border-radius: 50%;
+		transition: transform 0.3s ease, opacity 0.3s ease;
 		background-color: #f5f5f5;
-		margin-left: 20rpx;
+		padding-bottom: 20rpx; /* 底部增加内边距 */
 	}
 	
-	.delete-icon {
-		font-size: 36rpx;
-		color: #ff4d4f;
-		line-height: 1;
+	.main-wrapper.shifted {
+		transform: translateX(66vw);
+		opacity: 0.85;
 	}
 	
+	.main-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		padding: 0 20rpx; /* 仅添加左右内边距 */
+	}
+	
+	/* 导航栏样式 */
 	.nav-bar {
 		height: 90rpx;
 		background-color: #ffffff;
@@ -1445,26 +848,5 @@
 	.new-chat-btn text {
 		font-size: 28rpx;
 		color: #fff;
-	}
-	
-	.main-wrapper {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		transition: transform 0.3s ease, opacity 0.3s ease;
-		background-color: #f5f5f5;
-		padding-bottom: 20rpx; /* 底部增加内边距 */
-	}
-	
-	.main-wrapper.shifted {
-		transform: translateX(66vw);
-		opacity: 0.85;
-	}
-	
-	.main-content {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 0 20rpx; /* 仅添加左右内边距 */
 	}
 </style>

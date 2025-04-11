@@ -61,7 +61,7 @@ const getConversations = async () => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:91", "获取会话列表失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:90", "获取会话列表失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -72,7 +72,7 @@ const getMessages = async (conversationId) => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:108", "获取会话消息失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:107", "获取会话消息失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -90,7 +90,7 @@ const sendMessage = async (params) => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:136", "发送消息失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:135", "发送消息失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -102,7 +102,7 @@ const createConversation = async () => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:153", "创建会话失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:152", "创建会话失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -114,7 +114,7 @@ const deleteConversation = async (conversationId) => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:171", "删除会话失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:170", "删除会话失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -130,7 +130,7 @@ const testAIQA = async (question, contextInfo = {}) => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:195", "测试AIQA失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:194", "测试AIQA失败:", error);
     return { success: false, error: handleError(error) };
   }
 };

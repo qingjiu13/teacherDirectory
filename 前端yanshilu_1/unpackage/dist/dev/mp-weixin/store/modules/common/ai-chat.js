@@ -8,7 +8,10 @@ const state = {
   messages: [],
   conversationId: null,
   lastResponse: null,
-  testResult: null
+  testResult: null,
+  // 新增历史会话管理
+  historyChats: [],
+  currentChatId: null
 };
 const getters = {
   isLoading: (state2) => state2.isLoading,
@@ -17,7 +20,10 @@ const getters = {
   messages: (state2) => state2.messages,
   lastResponse: (state2) => state2.lastResponse,
   conversationId: (state2) => state2.conversationId,
-  testResult: (state2) => state2.testResult
+  testResult: (state2) => state2.testResult,
+  // 新增历史会话相关getters
+  historyChats: (state2) => state2.historyChats,
+  currentChatId: (state2) => state2.currentChatId
 };
 const SET_LOADING = "SET_LOADING";
 const SET_TESTING = "SET_TESTING";
@@ -28,6 +34,11 @@ const SET_CONVERSATION_ID = "SET_CONVERSATION_ID";
 const SET_LAST_RESPONSE = "SET_LAST_RESPONSE";
 const CLEAR_CONVERSATION = "CLEAR_CONVERSATION";
 const SET_TEST_RESULT = "SET_TEST_RESULT";
+const SET_HISTORY_CHATS = "SET_HISTORY_CHATS";
+const ADD_HISTORY_CHAT = "ADD_HISTORY_CHAT";
+const UPDATE_HISTORY_CHAT = "UPDATE_HISTORY_CHAT";
+const REMOVE_HISTORY_CHAT = "REMOVE_HISTORY_CHAT";
+const SET_CURRENT_CHAT_ID = "SET_CURRENT_CHAT_ID";
 const mutations = {
   [SET_LOADING](state2, status) {
     state2.isLoading = status;
@@ -57,6 +68,25 @@ const mutations = {
   },
   [SET_TEST_RESULT](state2, result) {
     state2.testResult = result;
+  },
+  // 新增历史会话相关mutations
+  [SET_HISTORY_CHATS](state2, chats) {
+    state2.historyChats = chats;
+  },
+  [ADD_HISTORY_CHAT](state2, chat) {
+    state2.historyChats.unshift(chat);
+  },
+  [UPDATE_HISTORY_CHAT](state2, updatedChat) {
+    const index = state2.historyChats.findIndex((chat) => chat.id === updatedChat.id);
+    if (index !== -1) {
+      state2.historyChats.splice(index, 1, updatedChat);
+    }
+  },
+  [REMOVE_HISTORY_CHAT](state2, chatId) {
+    state2.historyChats = state2.historyChats.filter((chat) => chat.id !== chatId);
+  },
+  [SET_CURRENT_CHAT_ID](state2, chatId) {
+    state2.currentChatId = chatId;
   }
 };
 const actions = {
@@ -101,7 +131,7 @@ const actions = {
       commit(SET_LAST_RESPONSE, response.data);
       return response.data;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:127", "发送聊天消息失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:159", "发送聊天消息失败:", error);
       commit(SET_ERROR, error);
       const errorMessage = {
         id: `error-${Date.now()}`,
@@ -135,7 +165,7 @@ const actions = {
       }
       return response;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:168", "获取历史消息失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:200", "获取历史消息失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -160,7 +190,7 @@ const actions = {
       }
       return response;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:197", "创建会话失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:229", "创建会话失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -180,13 +210,17 @@ const actions = {
    * @param {Object} payload - 请求参数
    * @param {string} payload.question - 用户提问
    * @param {Object} payload.contextInfo - 用户上下文信息
+   * @param {string} [payload.chatId] - 聊天会话ID
    * @returns {Promise<Object>} 测试结果
    */
-  async testAIQA({ commit }, { question, contextInfo = {} }) {
+  async testAIQA({ commit, dispatch }, { question, contextInfo = {}, chatId = null }) {
     try {
       commit(SET_LOADING, true);
       commit(SET_TESTING, true);
       commit(SET_ERROR, null);
+      if (chatId) {
+        commit(SET_CURRENT_CHAT_ID, chatId);
+      }
       const result = await store_services_index.services.aiChat.testAIQA(question, contextInfo);
       if (result.success) {
         commit(SET_TEST_RESULT, result.data);
@@ -195,7 +229,7 @@ const actions = {
       }
       return result;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:238", "测试AIQA失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:276", "测试AIQA失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -209,6 +243,112 @@ const actions = {
    */
   clearTestResult({ commit }) {
     commit(SET_TEST_RESULT, null);
+  },
+  /**
+   * @description 获取历史会话列表
+   * @param {Object} context - Vuex上下文
+   * @returns {Promise<Object>} 历史会话
+   */
+  async getHistoryChats({ commit }) {
+    try {
+      commit(SET_LOADING, true);
+      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
+      const chats = JSON.parse(localChats);
+      commit(SET_HISTORY_CHATS, chats);
+      return { success: true, data: chats };
+    } catch (error) {
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:311", "获取历史会话失败:", error);
+      return { success: false, error, message: error.message };
+    } finally {
+      commit(SET_LOADING, false);
+    }
+  },
+  /**
+   * @description 保存或更新聊天记录
+   * @param {Object} context - Vuex上下文
+   * @param {Object} chatData - 聊天数据
+   * @returns {Promise<Object>} 保存结果
+   */
+  async saveChat({ commit, state: state2 }, chatData) {
+    try {
+      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
+      let chats = JSON.parse(localChats);
+      const existingIndex = chats.findIndex((chat) => chat.id === chatData.id);
+      if (existingIndex !== -1) {
+        chats[existingIndex] = {
+          ...chatData,
+          updatedAt: /* @__PURE__ */ new Date()
+        };
+        commit(UPDATE_HISTORY_CHAT, chats[existingIndex]);
+      } else {
+        const newChat = {
+          ...chatData,
+          createdAt: /* @__PURE__ */ new Date(),
+          updatedAt: /* @__PURE__ */ new Date()
+        };
+        chats.unshift(newChat);
+        commit(ADD_HISTORY_CHAT, newChat);
+      }
+      if (chats.length > 50) {
+        chats = chats.slice(0, 50);
+      }
+      common_vendor.index.setStorageSync("chat_history", JSON.stringify(chats));
+      return { success: true };
+    } catch (error) {
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:361", "保存聊天记录失败:", error);
+      return { success: false, error, message: error.message };
+    }
+  },
+  /**
+   * @description 删除聊天记录
+   * @param {Object} context - Vuex上下文
+   * @param {string} chatId - 聊天ID
+   * @returns {Promise<Object>} 删除结果
+   */
+  async deleteChat({ commit, state: state2 }, chatId) {
+    try {
+      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
+      let chats = JSON.parse(localChats);
+      chats = chats.filter((chat) => chat.id !== chatId);
+      common_vendor.index.setStorageSync("chat_history", JSON.stringify(chats));
+      commit(REMOVE_HISTORY_CHAT, chatId);
+      if (state2.currentChatId === chatId) {
+        commit(SET_CURRENT_CHAT_ID, null);
+      }
+      return { success: true };
+    } catch (error) {
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:394", "删除聊天记录失败:", error);
+      return { success: false, error, message: error.message };
+    }
+  },
+  /**
+   * @description 设置当前会话
+   * @param {Object} context - Vuex上下文
+   * @param {string} chatId - 聊天ID
+   */
+  setCurrentChat({ commit }, chatId) {
+    commit(SET_CURRENT_CHAT_ID, chatId);
+  },
+  /**
+   * @description 加载指定会话
+   * @param {Object} context - Vuex上下文
+   * @param {string} chatId - 聊天ID
+   * @returns {Promise<Object>} 会话数据
+   */
+  async loadChat({ commit, state: state2, dispatch }, chatId) {
+    try {
+      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
+      const chats = JSON.parse(localChats);
+      const chat = chats.find((c) => c.id === chatId);
+      if (!chat) {
+        throw new Error("找不到指定的会话记录");
+      }
+      commit(SET_CURRENT_CHAT_ID, chatId);
+      return { success: true, data: chat };
+    } catch (error) {
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:430", "加载会话记录失败:", error);
+      return { success: false, error, message: error.message };
+    }
   }
 };
 const aiChat = {

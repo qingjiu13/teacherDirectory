@@ -44,21 +44,48 @@ const store = common_vendor.createStore({
 const initializeApp = async () => {
   try {
     const userInfo = await store.dispatch("auth/checkAuthStatus");
-    if (userInfo) {
-      const { role } = userInfo;
-      if (role === "teacher") {
-        await store.dispatch("teacher/loadInitialData");
-      } else if (role === "student") {
-        await store.dispatch("student/loadInitialData");
-      }
-      await store.dispatch("match/resetAndGetRecommended");
-    }
+    return {
+      success: true,
+      userInfo
+    };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/index.js:75", "应用初始化失败:", error);
+    return { success: false, error };
+  }
+};
+const loadTeacherData = async () => {
+  try {
+    await store.dispatch("teacher/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:85", "应用初始化失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:90", "加载教师数据失败:", error);
+    return { success: false, error };
+  }
+};
+const loadStudentData = async () => {
+  try {
+    await store.dispatch("student/loadInitialData");
+    return { success: true };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/index.js:105", "加载学生数据失败:", error);
+    return { success: false, error };
+  }
+};
+const loadMatchRecommendations = async () => {
+  try {
+    const teachers = await store.dispatch("match/getRecommendedTeachers");
+    return {
+      success: true,
+      data: teachers
+    };
+  } catch (error) {
+    common_vendor.index.__f__("error", "at store/index.js:125", "加载匹配推荐失败:", error);
     return { success: false, error };
   }
 };
 exports.initializeApp = initializeApp;
+exports.loadMatchRecommendations = loadMatchRecommendations;
+exports.loadStudentData = loadStudentData;
+exports.loadTeacherData = loadTeacherData;
 exports.store = store;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/store/index.js.map

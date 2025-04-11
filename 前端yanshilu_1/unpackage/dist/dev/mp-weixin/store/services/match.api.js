@@ -142,7 +142,6 @@ const match = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
 }, Symbol.toStringTag, { value: "Module" }));
 exports.applyForCommunication = applyForCommunication;
 exports.getMajorList = getMajorList;
-exports.getRecommendedTeachers = getRecommendedTeachers;
 exports.getSchoolList = getSchoolList;
 exports.getTeacherDetail = getTeacherDetail;
 exports.match = match;
