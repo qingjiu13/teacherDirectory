@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../common/vendor.js");
+require("./services/mock-data.js");
 const store_modules_common_auth = require("./modules/common/auth.js");
 const store_modules_common_app = require("./modules/common/app.js");
 const store_modules_common_message = require("./modules/common/message.js");

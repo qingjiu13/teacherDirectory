@@ -2,8 +2,13 @@
  * @description AI聊天相关API服务
  */
 import { API_BASE_URL, AIQA_TEST_URL } from '../../config';
+// 导入模拟数据用于开发调试
+import { mockDelay, mockChatSummaries, mockChatDetails, mockApiResponse } from './mock-data';
 
 const API_PREFIX = `${API_BASE_URL}/ai-chat`;
+
+// 是否使用模拟数据（开发时设为true，调试完成后改为false）
+const USE_MOCK_DATA = true;
 
 // 错误码和消息映射
 const ERROR_MESSAGES = {
@@ -93,11 +98,60 @@ export const getConversations = async () => {
 };
 
 /**
+ * @description 获取会话摘要列表（只返回ID和摘要信息，不包含完整消息）
+ * @returns {Promise<Object>} 会话摘要列表
+ */
+export const getConversationSummaries = async () => {
+  // 使用模拟数据进行调试
+  if (USE_MOCK_DATA) {
+    // 添加模拟延迟，模拟网络请求
+    await mockDelay(500);
+    console.log('使用模拟数据: getConversationSummaries');
+    return mockApiResponse({
+      summaries: mockChatSummaries
+    });
+  }
+  
+  // 正常的API请求
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations/summaries`
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('获取会话摘要列表失败:', error);
+    return { success: false, error: handleError(error) };
+  }
+};
+
+/**
  * @description 获取会话消息
  * @param {string} conversationId - 会话ID
  * @returns {Promise<Object>} 会话消息
  */
 export const getMessages = async (conversationId) => {
+  // 使用模拟数据进行调试
+  if (USE_MOCK_DATA) {
+    // 添加模拟延迟，模拟网络请求
+    await mockDelay(800);
+    console.log('使用模拟数据: getMessages, conversationId =', conversationId);
+    
+    // 如果找到对应ID的模拟对话数据，返回它
+    if (mockChatDetails[conversationId]) {
+      return mockApiResponse(mockChatDetails[conversationId]);
+    }
+    
+    // 如果找不到，返回错误
+    return { 
+      success: false, 
+      error: handleError({ 
+        statusCode: 404, 
+        message: '找不到指定的会话记录' 
+      }) 
+    };
+  }
+  
+  // 正常的API请求
   try {
     const response = await request({
       url: `${API_PREFIX}/conversations/${conversationId}/messages`
@@ -160,6 +214,15 @@ export const createConversation = async () => {
  * @returns {Promise<Object>} 删除结果
  */
 export const deleteConversation = async (conversationId) => {
+  // 使用模拟数据进行调试
+  if (USE_MOCK_DATA) {
+    // 添加模拟延迟，模拟网络请求
+    await mockDelay(300);
+    console.log('使用模拟数据: deleteConversation, conversationId =', conversationId);
+    return mockApiResponse({ message: '会话删除成功' });
+  }
+  
+  // 正常的API请求
   try {
     const response = await request({
       url: `${API_PREFIX}/conversations/${conversationId}`,
@@ -168,6 +231,36 @@ export const deleteConversation = async (conversationId) => {
     return { success: true, data: response.data };
   } catch (error) {
     console.error('删除会话失败:', error);
+    return { success: false, error: handleError(error) };
+  }
+};
+
+/**
+ * @description 保存完整对话内容到服务器
+ * @param {Object} conversationData - 完整的会话数据
+ * @returns {Promise<Object>} 保存结果
+ */
+export const saveConversation = async (conversationData) => {
+  // 使用模拟数据进行调试
+  if (USE_MOCK_DATA) {
+    // 添加模拟延迟，模拟网络请求
+    await mockDelay(600);
+    console.log('使用模拟数据: saveConversation, conversationId =', conversationData.id);
+    // 打印保存的数据以便调试
+    console.log('保存的对话数据:', JSON.stringify(conversationData).substring(0, 200) + '...');
+    return mockApiResponse({ message: '会话保存成功', id: conversationData.id });
+  }
+
+  // 正常的API请求
+  try {
+    const response = await request({
+      url: `${API_PREFIX}/conversations/${conversationData.id}`,
+      method: 'PUT',
+      data: conversationData
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('保存会话失败:', error);
     return { success: false, error: handleError(error) };
   }
 };

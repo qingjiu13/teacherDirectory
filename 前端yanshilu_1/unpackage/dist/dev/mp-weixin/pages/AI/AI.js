@@ -48,6 +48,10 @@ const _sfc_main = common_vendor.defineComponent({
     isLoading() {
       return store_index.store.getters["aiChat/isLoading"];
     },
+    // 历史会话摘要
+    historySummaries() {
+      return store_index.store.getters["aiChat/historySummaries"] || [];
+    },
     // 历史会话
     historyChats() {
       return store_index.store.getters["aiChat/historyChats"] || [];
@@ -182,7 +186,7 @@ const _sfc_main = common_vendor.defineComponent({
           this.setUserSelectionIndexes();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:297", "获取用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:301", "获取用户信息失败:", e);
       }
     },
     /**
@@ -213,7 +217,7 @@ const _sfc_main = common_vendor.defineComponent({
       try {
         common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userInfo));
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:331", "保存用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:335", "保存用户信息失败:", e);
         this.showToast("保存用户信息失败，可能影响后续对话");
       }
     },
@@ -437,34 +441,34 @@ const _sfc_main = common_vendor.defineComponent({
       if (!chatId)
         return null;
       try {
-        this.toggleLoading("正在加载历史对话...");
+        this.toggleLoading("正在加载对话内容...");
         store_index.store.dispatch("aiChat/loadChat", chatId).then((response = null) => {
-          if (response.success && response.data) {
+          if (response.success) {
             this.currentChatId = chatId;
-            this.messages = UTS.JSON.parse(UTS.JSON.stringify(response.data.messages));
+            this.messages = response.data.messages || [];
             this.closeSidebar();
             this.$nextTick(() => {
               this.scrollToBottom();
             });
           } else {
-            this.showToast("加载历史对话失败");
+            this.showToast("加载对话内容失败");
           }
         }).finally(() => {
           this.toggleLoading(false);
         });
       } catch (error) {
-        this.showToast("加载历史对话失败");
+        this.showToast("加载对话内容失败");
         this.toggleLoading(false);
       }
     },
     /**
-     * @description 从Vuex加载历史会话
+     * @description 从Vuex加载历史会话摘要
      */
     loadChatHistoryFromStorage() {
       store_index.store.dispatch("aiChat/getHistoryChats");
     },
     /**
-     * @description 保存聊天历史到Vuex
+     * @description 保存聊天历史摘要到Vuex
      */
     saveChatHistory() {
       if (!this.currentChatId || this.messages.length === 0)
@@ -475,8 +479,8 @@ const _sfc_main = common_vendor.defineComponent({
       const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : "新对话";
       const chatData = new UTSJSONObject({
         id: this.currentChatId,
-        title,
-        messages: this.messages,
+        title: title + (title.length >= 20 ? "..." : ""),
+        // 完整消息内容由后端存储，客户端只保存摘要信息
         createdAt: /* @__PURE__ */ new Date(),
         updatedAt: /* @__PURE__ */ new Date()
       });
@@ -487,14 +491,32 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} chatId - 历史记录ID
      */
     deleteChatHistory(chatId = null) {
-      store_index.store.dispatch("aiChat/deleteChat", chatId).then((response = null) => {
-        if (response.success) {
-          if (this.currentChatId === chatId) {
-            this.startNewChat();
+      if (!chatId) {
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:667", "删除历史记录失败: 无效的chatId");
+        this.showToast("删除失败: 无效的记录ID");
+        return null;
+      }
+      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:672", "请求删除历史记录:", chatId);
+      common_vendor.index.showModal({
+        title: "确认删除",
+        content: "确定要删除这条对话记录吗？",
+        success: (res) => {
+          if (res.confirm) {
+            store_index.store.dispatch("aiChat/deleteChat", chatId).then((response = null) => {
+              if (response.success) {
+                if (this.currentChatId === chatId) {
+                  this.startNewChat();
+                }
+                this.showToast("删除成功");
+              } else {
+                common_vendor.index.__f__("error", "at pages/AI/AI.uvue:689", "删除失败:", response.message || "未知错误");
+                this.showToast(response.message || "删除失败");
+              }
+            }).catch((error = null) => {
+              common_vendor.index.__f__("error", "at pages/AI/AI.uvue:693", "删除过程发生异常:", error);
+              this.showToast("删除失败: " + (error.message || "系统错误"));
+            });
           }
-          this.showToast("删除成功");
-        } else {
-          this.showToast("删除失败");
         }
       });
     },
@@ -535,7 +557,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: common_vendor.o($options.deleteChatHistory),
     f: common_vendor.p({
       visible: $data.sidebarVisible,
-      ["history-chats"]: $options.historyChats,
+      ["history-summaries"]: $options.historySummaries,
       ["current-chat-id"]: $data.currentChatId
     }),
     g: common_vendor.o((...args) => $options.toggleSidebar && $options.toggleSidebar(...args)),

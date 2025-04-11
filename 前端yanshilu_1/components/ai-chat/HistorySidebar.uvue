@@ -4,13 +4,13 @@
 			<text class="sidebar-title">历史记录</text>
 		</view>
 		<scroll-view class="history-list" scroll-y="true">
-			<view class="empty-history" v-if="historyChats.length === 0">
+			<view class="empty-history" v-if="historySummaries.length === 0">
 				<text class="empty-history-text">暂无历史记录</text>
 			</view>
 			<view v-else>
 				<view 
-					v-for="(item, index) in historyChats" 
-					:key="index" 
+					v-for="(item, index) in historySummaries" 
+					:key="item.id" 
 					class="history-item"
 					:class="{'active': currentChatId === item.id}"
 					@click="loadChatHistory(item.id)">
@@ -31,7 +31,7 @@
 	/**
 	 * @description 历史记录侧边栏组件
 	 * @property {Boolean} visible - 侧边栏是否可见
-	 * @property {Array} historyChats - 历史聊天记录数组
+	 * @property {Array} historySummaries - 历史聊天摘要数组（只包含ID和标题等基本信息）
 	 * @property {String} currentChatId - 当前选中的聊天ID
 	 * @event {Function} loadChat - 加载聊天历史记录
 	 * @event {Function} deleteChat - 删除聊天历史记录
@@ -43,7 +43,7 @@
 				type: Boolean,
 				default: false
 			},
-			historyChats: {
+			historySummaries: {
 				type: Array,
 				default: () => []
 			},
@@ -67,8 +67,13 @@
 			 * @param {Event} e - 事件对象，用于阻止冒泡
 			 */
 			deleteChatHistory(chatId, e) {
-				// 阻止冒泡，避免触发点击加载历史记录
-				e && e.stopPropagation();
+				// 确保阻止事件冒泡，避免触发点击加载历史记录
+				if (e) {
+					e.stopPropagation();
+					e.preventDefault();
+				}
+				
+				console.log('删除历史记录:', chatId);
 				this.$emit('deleteChat', chatId);
 			},
 			

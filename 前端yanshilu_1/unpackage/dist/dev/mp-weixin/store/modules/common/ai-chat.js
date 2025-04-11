@@ -11,6 +11,8 @@ const state = {
   testResult: null,
   // 新增历史会话管理
   historyChats: [],
+  historySummaries: [],
+  // 新增：历史会话摘要列表（只包含ID和标题等基本信息）
   currentChatId: null
 };
 const getters = {
@@ -23,6 +25,8 @@ const getters = {
   testResult: (state2) => state2.testResult,
   // 新增历史会话相关getters
   historyChats: (state2) => state2.historyChats,
+  historySummaries: (state2) => state2.historySummaries,
+  // 新增：历史会话摘要列表getter
   currentChatId: (state2) => state2.currentChatId
 };
 const SET_LOADING = "SET_LOADING";
@@ -35,6 +39,7 @@ const SET_LAST_RESPONSE = "SET_LAST_RESPONSE";
 const CLEAR_CONVERSATION = "CLEAR_CONVERSATION";
 const SET_TEST_RESULT = "SET_TEST_RESULT";
 const SET_HISTORY_CHATS = "SET_HISTORY_CHATS";
+const SET_HISTORY_SUMMARIES = "SET_HISTORY_SUMMARIES";
 const ADD_HISTORY_CHAT = "ADD_HISTORY_CHAT";
 const UPDATE_HISTORY_CHAT = "UPDATE_HISTORY_CHAT";
 const REMOVE_HISTORY_CHAT = "REMOVE_HISTORY_CHAT";
@@ -73,6 +78,9 @@ const mutations = {
   [SET_HISTORY_CHATS](state2, chats) {
     state2.historyChats = chats;
   },
+  [SET_HISTORY_SUMMARIES](state2, summaries) {
+    state2.historySummaries = summaries;
+  },
   [ADD_HISTORY_CHAT](state2, chat) {
     state2.historyChats.unshift(chat);
   },
@@ -84,6 +92,7 @@ const mutations = {
   },
   [REMOVE_HISTORY_CHAT](state2, chatId) {
     state2.historyChats = state2.historyChats.filter((chat) => chat.id !== chatId);
+    state2.historySummaries = state2.historySummaries.filter((chat) => chat.id !== chatId);
   },
   [SET_CURRENT_CHAT_ID](state2, chatId) {
     state2.currentChatId = chatId;
@@ -131,7 +140,7 @@ const actions = {
       commit(SET_LAST_RESPONSE, response.data);
       return response.data;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:159", "发送聊天消息失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:166", "发送聊天消息失败:", error);
       commit(SET_ERROR, error);
       const errorMessage = {
         id: `error-${Date.now()}`,
@@ -165,7 +174,7 @@ const actions = {
       }
       return response;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:200", "获取历史消息失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:207", "获取历史消息失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -190,7 +199,7 @@ const actions = {
       }
       return response;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:229", "创建会话失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:236", "创建会话失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -229,7 +238,7 @@ const actions = {
       }
       return result;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:276", "测试AIQA失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:283", "测试AIQA失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -252,50 +261,82 @@ const actions = {
   async getHistoryChats({ commit }) {
     try {
       commit(SET_LOADING, true);
-      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
-      const chats = JSON.parse(localChats);
-      commit(SET_HISTORY_CHATS, chats);
-      return { success: true, data: chats };
+      const response = await store_services_index.services.aiChat.getConversationSummaries();
+      if (response.success) {
+        commit(SET_HISTORY_SUMMARIES, response.data.summaries || []);
+        return { success: true, data: response.data.summaries };
+      } else {
+        const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
+        const chats = JSON.parse(localChats);
+        const summaries = chats.map((chat) => ({
+          id: chat.id,
+          title: chat.title || "新对话",
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt
+        }));
+        commit(SET_HISTORY_SUMMARIES, summaries);
+        return { success: true, data: summaries };
+      }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:311", "获取历史会话失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:333", "获取历史会话失败:", error);
       return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
     }
   },
   /**
-   * @description 保存或更新聊天记录
+   * @description 保存或更新聊天记录摘要
    * @param {Object} context - Vuex上下文
    * @param {Object} chatData - 聊天数据
    * @returns {Promise<Object>} 保存结果
    */
   async saveChat({ commit, state: state2 }, chatData) {
     try {
-      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
-      let chats = JSON.parse(localChats);
-      const existingIndex = chats.findIndex((chat) => chat.id === chatData.id);
+      try {
+        await store_services_index.services.aiChat.saveConversation({
+          id: chatData.id,
+          title: chatData.title || "新对话",
+          messages: state2.messages,
+          // 保存完整的消息内容到后端
+          createdAt: chatData.createdAt || /* @__PURE__ */ new Date(),
+          updatedAt: /* @__PURE__ */ new Date()
+        });
+      } catch (apiError) {
+        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:359", "保存对话到后端失败，将使用本地存储", apiError);
+      }
+      const localSummaries = common_vendor.index.getStorageSync("chat_summaries") || "[]";
+      let summaries = JSON.parse(localSummaries);
+      const existingIndex = summaries.findIndex((chat) => chat.id === chatData.id);
       if (existingIndex !== -1) {
-        chats[existingIndex] = {
-          ...chatData,
+        summaries[existingIndex] = {
+          id: chatData.id,
+          title: chatData.title || "新对话",
+          createdAt: chatData.createdAt || /* @__PURE__ */ new Date(),
           updatedAt: /* @__PURE__ */ new Date()
         };
-        commit(UPDATE_HISTORY_CHAT, chats[existingIndex]);
+        commit(UPDATE_HISTORY_CHAT, summaries[existingIndex]);
       } else {
-        const newChat = {
-          ...chatData,
-          createdAt: /* @__PURE__ */ new Date(),
+        summaries.unshift({
+          id: chatData.id,
+          title: chatData.title || "新对话",
+          createdAt: chatData.createdAt || /* @__PURE__ */ new Date(),
           updatedAt: /* @__PURE__ */ new Date()
-        };
-        chats.unshift(newChat);
-        commit(ADD_HISTORY_CHAT, newChat);
+        });
+        commit(ADD_HISTORY_CHAT, {
+          id: chatData.id,
+          title: chatData.title || "新对话",
+          createdAt: chatData.createdAt || /* @__PURE__ */ new Date(),
+          updatedAt: /* @__PURE__ */ new Date()
+        });
       }
-      if (chats.length > 50) {
-        chats = chats.slice(0, 50);
+      if (summaries.length > 50) {
+        summaries = summaries.slice(0, 50);
       }
-      common_vendor.index.setStorageSync("chat_history", JSON.stringify(chats));
+      common_vendor.index.setStorageSync("chat_summaries", JSON.stringify(summaries));
+      commit(SET_HISTORY_SUMMARIES, summaries);
       return { success: true };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:361", "保存聊天记录失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:407", "保存聊天摘要失败:", error);
       return { success: false, error, message: error.message };
     }
   },
@@ -307,17 +348,34 @@ const actions = {
    */
   async deleteChat({ commit, state: state2 }, chatId) {
     try {
-      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
-      let chats = JSON.parse(localChats);
-      chats = chats.filter((chat) => chat.id !== chatId);
-      common_vendor.index.setStorageSync("chat_history", JSON.stringify(chats));
+      if (!chatId) {
+        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:421", "删除聊天记录失败: 缺少chatId参数");
+        return { success: false, message: "删除失败：没有指定要删除的聊天ID" };
+      }
+      common_vendor.index.__f__("log", "at store/modules/common/ai-chat.js:425", "正在删除聊天记录:", chatId);
+      try {
+        await store_services_index.services.aiChat.deleteConversation(chatId);
+      } catch (apiError) {
+        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:432", "从后端删除对话失败，将仅删除本地记录", apiError);
+      }
+      const localSummaries = common_vendor.index.getStorageSync("chat_summaries") || "[]";
+      let summaries = JSON.parse(localSummaries);
+      const originalLength = summaries.length;
+      summaries = summaries.filter((chat) => chat.id !== chatId);
+      if (summaries.length === originalLength) {
+        common_vendor.index.__f__("warn", "at store/modules/common/ai-chat.js:445", "未找到要删除的记录ID:", chatId);
+      } else {
+        common_vendor.index.__f__("log", "at store/modules/common/ai-chat.js:447", `成功从${originalLength}条记录中删除1条记录，剩余${summaries.length}条`);
+      }
+      common_vendor.index.setStorageSync("chat_summaries", JSON.stringify(summaries));
       commit(REMOVE_HISTORY_CHAT, chatId);
       if (state2.currentChatId === chatId) {
         commit(SET_CURRENT_CHAT_ID, null);
+        commit(CLEAR_CONVERSATION);
       }
       return { success: true };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:394", "删除聊天记录失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:464", "删除聊天记录失败:", error);
       return { success: false, error, message: error.message };
     }
   },
@@ -337,17 +395,30 @@ const actions = {
    */
   async loadChat({ commit, state: state2, dispatch }, chatId) {
     try {
-      const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
-      const chats = JSON.parse(localChats);
-      const chat = chats.find((c) => c.id === chatId);
-      if (!chat) {
-        throw new Error("找不到指定的会话记录");
-      }
+      commit(SET_LOADING, true);
+      commit(SET_ERROR, null);
       commit(SET_CURRENT_CHAT_ID, chatId);
-      return { success: true, data: chat };
+      const response = await store_services_index.services.aiChat.getMessages(chatId);
+      if (response.success) {
+        commit(SET_MESSAGES, response.data.messages || []);
+        commit(SET_CONVERSATION_ID, chatId);
+        return { success: true, data: response.data };
+      } else {
+        const localChats = common_vendor.index.getStorageSync("chat_history") || "[]";
+        const chats = JSON.parse(localChats);
+        const chat = chats.find((c) => c.id === chatId);
+        if (!chat) {
+          throw new Error("找不到指定的会话记录");
+        }
+        commit(SET_MESSAGES, chat.messages || []);
+        return { success: true, data: chat };
+      }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:430", "加载会话记录失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:516", "加载会话记录失败:", error);
+      commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
+    } finally {
+      commit(SET_LOADING, false);
     }
   }
 };

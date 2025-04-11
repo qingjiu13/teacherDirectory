@@ -1,6 +1,10 @@
 {
   "navigationBarTitleText": "AI助手",
   "usingComponents": {
-    "choice-selected": "../../components/combobox/combobox"
+    "history-sidebar": "../../components/ai-chat/HistorySidebar",
+    "message-list": "../../components/ai-chat/MessageList",
+    "filter-section": "../../components/ai-chat/FilterSection",
+    "mode-selector": "../../components/ai-chat/ModeSelector",
+    "input-section": "../../components/ai-chat/InputSection"
   }
 }

@@ -14,6 +14,7 @@ const state = {
   testResult: null,
   // 新增历史会话管理
   historyChats: [],
+  historySummaries: [], // 新增：历史会话摘要列表（只包含ID和标题等基本信息）
   currentChatId: null
 };
 
@@ -28,6 +29,7 @@ const getters = {
   testResult: state => state.testResult,
   // 新增历史会话相关getters
   historyChats: state => state.historyChats,
+  historySummaries: state => state.historySummaries, // 新增：历史会话摘要列表getter
   currentChatId: state => state.currentChatId
 };
 
@@ -43,6 +45,7 @@ const CLEAR_CONVERSATION = 'CLEAR_CONVERSATION';
 const SET_TEST_RESULT = 'SET_TEST_RESULT';
 // 新增历史会话相关常量
 const SET_HISTORY_CHATS = 'SET_HISTORY_CHATS';
+const SET_HISTORY_SUMMARIES = 'SET_HISTORY_SUMMARIES'; // 新增：设置历史摘要常量
 const ADD_HISTORY_CHAT = 'ADD_HISTORY_CHAT';
 const UPDATE_HISTORY_CHAT = 'UPDATE_HISTORY_CHAT';
 const REMOVE_HISTORY_CHAT = 'REMOVE_HISTORY_CHAT';
@@ -83,6 +86,9 @@ const mutations = {
   [SET_HISTORY_CHATS](state, chats) {
     state.historyChats = chats;
   },
+  [SET_HISTORY_SUMMARIES](state, summaries) { // 新增：设置历史摘要的mutation
+    state.historySummaries = summaries;
+  },
   [ADD_HISTORY_CHAT](state, chat) {
     // 添加到列表前端，最新的对话在最前面
     state.historyChats.unshift(chat);
@@ -95,6 +101,7 @@ const mutations = {
   },
   [REMOVE_HISTORY_CHAT](state, chatId) {
     state.historyChats = state.historyChats.filter(chat => chat.id !== chatId);
+    state.historySummaries = state.historySummaries.filter(chat => chat.id !== chatId);
   },
   [SET_CURRENT_CHAT_ID](state, chatId) {
     state.currentChatId = chatId;
@@ -299,14 +306,29 @@ const actions = {
     try {
       commit(SET_LOADING, true);
       
-      // 默认情况下从本地存储获取
-      const localChats = uni.getStorageSync('chat_history') || '[]';
-      const chats = JSON.parse(localChats);
+      // 尝试从后端获取历史会话摘要
+      const response = await services.aiChat.getConversationSummaries();
       
-      // 更新vuex状态
-      commit(SET_HISTORY_CHATS, chats);
-      
-      return { success: true, data: chats };
+      if (response.success) {
+        // 如果成功，则更新历史摘要状态
+        commit(SET_HISTORY_SUMMARIES, response.data.summaries || []);
+        return { success: true, data: response.data.summaries };
+      } else {
+        // 如果后端API不可用，从本地存储中获取
+        const localChats = uni.getStorageSync('chat_history') || '[]';
+        const chats = JSON.parse(localChats);
+        
+        // 从完整历史记录中提取摘要信息
+        const summaries = chats.map(chat => ({
+          id: chat.id,
+          title: chat.title || '新对话',
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt
+        }));
+        
+        commit(SET_HISTORY_SUMMARIES, summaries);
+        return { success: true, data: summaries };
+      }
     } catch (error) {
       console.error('获取历史会话失败:', error);
       return { success: false, error, message: error.message };
@@ -316,49 +338,73 @@ const actions = {
   },
   
   /**
-   * @description 保存或更新聊天记录
+   * @description 保存或更新聊天记录摘要
    * @param {Object} context - Vuex上下文
    * @param {Object} chatData - 聊天数据
    * @returns {Promise<Object>} 保存结果
    */
   async saveChat({ commit, state }, chatData) {
     try {
-      // 从本地获取所有历史记录
-      const localChats = uni.getStorageSync('chat_history') || '[]';
-      let chats = JSON.parse(localChats);
+      // 尝试调用后端API保存完整对话内容
+      try {
+        // 如果后端API可用，则调用API保存完整对话
+        await services.aiChat.saveConversation({
+          id: chatData.id,
+          title: chatData.title || '新对话',
+          messages: state.messages, // 保存完整的消息内容到后端
+          createdAt: chatData.createdAt || new Date(),
+          updatedAt: new Date()
+        });
+      } catch (apiError) {
+        console.error('保存对话到后端失败，将使用本地存储', apiError);
+      }
+      
+      // 从本地获取所有历史摘要
+      const localSummaries = uni.getStorageSync('chat_summaries') || '[]';
+      let summaries = JSON.parse(localSummaries);
       
       // 查找当前聊天是否存在
-      const existingIndex = chats.findIndex(chat => chat.id === chatData.id);
+      const existingIndex = summaries.findIndex(chat => chat.id === chatData.id);
       
       if (existingIndex !== -1) {
-        // 存在则更新
-        chats[existingIndex] = {
-          ...chatData,
+        // 存在则更新摘要
+        summaries[existingIndex] = {
+          id: chatData.id,
+          title: chatData.title || '新对话',
+          createdAt: chatData.createdAt || new Date(),
           updatedAt: new Date()
         };
-        commit(UPDATE_HISTORY_CHAT, chats[existingIndex]);
+        commit(UPDATE_HISTORY_CHAT, summaries[existingIndex]);
       } else {
-        // 不存在则添加
-        const newChat = {
-          ...chatData,
-          createdAt: new Date(),
+        // 不存在则添加摘要
+        summaries.unshift({
+          id: chatData.id,
+          title: chatData.title || '新对话',
+          createdAt: chatData.createdAt || new Date(),
           updatedAt: new Date()
-        };
-        chats.unshift(newChat);
-        commit(ADD_HISTORY_CHAT, newChat);
+        });
+        commit(ADD_HISTORY_CHAT, {
+          id: chatData.id,
+          title: chatData.title || '新对话',
+          createdAt: chatData.createdAt || new Date(),
+          updatedAt: new Date()
+        });
       }
       
       // 限制最大保存数量
-      if (chats.length > 50) {
-        chats = chats.slice(0, 50);
+      if (summaries.length > 50) {
+        summaries = summaries.slice(0, 50);
       }
       
-      // 保存到本地
-      uni.setStorageSync('chat_history', JSON.stringify(chats));
+      // 保存摘要到本地
+      uni.setStorageSync('chat_summaries', JSON.stringify(summaries));
+      
+      // 同时更新Vuex中的历史摘要
+      commit(SET_HISTORY_SUMMARIES, summaries);
       
       return { success: true };
     } catch (error) {
-      console.error('保存聊天记录失败:', error);
+      console.error('保存聊天摘要失败:', error);
       return { success: false, error, message: error.message };
     }
   },
@@ -371,15 +417,38 @@ const actions = {
    */
   async deleteChat({ commit, state }, chatId) {
     try {
-      // 从本地获取所有历史记录
-      const localChats = uni.getStorageSync('chat_history') || '[]';
-      let chats = JSON.parse(localChats);
+      if (!chatId) {
+        console.error('删除聊天记录失败: 缺少chatId参数');
+        return { success: false, message: '删除失败：没有指定要删除的聊天ID' };
+      }
+      
+      console.log('正在删除聊天记录:', chatId);
+      
+      // 尝试调用后端API删除对话
+      try {
+        // 如果后端API可用，则调用删除API
+        await services.aiChat.deleteConversation(chatId);
+      } catch (apiError) {
+        console.error('从后端删除对话失败，将仅删除本地记录', apiError);
+      }
+      
+      // 从本地获取所有历史摘要
+      const localSummaries = uni.getStorageSync('chat_summaries') || '[]';
+      let summaries = JSON.parse(localSummaries);
       
       // 过滤掉要删除的记录
-      chats = chats.filter(chat => chat.id !== chatId);
+      const originalLength = summaries.length;
+      summaries = summaries.filter(chat => chat.id !== chatId);
+      
+      // 检查是否真的删除了记录
+      if (summaries.length === originalLength) {
+        console.warn('未找到要删除的记录ID:', chatId);
+      } else {
+        console.log(`成功从${originalLength}条记录中删除1条记录，剩余${summaries.length}条`);
+      }
       
       // 更新本地存储
-      uni.setStorageSync('chat_history', JSON.stringify(chats));
+      uni.setStorageSync('chat_summaries', JSON.stringify(summaries));
       
       // 更新Vuex状态
       commit(REMOVE_HISTORY_CHAT, chatId);
@@ -387,6 +456,7 @@ const actions = {
       // 如果删除的是当前会话，清空当前会话
       if (state.currentChatId === chatId) {
         commit(SET_CURRENT_CHAT_ID, null);
+        commit(CLEAR_CONVERSATION);
       }
       
       return { success: true };
@@ -413,22 +483,41 @@ const actions = {
    */
   async loadChat({ commit, state, dispatch }, chatId) {
     try {
-      // 从本地或服务器获取聊天记录
-      const localChats = uni.getStorageSync('chat_history') || '[]';
-      const chats = JSON.parse(localChats);
-      
-      const chat = chats.find(c => c.id === chatId);
-      if (!chat) {
-        throw new Error('找不到指定的会话记录');
-      }
+      commit(SET_LOADING, true);
+      commit(SET_ERROR, null);
       
       // 设置当前会话ID
       commit(SET_CURRENT_CHAT_ID, chatId);
       
-      return { success: true, data: chat };
+      // 从后端获取完整会话内容
+      const response = await services.aiChat.getMessages(chatId);
+      
+      if (response.success) {
+        // 设置会话消息
+        commit(SET_MESSAGES, response.data.messages || []);
+        commit(SET_CONVERSATION_ID, chatId);
+        return { success: true, data: response.data };
+      } else {
+        // 如果后端API失败，尝试从本地获取
+        const localChats = uni.getStorageSync('chat_history') || '[]';
+        const chats = JSON.parse(localChats);
+        
+        const chat = chats.find(c => c.id === chatId);
+        if (!chat) {
+          throw new Error('找不到指定的会话记录');
+        }
+        
+        // 设置会话消息
+        commit(SET_MESSAGES, chat.messages || []);
+        
+        return { success: true, data: chat };
+      }
     } catch (error) {
       console.error('加载会话记录失败:', error);
+      commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
+    } finally {
+      commit(SET_LOADING, false);
     }
   }
 };

@@ -59,6 +59,9 @@ export const AIQA_QUESTION_URL = 'http://localhost:8080/AIQA/question';
 // getHistory API配置：获取问答历史
 export const AIQA_GET_HISTORY_URL = 'http://localhost:8080/AIQA/getHistory';
 
+// getHistoryDetail API配置：获取问答历史详情
+export const AIQA_GET_HISTORY_DETAIL_URL = 'http://localhost:8080/AIQA/getHistoryDetail';
+
 // generatePaymentUrl API配置：生成支付链接
 export const PAY_GENERATE_PAYMENT_URL = 'http://localhost:8080/pay/generatePaymentUrl';
 

@@ -8,7 +8,7 @@
 			<!-- 历史记录侧边栏 -->
 			<history-sidebar
 				:visible="sidebarVisible"
-				:history-chats="historyChats"
+				:history-summaries="historySummaries"
 				:current-chat-id="currentChatId"
 				@load-chat="loadChatHistory"
 				@delete-chat="deleteChatHistory">
@@ -132,6 +132,10 @@
 			},
 			isLoading() {
 				return store.getters['aiChat/isLoading'];
+			},
+			// 历史会话摘要
+			historySummaries() {
+				return store.getters['aiChat/historySummaries'] || [];
 			},
 			// 历史会话
 			historyChats() {
@@ -593,16 +597,16 @@
 				if (!chatId) return;
 				
 				try {
-					this.toggleLoading('正在加载历史对话...');
+					this.toggleLoading('正在加载对话内容...');
 					
-					// 直接通过Vuex加载历史会话
+					// 通过Vuex从后端加载完整对话内容
 					store.dispatch('aiChat/loadChat', chatId).then(response => {
-						if (response.success && response.data) {
-							// 设置当前会话ID
+						if (response.success) {
+							// 设置当前会话ID（这个在action中已经设置了）
 							this.currentChatId = chatId;
 							
-							// 替换当前消息列表
-							this.messages = JSON.parse(JSON.stringify(response.data.messages));
+							// 替换当前消息列表为从后端获取的完整消息
+							this.messages = response.data.messages || [];
 							
 							// 关闭侧边栏
 							this.closeSidebar();
@@ -612,27 +616,27 @@
 								this.scrollToBottom();
 							});
 						} else {
-							this.showToast('加载历史对话失败');
+							this.showToast('加载对话内容失败');
 						}
 					}).finally(() => {
 						this.toggleLoading(false);
 					});
 				} catch (error) {
-					this.showToast('加载历史对话失败');
+					this.showToast('加载对话内容失败');
 					this.toggleLoading(false);
 				}
 			},
 			
 			/**
-			 * @description 从Vuex加载历史会话
+			 * @description 从Vuex加载历史会话摘要
 			 */
 			loadChatHistoryFromStorage() {
-				// 直接从Vuex获取历史会话
+				// 从Vuex获取历史会话摘要列表
 				store.dispatch('aiChat/getHistoryChats');
 			},
 			
 			/**
-			 * @description 保存聊天历史到Vuex
+			 * @description 保存聊天历史摘要到Vuex
 			 */
 			saveChatHistory() {
 				if (!this.currentChatId || this.messages.length === 0) return;
@@ -641,11 +645,11 @@
 				const firstUserMessage = this.messages.find(msg => msg.type === MESSAGE_TYPE.USER);
 				const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
 				
-				// 创建聊天记录对象
+				// 创建聊天摘要对象
 				const chatData = {
 					id: this.currentChatId,
-					title: title,
-					messages: this.messages,
+					title: title + (title.length >= 20 ? '...' : ''),
+					// 完整消息内容由后端存储，客户端只保存摘要信息
 					createdAt: new Date(),
 					updatedAt: new Date()
 				};
@@ -659,16 +663,37 @@
 			 * @param {String} chatId - 历史记录ID
 			 */
 			deleteChatHistory(chatId) {
-				// 使用Vuex删除历史记录
-				store.dispatch('aiChat/deleteChat', chatId).then(response => {
-					if (response.success) {
-						// 如果删除的是当前会话，则清空当前会话
-						if (this.currentChatId === chatId) {
-							this.startNewChat();
+				if (!chatId) {
+					console.error('删除历史记录失败: 无效的chatId');
+					this.showToast('删除失败: 无效的记录ID');
+					return;
+				}
+				
+				console.log('请求删除历史记录:', chatId);
+				
+				// 弹窗确认是否删除
+				uni.showModal({
+					title: '确认删除',
+					content: '确定要删除这条对话记录吗？',
+					success: (res) => {
+						if (res.confirm) {
+							// 使用Vuex删除历史记录
+							store.dispatch('aiChat/deleteChat', chatId).then(response => {
+								if (response.success) {
+									// 如果删除的是当前会话，则清空当前会话
+									if (this.currentChatId === chatId) {
+										this.startNewChat();
+									}
+									this.showToast('删除成功');
+								} else {
+									console.error('删除失败:', response.message || '未知错误');
+									this.showToast(response.message || '删除失败');
+								}
+							}).catch(error => {
+								console.error('删除过程发生异常:', error);
+								this.showToast('删除失败: ' + (error.message || '系统错误'));
+							});
 						}
-						this.showToast('删除成功');
-					} else {
-						this.showToast('删除失败');
 					}
 				});
 			},

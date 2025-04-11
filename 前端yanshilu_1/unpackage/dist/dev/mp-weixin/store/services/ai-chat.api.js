@@ -1,6 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const config_index = require("../../config/index.js");
+const store_services_mockData = require("./mock-data.js");
 const API_PREFIX = `${config_index.API_BASE_URL}/ai-chat`;
 const ERROR_MESSAGES = {
   NETWORK_ERROR: "网络连接失败，请检查您的网络设置",
@@ -61,19 +62,33 @@ const getConversations = async () => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:90", "获取会话列表失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:95", "获取会话列表失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
-const getMessages = async (conversationId) => {
-  try {
-    const response = await request({
-      url: `${API_PREFIX}/conversations/${conversationId}/messages`
+const getConversationSummaries = async () => {
+  {
+    await store_services_mockData.mockDelay(500);
+    common_vendor.index.__f__("log", "at store/services/ai-chat.api.js:109", "使用模拟数据: getConversationSummaries");
+    return store_services_mockData.mockApiResponse({
+      summaries: store_services_mockData.mockChatSummaries
     });
-    return { success: true, data: response.data };
-  } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:107", "获取会话消息失败:", error);
-    return { success: false, error: handleError(error) };
+  }
+};
+const getMessages = async (conversationId) => {
+  {
+    await store_services_mockData.mockDelay(800);
+    common_vendor.index.__f__("log", "at store/services/ai-chat.api.js:137", "使用模拟数据: getMessages, conversationId =", conversationId);
+    if (store_services_mockData.mockChatDetails[conversationId]) {
+      return store_services_mockData.mockApiResponse(store_services_mockData.mockChatDetails[conversationId]);
+    }
+    return {
+      success: false,
+      error: handleError({
+        statusCode: 404,
+        message: "找不到指定的会话记录"
+      })
+    };
   }
 };
 const sendMessage = async (params) => {
@@ -90,7 +105,7 @@ const sendMessage = async (params) => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:135", "发送消息失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:189", "发送消息失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -102,20 +117,23 @@ const createConversation = async () => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:152", "创建会话失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:206", "创建会话失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
 const deleteConversation = async (conversationId) => {
-  try {
-    const response = await request({
-      url: `${API_PREFIX}/conversations/${conversationId}`,
-      method: "DELETE"
-    });
-    return { success: true, data: response.data };
-  } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:170", "删除会话失败:", error);
-    return { success: false, error: handleError(error) };
+  {
+    await store_services_mockData.mockDelay(300);
+    common_vendor.index.__f__("log", "at store/services/ai-chat.api.js:221", "使用模拟数据: deleteConversation, conversationId =", conversationId);
+    return store_services_mockData.mockApiResponse({ message: "会话删除成功" });
+  }
+};
+const saveConversation = async (conversationData) => {
+  {
+    await store_services_mockData.mockDelay(600);
+    common_vendor.index.__f__("log", "at store/services/ai-chat.api.js:248", "使用模拟数据: saveConversation, conversationId =", conversationData.id);
+    common_vendor.index.__f__("log", "at store/services/ai-chat.api.js:250", "保存的对话数据:", JSON.stringify(conversationData).substring(0, 200) + "...");
+    return store_services_mockData.mockApiResponse({ message: "会话保存成功", id: conversationData.id });
   }
 };
 const testAIQA = async (question, contextInfo = {}) => {
@@ -130,7 +148,7 @@ const testAIQA = async (question, contextInfo = {}) => {
     });
     return { success: true, data: response.data };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:194", "测试AIQA失败:", error);
+    common_vendor.index.__f__("error", "at store/services/ai-chat.api.js:287", "测试AIQA失败:", error);
     return { success: false, error: handleError(error) };
   }
 };
@@ -138,8 +156,10 @@ const aiChat = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProper
   __proto__: null,
   createConversation,
   deleteConversation,
+  getConversationSummaries,
   getConversations,
   getMessages,
+  saveConversation,
   sendMessage,
   testAIQA
 }, Symbol.toStringTag, { value: "Module" }));

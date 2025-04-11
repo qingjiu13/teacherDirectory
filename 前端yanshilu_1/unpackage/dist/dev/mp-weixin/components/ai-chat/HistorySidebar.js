@@ -7,7 +7,7 @@ const _sfc_main = common_vendor.defineComponent({
       type: Boolean,
       default: false
     },
-    historyChats: {
+    historySummaries: {
       type: Array,
       default: () => {
         return [];
@@ -32,7 +32,11 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {Event} e - 事件对象，用于阻止冒泡
      */
     deleteChatHistory(chatId = null, e = null) {
-      e && e.stopPropagation();
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      common_vendor.index.__f__("log", "at components/ai-chat/HistorySidebar.uvue:76", "删除历史记录:", chatId);
       this.$emit("deleteChat", chatId);
     },
     /**
@@ -55,16 +59,16 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: $props.historyChats.length === 0
-  }, $props.historyChats.length === 0 ? {} : {
-    b: common_vendor.f($props.historyChats, (item, index, i0) => {
+    a: $props.historySummaries.length === 0
+  }, $props.historySummaries.length === 0 ? {} : {
+    b: common_vendor.f($props.historySummaries, (item, index, i0) => {
       return {
         a: common_vendor.t(item.title || "对话 " + (index + 1)),
         b: common_vendor.t($options.formatTime(item.updatedAt || item.createdAt)),
-        c: common_vendor.o(($event) => $options.deleteChatHistory(item.id, $event), index),
-        d: index,
+        c: common_vendor.o(($event) => $options.deleteChatHistory(item.id, $event), item.id),
+        d: item.id,
         e: $props.currentChatId === item.id ? 1 : "",
-        f: common_vendor.o(($event) => $options.loadChatHistory(item.id), index)
+        f: common_vendor.o(($event) => $options.loadChatHistory(item.id), item.id)
       };
     })
   }, {
