@@ -340,6 +340,26 @@ const mockApiResponse = (data, success = true, message = "") => {
     message
   };
 };
+const getMockTeacherDetailWithServices = (teacherId) => {
+  const teacher = mockTeachers.find((t) => t.id === parseInt(teacherId)) || mockTeachers[0];
+  const teacherDetail = {
+    id: teacher.id,
+    nickname: teacher.nickname,
+    avatar: teacher.avatar || "/static/image/tab-bar/default_avatar.png",
+    school: teacher.school,
+    major: teacher.major,
+    score: teacher.score,
+    tags: teacher.tags || [],
+    introduction: teacher.introduction || "暂无介绍"
+  };
+  return {
+    success: true,
+    data: {
+      teacher: teacherDetail,
+      services: mockServices || []
+    }
+  };
+};
 const mockData = {
   mockDelay,
   mockTeachers,
@@ -348,11 +368,14 @@ const mockData = {
   mockChatDetails,
   mockStudentData,
   mockTeacherData,
-  mockApiResponse
+  mockApiResponse,
+  getMockTeacherDetailWithServices
 };
+exports.getMockTeacherDetailWithServices = getMockTeacherDetailWithServices;
 exports.mockApiResponse = mockApiResponse;
 exports.mockChatDetails = mockChatDetails;
 exports.mockChatSummaries = mockChatSummaries;
 exports.mockData = mockData;
 exports.mockDelay = mockDelay;
+exports.mockTeachers = mockTeachers;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/store/services/mock-data.js.map

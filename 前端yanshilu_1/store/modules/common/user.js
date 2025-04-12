@@ -114,11 +114,9 @@ const actions = {
       
       if (role === 'teacher') {
         response = await services.teacher.updateTeacherProfile(profileData);
-      } else if (role === 'student') {
-        response = await services.student.updateStudentProfile(profileData);
       } else {
-        throw new Error('未知的用户角色');
-      }
+        response = await services.student.updateStudentProfile(profileData);
+      } 
       
       commit(UPDATE_PROFILE_SUCCESS, response.data);
       return response.data;

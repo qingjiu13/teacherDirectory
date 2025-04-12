@@ -11,7 +11,7 @@
         <!-- 昵称部分 -->
         <view class="name-row">
           <view class="teacher-info">
-            <text class="teacher-name">{{teacherInfo.name}}</text>
+            <text class="teacher-name">{{teacherInfo.nickname}}</text>
             <!-- 只显示第一个标签（已认证/未认证）放在名字旁边 -->
             <view v-if="teacherInfo.tags && teacherInfo.tags.length > 0" class="tag certification-tag" :class="{ 'standard-tag': true }">
               {{teacherInfo.tags[0]}}
@@ -120,9 +120,8 @@
         console.error('加载教师模块数据失败:', error);
       }
       
-      // 加载老师信息和服务数据
-      this.loadTeacherInfo();
-      this.loadServices();
+      // 加载老师信息和服务数据（合并为单个API调用）
+      this.loadTeacherData();
     },
     
     methods: {
@@ -137,97 +136,35 @@
       },
       
       /**
-       * @description 加载老师信息
+       * @description 加载老师信息和服务列表（合并为一个API调用）
        */
-      loadTeacherInfo() {
-        this.isLoading = true;
-        
-        // 使用模拟数据代替API请求
-        setTimeout(async () => {
-          try {
-            // 模拟网络延迟
-            await mock.mockDelay(500);
-            
-            // 从模拟数据中查找对应ID的老师
-            const teacherId = parseInt(this.teacherId);
-            const teacher = mock.mockTeachers.find(t => t.id === teacherId) || mock.mockTeachers[0];
-            
-            // 格式化老师数据
-            this.teacherInfo = {
-              id: teacher.id,
-              name: teacher.nickname,
-              avatar: teacher.avatar,
-              school: teacher.school,
-              major: teacher.major,
-              score: teacher.score,
-              is_certified: teacher.tags.includes('认证学校'),
-              tags: teacher.tags,
-              introduction: teacher.introduction
-            };
-          } catch (error) {
-            console.error('加载老师信息失败:', error);
-            // 使用默认数据
-            this.teacherInfo = {
-              id: this.teacherId,
-              name: '王教授',
-              avatar: '/static/image/tab-bar/default_avatar.png',
-              school: '北京大学',
-              major: '计算机科学',
-              score: '400',
-              is_certified: true,
-              tags: ['已认证', '其他标签', '其他标签'],
-              introduction: '从事计算机教学20年，专注于算法和数据结构领域研究。曾指导多名学生成功考取清华、北大等名校研究生。教学风格深入浅出，善于将复杂概念简单化。'
-            };
-          } finally {
-            this.isLoading = false;
+      async loadTeacherData() {
+        try {
+          // 显示加载提示
+          uni.showLoading({
+            title: '加载中...'
+          });
+          
+          // 使用合并后的API获取所有数据
+          const result = await store.dispatch('teacher/getTeacherInfo', this.teacherId);
+          
+          if (result.success) {
+            // 从store中获取老师信息和服务列表
+            this.teacherInfo = store.getters['teacher/teacherInfo'];
+            this.services = store.getters['teacher/services'];
+          } else {
+            throw new Error('获取老师数据失败');
           }
-        }, 100);
-      },
-      
-      /**
-       * @description 加载服务列表
-       */
-      loadServices() {
-        this.isLoading = true;
-        
-        // 使用模拟数据代替API请求
-        setTimeout(async () => {
-          try {
-            // 模拟网络延迟
-            await mock.mockDelay(300);
-            
-            // 使用模拟服务数据
-            this.services = mock.mockServices;
-          } catch (error) {
-            console.error('加载服务列表失败:', error);
-            // 使用默认数据
-            this.services = [
-              {
-                id: 1,
-                title: '考研数学一对一辅导',
-                price: 300,
-                image: '/static/image/tab-bar/default_avatar.png',
-                description: '针对考研数学难点，提供个性化辅导，帮助你掌握核心解题技巧。'
-              },
-              {
-                id: 2,
-                title: '计算机专业课指导',
-                price: 250,
-                image: '/static/image/tab-bar/default_avatar.png',
-                description: '数据结构、操作系统、计算机网络、计算机组成原理全面指导。'
-              },
-              {
-                id: 3,
-                title: '考研复习规划制定',
-                price: 180,
-                image: '/static/image/tab-bar/default_avatar.png',
-                description: '根据个人情况定制复习计划，科学规划时间，提高复习效率。'
-              }
-            ];
-          } finally {
-            this.isLoading = false;
-          }
-        }, 100);
+        } catch (error) {
+          console.error('加载老师数据失败:', error);
+          uni.showToast({
+            title: '加载失败，请重试',
+            icon: 'none'
+          });
+        } finally {
+          uni.hideLoading();
+          this.isLoading = false;
+        }
       },
       
       /**

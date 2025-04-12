@@ -17,10 +17,10 @@ import message from './modules/common/message';
 import settings from './modules/common/settings';
 import aiChat from './modules/common/ai-chat';
 import match from './modules/common/match';
+import teacher from './modules/common/teacher';
 
 // 导入角色相关模块
 import user from './modules/common/user';
-import teacher from './modules/teacher';
 import student from './modules/student';
 
 // 导入功能模块

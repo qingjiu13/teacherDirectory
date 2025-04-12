@@ -366,6 +366,37 @@ export const mockApiResponse = (data, success = true, message = '') => {
   };
 };
 
+/**
+ * @description 获取模拟的老师详情和服务列表合并数据
+ * @param {Number} teacherId - 老师ID
+ * @returns {Object} 模拟的API响应数据
+ */
+export const getMockTeacherDetailWithServices = (teacherId) => {
+  // 获取老师基本信息
+  const teacher = mockTeachers.find(t => t.id === parseInt(teacherId)) || mockTeachers[0];
+  
+  // 格式化老师详情
+  const teacherDetail = {
+    id: teacher.id,
+    nickname: teacher.nickname,
+    avatar: teacher.avatar || '/static/image/tab-bar/default_avatar.png',
+    school: teacher.school,
+    major: teacher.major,
+    score: teacher.score,
+    tags: teacher.tags || [],
+    introduction: teacher.introduction || '暂无介绍'
+  };
+  
+  // 返回格式化的响应
+  return {
+    success: true,
+    data: {
+      teacher: teacherDetail,
+      services: mockServices || []
+    }
+  };
+};
+
 export default {
   mockDelay,
   mockTeachers,
@@ -374,5 +405,6 @@ export default {
   mockChatDetails,
   mockStudentData,
   mockTeacherData,
-  mockApiResponse
+  mockApiResponse,
+  getMockTeacherDetailWithServices
 }; 

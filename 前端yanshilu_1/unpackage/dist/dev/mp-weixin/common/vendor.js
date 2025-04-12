@@ -7572,9 +7572,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.81.1.13,127.0.0.1";
+  const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_0yywSM";
+  const id = "mp-weixin_MceAJR";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9861,6 +9861,110 @@ Store.prototype._withCommit = function _withCommit(fn) {
   this._committing = committing;
 };
 Object.defineProperties(Store.prototype, prototypeAccessors);
+var mapState = normalizeNamespace(function(namespace, states) {
+  var res = {};
+  if (!isValidMap(states)) {
+    console.error("[vuex] mapState: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(states).forEach(function(ref2) {
+    var key = ref2.key;
+    var val = ref2.val;
+    res[key] = function mappedState() {
+      var state = this.$store.state;
+      var getters = this.$store.getters;
+      if (namespace) {
+        var module2 = getModuleByNamespace(this.$store, "mapState", namespace);
+        if (!module2) {
+          return;
+        }
+        state = module2.context.state;
+        getters = module2.context.getters;
+      }
+      return typeof val === "function" ? val.call(this, state, getters) : state[val];
+    };
+    res[key].vuex = true;
+  });
+  return res;
+});
+var mapGetters = normalizeNamespace(function(namespace, getters) {
+  var res = {};
+  if (!isValidMap(getters)) {
+    console.error("[vuex] mapGetters: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(getters).forEach(function(ref2) {
+    var key = ref2.key;
+    var val = ref2.val;
+    val = namespace + val;
+    res[key] = function mappedGetter() {
+      if (namespace && !getModuleByNamespace(this.$store, "mapGetters", namespace)) {
+        return;
+      }
+      if (!(val in this.$store.getters)) {
+        console.error("[vuex] unknown getter: " + val);
+        return;
+      }
+      return this.$store.getters[val];
+    };
+    res[key].vuex = true;
+  });
+  return res;
+});
+var mapActions = normalizeNamespace(function(namespace, actions) {
+  var res = {};
+  if (!isValidMap(actions)) {
+    console.error("[vuex] mapActions: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(actions).forEach(function(ref2) {
+    var key = ref2.key;
+    var val = ref2.val;
+    res[key] = function mappedAction() {
+      var args = [], len = arguments.length;
+      while (len--)
+        args[len] = arguments[len];
+      var dispatch2 = this.$store.dispatch;
+      if (namespace) {
+        var module2 = getModuleByNamespace(this.$store, "mapActions", namespace);
+        if (!module2) {
+          return;
+        }
+        dispatch2 = module2.context.dispatch;
+      }
+      return typeof val === "function" ? val.apply(this, [dispatch2].concat(args)) : dispatch2.apply(this.$store, [val].concat(args));
+    };
+  });
+  return res;
+});
+function normalizeMap(map) {
+  if (!isValidMap(map)) {
+    return [];
+  }
+  return Array.isArray(map) ? map.map(function(key) {
+    return { key, val: key };
+  }) : Object.keys(map).map(function(key) {
+    return { key, val: map[key] };
+  });
+}
+function isValidMap(map) {
+  return Array.isArray(map) || isObject(map);
+}
+function normalizeNamespace(fn) {
+  return function(namespace, map) {
+    if (typeof namespace !== "string") {
+      map = namespace;
+      namespace = "";
+    } else if (namespace.charAt(namespace.length - 1) !== "/") {
+      namespace += "/";
+    }
+    return fn(namespace, map);
+  };
+}
+function getModuleByNamespace(store, helper, namespace) {
+  var module2 = store._modulesNamespaceMap[namespace];
+  if (!module2) {
+    console.error("[vuex] module namespace not found in " + helper + "(): " + namespace);
+  }
+  return module2;
+}
 const version = "3.7.7";
 const VERSION = version;
 const _hasBuffer = typeof Buffer === "function";
@@ -10078,6 +10182,9 @@ exports.f = f;
 exports.gBase64 = gBase64;
 exports.index = index;
 exports.jwtDecode = jwtDecode;
+exports.mapActions = mapActions;
+exports.mapGetters = mapGetters;
+exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
 exports.p = p;

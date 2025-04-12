@@ -5,27 +5,23 @@
 
 import { match, mock } from '../../services';
 
+// 本地存储键名
+const FILTERS_STORAGE_KEY = 'match_filters';
+const NAVIGATION_TYPE_KEY = 'match_navigation_type';
+
+// 尝试从本地存储加载筛选条件
+const getSavedFilters = () => {
+  try {
+    const savedFilters = uni.getStorageSync(FILTERS_STORAGE_KEY);
+    return savedFilters ? JSON.parse(savedFilters) : { school: '', major: '', keyword: '' };
+  } catch (e) {
+    console.error('获取保存的筛选条件失败', e);
+    return { school: '', major: '', keyword: '' };
+  }
+};
+
 // 初始状态
 const state = {
-  recommended: {
-    current: [], // 当前推荐列表
-    total: 0, // 总数
-    page: 1, // 当前页
-    loading: false, // 加载中状态
-    error: null // 错误信息
-  },
-  filters: {
-    school: '',
-    major: '',
-    keyword: '',
-    sortBy: 'rating',
-    order: 'desc'
-  },
-  
-  // 学校和专业列表
-  schoolList: [],
-  majorList: [],
-  
   // 老师数据
   teachers: [],
   currentPage: 1,
@@ -33,65 +29,26 @@ const state = {
   totalCount: 0,
   pageSize: 10,
   
+  // 筛选条件，从本地存储获取
+  filters: getSavedFilters(),
+  
   // 加载状态
   loading: false,
+  loadingMore: false,
   error: null,
   
-  // 具体操作的加载状态
-  loadingTypes: {
-    teachers: false,
-    schools: false,
-    majors: false,
-    communication: false,
-    teacherDetail: false
-  },
-  
   // 选中的教师ID
-  selectedTeacherId: null,
-  
-  // 当前教师详情
-  teacherDetail: null
+  selectedTeacherId: null
 };
 
 // Getters
 const getters = {
-  recommended: state => state.recommended,
-  filters: state => state.filters,
-  isLoading: state => state.recommended.loading,
-  hasError: state => state.recommended.error !== null,
-  
   /**
    * @description 获取筛选后的老师列表
    * @param {Object} state - Vuex状态
    * @returns {Array} 筛选后的老师列表
    */
-  filteredTeachers: state => {
-    return state.teachers;
-  },
-  
-  /**
-   * @description 获取学校列表（格式化为下拉框使用的格式）
-   * @param {Object} state - Vuex状态
-   * @returns {Array} 格式化后的学校列表
-   */
-  formattedSchoolList: state => {
-    return state.schoolList.map(school => ({
-      choiceItemId: school.id,
-      choiceItemContent: school.name
-    }));
-  },
-  
-  /**
-   * @description 获取专业列表（格式化为下拉框使用的格式）
-   * @param {Object} state - Vuex状态
-   * @returns {Array} 格式化后的专业列表
-   */
-  formattedMajorList: state => {
-    return state.majorList.map(major => ({
-      choiceItemId: major.id,
-      choiceItemContent: major.name
-    }));
-  },
+  filteredTeachers: state => state.teachers,
   
   /**
    * @description 判断是否有筛选条件
@@ -103,16 +60,25 @@ const getters = {
   },
   
   /**
-   * @description 获取排序选项
-   * @returns {Array} 排序选项列表
+   * @description 获取加载状态
+   * @param {Object} state - Vuex状态
+   * @returns {Boolean} 是否正在加载
    */
-  sortOptions: () => {
-    return [
-      { choiceItemId: '综合排序', choiceItemContent: '综合排序' },
-      { choiceItemId: '评分最高', choiceItemContent: '评分最高' },
-      { choiceItemId: '最新加入', choiceItemContent: '最新加入' }
-    ];
-  },
+  isLoading: state => state.loading,
+  
+  /**
+   * @description 获取加载更多状态
+   * @param {Object} state - Vuex状态
+   * @returns {Boolean} 是否正在加载更多
+   */
+  isLoadingMore: state => state.loadingMore,
+  
+  /**
+   * @description 是否有更多数据
+   * @param {Object} state - Vuex状态
+   * @returns {Boolean} 是否有更多数据
+   */
+  hasMoreData: state => state.currentPage < state.totalPages,
   
   /**
    * @description 获取错误信息
@@ -122,85 +88,25 @@ const getters = {
   error: state => state.error,
   
   /**
-   * @description 获取具体类型的加载状态
+   * @description 获取当前筛选条件
    * @param {Object} state - Vuex状态
-   * @returns {Function} 返回获取具体类型加载状态的函数
+   * @returns {Object} 筛选条件
    */
-  loadingType: state => type => state.loadingTypes[type]
+  currentFilters: state => state.filters
 };
 
 // 引入常量类型
-const SET_RECOMMENDED = 'SET_RECOMMENDED';
+const SET_TEACHERS = 'SET_TEACHERS';
+const ADD_TEACHERS = 'ADD_TEACHERS';
 const SET_LOADING = 'SET_LOADING';
-const SET_LOADING_TYPE = 'SET_LOADING_TYPE';
+const SET_LOADING_MORE = 'SET_LOADING_MORE';
 const SET_ERROR = 'SET_ERROR';
 const SET_FILTERS = 'SET_FILTERS';
-const SET_SCHOOL_LIST = 'SET_SCHOOL_LIST';
-const SET_MAJOR_LIST = 'SET_MAJOR_LIST';
-const SET_TEACHERS = 'SET_TEACHERS';
 const SET_SELECTED_TEACHER = 'SET_SELECTED_TEACHER';
-const SET_TEACHER_DETAIL = 'SET_TEACHER_DETAIL';
 const RESET_FILTERS = 'RESET_FILTERS';
 
 // Mutations
 const mutations = {
-  [SET_RECOMMENDED](state, { teachers, total, page }) {
-    // 确保推荐字段已初始化
-    if (!state.recommended) {
-      state.recommended = {
-        current: [],
-        total: 0,
-        page: 1,
-        loading: false,
-        error: null
-      };
-    }
-    
-    // 更新推荐列表
-    state.recommended.current = teachers || [];
-    state.recommended.total = total || 0;
-    state.recommended.page = page || 1;
-  },
-  [SET_LOADING](state, loading) {
-    // 确保推荐字段已初始化
-    if (!state.recommended) {
-      state.recommended = {
-        current: [],
-        total: 0,
-        page: 1,
-        loading: false,
-        error: null
-      };
-    }
-    
-    state.recommended.loading = loading;
-  },
-  [SET_ERROR](state, error) {
-    // 确保推荐字段已初始化
-    if (!state.recommended) {
-      state.recommended = {
-        current: [],
-        total: 0,
-        page: 1,
-        loading: false,
-        error: null
-      };
-    }
-    
-    state.recommended.error = error;
-  },
-  [SET_LOADING_TYPE](state, { type, value }) {
-    state.loadingTypes[type] = value;
-  },
-  [SET_FILTERS](state, filters) {
-    state.filters = { ...state.filters, ...filters };
-  },
-  [SET_SCHOOL_LIST](state, schools) {
-    state.schoolList = schools;
-  },
-  [SET_MAJOR_LIST](state, majors) {
-    state.majorList = majors;
-  },
   [SET_TEACHERS](state, data) {
     const { list, pagination } = data;
     state.teachers = list;
@@ -209,287 +115,293 @@ const mutations = {
     state.totalCount = pagination.total;
     state.pageSize = pagination.pageSize;
   },
+  
+  [ADD_TEACHERS](state, data) {
+    const { list, pagination } = data;
+    state.teachers = [...state.teachers, ...list];
+    state.currentPage = pagination.current || pagination.page;
+    state.totalPages = pagination.totalPages;
+    state.totalCount = pagination.total;
+    state.pageSize = pagination.pageSize;
+  },
+  
+  [SET_LOADING](state, loading) {
+    state.loading = loading;
+  },
+  
+  [SET_LOADING_MORE](state, loadingMore) {
+    state.loadingMore = loadingMore;
+  },
+  
+  [SET_ERROR](state, error) {
+    state.error = error;
+  },
+  
+  [SET_FILTERS](state, filters) {
+    state.filters = { ...state.filters, ...filters };
+    
+    // 保存到本地存储
+    try {
+      uni.setStorageSync(FILTERS_STORAGE_KEY, JSON.stringify(state.filters));
+    } catch (e) {
+      console.error('保存筛选条件失败', e);
+    }
+  },
+  
   [SET_SELECTED_TEACHER](state, id) {
     state.selectedTeacherId = id;
   },
-  [SET_TEACHER_DETAIL](state, detail) {
-    state.teacherDetail = detail;
-  },
+  
   [RESET_FILTERS](state) {
     state.filters = {
       school: '',
       major: '',
-      keyword: '',
-      sortBy: 'rating',
-      order: 'desc'
+      keyword: ''
     };
+    
+    // 从本地存储中删除
+    try {
+      uni.removeStorageSync(FILTERS_STORAGE_KEY);
+    } catch (e) {
+      console.error('删除筛选条件失败', e);
+    }
   }
 };
 
 // Actions
 const actions = {
   /**
-   * @description 获取推荐老师列表
-   * @param {Object} params 过滤参数
-   * @returns {Promise<Array>} 老师列表
+   * @description 获取老师列表
+   * @param {Object} context - Vuex上下文
+   * @param {Object} params - 查询参数
+   * @returns {Promise<Object>} 结果对象
    */
-  async getRecommendedTeachers({ commit, state }, params = {}) {
-    commit(SET_LOADING, true);
-    commit(SET_ERROR, null);
-    
+  async getTeachers({ commit, state }, params = {}) {
     try {
-      // 组合筛选参数
-      const queryParams = {
-        ...state.filters,
-        ...params,
-        page: params.page || 1,
-        limit: params.limit || 10
-      };
+      commit(SET_LOADING, true);
+      commit(SET_ERROR, null);
       
-      console.log('获取推荐老师, 参数:', queryParams);
-      
-      // 模拟API调用，不实际请求后端
-      // 使用模拟数据
-      await mock.mockDelay(500);
-      
-      // 过滤模拟数据
-      let filteredTeachers = [...mock.mockTeachers];
-      
-      // 根据筛选条件过滤
-      if (queryParams.school) {
-        filteredTeachers = filteredTeachers.filter(
-          teacher => teacher.school.includes(queryParams.school)
-        );
-      }
-      
-      if (queryParams.major) {
-        filteredTeachers = filteredTeachers.filter(
-          teacher => teacher.major.includes(queryParams.major)
-        );
-      }
-      
-      // 根据排序条件排序
-      if (queryParams.sortBy === 'rating') {
-        filteredTeachers.sort((a, b) => {
-          const getScore = (scoreStr) => {
-            if (!scoreStr) return 0;
-            const match = String(scoreStr).match(/\d+/);
-            return match ? parseInt(match[0]) : 0;
-          };
-          
-          const scoreA = getScore(a.score);
-          const scoreB = getScore(b.score);
-          return queryParams.order === 'desc' ? scoreB - scoreA : scoreA - scoreB;
-        });
-      }
-      
-      const result = {
-        success: true,
-        data: {
-          teachers: filteredTeachers,
-          total: filteredTeachers.length,
-          page: queryParams.page
+      // TODO: 使用真实API接口时删除此模拟数据代码块
+      if (process.env.NODE_ENV === 'development') {
+        await mock.mockDelay(500);
+        
+        // 过滤模拟数据
+        let filteredTeachers = [...mock.mockTeachers];
+        
+        // 应用筛选条件
+        if (state.filters.school) {
+          filteredTeachers = filteredTeachers.filter(teacher => 
+            teacher.school.includes(state.filters.school)
+          );
         }
-      };
-      
-      if (result.success) {
-        const { teachers, total, page } = result.data;
-        commit(SET_RECOMMENDED, { teachers, total, page });
-        return teachers;
-      } else {
-        throw new Error(result.message || '获取推荐老师失败');
+        
+        if (state.filters.major) {
+          filteredTeachers = filteredTeachers.filter(teacher => 
+            teacher.major.includes(state.filters.major)
+          );
+        }
+        
+        if (state.filters.keyword) {
+          filteredTeachers = filteredTeachers.filter(teacher => 
+            teacher.nickname.includes(state.filters.keyword) || 
+            teacher.school.includes(state.filters.keyword) || 
+            teacher.major.includes(state.filters.keyword)
+          );
+        }
+        
+        // 计算分页信息
+        const page = params.page || 1;
+        const limit = params.limit || state.pageSize;
+        const total = filteredTeachers.length;
+        const totalPages = Math.ceil(total / limit);
+        
+        // 切片获取当前页数据
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const pageTeachers = filteredTeachers.slice(startIndex, endIndex);
+        
+        commit(SET_TEACHERS, {
+          list: pageTeachers,
+          pagination: {
+            page: page,
+            pageSize: limit,
+            total: total,
+            totalPages: totalPages
+          }
+        });
+        
+        return { success: true, data: pageTeachers };
       }
+      
+      // 真实API调用
+      const response = await match.getRecommendedTeachers({
+        ...state.filters,
+        page: params.page || 1,
+        limit: params.limit || state.pageSize
+      });
+      
+      if (!response.success) {
+        throw response.error || { message: '获取老师列表失败' };
+      }
+      
+      commit(SET_TEACHERS, {
+        list: response.data.teachers || [],
+        pagination: {
+          page: params.page || 1,
+          pageSize: params.limit || state.pageSize,
+          total: response.data.total || 0,
+          totalPages: Math.ceil((response.data.total || 0) / (params.limit || state.pageSize))
+        }
+      });
+      
+      return { success: true, data: response.data.teachers };
     } catch (error) {
-      console.error('获取推荐老师失败:', error);
-      commit(SET_ERROR, error.message || '获取推荐老师失败');
-      return [];
+      console.error('获取老师列表失败:', error);
+      commit(SET_ERROR, error);
+      return { success: false, error };
     } finally {
       commit(SET_LOADING, false);
     }
   },
   
   /**
-   * @description 重置筛选条件并获取最新推荐
+   * @description 加载更多老师
+   * @param {Object} context - Vuex上下文
+   * @returns {Promise<Object>} 结果对象
    */
-  async resetAndGetRecommended({ commit, dispatch }) {
-    commit(RESET_FILTERS);
-    return await dispatch('getRecommendedTeachers');
-  },
-  
-  /**
-   * @description 设置筛选条件
-   * @param {Object} filters 筛选条件
-   */
-  setFilters({ commit }, filters) {
-    commit(SET_FILTERS, filters);
+  async loadMoreTeachers({ commit, state }) {
+    // 如果没有更多数据或正在加载，不执行操作
+    if (state.currentPage >= state.totalPages || state.loadingMore) {
+      return { success: true, data: state.teachers, noMoreData: true };
+    }
+    
+    try {
+      commit(SET_LOADING_MORE, true);
+      commit(SET_ERROR, null);
+      
+      const nextPage = state.currentPage + 1;
+      
+      // TODO: 使用真实API接口时删除此模拟数据代码块
+      if (process.env.NODE_ENV === 'development') {
+        await mock.mockDelay(500);
+        
+        // 过滤模拟数据
+        let filteredTeachers = [...mock.mockTeachers];
+        
+        // 应用筛选条件
+        if (state.filters.school) {
+          filteredTeachers = filteredTeachers.filter(teacher => 
+            teacher.school.includes(state.filters.school)
+          );
+        }
+        
+        if (state.filters.major) {
+          filteredTeachers = filteredTeachers.filter(teacher => 
+            teacher.major.includes(state.filters.major)
+          );
+        }
+        
+        if (state.filters.keyword) {
+          filteredTeachers = filteredTeachers.filter(teacher => 
+            teacher.nickname.includes(state.filters.keyword) || 
+            teacher.school.includes(state.filters.keyword) || 
+            teacher.major.includes(state.filters.keyword)
+          );
+        }
+        
+        // 计算分页信息
+        const limit = state.pageSize;
+        const total = filteredTeachers.length;
+        const totalPages = Math.ceil(total / limit);
+        
+        // 切片获取当前页数据
+        const startIndex = (nextPage - 1) * limit;
+        const endIndex = startIndex + limit;
+        const pageTeachers = filteredTeachers.slice(startIndex, endIndex);
+        
+        commit(ADD_TEACHERS, {
+          list: pageTeachers,
+          pagination: {
+            page: nextPage,
+            pageSize: limit,
+            total: total,
+            totalPages: totalPages
+          }
+        });
+        
+        return { 
+          success: true, 
+          data: pageTeachers,
+          noMoreData: nextPage >= totalPages
+        };
+      }
+      
+      // 真实API调用
+      const response = await match.getRecommendedTeachers({
+        ...state.filters,
+        page: nextPage,
+        limit: state.pageSize
+      });
+      
+      if (!response.success) {
+        throw response.error || { message: '加载更多老师失败' };
+      }
+      
+      commit(ADD_TEACHERS, {
+        list: response.data.teachers || [],
+        pagination: {
+          page: nextPage,
+          pageSize: state.pageSize,
+          total: response.data.total || 0,
+          totalPages: Math.ceil((response.data.total || 0) / state.pageSize)
+        }
+      });
+      
+      return { 
+        success: true, 
+        data: response.data.teachers,
+        noMoreData: nextPage >= Math.ceil((response.data.total || 0) / state.pageSize)
+      };
+    } catch (error) {
+      console.error('加载更多老师失败:', error);
+      commit(SET_ERROR, error);
+      return { success: false, error };
+    } finally {
+      commit(SET_LOADING_MORE, false);
+    }
   },
   
   /**
    * @description 搜索老师
    * @param {Object} context - Vuex上下文
-   * @returns {Promise<Object>} 结果对象
-   */
-  async searchTeachers({ commit, state }) {
-    try {
-      commit(SET_LOADING, true);
-      commit(SET_LOADING_TYPE, { type: 'teachers', value: true });
-      commit(SET_ERROR, null);
-      
-      const response = await match.searchTeachers({
-        ...state.filters,
-        page: state.currentPage,
-        limit: state.pageSize
-      });
-      
-      if (!response.success) {
-        throw response.error || { message: '搜索老师失败' };
-      }
-      
-      commit(SET_TEACHERS, {
-        list: response.data.list,
-        pagination: response.data.pagination
-      });
-      
-      return { success: true, data: response.data.list };
-    } catch (error) {
-      console.error('搜索老师失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message || '搜索老师失败' };
-    } finally {
-      commit(SET_LOADING, false);
-      commit(SET_LOADING_TYPE, { type: 'teachers', value: false });
-    }
-  },
-  
-  /**
-   * @description 加载学校列表
-   * @param {Object} context - Vuex上下文
-   * @param {String} keyword - 搜索关键词
-   * @returns {Promise<Object>} 结果对象
-   */
-  async loadSchoolList({ commit }, keyword = '') {
-    try {
-      commit(SET_LOADING, true);
-      commit(SET_LOADING_TYPE, { type: 'schools', value: true });
-      commit(SET_ERROR, null);
-      
-      const response = await match.getSchoolList(keyword);
-      
-      if (!response.success) {
-        throw response.error || { message: '获取学校列表失败' };
-      }
-      
-      commit(SET_SCHOOL_LIST, response.data);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('获取学校列表失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message || '获取学校列表失败' };
-    } finally {
-      commit(SET_LOADING, false);
-      commit(SET_LOADING_TYPE, { type: 'schools', value: false });
-    }
-  },
-  
-  /**
-   * @description 加载专业列表
-   * @param {Object} context - Vuex上下文
-   * @param {String} school - 学校名称
-   * @returns {Promise<Object>} 结果对象
-   */
-  async loadMajorList({ commit }, school = '') {
-    try {
-      commit(SET_LOADING, true);
-      commit(SET_LOADING_TYPE, { type: 'majors', value: true });
-      commit(SET_ERROR, null);
-      
-      const response = await match.getMajorList(school);
-      
-      if (!response.success) {
-        throw response.error || { message: '获取专业列表失败' };
-      }
-      
-      commit(SET_MAJOR_LIST, response.data);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('获取专业列表失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message || '获取专业列表失败' };
-    } finally {
-      commit(SET_LOADING, false);
-      commit(SET_LOADING_TYPE, { type: 'majors', value: false });
-    }
-  },
-  
-  /**
-   * @description 应用筛选条件
-   * @param {Object} context - Vuex上下文
    * @param {Object} filters - 筛选条件
    * @returns {Promise<Object>} 结果对象
    */
-  async applyFilters({ commit, dispatch }, filters) {
+  async searchTeachers({ commit, state, dispatch }, filters = {}) {
+    // 先设置筛选条件
     commit(SET_FILTERS, filters);
-    return dispatch('searchTeachers');
+    
+    // 重置页码
+    return dispatch('getTeachers', { page: 1, limit: state.pageSize });
   },
   
   /**
-   * @description 申请与老师沟通
+   * @description 重置筛选条件并获取老师列表
    * @param {Object} context - Vuex上下文
-   * @param {Object} params - 参数
    * @returns {Promise<Object>} 结果对象
    */
-  async applyForCommunication({ commit }, { teacherId, message = '' }) {
-    try {
-      commit(SET_LOADING, true);
-      commit(SET_LOADING_TYPE, { type: 'communication', value: true });
-      commit(SET_ERROR, null);
-      
-      const response = await match.applyForCommunication(teacherId, message);
-      
-      if (!response.success) {
-        throw response.error || { message: '申请沟通失败' };
-      }
-      
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('申请沟通失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message || '申请沟通失败' };
-    } finally {
-      commit(SET_LOADING, false);
-      commit(SET_LOADING_TYPE, { type: 'communication', value: false });
-    }
+  async resetAndGetTeachers({ commit, dispatch }) {
+    commit(RESET_FILTERS);
+    return dispatch('getTeachers', { page: 1 });
   },
   
   /**
-   * @description 获取老师详情
+   * @description 选择老师
    * @param {Object} context - Vuex上下文
    * @param {Number} id - 老师ID
-   * @returns {Promise<Object>} 结果对象
    */
-  async getTeacherDetail({ commit }, id) {
-    try {
-      commit(SET_LOADING, true);
-      commit(SET_LOADING_TYPE, { type: 'teacherDetail', value: true });
-      commit(SET_ERROR, null);
-      commit(SET_SELECTED_TEACHER, id);
-      
-      const response = await match.getTeacherDetail(id);
-      
-      if (!response.success) {
-        throw response.error || { message: '获取老师详情失败' };
-      }
-      
-      commit(SET_TEACHER_DETAIL, response.data);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('获取老师详情失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message || '获取老师详情失败' };
-    } finally {
-      commit(SET_LOADING, false);
-      commit(SET_LOADING_TYPE, { type: 'teacherDetail', value: false });
-    }
+  selectTeacher({ commit }, id) {
+    commit(SET_SELECTED_TEACHER, id);
   },
   
   /**
@@ -498,6 +410,43 @@ const actions = {
    */
   clearError({ commit }) {
     commit(SET_ERROR, null);
+  },
+  
+  /**
+   * @description 保存导航类型到本地存储
+   * @param {Object} context - Vuex上下文
+   * @param {String} type - 导航类型
+   */
+  saveNavigationType(_, type) {
+    try {
+      uni.setStorageSync(NAVIGATION_TYPE_KEY, type);
+    } catch (e) {
+      console.error('保存导航类型失败', e);
+    }
+  },
+  
+  /**
+   * @description 获取保存的导航类型
+   * @returns {String} 导航类型
+   */
+  getSavedNavigationType() {
+    try {
+      return uni.getStorageSync(NAVIGATION_TYPE_KEY) || '';
+    } catch (e) {
+      console.error('获取导航类型失败', e);
+      return '';
+    }
+  },
+  
+  /**
+   * @description 清除导航类型
+   */
+  clearNavigationType() {
+    try {
+      uni.removeStorageSync(NAVIGATION_TYPE_KEY);
+    } catch (e) {
+      console.error('清除导航类型失败', e);
+    }
   }
 };
 

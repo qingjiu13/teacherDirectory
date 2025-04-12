@@ -44,7 +44,7 @@
 		</view>
 		
 		<!-- 老师卡片列表 -->
-		<scroll-view class="card-list" scroll-y="true" id="step2">
+		<scroll-view class="card-list" scroll-y="true" id="step2" @scrolltolower="loadMoreTeachers">
 			<view class="teacher-card" v-for="(teacher, index) in filteredTeachers" :key="index">
 				<view class="card-left">
 					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
@@ -52,7 +52,7 @@
 				<view class="card-middle">
 					<view class="card-middle-top">
 						<view class="teacher-name">{{ teacher.nickname }}</view>
-						<view class="teacher-info">{{ teacher.title || '教授' }} | {{ teacher.major }} | {{ teacher.score }}</view>
+						<view class="teacher-info">{{ teacher.school }} | {{ teacher.major }} | {{ teacher.score }}</view>
 					</view>
 					<view class="teacher-tags">
 						<view class="tag" v-for="(tag, tagIndex) in teacher.tags" :key="tagIndex">{{ tag }}</view>
@@ -63,8 +63,18 @@
 				</view>
 			</view>
 			
-			<view class="empty-state" v-if="filteredTeachers.length === 0">
+			<view class="empty-state" v-if="filteredTeachers.length === 0 && !isLoading && !isLoadingMore">
 				<text>暂无匹配的老师信息</text>
+			</view>
+			
+			<!-- 加载更多状态 -->
+			<view class="loading-more" v-if="isLoadingMore">
+				<text>加载更多...</text>
+			</view>
+			
+			<!-- 无更多数据提示 -->
+			<view class="no-more-data" v-if="!hasMoreData && filteredTeachers.length > 0 && !isLoadingMore">
+				<text>没有更多数据了</text>
 			</view>
 		</scroll-view>
 		
@@ -80,7 +90,8 @@
 <script>
 	import choiceSelected from '../../components/combobox/combobox'
 	import { Navigator } from '@/router/Router.js'
-	import store, { loadMatchRecommendations } from '@/store/index.js'
+	import store from '@/store/index.js'
+	import { mapState, mapGetters, mapActions } from 'vuex'
 	
 	export default {
 		components: {
@@ -89,25 +100,8 @@
 		async onLoad() {
 			console.log('匹配页面已加载');
 			
-			// 显示加载状态
-			this.isLoading = true;
-			
-			try {
-				// 调用store中的匹配推荐数据加载函数
-				const result = await loadMatchRecommendations();
-				if (result.success && result.data) {
-					// 如果API返回了老师数据，更新本地数据
-					this.teachers = Array.isArray(result.data) ? result.data : [];
-				}
-				console.log('匹配推荐数据已加载');
-			} catch (error) {
-				console.error('加载匹配推荐数据失败:', error);
-				// 出错时确保teachers是数组
-				this.teachers = [];
-			} finally {
-				// 无论成功失败，都关闭加载状态
-				this.isLoading = false;
-			}
+			// 加载老师列表
+			await this.getTeachersList();
 		},
 		data() {
 			return {
@@ -150,54 +144,41 @@
 				tempSelectedSchool: '',
 				tempSelectedMajor: '',
 				tempSelectedSort: '综合排序',
-				// 实际应用的筛选变量（点击筛选按钮后才会更新）
-				appliedSelectedSchool: '',
-				appliedSelectedMajor: '',
-				appliedSelectedSort: '综合排序',
 				// 下拉框索引
 				schoolIndex: -1,
 				majorIndex: -1,
-				sortIndex: -1,
-
-				// 加载状态
-				isLoading: false,
-				
-				// 老师数据 - 确保初始化为数组
-				teachers: []
+				sortIndex: -1
 			}
 		},
 		computed: {
-			filteredTeachers() {
-				// 确保teachers是数组
-				let result = Array.isArray(this.teachers) ? [...this.teachers] : [];
-				
-				// 使用应用后的筛选条件，而非临时选择的条件
-				if (this.appliedSelectedSchool) {
-					result = result.filter(teacher => teacher.school === this.appliedSelectedSchool);
-				}
-				
-				if (this.appliedSelectedMajor) {
-					result = result.filter(teacher => teacher.major === this.appliedSelectedMajor);
-				}
-				
-				// 默认按评分排序
-				result.sort((a, b) => {
-					// 检查是否包含分数并提取数字
-					const getScore = (scoreStr) => {
-						if (!scoreStr) return 0;
-						const match = scoreStr.toString().match(/\d+/);
-						return match ? parseInt(match[0]) : 0;
-					};
-					
-					const scoreA = getScore(a.score);
-					const scoreB = getScore(b.score);
-					return scoreB - scoreA;
-				});
-				
-				return result;
-			}
+			...mapState('match', [
+				'teachers',
+				'currentPage',
+				'totalPages',
+				'loading',
+				'loadingMore'
+			]),
+			...mapGetters('match', [
+				'filteredTeachers',
+				'isLoading',
+				'isLoadingMore',
+				'hasMoreData'
+			])
 		},
 		methods: {
+			...mapActions('match', [
+				'getTeachers',
+				'loadMoreTeachers',
+				'searchTeachers',
+				'resetAndGetTeachers',
+				'selectTeacher'
+			]),
+			
+			// 获取老师列表
+			async getTeachersList() {
+				await this.getTeachers({ page: 1, limit: 10 });
+			},
+			
 			// 页面点击事件
 			onPageClick() {
 				// 关闭所有下拉框
@@ -208,30 +189,34 @@
 					}
 				});
 			},
+			
 			// 应用筛选
-			applyFilter() {
-				// 将临时选择的筛选条件应用到实际筛选条件
-				this.appliedSelectedSchool = this.tempSelectedSchool;
-				this.appliedSelectedMajor = this.tempSelectedMajor;
-				this.appliedSelectedSort = this.tempSelectedSort;
+			async applyFilter() {
+				// 将临时选择的筛选条件应用到搜索
+				const filters = {
+					school: this.tempSelectedSchool,
+					major: this.tempSelectedMajor
+				};
 				
-				console.log('应用筛选:', {
-					学校: this.appliedSelectedSchool,
-					专业: this.appliedSelectedMajor,
-					排序: this.appliedSelectedSort
-				});
+				console.log('应用筛选:', filters);
+				
+				// 使用Vuex action搜索老师
+				await this.searchTeachers(filters);
 			},
+			
 			// 下拉框选择处理
 			onSchoolClick(position) {
 				this.schoolIndex = position;
 				// 只更新临时选择，不立即应用
 				this.tempSelectedSchool = this.schoolList[position].choiceItemContent;
 			},
+			
 			onMajorClick(position) {
 				this.majorIndex = position;
 				// 只更新临时选择，不立即应用
 				this.tempSelectedMajor = this.majorList[position].choiceItemContent;
 			},
+			
 			onSortClick(position) {
 				this.sortIndex = position;
 				// 只更新临时选择，不立即应用
@@ -244,20 +229,33 @@
 			 */
 			onSchoolSearch(keyword) {
 				console.log('学校搜索:', keyword);
-				// 在实际应用中，可以在这里处理更高级的搜索逻辑
-				// 例如从服务器获取更多匹配的学校数据
+				// 此处无需实际处理，因为学校列表已在本地
 			},
 			
-			// 保留原有方法
+			// 与老师沟通
 			handleCommunicate(teacherId) {
-				this.isLoading = true;
+				// 选择老师，保存到store
+				this.selectTeacher(teacherId);
+				
+				// 显示加载状态
+				uni.showLoading({
+					title: '正在连接...'
+				});
+				
+				// 模拟延迟后跳转
 				setTimeout(() => {
-					this.isLoading = false;
+					uni.hideLoading();
 					// 使用router.js中的方法跳转到聊天页面
 					Navigator.toChat(teacherId);
 				}, 1000);
 			},
+			
+			// 查看老师详情
 			viewTeacherDetail(teacherId) {
+				// 选择老师，保存到store
+				this.selectTeacher(teacherId);
+				
+				// 跳转到老师详情页
 				Navigator.toTeacher(teacherId);
 			}
 		}
@@ -459,5 +457,14 @@
 		width: 100%;
 		text-align: center;
 		box-shadow: 0 2px 6px rgba(30, 144, 255, 0.2);
+	}
+	
+	.loading-more, .no-more-data {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 60px;
+		color: #999999;
+		font-size: 14px;
 	}
 </style>

@@ -7,8 +7,8 @@ const store_modules_common_message = require("./modules/common/message.js");
 const store_modules_common_settings = require("./modules/common/settings.js");
 const store_modules_common_aiChat = require("./modules/common/ai-chat.js");
 const store_modules_common_match = require("./modules/common/match.js");
+const store_modules_common_teacher = require("./modules/common/teacher.js");
 const store_modules_common_user = require("./modules/common/user.js");
-const store_modules_teacher_index = require("./modules/teacher/index.js");
 const store_modules_student_index = require("./modules/student/index.js");
 const store_modules_common_courses = require("./modules/common/courses.js");
 const store_modules_common_orders = require("./modules/common/orders.js");
@@ -27,7 +27,7 @@ const store = common_vendor.createStore({
     user: store_modules_common_user.user,
     // 用户基本信息
     // 角色模块
-    teacher: store_modules_teacher_index.teacher,
+    teacher: store_modules_common_teacher.teacher,
     // 教师特有功能
     student: store_modules_student_index.student,
     // 学生特有功能
@@ -72,20 +72,7 @@ const loadStudentData = async () => {
     return { success: false, error };
   }
 };
-const loadMatchRecommendations = async () => {
-  try {
-    const teachers = await store.dispatch("match/getRecommendedTeachers");
-    return {
-      success: true,
-      data: teachers
-    };
-  } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:125", "加载匹配推荐失败:", error);
-    return { success: false, error };
-  }
-};
 exports.initializeApp = initializeApp;
-exports.loadMatchRecommendations = loadMatchRecommendations;
 exports.loadStudentData = loadStudentData;
 exports.loadTeacherData = loadTeacherData;
 exports.store = store;

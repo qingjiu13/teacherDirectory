@@ -105,10 +105,8 @@ const actions = {
       const { role } = rootState.auth;
       if (role === "teacher") {
         response = await store_services_index.services.teacher.updateTeacherProfile(profileData);
-      } else if (role === "student") {
-        response = await store_services_index.services.student.updateStudentProfile(profileData);
       } else {
-        throw new Error("未知的用户角色");
+        response = await store_services_index.services.student.updateStudentProfile(profileData);
       }
       commit(UPDATE_PROFILE_SUCCESS, response.data);
       return response.data;

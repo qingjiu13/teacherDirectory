@@ -2,7 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const store_index = require("../../store/index.js");
-const store_services_index = require("../../store/services/index.js");
+require("../../store/services/mock-data.js");
 const _sfc_main = common_vendor.defineComponent({
   data() {
     return {
@@ -33,8 +33,7 @@ const _sfc_main = common_vendor.defineComponent({
       } catch (error) {
         common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:120", "加载教师模块数据失败:", error);
       }
-      this.loadTeacherInfo();
-      this.loadServices();
+      this.loadTeacherData();
     });
   },
   methods: {
@@ -48,88 +47,32 @@ const _sfc_main = common_vendor.defineComponent({
       }
     },
     /**
-     * @description 加载老师信息
+     * @description 加载老师信息和服务列表（合并为一个API调用）
      */
-    loadTeacherInfo() {
-      this.isLoading = true;
-      setTimeout(() => {
-        return common_vendor.__awaiter(this, void 0, void 0, function* () {
-          try {
-            yield store_services_index.mock.mockDelay(500);
-            const teacherId = parseInt(this.teacherId);
-            const teacher = store_services_index.mock.mockTeachers.find((t = null) => {
-              return t.id === teacherId;
-            }) || store_services_index.mock.mockTeachers[0];
-            this.teacherInfo = {
-              id: teacher.id,
-              name: teacher.nickname,
-              avatar: teacher.avatar,
-              school: teacher.school,
-              major: teacher.major,
-              score: teacher.score,
-              is_certified: teacher.tags.includes("认证学校"),
-              tags: teacher.tags,
-              introduction: teacher.introduction
-            };
-          } catch (error) {
-            common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:168", "加载老师信息失败:", error);
-            this.teacherInfo = {
-              id: this.teacherId,
-              name: "王教授",
-              avatar: "/static/image/tab-bar/default_avatar.png",
-              school: "北京大学",
-              major: "计算机科学",
-              score: "400",
-              is_certified: true,
-              tags: ["已认证", "其他标签", "其他标签"],
-              introduction: "从事计算机教学20年，专注于算法和数据结构领域研究。曾指导多名学生成功考取清华、北大等名校研究生。教学风格深入浅出，善于将复杂概念简单化。"
-            };
-          } finally {
-            this.isLoading = false;
+    loadTeacherData() {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        try {
+          common_vendor.index.showLoading({
+            title: "加载中..."
+          });
+          const result = yield store_index.store.dispatch("teacher/getTeacherInfo", this.teacherId);
+          if (result.success) {
+            this.teacherInfo = store_index.store.getters["teacher/teacherInfo"];
+            this.services = store_index.store.getters["teacher/services"];
+          } else {
+            throw new Error("获取老师数据失败");
           }
-        });
-      }, 100);
-    },
-    /**
-     * @description 加载服务列表
-     */
-    loadServices() {
-      this.isLoading = true;
-      setTimeout(() => {
-        return common_vendor.__awaiter(this, void 0, void 0, function* () {
-          try {
-            yield store_services_index.mock.mockDelay(300);
-            this.services = store_services_index.mock.mockServices;
-          } catch (error) {
-            common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:202", "加载服务列表失败:", error);
-            this.services = [
-              {
-                id: 1,
-                title: "考研数学一对一辅导",
-                price: 300,
-                image: "/static/image/tab-bar/default_avatar.png",
-                description: "针对考研数学难点，提供个性化辅导，帮助你掌握核心解题技巧。"
-              },
-              {
-                id: 2,
-                title: "计算机专业课指导",
-                price: 250,
-                image: "/static/image/tab-bar/default_avatar.png",
-                description: "数据结构、操作系统、计算机网络、计算机组成原理全面指导。"
-              },
-              {
-                id: 3,
-                title: "考研复习规划制定",
-                price: 180,
-                image: "/static/image/tab-bar/default_avatar.png",
-                description: "根据个人情况定制复习计划，科学规划时间，提高复习效率。"
-              }
-            ];
-          } finally {
-            this.isLoading = false;
-          }
-        });
-      }, 100);
+        } catch (error) {
+          common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:159", "加载老师数据失败:", error);
+          common_vendor.index.showToast({
+            title: "加载失败，请重试",
+            icon: "none"
+          });
+        } finally {
+          common_vendor.index.hideLoading();
+          this.isLoading = false;
+        }
+      });
     },
     /**
      * @description 发起咨询
@@ -146,7 +89,7 @@ const _sfc_main = common_vendor.defineComponent({
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $data.teacherInfo.avatar,
-    b: common_vendor.t($data.teacherInfo.name),
+    b: common_vendor.t($data.teacherInfo.nickname),
     c: $data.teacherInfo.tags && $data.teacherInfo.tags.length > 0
   }, $data.teacherInfo.tags && $data.teacherInfo.tags.length > 0 ? {
     d: common_vendor.t($data.teacherInfo.tags[0])
