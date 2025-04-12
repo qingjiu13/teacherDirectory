@@ -114,8 +114,10 @@ export const loadStudentData = async () => {
  */
 export const loadMatchRecommendations = async () => {
   try {
-    // 调用match模块的getRecommendedTeachers action，不再使用resetAndGetRecommended
-    // 因为我们需要返回教师数据
+    // 获取保存的导航类型
+    await store.dispatch('match/getSavedNavigationType');
+    
+    // 调用match模块的getRecommendedTeachers action
     const teachers = await store.dispatch('match/getRecommendedTeachers');
     return { 
       success: true, 

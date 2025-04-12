@@ -4,12 +4,20 @@ const store_services_index = require("../../services/index.js");
 const store_services_match_api = require("../../services/match.api.js");
 const FILTERS_STORAGE_KEY = "match_filters";
 const NAVIGATION_TYPE_KEY = "match_navigation_type";
+const NAV_TYPE = {
+  DEFAULT: "default",
+  // 默认导航（普通退出）
+  CHAT: "chat",
+  // 前往聊天页面
+  TEACHER_DETAIL: "detail"
+  // 前往老师详情页面
+};
 const getSavedFilters = () => {
   try {
     const savedFilters = common_vendor.index.getStorageSync(FILTERS_STORAGE_KEY);
     return savedFilters ? JSON.parse(savedFilters) : { school: "", major: "", keyword: "" };
   } catch (e) {
-    common_vendor.index.__f__("error", "at store/modules/common/match.js:18", "获取保存的筛选条件失败", e);
+    common_vendor.index.__f__("error", "at store/modules/common/match.js:25", "获取保存的筛选条件失败", e);
     return { school: "", major: "", keyword: "" };
   }
 };
@@ -27,7 +35,9 @@ const state = {
   loadingMore: false,
   error: null,
   // 选中的教师ID
-  selectedTeacherId: null
+  selectedTeacherId: null,
+  // 导航类型，用于判断是否需要清空筛选条件
+  navigationType: NAV_TYPE.DEFAULT
 };
 const getters = {
   /**
@@ -73,7 +83,13 @@ const getters = {
    * @param {Object} state - Vuex状态
    * @returns {Object} 筛选条件
    */
-  currentFilters: (state2) => state2.filters
+  currentFilters: (state2) => state2.filters,
+  /**
+   * @description 获取当前导航类型
+   * @param {Object} state - Vuex状态
+   * @returns {String} 导航类型
+   */
+  navigationType: (state2) => state2.navigationType
 };
 const SET_TEACHERS = "SET_TEACHERS";
 const ADD_TEACHERS = "ADD_TEACHERS";
@@ -83,6 +99,7 @@ const SET_ERROR = "SET_ERROR";
 const SET_FILTERS = "SET_FILTERS";
 const SET_SELECTED_TEACHER = "SET_SELECTED_TEACHER";
 const RESET_FILTERS = "RESET_FILTERS";
+const SET_NAVIGATION_TYPE = "SET_NAVIGATION_TYPE";
 const mutations = {
   [SET_TEACHERS](state2, data) {
     const { list, pagination } = data;
@@ -114,7 +131,7 @@ const mutations = {
     try {
       common_vendor.index.setStorageSync(FILTERS_STORAGE_KEY, JSON.stringify(state2.filters));
     } catch (e) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:147", "保存筛选条件失败", e);
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:165", "保存筛选条件失败", e);
     }
   },
   [SET_SELECTED_TEACHER](state2, id) {
@@ -129,7 +146,15 @@ const mutations = {
     try {
       common_vendor.index.removeStorageSync(FILTERS_STORAGE_KEY);
     } catch (e) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:166", "删除筛选条件失败", e);
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:184", "删除筛选条件失败", e);
+    }
+  },
+  [SET_NAVIGATION_TYPE](state2, type) {
+    state2.navigationType = type;
+    try {
+      common_vendor.index.setStorageSync(NAVIGATION_TYPE_KEY, type);
+    } catch (e) {
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:195", "保存导航类型失败", e);
     }
   }
 };
@@ -199,7 +224,7 @@ const actions = {
       });
       return { success: true, data: response.data.teachers };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:259", "获取老师列表失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:288", "获取老师列表失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error };
     } finally {
@@ -281,7 +306,7 @@ const actions = {
         noMoreData: nextPage >= Math.ceil((response.data.total || 0) / state2.pageSize)
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:366", "加载更多老师失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:395", "加载更多老师失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error };
     } finally {
@@ -323,37 +348,73 @@ const actions = {
     commit(SET_ERROR, null);
   },
   /**
-   * @description 保存导航类型到本地存储
+   * @description 设置导航类型
    * @param {Object} context - Vuex上下文
    * @param {String} type - 导航类型
    */
-  saveNavigationType(_, type) {
-    try {
-      common_vendor.index.setStorageSync(NAVIGATION_TYPE_KEY, type);
-    } catch (e) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:424", "保存导航类型失败", e);
+  setNavigationType({ commit }, type) {
+    commit(SET_NAVIGATION_TYPE, type);
+  },
+  /**
+   * @description 设置为聊天导航类型
+   * @param {Object} context - Vuex上下文
+   */
+  navigateToChat({ commit }) {
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.CHAT);
+  },
+  /**
+   * @description 设置为老师详情导航类型
+   * @param {Object} context - Vuex上下文
+   */
+  navigateToTeacherDetail({ commit }) {
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.TEACHER_DETAIL);
+  },
+  /**
+   * @description 设置为默认导航类型
+   * @param {Object} context - Vuex上下文
+   */
+  navigateDefault({ commit }) {
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.DEFAULT);
+  },
+  /**
+   * @description 根据导航类型判断是否需要清空筛选条件
+   * @param {Object} context - Vuex上下文
+   * @returns {Boolean} 是否执行了清空操作
+   */
+  handleNavigationExit({ state: state2, commit, dispatch }) {
+    const navType = state2.navigationType;
+    if (navType === NAV_TYPE.DEFAULT) {
+      commit(RESET_FILTERS);
+      return true;
     }
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.DEFAULT);
+    return false;
   },
   /**
    * @description 获取保存的导航类型
+   * @param {Object} context - Vuex上下文
    * @returns {String} 导航类型
    */
-  getSavedNavigationType() {
+  getSavedNavigationType({ commit }) {
     try {
-      return common_vendor.index.getStorageSync(NAVIGATION_TYPE_KEY) || "";
+      const navType = common_vendor.index.getStorageSync(NAVIGATION_TYPE_KEY) || NAV_TYPE.DEFAULT;
+      commit(SET_NAVIGATION_TYPE, navType);
+      return navType;
     } catch (e) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:436", "获取导航类型失败", e);
-      return "";
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:507", "获取导航类型失败", e);
+      return NAV_TYPE.DEFAULT;
     }
   },
   /**
    * @description 清除导航类型
+   * @param {Object} context - Vuex上下文
    */
-  clearNavigationType() {
+  clearNavigationType({ commit }) {
     try {
       common_vendor.index.removeStorageSync(NAVIGATION_TYPE_KEY);
+      commit(SET_NAVIGATION_TYPE, NAV_TYPE.DEFAULT);
     } catch (e) {
-      common_vendor.index.__f__("error", "at store/modules/common/match.js:448", "清除导航类型失败", e);
+      common_vendor.index.__f__("error", "at store/modules/common/match.js:521", "清除导航类型失败", e);
     }
   }
 };

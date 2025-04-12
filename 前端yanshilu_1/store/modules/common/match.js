@@ -9,6 +9,13 @@ import { match, mock } from '../../services';
 const FILTERS_STORAGE_KEY = 'match_filters';
 const NAVIGATION_TYPE_KEY = 'match_navigation_type';
 
+// 导航类型常量
+const NAV_TYPE = {
+  DEFAULT: 'default',       // 默认导航（普通退出）
+  CHAT: 'chat',             // 前往聊天页面
+  TEACHER_DETAIL: 'detail'  // 前往老师详情页面
+};
+
 // 尝试从本地存储加载筛选条件
 const getSavedFilters = () => {
   try {
@@ -38,7 +45,10 @@ const state = {
   error: null,
   
   // 选中的教师ID
-  selectedTeacherId: null
+  selectedTeacherId: null,
+  
+  // 导航类型，用于判断是否需要清空筛选条件
+  navigationType: NAV_TYPE.DEFAULT
 };
 
 // Getters
@@ -92,7 +102,14 @@ const getters = {
    * @param {Object} state - Vuex状态
    * @returns {Object} 筛选条件
    */
-  currentFilters: state => state.filters
+  currentFilters: state => state.filters,
+  
+  /**
+   * @description 获取当前导航类型
+   * @param {Object} state - Vuex状态
+   * @returns {String} 导航类型
+   */
+  navigationType: state => state.navigationType
 };
 
 // 引入常量类型
@@ -104,6 +121,7 @@ const SET_ERROR = 'SET_ERROR';
 const SET_FILTERS = 'SET_FILTERS';
 const SET_SELECTED_TEACHER = 'SET_SELECTED_TEACHER';
 const RESET_FILTERS = 'RESET_FILTERS';
+const SET_NAVIGATION_TYPE = 'SET_NAVIGATION_TYPE';
 
 // Mutations
 const mutations = {
@@ -164,6 +182,17 @@ const mutations = {
       uni.removeStorageSync(FILTERS_STORAGE_KEY);
     } catch (e) {
       console.error('删除筛选条件失败', e);
+    }
+  },
+  
+  [SET_NAVIGATION_TYPE](state, type) {
+    state.navigationType = type;
+    
+    // 保存到本地存储
+    try {
+      uni.setStorageSync(NAVIGATION_TYPE_KEY, type);
+    } catch (e) {
+      console.error('保存导航类型失败', e);
     }
   }
 };
@@ -413,37 +442,81 @@ const actions = {
   },
   
   /**
-   * @description 保存导航类型到本地存储
+   * @description 设置导航类型
    * @param {Object} context - Vuex上下文
    * @param {String} type - 导航类型
    */
-  saveNavigationType(_, type) {
-    try {
-      uni.setStorageSync(NAVIGATION_TYPE_KEY, type);
-    } catch (e) {
-      console.error('保存导航类型失败', e);
+  setNavigationType({ commit }, type) {
+    commit(SET_NAVIGATION_TYPE, type);
+  },
+  
+  /**
+   * @description 设置为聊天导航类型
+   * @param {Object} context - Vuex上下文
+   */
+  navigateToChat({ commit }) {
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.CHAT);
+  },
+  
+  /**
+   * @description 设置为老师详情导航类型
+   * @param {Object} context - Vuex上下文
+   */
+  navigateToTeacherDetail({ commit }) {
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.TEACHER_DETAIL);
+  },
+  
+  /**
+   * @description 设置为默认导航类型
+   * @param {Object} context - Vuex上下文
+   */
+  navigateDefault({ commit }) {
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.DEFAULT);
+  },
+  
+  /**
+   * @description 根据导航类型判断是否需要清空筛选条件
+   * @param {Object} context - Vuex上下文
+   * @returns {Boolean} 是否执行了清空操作
+   */
+  handleNavigationExit({ state, commit, dispatch }) {
+    const navType = state.navigationType;
+    
+    // 如果是默认导航（即普通退出），则清空筛选条件
+    if (navType === NAV_TYPE.DEFAULT) {
+      commit(RESET_FILTERS);
+      return true;
     }
+    
+    // 重置导航类型为默认，但不清空筛选条件
+    commit(SET_NAVIGATION_TYPE, NAV_TYPE.DEFAULT);
+    return false;
   },
   
   /**
    * @description 获取保存的导航类型
+   * @param {Object} context - Vuex上下文
    * @returns {String} 导航类型
    */
-  getSavedNavigationType() {
+  getSavedNavigationType({ commit }) {
     try {
-      return uni.getStorageSync(NAVIGATION_TYPE_KEY) || '';
+      const navType = uni.getStorageSync(NAVIGATION_TYPE_KEY) || NAV_TYPE.DEFAULT;
+      commit(SET_NAVIGATION_TYPE, navType);
+      return navType;
     } catch (e) {
       console.error('获取导航类型失败', e);
-      return '';
+      return NAV_TYPE.DEFAULT;
     }
   },
   
   /**
    * @description 清除导航类型
+   * @param {Object} context - Vuex上下文
    */
-  clearNavigationType() {
+  clearNavigationType({ commit }) {
     try {
       uni.removeStorageSync(NAVIGATION_TYPE_KEY);
+      commit(SET_NAVIGATION_TYPE, NAV_TYPE.DEFAULT);
     } catch (e) {
       console.error('清除导航类型失败', e);
     }

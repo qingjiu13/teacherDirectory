@@ -10,8 +10,22 @@ const _sfc_main = common_vendor.defineComponent({
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       common_vendor.index.__f__("log", "at pages/match/match.uvue:101", "匹配页面已加载");
+      yield this.getSavedNavigationType();
       yield this.getTeachersList();
+      this.updateFilterSelections();
     });
+  },
+  onShow() {
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:113", "匹配页面显示");
+    this.updateFilterSelections();
+  },
+  onUnload() {
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:118", "匹配页面卸载");
+    this.handleNavigationExit();
+  },
+  onHide() {
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:123", "匹配页面隐藏");
+    this.navigateDefault();
   },
   data() {
     return {
@@ -65,20 +79,51 @@ const _sfc_main = common_vendor.defineComponent({
     "currentPage",
     "totalPages",
     "loading",
-    "loadingMore"
+    "loadingMore",
+    "filters"
   ])), common_vendor.mapGetters("match", [
     "filteredTeachers",
     "isLoading",
     "isLoadingMore",
-    "hasMoreData"
+    "hasMoreData",
+    "currentFilters"
   ])),
   methods: Object.assign(Object.assign({}, common_vendor.mapActions("match", [
     "getTeachers",
     "loadMoreTeachers",
     "searchTeachers",
     "resetAndGetTeachers",
-    "selectTeacher"
+    "selectTeacher",
+    "navigateToChat",
+    "navigateToTeacherDetail",
+    "navigateDefault",
+    "handleNavigationExit",
+    "getSavedNavigationType"
   ])), {
+    /**
+     * @description 根据当前筛选条件更新界面选择状态
+     */
+    updateFilterSelections() {
+      const currentFilters = this.filters;
+      this.tempSelectedSchool = currentFilters.school || "";
+      this.tempSelectedMajor = currentFilters.major || "";
+      if (this.tempSelectedSchool) {
+        const schoolIndex = this.schoolList.findIndex((item) => {
+          return item.choiceItemContent === this.tempSelectedSchool;
+        });
+        this.schoolIndex = schoolIndex >= 0 ? schoolIndex : -1;
+      } else {
+        this.schoolIndex = -1;
+      }
+      if (this.tempSelectedMajor) {
+        const majorIndex = this.majorList.findIndex((item) => {
+          return item.choiceItemContent === this.tempSelectedMajor;
+        });
+        this.majorIndex = majorIndex >= 0 ? majorIndex : -1;
+      } else {
+        this.majorIndex = -1;
+      }
+    },
     // 获取老师列表
     getTeachersList() {
       return common_vendor.__awaiter(this, void 0, void 0, function* () {
@@ -103,7 +148,7 @@ const _sfc_main = common_vendor.defineComponent({
           school: this.tempSelectedSchool,
           major: this.tempSelectedMajor
         });
-        common_vendor.index.__f__("log", "at pages/match/match.uvue:201", "应用筛选:", filters);
+        common_vendor.index.__f__("log", "at pages/match/match.uvue:261", "应用筛选:", filters);
         yield this.searchTeachers(filters);
       });
     },
@@ -125,11 +170,12 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} keyword - 搜索关键词
      */
     onSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/match/match.uvue:231", "学校搜索:", keyword);
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:291", "学校搜索:", keyword);
     },
     // 与老师沟通
     handleCommunicate(teacherId = null) {
       this.selectTeacher(teacherId);
+      this.navigateToChat();
       common_vendor.index.showLoading({
         title: "正在连接..."
       });
@@ -141,6 +187,7 @@ const _sfc_main = common_vendor.defineComponent({
     // 查看老师详情
     viewTeacherDetail(teacherId = null) {
       this.selectTeacher(teacherId);
+      this.navigateToTeacherDetail();
       router_Router.Navigator.toTeacher(teacherId);
     }
   })

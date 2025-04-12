@@ -100,8 +100,30 @@
 		async onLoad() {
 			console.log('匹配页面已加载');
 			
+			// 获取保存的导航类型
+			await this.getSavedNavigationType();
+			
 			// 加载老师列表
 			await this.getTeachersList();
+			
+			// 根据筛选条件更新界面选择状态
+			this.updateFilterSelections();
+		},
+		onShow() {
+			console.log('匹配页面显示');
+			// 获取当前筛选条件并更新界面
+			this.updateFilterSelections();
+		},
+		onUnload() {
+			console.log('匹配页面卸载');
+			// 根据导航类型判断是否需要清空筛选条件
+			this.handleNavigationExit();
+		},
+		onHide() {
+			console.log('匹配页面隐藏');
+			// 普通隐藏时设置为默认导航类型
+			// 如果是点击头像或沟通按钮，导航类型会在对应方法中设置
+			this.navigateDefault();
 		},
 		data() {
 			return {
@@ -156,13 +178,15 @@
 				'currentPage',
 				'totalPages',
 				'loading',
-				'loadingMore'
+				'loadingMore',
+				'filters'
 			]),
 			...mapGetters('match', [
 				'filteredTeachers',
 				'isLoading',
 				'isLoadingMore',
-				'hasMoreData'
+				'hasMoreData',
+				'currentFilters'
 			])
 		},
 		methods: {
@@ -171,8 +195,44 @@
 				'loadMoreTeachers',
 				'searchTeachers',
 				'resetAndGetTeachers',
-				'selectTeacher'
+				'selectTeacher',
+				'navigateToChat',
+				'navigateToTeacherDetail',
+				'navigateDefault',
+				'handleNavigationExit',
+				'getSavedNavigationType'
 			]),
+			
+			/**
+			 * @description 根据当前筛选条件更新界面选择状态
+			 */
+			updateFilterSelections() {
+				// 获取当前筛选条件
+				const currentFilters = this.filters;
+				
+				// 更新临时选择变量
+				this.tempSelectedSchool = currentFilters.school || '';
+				this.tempSelectedMajor = currentFilters.major || '';
+				
+				// 更新下拉框索引
+				if (this.tempSelectedSchool) {
+					const schoolIndex = this.schoolList.findIndex(item => 
+						item.choiceItemContent === this.tempSelectedSchool
+					);
+					this.schoolIndex = schoolIndex >= 0 ? schoolIndex : -1;
+				} else {
+					this.schoolIndex = -1;
+				}
+				
+				if (this.tempSelectedMajor) {
+					const majorIndex = this.majorList.findIndex(item => 
+						item.choiceItemContent === this.tempSelectedMajor
+					);
+					this.majorIndex = majorIndex >= 0 ? majorIndex : -1;
+				} else {
+					this.majorIndex = -1;
+				}
+			},
 			
 			// 获取老师列表
 			async getTeachersList() {
@@ -237,6 +297,9 @@
 				// 选择老师，保存到store
 				this.selectTeacher(teacherId);
 				
+				// 设置导航类型为聊天
+				this.navigateToChat();
+				
 				// 显示加载状态
 				uni.showLoading({
 					title: '正在连接...'
@@ -254,6 +317,9 @@
 			viewTeacherDetail(teacherId) {
 				// 选择老师，保存到store
 				this.selectTeacher(teacherId);
+				
+				// 设置导航类型为老师详情
+				this.navigateToTeacherDetail();
 				
 				// 跳转到老师详情页
 				Navigator.toTeacher(teacherId);
