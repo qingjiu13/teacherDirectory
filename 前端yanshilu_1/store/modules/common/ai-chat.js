@@ -143,7 +143,9 @@ const actions = {
       const response = await services.aiChat.sendMessage(requestParams);
       
       if (!response.success) {
-        throw response.error || { message: response.message || '发送消息失败' };
+        // 使用后端返回的错误信息
+        const errorMsg = response.error?.message || response.message || '发送消息失败';
+        throw new Error(errorMsg);
       }
       
       // 保存会话ID（如果是新会话）
@@ -164,19 +166,29 @@ const actions = {
       return response.data;
     } catch (error) {
       console.error('发送聊天消息失败:', error);
-      commit(SET_ERROR, error);
+      
+      // 保存错误信息
+      commit(SET_ERROR, {
+        message: error.message || '系统错误',
+        timestamp: new Date().toISOString(),
+        details: error
+      });
       
       // 添加错误消息
       const errorMessage = {
         id: `error-${Date.now()}`,
-        content: error.message || '系统错误',
+        content: error.message || '系统错误，请稍后再试',
         role: 'assistant',
         isError: true,
         timestamp: new Date().toISOString()
       };
       commit(ADD_MESSAGE, errorMessage);
       
-      return { success: false, error, message: error.message };
+      return { 
+        success: false, 
+        error: error, 
+        message: error.message || '系统错误' 
+      };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -274,15 +286,25 @@ const actions = {
       
       if (result.success) {
         commit(SET_TEST_RESULT, result.data);
+        return result;
       } else {
-        commit(SET_ERROR, result.error || { message: result.message || '测试AIQA失败' });
+        // 使用后端返回的错误信息
+        const errorMsg = result.error?.message || result.message || '测试AIQA失败';
+        commit(SET_ERROR, {
+          message: errorMsg,
+          timestamp: new Date().toISOString(),
+          details: result.error || result
+        });
+        return { success: false, message: errorMsg, error: result.error };
       }
-      
-      return result;
     } catch (error) {
       console.error('测试AIQA失败:', error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message };
+      commit(SET_ERROR, {
+        message: error.message || '系统错误',
+        timestamp: new Date().toISOString(),
+        details: error
+      });
+      return { success: false, error, message: error.message || '测试AIQA时发生错误' };
     } finally {
       commit(SET_LOADING, false);
       commit(SET_TESTING, false);

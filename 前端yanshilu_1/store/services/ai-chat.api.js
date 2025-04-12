@@ -34,9 +34,19 @@ const request = (options) => {
       method: options.method || 'GET',
       header: options.headers || {},
       success: (res) => {
-        resolve(res);
+        // 检查响应状态码，即使接收到响应，也可能是错误状态码
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(res);
+        } else {
+          // 服务器返回了错误状态码
+          reject({
+            statusCode: res.statusCode,
+            data: res.data
+          });
+        }
       },
       fail: (err) => {
+        // 网络错误或请求失败
         reject(err);
       }
     });
@@ -51,12 +61,28 @@ const request = (options) => {
 const handleError = (error) => {
   let errorMessage = '';
   
-  // 优先使用后端返回的错误消息
-  if (error.data && error.data.message) {
-    errorMessage = error.data.message;
-  } else if (error.data && error.data.error && error.data.error.message) {
-    errorMessage = error.data.error.message;
-  } else if (error.statusCode) {
+  // 扩展后端错误处理逻辑
+  if (error.data) {
+    // 直接尝试获取后端返回的错误信息，支持多种常见格式
+    if (error.data.message) {
+      errorMessage = error.data.message;
+    } else if (error.data.error && error.data.error.message) {
+      errorMessage = error.data.error.message;
+    } else if (error.data.msg) {
+      errorMessage = error.data.msg;
+    } else if (error.data.errMsg) {
+      errorMessage = error.data.errMsg;
+    } else if (typeof error.data === 'string') {
+      // 有些后端可能直接返回错误字符串
+      errorMessage = error.data;
+    } else if (error.errMsg) {
+      // uni-app请求错误信息
+      errorMessage = error.errMsg;
+    }
+  }
+  
+  // 如果无法从响应中提取错误信息，则根据状态码提供默认错误
+  if (!errorMessage && error.statusCode) {
     // 如果没有具体错误消息，根据HTTP状态码判断
     if (error.statusCode === 401 || error.statusCode === 403) {
       errorMessage = ERROR_MESSAGES.AUTH_ERROR;
@@ -67,12 +93,22 @@ const handleError = (error) => {
     } else if (error.statusCode >= 500) {
       errorMessage = ERROR_MESSAGES.SERVER_ERROR;
     } else {
-      errorMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
+      errorMessage = `服务器返回错误: ${error.statusCode}`;
     }
-  } else {
+  } else if (!errorMessage) {
     // 网络错误或其他错误
-    errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
+    if (error.errno) {
+      // 某些情况下会有errno
+      errorMessage = `网络错误 (${error.errno})`;
+    } else {
+      errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
+    }
   }
+  
+  console.log('处理到的错误信息:', {
+    message: errorMessage,
+    originalError: JSON.stringify(error).substring(0, 200) // 限制长度以便于日志查看
+  });
   
   return {
     message: errorMessage,
@@ -282,9 +318,25 @@ export const testAIQA = async (question, contextInfo = {}) => {
         context: contextInfo
       }
     });
+    
+    // 防止后端返回的数据没有预期的格式
+    if (!response.data) {
+      console.warn('testAIQA: 后端返回了空数据');
+      return { 
+        success: true, 
+        data: '抱歉，服务器返回了空数据。请稍后再试。' 
+      };
+    }
+    
     return { success: true, data: response.data };
   } catch (error) {
     console.error('测试AIQA失败:', error);
-    return { success: false, error: handleError(error) };
+    // 使用更丰富的错误处理
+    const formattedError = handleError(error);
+    return { 
+      success: false, 
+      error: formattedError,
+      message: formattedError.message || '请求失败，请稍后再试'
+    };
   }
 }; 

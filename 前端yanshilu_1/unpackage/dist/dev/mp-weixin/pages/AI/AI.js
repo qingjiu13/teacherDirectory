@@ -339,12 +339,26 @@ const _sfc_main = common_vendor.defineComponent({
             this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
             this.saveChatHistory();
           } else {
-            this.messages[aiMessageIndex].content = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "获取回复失败";
+            const errorMessage = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "获取回复失败，请稍后重试";
+            common_vendor.index.__f__("error", "at pages/AI/AI.uvue:479", "AI回复失败:", errorMessage, response.error);
+            this.messages[aiMessageIndex].content = `抱歉，无法获取回复：${errorMessage}`;
             this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
+            if (errorMessage.includes("网络") || errorMessage.includes("连接")) {
+              this.showToast("网络连接异常，请检查您的网络设置", "none", 3e3);
+            } else if (errorMessage.includes("超时")) {
+              this.showToast("服务器响应超时，请稍后再试", "none", 3e3);
+            } else if (errorMessage.includes("服务器")) {
+              this.showToast("服务器暂时不可用，请稍后再试", "none", 3e3);
+            } else {
+              this.showToast(errorMessage, "none", 3e3);
+            }
           }
         } catch (error) {
-          this.messages[aiMessageIndex].content = "与服务器通信异常";
+          const errorMsg = error.message || "系统异常，请稍后再试";
+          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:499", "消息处理异常:", errorMsg, error);
+          this.messages[aiMessageIndex].content = `抱歉，发生了错误：${errorMsg}`;
           this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
+          this.showToast(errorMsg, "none", 3e3);
         } finally {
           this.isProcessing = false;
           this.messages[aiMessageIndex].streaming = false;
@@ -443,6 +457,7 @@ const _sfc_main = common_vendor.defineComponent({
       try {
         this.toggleLoading("正在加载对话内容...");
         store_index.store.dispatch("aiChat/loadChat", chatId).then((response = null) => {
+          var _a, _b;
           if (response.success) {
             this.currentChatId = chatId;
             this.messages = response.data.messages || [];
@@ -451,21 +466,40 @@ const _sfc_main = common_vendor.defineComponent({
               this.scrollToBottom();
             });
           } else {
-            this.showToast("加载对话内容失败");
+            const errorMsg = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "加载对话失败";
+            common_vendor.index.__f__("error", "at pages/AI/AI.uvue:640", "加载对话失败:", errorMsg, response.error);
+            this.showToast(`加载失败: ${errorMsg}`, "none", 3e3);
+            if (((_b = response.error) === null || _b === void 0 ? void 0 : _b.statusCode) >= 500) {
+              this.startNewChat();
+              this.showToast("服务器暂时不可用，已为您创建新对话", "none", 3e3);
+            }
           }
+        }).catch((error = null) => {
+          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:651", "加载对话异常:", error);
+          this.showToast("加载对话时发生错误", "none", 3e3);
+          this.startNewChat();
         }).finally(() => {
           this.toggleLoading(false);
         });
       } catch (error) {
-        this.showToast("加载对话内容失败");
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:658", "加载对话内容失败:", error);
+        this.showToast("加载对话内容失败: " + (error.message || "未知错误"));
         this.toggleLoading(false);
+        this.startNewChat();
       }
     },
     /**
      * @description 从Vuex加载历史会话摘要
      */
     loadChatHistoryFromStorage() {
-      store_index.store.dispatch("aiChat/getHistoryChats");
+      store_index.store.dispatch("aiChat/getHistoryChats").then((response = null) => {
+        if (!response.success) {
+          common_vendor.index.__f__("error", "at pages/AI/AI.uvue:672", "加载历史会话摘要失败:", response.error || response.message);
+          this.showToast("加载历史对话记录失败，将使用本地缓存", "none", 2e3);
+        }
+      }).catch((error = null) => {
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:676", "加载历史会话异常:", error);
+      });
     },
     /**
      * @description 保存聊天历史摘要到Vuex
@@ -492,29 +526,46 @@ const _sfc_main = common_vendor.defineComponent({
      */
     deleteChatHistory(chatId = null) {
       if (!chatId) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:667", "删除历史记录失败: 无效的chatId");
+        common_vendor.index.__f__("error", "at pages/AI/AI.uvue:709", "删除历史记录失败: 无效的chatId");
         this.showToast("删除失败: 无效的记录ID");
         return null;
       }
-      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:672", "请求删除历史记录:", chatId);
+      common_vendor.index.__f__("log", "at pages/AI/AI.uvue:714", "请求删除历史记录:", chatId);
       common_vendor.index.showModal({
         title: "确认删除",
         content: "确定要删除这条对话记录吗？",
         success: (res) => {
           if (res.confirm) {
+            common_vendor.index.showLoading({
+              title: "正在删除...",
+              mask: true
+            });
             store_index.store.dispatch("aiChat/deleteChat", chatId).then((response = null) => {
+              var _a;
+              common_vendor.index.hideLoading();
               if (response.success) {
                 if (this.currentChatId === chatId) {
                   this.startNewChat();
                 }
                 this.showToast("删除成功");
               } else {
-                common_vendor.index.__f__("error", "at pages/AI/AI.uvue:689", "删除失败:", response.message || "未知错误");
-                this.showToast(response.message || "删除失败");
+                common_vendor.index.__f__("error", "at pages/AI/AI.uvue:740", "删除失败:", response.message || "未知错误", response.error);
+                const errorMsg = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "删除失败";
+                if (errorMsg.includes("网络") || errorMsg.includes("连接")) {
+                  this.showToast("网络连接异常，请稍后再试删除", "none", 3e3);
+                } else if (errorMsg.includes("服务器")) {
+                  this.showToast("服务器暂时不可用，已在本地删除记录", "none", 3e3);
+                  if (this.currentChatId === chatId) {
+                    this.startNewChat();
+                  }
+                } else {
+                  this.showToast(errorMsg, "none", 3e3);
+                }
               }
             }).catch((error = null) => {
-              common_vendor.index.__f__("error", "at pages/AI/AI.uvue:693", "删除过程发生异常:", error);
-              this.showToast("删除失败: " + (error.message || "系统错误"));
+              common_vendor.index.hideLoading();
+              common_vendor.index.__f__("error", "at pages/AI/AI.uvue:762", "删除过程发生异常:", error);
+              this.showToast("删除失败: " + (error.message || "系统错误"), "none", 3e3);
             });
           }
         }

@@ -29,9 +29,9 @@ const _sfc_main = common_vendor.defineComponent({
       this.isLoading = true;
       try {
         yield store_index.loadTeacherData();
-        common_vendor.index.__f__("log", "at pages/teacher/teacher.uvue:118", "教师模块数据已加载");
+        common_vendor.index.__f__("log", "at pages/teacher/teacher.uvue:122", "教师模块数据已加载");
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:120", "加载教师模块数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:124", "加载教师模块数据失败:", error);
       }
       this.loadTeacherData();
     });
@@ -63,7 +63,7 @@ const _sfc_main = common_vendor.defineComponent({
             throw new Error("获取老师数据失败");
           }
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:159", "加载老师数据失败:", error);
+          common_vendor.index.__f__("error", "at pages/teacher/teacher.uvue:163", "加载老师数据失败:", error);
           common_vendor.index.showToast({
             title: "加载失败，请重试",
             icon: "none"

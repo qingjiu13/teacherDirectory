@@ -44,13 +44,11 @@ const store = common_vendor.createStore({
 });
 const initializeApp = async () => {
   try {
-    const userInfo = await store.dispatch("auth/checkAuthStatus");
     return {
-      success: true,
-      userInfo
+      success: true
     };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:75", "应用初始化失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:74", "应用初始化失败:", error);
     return { success: false, error };
   }
 };
@@ -59,7 +57,7 @@ const loadTeacherData = async () => {
     await store.dispatch("teacher/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:90", "加载教师数据失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:89", "加载教师数据失败:", error);
     return { success: false, error };
   }
 };
@@ -68,7 +66,7 @@ const loadStudentData = async () => {
     await store.dispatch("student/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:105", "加载学生数据失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:104", "加载学生数据失败:", error);
     return { success: false, error };
   }
 };

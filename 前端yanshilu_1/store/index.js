@@ -60,16 +60,15 @@ export const services = apiServices;
 
 /**
  * @description 应用初始化函数 - 轻量级版本
- * 只检查登录状态，不主动加载其他数据
+ * 基础初始化，不涉及认证状态检查
  * @returns {Promise<Object>} 初始化结果
  */
 export const initializeApp = async () => {
   try {
-    // 只检查用户登录状态，不立即加载其他模块数据
-    const userInfo = await store.dispatch('auth/checkAuthStatus');
+    // 基础初始化逻辑，无需检查认证状态
+    
     return { 
-      success: true,
-      userInfo
+      success: true
     };
   } catch (error) {
     console.error('应用初始化失败:', error);

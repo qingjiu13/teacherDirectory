@@ -55,12 +55,16 @@
         <view class="services-container" v-if="activeTab === 'services'">
           <block v-if="services.length > 0">
             <view class="service-card" v-for="(service, index) in services" :key="index">
-              <view class="service-image-container">
-                <image class="service-image" :src="service.image" mode="aspectFill"></image>
+              <view class="service-card-header">
+                <view class="service-image-container">
+                  <image class="service-image" :src="service.image" mode="aspectFill"></image>
+                </view>
+                <view class="service-title-price">
+                  <text class="service-title">{{service.title}}</text>
+                  <text class="service-price">¥{{service.price}}</text>
+                </view>
               </view>
-              <view class="service-info">
-                <text class="service-title">{{service.title}}</text>
-                <text class="service-price">¥{{service.price}}</text>
+              <view class="service-description-container">
                 <text class="service-description">{{service.description}}</text>
               </view>
             </view>
@@ -265,7 +269,7 @@
     font-size: 12px;
     padding: 2px 8px;
     border-radius: 10px;
-    margin-left: 110px;
+    margin-left: 120px;
     margin-top: -20px;
     height: 22px;
   }
@@ -384,6 +388,7 @@
   /* 服务部分样式 */
   .service-card {
     display: flex;
+    flex-direction: column;
     background-color: #ffffff;
     border-radius: 16px;
     padding: 15px;
@@ -391,10 +396,17 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
   
+  .service-card-header {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+  }
+  
   .service-image-container {
     width: 70px;
     height: 70px;
     margin-right: 15px;
+    flex-shrink: 0;
   }
   
   .service-image {
@@ -403,24 +415,28 @@
     border-radius: 8px;
   }
   
-  .service-info {
+  .service-title-price {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center;
   }
   
   .service-title {
     font-size: 16px;
     font-weight: bold;
     color: var(--text-primary);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
   }
   
   .service-price {
     font-size: 16px;
     color: #FF6347;
     font-weight: 500;
-    margin-bottom: 5px;
+  }
+  
+  .service-description-container {
+    width: 100%;
   }
   
   .service-description {

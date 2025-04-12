@@ -108,6 +108,7 @@ const actions = {
    * @returns {Promise<Object>} 发送结果
    */
   async sendChatMessage({ commit, state: state2 }, { message, context = {} }) {
+    var _a;
     try {
       commit(SET_LOADING, true);
       commit(SET_ERROR, null);
@@ -125,7 +126,8 @@ const actions = {
       };
       const response = await store_services_index.services.aiChat.sendMessage(requestParams);
       if (!response.success) {
-        throw response.error || { message: response.message || "发送消息失败" };
+        const errorMsg = ((_a = response.error) == null ? void 0 : _a.message) || response.message || "发送消息失败";
+        throw new Error(errorMsg);
       }
       if (response.data.conversationId && !state2.conversationId) {
         commit(SET_CONVERSATION_ID, response.data.conversationId);
@@ -140,17 +142,25 @@ const actions = {
       commit(SET_LAST_RESPONSE, response.data);
       return response.data;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:166", "发送聊天消息失败:", error);
-      commit(SET_ERROR, error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:168", "发送聊天消息失败:", error);
+      commit(SET_ERROR, {
+        message: error.message || "系统错误",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        details: error
+      });
       const errorMessage = {
         id: `error-${Date.now()}`,
-        content: error.message || "系统错误",
+        content: error.message || "系统错误，请稍后再试",
         role: "assistant",
         isError: true,
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       };
       commit(ADD_MESSAGE, errorMessage);
-      return { success: false, error, message: error.message };
+      return {
+        success: false,
+        error,
+        message: error.message || "系统错误"
+      };
     } finally {
       commit(SET_LOADING, false);
     }
@@ -174,7 +184,7 @@ const actions = {
       }
       return response;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:207", "获取历史消息失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:219", "获取历史消息失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -199,7 +209,7 @@ const actions = {
       }
       return response;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:236", "创建会话失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:248", "创建会话失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
@@ -223,6 +233,7 @@ const actions = {
    * @returns {Promise<Object>} 测试结果
    */
   async testAIQA({ commit, dispatch }, { question, contextInfo = {}, chatId = null }) {
+    var _a;
     try {
       commit(SET_LOADING, true);
       commit(SET_TESTING, true);
@@ -233,14 +244,24 @@ const actions = {
       const result = await store_services_index.services.aiChat.testAIQA(question, contextInfo);
       if (result.success) {
         commit(SET_TEST_RESULT, result.data);
+        return result;
       } else {
-        commit(SET_ERROR, result.error || { message: result.message || "测试AIQA失败" });
+        const errorMsg = ((_a = result.error) == null ? void 0 : _a.message) || result.message || "测试AIQA失败";
+        commit(SET_ERROR, {
+          message: errorMsg,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          details: result.error || result
+        });
+        return { success: false, message: errorMsg, error: result.error };
       }
-      return result;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:283", "测试AIQA失败:", error);
-      commit(SET_ERROR, error);
-      return { success: false, error, message: error.message };
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:301", "测试AIQA失败:", error);
+      commit(SET_ERROR, {
+        message: error.message || "系统错误",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        details: error
+      });
+      return { success: false, error, message: error.message || "测试AIQA时发生错误" };
     } finally {
       commit(SET_LOADING, false);
       commit(SET_TESTING, false);
@@ -278,7 +299,7 @@ const actions = {
         return { success: true, data: summaries };
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:333", "获取历史会话失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:355", "获取历史会话失败:", error);
       return { success: false, error, message: error.message };
     } finally {
       commit(SET_LOADING, false);
@@ -302,7 +323,7 @@ const actions = {
           updatedAt: /* @__PURE__ */ new Date()
         });
       } catch (apiError) {
-        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:359", "保存对话到后端失败，将使用本地存储", apiError);
+        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:381", "保存对话到后端失败，将使用本地存储", apiError);
       }
       const localSummaries = common_vendor.index.getStorageSync("chat_summaries") || "[]";
       let summaries = JSON.parse(localSummaries);
@@ -336,7 +357,7 @@ const actions = {
       commit(SET_HISTORY_SUMMARIES, summaries);
       return { success: true };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:407", "保存聊天摘要失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:429", "保存聊天摘要失败:", error);
       return { success: false, error, message: error.message };
     }
   },
@@ -349,23 +370,23 @@ const actions = {
   async deleteChat({ commit, state: state2 }, chatId) {
     try {
       if (!chatId) {
-        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:421", "删除聊天记录失败: 缺少chatId参数");
+        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:443", "删除聊天记录失败: 缺少chatId参数");
         return { success: false, message: "删除失败：没有指定要删除的聊天ID" };
       }
-      common_vendor.index.__f__("log", "at store/modules/common/ai-chat.js:425", "正在删除聊天记录:", chatId);
+      common_vendor.index.__f__("log", "at store/modules/common/ai-chat.js:447", "正在删除聊天记录:", chatId);
       try {
         await store_services_index.services.aiChat.deleteConversation(chatId);
       } catch (apiError) {
-        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:432", "从后端删除对话失败，将仅删除本地记录", apiError);
+        common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:454", "从后端删除对话失败，将仅删除本地记录", apiError);
       }
       const localSummaries = common_vendor.index.getStorageSync("chat_summaries") || "[]";
       let summaries = JSON.parse(localSummaries);
       const originalLength = summaries.length;
       summaries = summaries.filter((chat) => chat.id !== chatId);
       if (summaries.length === originalLength) {
-        common_vendor.index.__f__("warn", "at store/modules/common/ai-chat.js:445", "未找到要删除的记录ID:", chatId);
+        common_vendor.index.__f__("warn", "at store/modules/common/ai-chat.js:467", "未找到要删除的记录ID:", chatId);
       } else {
-        common_vendor.index.__f__("log", "at store/modules/common/ai-chat.js:447", `成功从${originalLength}条记录中删除1条记录，剩余${summaries.length}条`);
+        common_vendor.index.__f__("log", "at store/modules/common/ai-chat.js:469", `成功从${originalLength}条记录中删除1条记录，剩余${summaries.length}条`);
       }
       common_vendor.index.setStorageSync("chat_summaries", JSON.stringify(summaries));
       commit(REMOVE_HISTORY_CHAT, chatId);
@@ -375,7 +396,7 @@ const actions = {
       }
       return { success: true };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:464", "删除聊天记录失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:486", "删除聊天记录失败:", error);
       return { success: false, error, message: error.message };
     }
   },
@@ -414,7 +435,7 @@ const actions = {
         return { success: true, data: chat };
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:516", "加载会话记录失败:", error);
+      common_vendor.index.__f__("error", "at store/modules/common/ai-chat.js:538", "加载会话记录失败:", error);
       commit(SET_ERROR, error);
       return { success: false, error, message: error.message };
     } finally {
