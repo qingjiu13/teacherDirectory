@@ -13,107 +13,95 @@ const _sfc_main = common_vendor.defineComponent({
       userRole: "student",
       userName: "",
       userData: new UTSJSONObject({}),
-      isLoggedIn: true,
+      isLoggedIn: false,
       MineRoutes: router_Router.MineRoutes,
       isLoading: false
-      // 加载状态
     };
   },
+  computed: Object.assign({}, common_vendor.mapGetters("user", [
+    "teacherCertTag",
+    "teacherOtherTags",
+    "studentTags"
+  ])),
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
-      this.isLoading = true;
-      try {
-        const storedUserRole = common_vendor.index.getStorageSync("userRole") || "student";
-        this.userRole = storedUserRole;
-        if (this.userRole === "teacher") {
-          yield store_index.loadTeacherData();
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:124", "教师数据已加载");
-        } else {
-          yield store_index.loadStudentData();
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:128", "学生数据已加载");
-        }
-        this.loadMockData();
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:133", "当前用户角色:", this.userRole);
-      } catch (error) {
-        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:135", "加载用户数据失败:", error);
-      } finally {
-        this.isLoading = false;
-      }
+      yield this.loadUserData();
     });
   },
   onShow() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
-      const token = common_vendor.index.getStorageSync("token");
-      const isCurrentlyLoggedIn = !!token;
-      this.isLoggedIn = isCurrentlyLoggedIn;
-      if (!this.isLoggedIn) {
-        this.userData = new UTSJSONObject({});
-        this.userName = "";
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:151", "onShow: 用户未登录，清除用户数据显示");
-        return Promise.resolve(null);
-      }
       const storedUserRole = common_vendor.index.getStorageSync("userRole");
-      const useMockData = common_vendor.index.getStorageSync("use_mock_api") === "true";
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:159", "onShow: 模拟数据状态:", useMockData ? "启用" : "禁用");
       if (storedUserRole && storedUserRole !== this.userRole) {
-        this.isLoading = true;
-        try {
-          this.userRole = storedUserRole;
-          if (this.userRole === "teacher") {
-            yield store_index.loadTeacherData();
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:170", "教师数据已重新加载");
-          } else {
-            yield store_index.loadStudentData();
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:173", "学生数据已重新加载");
-          }
-          this.loadMockData();
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:178", "onShow 更新用户角色:", this.userRole);
-        } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:180", "角色切换时加载数据失败:", error);
-        } finally {
-          this.isLoading = false;
-        }
+        this.userRole = storedUserRole;
+        yield this.loadUserData();
       } else {
-        if (useMockData) {
-          this.loadMockData();
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:189", "onShow: 重新加载模拟数据");
+        const userProfile = this.$store.getters["user/profile"];
+        if (!userProfile || !userProfile.nickname) {
+          yield this.loadUserData();
         }
       }
     });
   },
   methods: {
     /**
-     * @description 加载模拟数据
+     * @description 加载用户数据
      */
-    loadMockData() {
-      const storageSetting = common_vendor.index.getStorageSync("use_mock_api");
-      const useMockData = storageSetting === "true" || true;
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:202", "加载用户数据，模拟数据状态:", useMockData ? "启用" : "禁用", "Storage值:", storageSetting);
-      if (useMockData && storageSetting !== "true") {
-        common_vendor.index.setStorageSync("use_mock_api", "true");
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:207", "已更新storage中的模拟数据设置为: true");
-      }
-      const token = common_vendor.index.getStorageSync("token");
-      this.isLoggedIn = !!token;
-      if (!this.isLoggedIn) {
-        this.userData = new UTSJSONObject({});
-        this.userName = "";
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:218", "用户未登录，不加载用户资料");
-        return null;
-      }
-      this.isLoading = true;
+    loadUserData() {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        this.isLoading = true;
+        try {
+          const useMockData = common_vendor.index.getStorageSync("use_mock_api") === "true" || true;
+          if (useMockData && !common_vendor.index.getStorageSync("token")) {
+            common_vendor.index.setStorageSync("token", "mock_token_for_testing");
+          }
+          const storedUserRole = common_vendor.index.getStorageSync("userRole") || "student";
+          this.userRole = storedUserRole;
+          if (this.userRole === "teacher") {
+            yield store_index.loadTeacherData();
+          } else {
+            yield store_index.loadStudentData();
+          }
+          yield this.syncUserDataFromVuex();
+        } catch (error) {
+          this.loadUserDataFromApi();
+        } finally {
+          this.isLoading = false;
+        }
+      });
+    },
+    /**
+     * @description 从Vuex同步用户数据
+     */
+    syncUserDataFromVuex() {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        try {
+          yield this.$store.dispatch("user/fetchProfile");
+          const userProfile = this.$store.getters["user/profile"];
+          if (userProfile && userProfile.nickname) {
+            this.userData = new UTSJSONObject(Object.assign({}, userProfile));
+            this.userName = userProfile.nickname || "用户";
+            common_vendor.index.setStorageSync("userRole", this.userRole);
+            common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userData));
+          } else {
+            this.loadUserDataFromApi();
+          }
+        } catch (error) {
+          this.loadUserDataFromApi();
+        }
+      });
+    },
+    /**
+     * @description 从API直接获取用户资料
+     */
+    loadUserDataFromApi() {
       store_services_index.services.user.getUserProfile(this.userRole).then((response = null) => {
         if (response && response.data) {
           this.userData = response.data;
           this.userName = this.userData.nickname || "用户";
           common_vendor.index.setStorageSync("userRole", this.userRole);
           common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userData));
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:237", "加载用户资料成功:", this.userData);
-        } else {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:239", "获取用户资料失败: 响应数据无效");
         }
       }).catch((error = null) => {
-        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:243", "获取用户资料失败:", error);
       }).finally(() => {
         this.isLoading = false;
       });
@@ -155,31 +143,49 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     b: common_vendor.o((...args) => $options.handleAvatarClick && $options.handleAvatarClick(...args)),
     c: common_vendor.t($data.userData.nickname || $data.userName || "登录"),
     d: common_vendor.o((...args) => $options.handleLoginClick && $options.handleLoginClick(...args)),
-    e: $data.userData.tag
-  }, $data.userData.tag ? {
-    f: common_vendor.t($data.userData.tag)
+    e: $data.userRole === "teacher" && _ctx.teacherCertTag
+  }, $data.userRole === "teacher" && _ctx.teacherCertTag ? {
+    f: common_vendor.t(_ctx.teacherCertTag)
   } : {}, {
     g: common_vendor.o((...args) => $options.handleEditProfile && $options.handleEditProfile(...args)),
     h: $data.userRole === "teacher"
   }, $data.userRole === "teacher" ? {
-    i: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SERVICE))
+    i: common_vendor.f(_ctx.teacherOtherTags, (tag, index, i0) => {
+      return {
+        a: common_vendor.t(tag),
+        b: "teacher-tag-" + index
+      };
+    })
   } : {}, {
-    j: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
-    k: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
+    j: $data.userRole === "student"
+  }, $data.userRole === "student" ? {
+    k: common_vendor.f(_ctx.studentTags, (tag, index, i0) => {
+      return {
+        a: common_vendor.t(tag),
+        b: "student-tag-" + index
+      };
+    })
+  } : {}, {
     l: $data.userRole === "teacher"
   }, $data.userRole === "teacher" ? {
-    m: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.QUALIFICATION))
+    m: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SERVICE))
   } : {}, {
-    n: $data.userRole === "teacher"
+    n: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
+    o: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
+    p: $data.userRole === "teacher"
   }, $data.userRole === "teacher" ? {
-    o: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.WALLET))
+    q: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.QUALIFICATION))
   } : {}, {
-    p: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
-    q: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS)),
-    r: common_vendor.p({
+    r: $data.userRole === "teacher"
+  }, $data.userRole === "teacher" ? {
+    s: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.WALLET))
+  } : {}, {
+    t: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
+    v: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS)),
+    w: common_vendor.p({
       pageName: "mine"
     }),
-    s: common_vendor.sei(_ctx.virtualHostId, "view")
+    x: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -302,7 +302,6 @@ const mockStudentData = {
   id: "student456",
   nickname: "小明同学",
   avatarUrl: "/static/image/tab-bar/default_avatar.png",
-  tag: "学生",
   role: "student",
   school: "清华大学",
   major: "机械工程",
@@ -337,7 +336,6 @@ const mockTeacherData = {
   id: "teacher123",
   nickname: "王教授",
   avatarUrl: "/static/image/tab-bar/default_avatar.png",
-  tag: "已认证",
   role: "teacher",
   school: "北京大学",
   major: "计算机科学",
@@ -347,7 +345,7 @@ const mockTeacherData = {
   wechat: "teacher123",
   hasPassword: true,
   introduction: "资深教育工作者，专注于考研辅导多年。熟悉各高校计算机专业考研要求，擅长数据结构与算法教学。",
-  tags: ["认证学校", "经验丰富", "答疑及时", "通俗易懂"],
+  tags: ["已认证", "经验丰富", "答疑及时", "通俗易懂"],
   // 教师特有数据
   title: "教授",
   education: "博士",
@@ -408,13 +406,17 @@ const getMockTeacherDetailWithServices = (teacherId) => {
   };
 };
 const getMockUserProfile = (role) => {
-  common_vendor.index.__f__("log", "at store/services/mock-data.js:455", "【模拟数据】获取用户资料:", role);
+  common_vendor.index.__f__("log", "at store/services/mock-data.js:453", "【模拟数据】获取用户资料:", role);
   let userData;
   if (role === "teacher") {
+    let teacherTags = [...mockTeacherData.tags];
+    if (teacherTags.length === 0 || !(teacherTags[0].includes("认证") || teacherTags[0] === "已认证")) {
+      teacherTags.unshift("已认证");
+    }
     userData = {
       avatar: mockTeacherData.avatarUrl,
       nickname: mockTeacherData.nickname,
-      tags: mockTeacherData.tags || [],
+      tags: teacherTags,
       introduction: mockTeacherData.introduction,
       gender: mockTeacherData.gender,
       phone: mockTeacherData.phone,
@@ -423,8 +425,8 @@ const getMockUserProfile = (role) => {
       school: mockTeacherData.school,
       major: mockTeacherData.major,
       title: mockTeacherData.title,
-      tag: mockTeacherData.tag
-      // 确保有tag字段
+      tag: teacherTags[0]
+      // 确保tag字段为第一个标签（认证标签）
     };
   } else {
     userData = {
@@ -439,11 +441,11 @@ const getMockUserProfile = (role) => {
       school: mockStudentData.school,
       major: mockStudentData.major,
       grade: mockStudentData.grade,
-      tag: mockStudentData.tag
-      // 确保有tag字段
+      tag: mockStudentData.tags && mockStudentData.tags.length > 0 ? mockStudentData.tags[0] : "学生"
+      // 学生取第一个标签或默认为"学生"
     };
   }
-  common_vendor.index.__f__("log", "at store/services/mock-data.js:490", "【模拟数据】返回用户资料:", userData);
+  common_vendor.index.__f__("log", "at store/services/mock-data.js:498", "【模拟数据】返回用户资料:", userData);
   return userData;
 };
 const mockData = {

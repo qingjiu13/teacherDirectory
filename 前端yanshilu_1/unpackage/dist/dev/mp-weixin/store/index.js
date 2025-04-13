@@ -51,19 +51,21 @@ const initializeApp = async () => {
 };
 const loadTeacherData = async () => {
   try {
+    await store.dispatch("user/fetchProfile");
     await store.dispatch("teacher/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:86", "加载教师数据失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:89", "加载教师数据失败:", error);
     return { success: false, error };
   }
 };
 const loadStudentData = async () => {
   try {
+    await store.dispatch("user/fetchProfile");
     await store.dispatch("student/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:101", "加载学生数据失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:107", "加载学生数据失败:", error);
     return { success: false, error };
   }
 };

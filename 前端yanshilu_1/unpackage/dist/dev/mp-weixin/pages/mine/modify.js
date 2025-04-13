@@ -8,6 +8,8 @@ const _sfc_main = common_vendor.defineComponent({
         avatar: "",
         nickname: "",
         tags: [],
+        certTag: "",
+        otherTags: [],
         introduction: "",
         gender: "",
         phone: "",
@@ -19,13 +21,42 @@ const _sfc_main = common_vendor.defineComponent({
       updating: false
     };
   },
-  computed: Object.assign({}, common_vendor.mapGetters("user", [
+  computed: Object.assign(Object.assign({}, common_vendor.mapGetters("user", [
     "profile",
     "isTeacher",
     "userRole",
     "updateLoading",
-    "updateError"
-  ])),
+    "updateError",
+    "teacherCertTag",
+    "teacherOtherTags",
+    "studentTags"
+  ])), {
+    /**
+     * @description 获取要显示的标签，老师显示otherTags，学生显示全部tags
+     * @returns {Array} 要显示的标签数组
+     */
+    displayTags() {
+      if (this.isTeacher) {
+        return this.userInfo.otherTags || [];
+      } else {
+        return this.userInfo.tags || [];
+      }
+    },
+    /**
+     * @description 获取认证标签
+     * @returns {String} 认证标签
+     */
+    certTag() {
+      return this.userInfo.certTag || "";
+    },
+    /**
+     * @description 获取最大标签数量
+     * @returns {Number} 最大标签数量
+     */
+    maxTagsCount() {
+      return this.isTeacher ? 4 : 5;
+    }
+  }),
   watch: {
     updateLoading(val = null) {
       this.updating = val;
@@ -45,21 +76,36 @@ const _sfc_main = common_vendor.defineComponent({
       return common_vendor.__awaiter(this, void 0, void 0, function* () {
         try {
           const currentRole = common_vendor.index.getStorageSync("userRole") || "student";
-          common_vendor.index.__f__("log", "at pages/mine/modify.uvue:183", "当前角色:", currentRole);
+          common_vendor.index.__f__("log", "at pages/mine/modify.uvue:227", "当前角色:", currentRole);
           yield this.fetchProfile();
-          this.userInfo = {
-            avatar: this.profile.avatar || "",
-            nickname: this.profile.nickname || "",
-            tags: [...this.profile.tags || []],
-            introduction: this.profile.introduction || "",
-            gender: this.profile.gender || "",
-            phone: this.profile.phone || "",
-            wechat: this.profile.wechat || "",
-            password: this.profile.password || "未设置"
-          };
-          common_vendor.index.__f__("log", "at pages/mine/modify.uvue:200", "获取的用户信息:", this.userInfo);
+          if (this.isTeacher) {
+            this.userInfo = {
+              avatar: this.profile.avatar || "",
+              nickname: this.profile.nickname || "",
+              tags: [...this.profile.tags || []],
+              certTag: this.teacherCertTag || "",
+              otherTags: [...this.teacherOtherTags || []],
+              introduction: this.profile.introduction || "",
+              gender: this.profile.gender || "",
+              phone: this.profile.phone || "",
+              wechat: this.profile.wechat || "",
+              password: this.profile.password || "未设置"
+            };
+          } else {
+            this.userInfo = {
+              avatar: this.profile.avatar || "",
+              nickname: this.profile.nickname || "",
+              tags: [...this.studentTags || []],
+              introduction: this.profile.introduction || "",
+              gender: this.profile.gender || "",
+              phone: this.profile.phone || "",
+              wechat: this.profile.wechat || "",
+              password: this.profile.password || "未设置"
+            };
+          }
+          common_vendor.index.__f__("log", "at pages/mine/modify.uvue:261", "获取的用户信息:", this.userInfo);
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/modify.uvue:202", "获取用户信息失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/modify.uvue:263", "获取用户信息失败", error);
           common_vendor.index.showToast({
             title: "获取用户信息失败",
             icon: "none"
@@ -93,21 +139,27 @@ const _sfc_main = common_vendor.defineComponent({
     addTag() {
       if (!this.newTag.trim())
         return null;
-      if (this.userInfo.tags.length >= 5) {
+      const maxCount = this.maxTagsCount;
+      const currentTags = this.displayTags;
+      if (currentTags.length >= maxCount) {
         common_vendor.index.showToast({
-          title: "最多添加5个标签",
+          title: `最多添加${maxCount}个标签`,
           icon: "none"
         });
         return null;
       }
-      if (this.userInfo.tags.includes(this.newTag.trim())) {
+      if (currentTags.includes(this.newTag.trim())) {
         common_vendor.index.showToast({
           title: "标签已存在",
           icon: "none"
         });
         return null;
       }
-      this.userInfo.tags.push(this.newTag.trim());
+      if (this.isTeacher) {
+        this.userInfo.otherTags.push(this.newTag.trim());
+      } else {
+        this.userInfo.tags.push(this.newTag.trim());
+      }
       this.newTag = "";
       this.showingTagInput = false;
     },
@@ -116,7 +168,11 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {Number} index - 标签索引
      */
     removeTag(index = null) {
-      this.userInfo.tags.splice(index, 1);
+      if (this.isTeacher) {
+        this.userInfo.otherTags.splice(index, 1);
+      } else {
+        this.userInfo.tags.splice(index, 1);
+      }
     },
     /**
      * @description 跳转到密码设置页面
@@ -148,15 +204,21 @@ const _sfc_main = common_vendor.defineComponent({
         }
         try {
           this.updating = true;
-          yield this.updateProfile(new UTSJSONObject({
+          const profileData = new UTSJSONObject({
             avatar: this.userInfo.avatar,
             nickname: this.userInfo.nickname,
-            tags: this.userInfo.tags,
             introduction: this.userInfo.introduction,
             gender: this.userInfo.gender,
             phone: this.userInfo.phone,
             wechat: this.userInfo.wechat
-          }));
+          });
+          if (this.isTeacher) {
+            profileData.certTag = this.userInfo.certTag;
+            profileData.otherTags = this.userInfo.otherTags;
+          } else {
+            profileData.tags = this.userInfo.tags;
+          }
+          yield this.updateProfile(profileData);
           common_vendor.index.showToast({
             title: "保存成功",
             icon: "success"
@@ -165,7 +227,7 @@ const _sfc_main = common_vendor.defineComponent({
             common_vendor.index.navigateBack();
           }, 1500);
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/modify.uvue:326", "保存失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/modify.uvue:415", "保存失败", error);
           common_vendor.index.showToast({
             title: error.message || "保存失败",
             icon: "none"
@@ -183,39 +245,45 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     b: common_vendor.o((...args) => $options.chooseAvatar && $options.chooseAvatar(...args)),
     c: $data.userInfo.nickname,
     d: common_vendor.o(($event) => $data.userInfo.nickname = $event.detail.value),
-    e: common_vendor.f($data.userInfo.tags, (tag, index, i0) => {
+    e: _ctx.isTeacher && $options.certTag
+  }, _ctx.isTeacher && $options.certTag ? {
+    f: common_vendor.t($options.certTag)
+  } : {}, {
+    g: _ctx.isTeacher
+  }, _ctx.isTeacher ? {} : {}, {
+    h: common_vendor.f($options.displayTags, (tag, index, i0) => {
       return {
         a: common_vendor.t(tag),
         b: common_vendor.o(($event) => $options.removeTag(index), index),
         c: index
       };
     }),
-    f: $data.userInfo.tags.length < 5
-  }, $data.userInfo.tags.length < 5 ? {
-    g: common_vendor.o((...args) => $options.showTagInput && $options.showTagInput(...args))
+    i: $options.displayTags.length < $options.maxTagsCount
+  }, $options.displayTags.length < $options.maxTagsCount ? {
+    j: common_vendor.o((...args) => $options.showTagInput && $options.showTagInput(...args))
   } : {}, {
-    h: $data.showingTagInput
+    k: $data.showingTagInput
   }, $data.showingTagInput ? {
-    i: common_vendor.o((...args) => $options.addTag && $options.addTag(...args)),
-    j: $data.newTag,
-    k: common_vendor.o(($event) => $data.newTag = $event.detail.value)
+    l: common_vendor.o((...args) => $options.addTag && $options.addTag(...args)),
+    m: $data.newTag,
+    n: common_vendor.o(($event) => $data.newTag = $event.detail.value)
   } : {}, {
-    l: $data.userInfo.introduction,
-    m: common_vendor.o(($event) => $data.userInfo.introduction = $event.detail.value),
-    n: common_vendor.t($data.userInfo.introduction.length),
-    o: $data.userInfo.gender === "male" ? 1 : "",
-    p: common_vendor.o(($event) => $data.userInfo.gender = "male"),
-    q: $data.userInfo.gender === "female" ? 1 : "",
-    r: common_vendor.o(($event) => $data.userInfo.gender = "female"),
-    s: $data.userInfo.phone,
-    t: common_vendor.o(($event) => $data.userInfo.phone = $event.detail.value),
-    v: $data.userInfo.wechat,
-    w: common_vendor.o(($event) => $data.userInfo.wechat = $event.detail.value),
-    x: common_vendor.t($data.userInfo.password),
-    y: common_vendor.o((...args) => $options.navigateToPasswordPage && $options.navigateToPasswordPage(...args)),
-    z: common_vendor.o((...args) => $options.saveProfile && $options.saveProfile(...args)),
-    A: $data.updating,
-    B: common_vendor.sei(_ctx.virtualHostId, "view")
+    o: $data.userInfo.introduction,
+    p: common_vendor.o(($event) => $data.userInfo.introduction = $event.detail.value),
+    q: common_vendor.t($data.userInfo.introduction.length),
+    r: $data.userInfo.gender === "male" ? 1 : "",
+    s: common_vendor.o(($event) => $data.userInfo.gender = "male"),
+    t: $data.userInfo.gender === "female" ? 1 : "",
+    v: common_vendor.o(($event) => $data.userInfo.gender = "female"),
+    w: $data.userInfo.phone,
+    x: common_vendor.o(($event) => $data.userInfo.phone = $event.detail.value),
+    y: $data.userInfo.wechat,
+    z: common_vendor.o(($event) => $data.userInfo.wechat = $event.detail.value),
+    A: common_vendor.t($data.userInfo.password),
+    B: common_vendor.o((...args) => $options.navigateToPasswordPage && $options.navigateToPasswordPage(...args)),
+    C: common_vendor.o((...args) => $options.saveProfile && $options.saveProfile(...args)),
+    D: $data.updating,
+    E: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

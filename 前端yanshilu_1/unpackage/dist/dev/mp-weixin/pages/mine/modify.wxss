@@ -88,6 +88,40 @@
 	flex-wrap: wrap;
 	margin-bottom: 20rpx;
 }
+
+/* 认证标签容器样式 */
+.cert-tag-container {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 20rpx;
+}
+.cert-tag-label {
+	font-size: 28rpx;
+	color: #666666;
+	margin-right: 10rpx;
+}
+.cert-tag {
+	background-color: #e3f2fd;
+	border-radius: 30rpx;
+	padding: 10rpx 30rpx;
+	display: flex;
+	align-items: center;
+	border: 1rpx solid #2196F3;
+}
+.cert-tag .tag-text {
+	font-size: 26rpx;
+	color: #2196F3;
+	font-weight: bold;
+}
+
+/* 其他标签标题 */
+.sub-label {
+	font-size: 28rpx;
+	color: #666666;
+	margin-bottom: 15rpx;
+	display: block;
+}
 .tag-item {
 	background-color: #f0f0f0;
 	border-radius: 30rpx;

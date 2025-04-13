@@ -2,12 +2,7 @@
 const common_vendor = require("../../../common/vendor.js");
 const store_services_index = require("../../services/index.js");
 const isUsingMockData = () => {
-  const storageSetting = common_vendor.index.getStorageSync("use_mock_api");
-  if (storageSetting === "true") {
-    common_vendor.index.__f__("log", "at store/modules/common/user.js:18", "用户模块: 本地存储设置使用模拟数据");
-    return true;
-  }
-  return true;
+  return common_vendor.index.getStorageSync("use_mock_api") === "true" || true;
 };
 const state = {
   profile: {
@@ -17,10 +12,14 @@ const state = {
     // 昵称
     tags: [],
     // 标签
+    certTag: "",
+    // 教师认证标签
+    otherTags: [],
+    // 教师其他标签
     introduction: "",
     // 个人介绍
     gender: "",
-    // 性别，可以是 'male'/'female'
+    // 性别
     phone: "",
     // 手机号
     wechat: "",
@@ -29,27 +28,20 @@ const state = {
     // 密码状态
   },
   role: null,
-  // 用户角色: 'teacher' 或 'student'
+  // 用户角色
   loading: false,
   error: null,
   updateLoading: false,
   updateError: null,
   mockMode: isUsingMockData()
-  // 添加模拟模式状态
 };
 const getters = {
   profile: (state2) => state2.profile,
   isProfileLoaded: (state2) => !!state2.profile.nickname,
-  // 通过昵称判断资料是否加载
   loading: (state2) => state2.loading,
   error: (state2) => state2.error,
   updateLoading: (state2) => state2.updateLoading,
   updateError: (state2) => state2.updateError,
-  /**
-   * @description 判断是否使用模拟数据
-   * @param {Object} state - 当前模块状态
-   * @returns {Boolean} 是否使用模拟数据
-   */
   isMockMode: (state2) => state2.mockMode || isUsingMockData(),
   // 基本信息getters
   avatar: (state2) => state2.profile.avatar || "",
@@ -60,35 +52,34 @@ const getters = {
   phone: (state2) => state2.profile.phone || "",
   wechat: (state2) => state2.profile.wechat || "",
   password: (state2) => state2.profile.password || "未设置",
-  /**
-   * @description 判断用户是否为老师
-   * @param {Object} state - 当前模块状态
-   * @param {Object} getters - 当前模块的getters
-   * @param {Object} rootState - 根状态
-   * @returns {Boolean} 是否为老师
-   */
+  // 标签相关getters
+  teacherCertTag: (state2, getters2) => {
+    if (getters2.isTeacher) {
+      return state2.profile.certTag || (state2.profile.tags && state2.profile.tags.length > 0 ? state2.profile.tags[0] : "");
+    }
+    return "";
+  },
+  teacherOtherTags: (state2, getters2) => {
+    if (getters2.isTeacher) {
+      return state2.profile.otherTags && state2.profile.otherTags.length > 0 ? state2.profile.otherTags : state2.profile.tags && state2.profile.tags.length > 1 ? state2.profile.tags.slice(1) : [];
+    }
+    return [];
+  },
+  studentTags: (state2, getters2) => {
+    if (getters2.isStudent && state2.profile.tags) {
+      return state2.profile.tags;
+    }
+    return [];
+  },
+  // 角色相关getters
   isTeacher: (state2, getters2, rootState) => {
     var _a;
     return state2.role === "teacher" || ((_a = rootState.auth) == null ? void 0 : _a.role) === "teacher";
   },
-  /**
-   * @description 判断用户是否为学生（非老师）
-   * @param {Object} state - 当前模块状态
-   * @param {Object} getters - 当前模块的getters
-   * @param {Object} rootState - 根状态
-   * @returns {Boolean} 是否为学生
-   */
   isStudent: (state2, getters2, rootState) => {
     var _a;
     return state2.role === "student" || ((_a = rootState.auth) == null ? void 0 : _a.role) === "student";
   },
-  /**
-   * @description 获取用户角色
-   * @param {Object} state - 当前模块状态
-   * @param {Object} getters - 当前模块的getters
-   * @param {Object} rootState - 根状态
-   * @returns {String} 用户角色
-   */
   userRole: (state2, getters2, rootState) => {
     var _a;
     return state2.role || ((_a = rootState.auth) == null ? void 0 : _a.role) || "";
@@ -108,11 +99,19 @@ const mutations = {
     state2.error = null;
   },
   [FETCH_PROFILE_SUCCESS](state2, profile) {
+    let certTag = "";
+    let otherTags = [];
+    if (state2.role === "teacher" && profile.tags && profile.tags.length > 0) {
+      certTag = profile.certTag || profile.tags[0];
+      otherTags = profile.otherTags || (profile.tags.length > 1 ? profile.tags.slice(1) : []);
+    }
     state2.profile = {
       ...state2.profile,
       avatar: profile.avatar || state2.profile.avatar,
       nickname: profile.nickname || profile.name || state2.profile.nickname,
       tags: profile.tags || state2.profile.tags,
+      certTag,
+      otherTags,
       introduction: profile.introduction || state2.profile.introduction,
       gender: profile.gender || state2.profile.gender,
       phone: profile.phone || state2.profile.phone,
@@ -156,14 +155,17 @@ const mutations = {
     };
     state2.role = null;
   },
-  /**
-   * @description 设置用户角色
-   * @param {Object} state - 当前模块状态
-   * @param {String} role - 用户角色
-   */
   [SET_USER_ROLE](state2, role) {
     state2.role = role;
   }
+};
+const getUserRole = (state2, rootState) => {
+  var _a;
+  let role = common_vendor.index.getStorageSync("userRole");
+  if (!role) {
+    role = ((_a = rootState.auth) == null ? void 0 : _a.role) || "student";
+  }
+  return role;
 };
 const actions = {
   /**
@@ -172,20 +174,16 @@ const actions = {
    * @returns {Promise<Object>} 个人资料
    */
   async fetchProfile({ commit, rootState }) {
-    var _a, _b, _c;
+    var _a, _b;
     commit(FETCH_PROFILE_REQUEST);
     try {
-      let role = common_vendor.index.getStorageSync("userRole");
-      if (!role) {
-        role = ((_a = rootState.auth) == null ? void 0 : _a.role) || "student";
-      }
-      common_vendor.index.__f__("log", "at store/modules/common/user.js:196", "fetchProfile使用的角色:", role);
+      const role = getUserRole(null, rootState);
       commit(SET_USER_ROLE, role);
       const response = await store_services_index.services.user.getUserProfile(role);
       commit(FETCH_PROFILE_SUCCESS, response.data);
       return response.data;
     } catch (error) {
-      commit(FETCH_PROFILE_FAILURE, ((_c = (_b = error.response) == null ? void 0 : _b.data) == null ? void 0 : _c.message) || "获取个人资料失败");
+      commit(FETCH_PROFILE_FAILURE, ((_b = (_a = error.response) == null ? void 0 : _a.data) == null ? void 0 : _b.message) || "获取个人资料失败");
       return Promise.reject(error);
     }
   },
@@ -195,26 +193,22 @@ const actions = {
    * @param {Object} profileData - 个人资料数据
    * @returns {Promise<Object>} 更新结果
    */
-  async updateProfile({ commit, rootState }, profileData) {
-    var _a, _b, _c;
+  async updateProfile({ commit, state: state2, rootState }, profileData) {
+    var _a, _b;
     commit(UPDATE_PROFILE_REQUEST);
     try {
-      let role = common_vendor.index.getStorageSync("userRole");
-      if (!role) {
-        role = ((_a = rootState.auth) == null ? void 0 : _a.role) || "student";
-      }
-      common_vendor.index.__f__("log", "at store/modules/common/user.js:228", "updateProfile使用的角色:", role);
+      const role = getUserRole(state2, rootState);
       commit(SET_USER_ROLE, role);
       const response = await store_services_index.services.user.updateUserProfile(role, profileData);
       commit(UPDATE_PROFILE_SUCCESS, response.data);
       return response.data;
     } catch (error) {
-      commit(UPDATE_PROFILE_FAILURE, ((_c = (_b = error.response) == null ? void 0 : _b.data) == null ? void 0 : _c.message) || "更新个人资料失败");
+      commit(UPDATE_PROFILE_FAILURE, ((_b = (_a = error.response) == null ? void 0 : _a.data) == null ? void 0 : _b.message) || "更新个人资料失败");
       return Promise.reject(error);
     }
   },
   /**
-   * @description 清除用户个人资料（通常在登出时调用）
+   * @description 清除用户个人资料
    * @param {Object} context - Vuex上下文
    */
   clearProfile({ commit }) {
@@ -227,19 +221,15 @@ const actions = {
    * @returns {Promise<Object>} 设置结果
    */
   async setPassword({ commit, state: state2, rootState }, passwordData) {
-    var _a, _b, _c;
+    var _a, _b;
     commit(UPDATE_PROFILE_REQUEST);
     try {
-      let role = common_vendor.index.getStorageSync("userRole");
-      if (!role) {
-        role = ((_a = rootState.auth) == null ? void 0 : _a.role) || "student";
-      }
-      common_vendor.index.__f__("log", "at store/modules/common/user.js:268", "setPassword使用的角色:", role);
+      const role = getUserRole(state2, rootState);
       const response = await store_services_index.services.user.setUserPassword(role, passwordData);
       commit(UPDATE_PROFILE_SUCCESS, { hasPassword: true });
       return response.data;
     } catch (error) {
-      commit(UPDATE_PROFILE_FAILURE, ((_c = (_b = error.response) == null ? void 0 : _b.data) == null ? void 0 : _c.message) || "设置密码失败");
+      commit(UPDATE_PROFILE_FAILURE, ((_b = (_a = error.response) == null ? void 0 : _a.data) == null ? void 0 : _b.message) || "设置密码失败");
       return Promise.reject(error);
     }
   },
@@ -250,28 +240,57 @@ const actions = {
    * @returns {Promise<Object>} 切换结果
    */
   async switchRole({ commit, dispatch, rootState }, newRole) {
-    var _a;
     if (newRole !== "teacher" && newRole !== "student") {
       return Promise.reject(new Error("无效的角色"));
     }
     try {
-      let currentRole = common_vendor.index.getStorageSync("userRole");
-      if (!currentRole) {
-        currentRole = ((_a = rootState.auth) == null ? void 0 : _a.role) || "student";
-      }
-      common_vendor.index.__f__("log", "at store/modules/common/user.js:299", "从当前角色切换:", currentRole, "到:", newRole);
-      const useMockData = common_vendor.index.getStorageSync("use_mock_api") === "true";
-      common_vendor.index.__f__("log", "at store/modules/common/user.js:303", "当前模拟数据设置:", useMockData ? "启用" : "禁用");
+      const currentRole = getUserRole(null, rootState);
       const response = await store_services_index.services.user.switchUserRole(currentRole, newRole);
       common_vendor.index.setStorageSync("userRole", newRole);
-      if (useMockData) {
-        common_vendor.index.setStorageSync("use_mock_api", "true");
-      }
       commit(SET_USER_ROLE, newRole);
       await dispatch("fetchProfile");
       return response.data;
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/modules/common/user.js:324", "切换角色失败:", error);
+      return Promise.reject(error);
+    }
+  },
+  /**
+   * @description 更新教师认证标签
+   * @param {Object} context - Vuex上下文
+   * @param {String} certTag - 认证标签
+   * @returns {Promise<Object>} 更新结果
+   */
+  async updateTeacherCertTag({ state: state2, dispatch }, certTag) {
+    if (state2.role !== "teacher") {
+      return Promise.reject(new Error("只有教师可以设置认证标签"));
+    }
+    try {
+      const profileData = {
+        certTag,
+        otherTags: state2.profile.otherTags || (state2.profile.tags && state2.profile.tags.length > 1 ? state2.profile.tags.slice(1) : [])
+      };
+      return await dispatch("updateProfile", profileData);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+  /**
+   * @description 更新教师其他标签
+   * @param {Object} context - Vuex上下文
+   * @param {Array} otherTags - 其他标签数组
+   * @returns {Promise<Object>} 更新结果
+   */
+  async updateTeacherOtherTags({ state: state2, dispatch }, otherTags) {
+    if (state2.role !== "teacher") {
+      return Promise.reject(new Error("只有教师可以设置其他标签"));
+    }
+    try {
+      const profileData = {
+        certTag: state2.profile.certTag || (state2.profile.tags && state2.profile.tags.length > 0 ? state2.profile.tags[0] : ""),
+        otherTags
+      };
+      return await dispatch("updateProfile", profileData);
+    } catch (error) {
       return Promise.reject(error);
     }
   }
