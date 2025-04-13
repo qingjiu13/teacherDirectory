@@ -4,20 +4,30 @@
     <view class="user-info">
       <view class="user-info-row">
         <image class="avatar" :src="userData.avatarUrl || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleAvatarClick"></image>
-        <view class="login-tag-container">
-          <text class="login-text" @click="handleLoginClick">{{ userData.nickname || userName || '登录' }}</text>
-          <view class="tag-btn" v-if="userData.tag">
-            <text>{{ userData.tag }}</text>
+        <view class="user-info-content">
+          <view class="nickname-row">
+            <text class="login-text" @click="handleLoginClick">{{ userData.nickname || userName || '登录' }}</text>
+            <view class="cert-tag" v-if="userRole === 'teacher' && teacherCertTag">
+              <text>{{ teacherCertTag }}</text>
+            </view>
           </view>
-          <view class="tag-btn" v-else>
-            <text>标签</text>
+          
+          <!-- 修改个人信息链接 -->
+          <text class="edit-profile-link" @click="handleEditProfile">修改个人信息</text>
+          
+          <!-- 标签显示区域 -->
+          <view class="tags-container">
+            <!-- 老师显示除第一个认证标签外的其他标签 -->
+            <view class="tag-item" v-if="userRole === 'teacher'" v-for="(tag, index) in teacherOtherTags" :key="'teacher-tag-'+index">
+              <text>{{ tag }}</text>
+            </view>
+            
+            <!-- 学生显示所有标签 -->
+            <view class="tag-item" v-if="userRole === 'student'" v-for="(tag, index) in studentTags" :key="'student-tag-'+index">
+              <text>{{ tag }}</text>
+            </view>
           </view>
         </view>
-      </view>
-      
-      <!-- 修改个人信息按钮 -->
-      <view class="edit-profile-btn" @click="handleEditProfile">
-        <text>修改个人信息</text>
       </view>
     </view>
     
@@ -93,6 +103,7 @@ import { Navigator, MineRoutes } from '@/router/Router.js';
 import TabBar from '../../../components/tab-bar/tab-bar.uvue';
 import store, { loadTeacherData, loadStudentData } from '@/store/index.js';
 import { services } from '@/store/services';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -103,145 +114,112 @@ export default {
       userRole: 'student', // 默认为学生角色
       userName: '',
       userData: {},
-      isLoggedIn: true, // 默认设为true方便调试
-      MineRoutes, // 引入路由对象方便模板使用
-      isLoading: false // 加载状态
+      isLoggedIn: false,
+      MineRoutes,
+      isLoading: false
     }
   },
+  computed: {
+    ...mapGetters('user', [
+      'teacherCertTag',
+      'teacherOtherTags',
+      'studentTags'
+    ])
+  },
+  
   async onLoad() {
-    // 设置加载状态
-    this.isLoading = true;
-    
-    try {
-      // 获取用户角色信息或使用默认值
-      const storedUserRole = uni.getStorageSync('userRole') || 'student';
+    await this.loadUserData();
+  },
+  
+  async onShow() {
+    const storedUserRole = uni.getStorageSync('userRole');
+    if (storedUserRole && storedUserRole !== this.userRole) {
       this.userRole = storedUserRole;
-      
-      // 根据角色加载数据
-      if (this.userRole === 'teacher') {
-        // 加载教师特有数据
-        await loadTeacherData();
-        console.log('教师数据已加载');
-      } else {
-        // 加载学生特有数据
-        await loadStudentData();
-        console.log('学生数据已加载');
+      await this.loadUserData();
+    } else {
+      // 检查Vuex store是否有数据
+      const userProfile = this.$store.getters['user/profile'];
+      if (!userProfile || !userProfile.nickname) {
+        await this.loadUserData();
       }
-      
-      // 加载测试数据
-      this.loadMockData();
-      console.log("当前用户角色:", this.userRole);
-    } catch (error) {
-      console.error('加载用户数据失败:', error);
-    } finally {
-      this.isLoading = false;
     }
   },
-  async onShow() {
-    // 每次显示页面时检查登录状态
-    const token = uni.getStorageSync('token');
-    const isCurrentlyLoggedIn = !!token;
-    
-    // 更新登录状态并处理相应的UI
-    this.isLoggedIn = isCurrentlyLoggedIn;
-    if (!this.isLoggedIn) {
-      // 用户未登录，清除显示数据
-      this.userData = {};
-      this.userName = '';
-      console.log('onShow: 用户未登录，清除用户数据显示');
-      return; // 未登录则不继续加载数据
-    }
-    
-    const storedUserRole = uni.getStorageSync('userRole');
-    
-    // 检查并获取模拟数据设置
-    const useMockData = uni.getStorageSync('use_mock_api') === 'true';
-    console.log('onShow: 模拟数据状态:', useMockData ? '启用' : '禁用');
-    
-    if (storedUserRole && storedUserRole !== this.userRole) {
+  
+  methods: {
+    /**
+     * @description 加载用户数据
+     */
+    async loadUserData() {
       this.isLoading = true;
       
       try {
-        this.userRole = storedUserRole;
-        
-        // 角色变更时重新加载相应数据
-        if (this.userRole === 'teacher') {
-          await loadTeacherData();
-          console.log('教师数据已重新加载');
-        } else {
-          await loadStudentData();
-          console.log('学生数据已重新加载');
+        // 检查模拟数据环境
+        const useMockData = uni.getStorageSync('use_mock_api') === 'true' || process.env.NODE_ENV === 'development';
+        if (useMockData && !uni.getStorageSync('token')) {
+          uni.setStorageSync('token', 'mock_token_for_testing');
         }
         
-        // 确保无论是否角色变更，都重新加载对应的测试数据
-        this.loadMockData();
-        console.log("onShow 更新用户角色:", this.userRole);
+        // 获取用户角色
+        const storedUserRole = uni.getStorageSync('userRole') || 'student';
+        this.userRole = storedUserRole;
+        
+        // 根据角色加载数据
+        if (this.userRole === 'teacher') {
+          await loadTeacherData();
+        } else {
+          await loadStudentData();
+        }
+        
+        // 从Vuex获取用户资料
+        await this.syncUserDataFromVuex();
       } catch (error) {
-        console.error('角色切换时加载数据失败:', error);
+        // 出错时直接通过API获取数据
+        this.loadUserDataFromApi();
       } finally {
         this.isLoading = false;
       }
-    } else {
-      // 即使角色没变，也要检查是否需要重新加载模拟数据
-      // 避免因为设置变更而数据未更新的情况
-      if (useMockData) {
-        this.loadMockData();
-        console.log('onShow: 重新加载模拟数据');
-      }
-    }
-  },
-  methods: {
+    },
+    
     /**
-     * @description 加载模拟数据
+     * @description 从Vuex同步用户数据
      */
-    loadMockData() {
-      // 检查是否使用模拟数据 - 增强检测逻辑
-      const storageSetting = uni.getStorageSync('use_mock_api');
-      const useMockData = storageSetting === 'true' || process.env.NODE_ENV === 'development';
-      
-      console.log('加载用户数据，模拟数据状态:', useMockData ? '启用' : '禁用', 'Storage值:', storageSetting);
-      
-      // 如果明确设置了使用模拟数据，确保设置保持一致
-      if (useMockData && storageSetting !== 'true') {
-        uni.setStorageSync('use_mock_api', 'true');
-        console.log('已更新storage中的模拟数据设置为: true');
+    async syncUserDataFromVuex() {
+      try {
+        await this.$store.dispatch('user/fetchProfile');
+        
+        const userProfile = this.$store.getters['user/profile'];
+        if (userProfile && userProfile.nickname) {
+          this.userData = { ...userProfile };
+          this.userName = userProfile.nickname || '用户';
+          
+          // 同步更新到storage
+          uni.setStorageSync('userRole', this.userRole);
+          uni.setStorageSync('userInfo', JSON.stringify(this.userData));
+        } else {
+          // 如果Vuex没有数据，则使用API直接获取
+          this.loadUserDataFromApi();
+        }
+      } catch (error) {
+        this.loadUserDataFromApi();
       }
-      
-      // 首先检查登录状态
-      const token = uni.getStorageSync('token');
-      this.isLoggedIn = !!token;
-      
-      // 如果未登录，清除用户数据并返回
-      if (!this.isLoggedIn) {
-        this.userData = {};
-        this.userName = '';
-        console.log('用户未登录，不加载用户资料');
-        return;
-      }
-      
-      // 使用services.user.getUserProfile获取用户资料
-      // 这将调用user.api.js中的getUserProfile方法
-      this.isLoading = true;
-      
+    },
+
+    /**
+     * @description 从API直接获取用户资料
+     */
+    loadUserDataFromApi() {
       services.user.getUserProfile(this.userRole)
         .then(response => {
           if (response && response.data) {
             this.userData = response.data;
             this.userName = this.userData.nickname || '用户';
             
-            // 同步更新到storage，但不重设token
+            // 同步更新到storage
             uni.setStorageSync('userRole', this.userRole);
             uni.setStorageSync('userInfo', JSON.stringify(this.userData));
-            // 不再设置模拟token：uni.setStorageSync('token', 'mock_token_for_testing');
-            
-            console.log("加载用户资料成功:", this.userData);
-          } else {
-            console.error('获取用户资料失败: 响应数据无效');
           }
         })
-        .catch(error => {
-          console.error('获取用户资料失败:', error);
-        })
+        .catch(error => {})
         .finally(() => {
           this.isLoading = false;
         });
@@ -251,7 +229,6 @@ export default {
      * @description 处理头像点击
      */
     handleAvatarClick() {
-      // 简化处理，不检查登录状态
       this.handleEditProfile();
     },
     
@@ -259,7 +236,6 @@ export default {
      * @description 处理登录文本点击
      */
     handleLoginClick() {
-      // 简化处理，不检查登录状态
       this.handleEditProfile();
     },
     
@@ -267,7 +243,6 @@ export default {
      * @description 跳转到修改个人信息页面
      */
     handleEditProfile() {
-      // 简化处理，不检查登录状态
       Navigator.toModify();
     },
     
@@ -276,7 +251,6 @@ export default {
      * @param {string} url - 目标页面路径
      */
     navigateTo(url) {
-      // 简化处理，不检查登录状态
       Navigator.navigateTo(url);
     }
   }
@@ -304,7 +278,7 @@ export default {
 .user-info-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   margin-bottom: 20rpx;
 }
@@ -314,12 +288,20 @@ export default {
   height: 120rpx;
   border-radius: 50%;
   margin-right: 20rpx;
+  flex-shrink: 0;
 }
 
-.login-tag-container {
+.user-info-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nickname-row {
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-bottom: 10rpx;
 }
 
 .login-text {
@@ -328,29 +310,44 @@ export default {
   margin-right: 20rpx;
 }
 
-.tag-btn {
+.cert-tag {
   background-color: #f5f5f5;
   border-radius: 30rpx;
   padding: 8rpx 30rpx;
 }
 
-.tag-btn text {
+.cert-tag text {
   font-size: 26rpx;
   color: #666;
 }
 
-/* 修改个人信息按钮 */
-.edit-profile-btn {
-  background-color: #f5f5f5;
-  border-radius: 10rpx;
-  padding: 15rpx 30rpx;
-  margin-top: 10rpx;
-  align-self: flex-start;
+/* 修改个人信息链接样式 */
+.edit-profile-link {
+  font-size: 28rpx;
+  color: #2196F3;
+  text-decoration: underline;
+  margin-bottom: 15rpx;
 }
 
-.edit-profile-btn text {
-  font-size: 28rpx;
-  color: #333;
+/* 标签容器 */
+.tags-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 10rpx;
+}
+
+.tag-item {
+  background-color: #f5f5f5;
+  border-radius: 30rpx;
+  padding: 6rpx 20rpx;
+  margin-right: 15rpx;
+  margin-bottom: 10rpx;
+}
+
+.tag-item text {
+  font-size: 24rpx;
+  color: #666;
 }
 
 /* 菜单列表 */

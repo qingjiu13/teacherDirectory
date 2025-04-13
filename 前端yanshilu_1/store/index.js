@@ -80,6 +80,9 @@ export const initializeApp = async () => {
  */
 export const loadTeacherData = async () => {
   try {
+    // 先加载用户资料
+    await store.dispatch('user/fetchProfile');
+    // 再加载教师特有数据
     await store.dispatch('teacher/loadInitialData');
     return { success: true };
   } catch (error) {
@@ -95,6 +98,9 @@ export const loadTeacherData = async () => {
  */
 export const loadStudentData = async () => {
   try {
+    // 先加载用户资料
+    await store.dispatch('user/fetchProfile');
+    // 再加载学生特有数据
     await store.dispatch('student/loadInitialData');
     return { success: true };
   } catch (error) {

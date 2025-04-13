@@ -32,16 +32,27 @@
 			<!-- 标签 -->
 			<view class="form-item">
 				<text class="form-label">标签</text>
+				
+				<!-- 老师角色显示认证标签 (不可编辑) -->
+				<view v-if="isTeacher && certTag" class="cert-tag-container">
+					<text class="cert-tag-label">认证标签:</text>
+					<view class="cert-tag">
+						<text class="tag-text">{{certTag}}</text>
+					</view>
+				</view>
+				
+				<text class="sub-label" v-if="isTeacher">其他标签:</text>
+				
 				<view class="tags-container">
 					<view 
-						v-for="(tag, index) in userInfo.tags" 
+						v-for="(tag, index) in displayTags" 
 						:key="index" 
 						class="tag-item"
 					>
 						<text class="tag-text">{{tag}}</text>
 						<text class="tag-remove" @click="removeTag(index)">×</text>
 					</view>
-					<view class="tag-add" @click="showTagInput" v-if="userInfo.tags.length < 5">
+					<view class="tag-add" @click="showTagInput" v-if="displayTags.length < maxTagsCount">
 						<text class="tag-add-text">+</text>
 					</view>
 				</view>
@@ -138,6 +149,8 @@ export default {
 				avatar: '',
 				nickname: '',
 				tags: [],
+				certTag: '',   // 认证标签 (只对老师有效)
+				otherTags: [], // 其他标签 (只对老师有效)
 				introduction: '',
 				gender: '',
 				phone: '',
@@ -155,8 +168,39 @@ export default {
 			'isTeacher',
 			'userRole',
 			'updateLoading',
-			'updateError'
-		])
+			'updateError',
+			'teacherCertTag',
+			'teacherOtherTags',
+			'studentTags'
+		]),
+		
+		/**
+		 * @description 获取要显示的标签，老师显示otherTags，学生显示全部tags
+		 * @returns {Array} 要显示的标签数组
+		 */
+		displayTags() {
+			if (this.isTeacher) {
+				return this.userInfo.otherTags || [];
+			} else {
+				return this.userInfo.tags || [];
+			}
+		},
+		
+		/**
+		 * @description 获取认证标签
+		 * @returns {String} 认证标签
+		 */
+		certTag() {
+			return this.userInfo.certTag || '';
+		},
+		
+		/**
+		 * @description 获取最大标签数量
+		 * @returns {Number} 最大标签数量
+		 */
+		maxTagsCount() {
+			return this.isTeacher ? 4 : 5; // 老师除认证标签外最多4个，学生最多5个
+		}
 	},
 	watch: {
 		updateLoading(val) {
@@ -186,16 +230,33 @@ export default {
 				await this.fetchProfile();
 				
 				// 复制用户信息到本地状态
-				this.userInfo = {
-					avatar: this.profile.avatar || '',
-					nickname: this.profile.nickname || '',
-					tags: [...(this.profile.tags || [])],
-					introduction: this.profile.introduction || '',
-					gender: this.profile.gender || '',
-					phone: this.profile.phone || '',
-					wechat: this.profile.wechat || '',
-					password: this.profile.password || '未设置'
-				};
+				if (this.isTeacher) {
+					// 老师角色：分离认证标签和其他标签
+					this.userInfo = {
+						avatar: this.profile.avatar || '',
+						nickname: this.profile.nickname || '',
+						tags: [...(this.profile.tags || [])], // 保留原始tags
+						certTag: this.teacherCertTag || '',
+						otherTags: [...(this.teacherOtherTags || [])],
+						introduction: this.profile.introduction || '',
+						gender: this.profile.gender || '',
+						phone: this.profile.phone || '',
+						wechat: this.profile.wechat || '',
+						password: this.profile.password || '未设置'
+					};
+				} else {
+					// 学生角色：直接使用tags
+					this.userInfo = {
+						avatar: this.profile.avatar || '',
+						nickname: this.profile.nickname || '',
+						tags: [...(this.studentTags || [])],
+						introduction: this.profile.introduction || '',
+						gender: this.profile.gender || '',
+						phone: this.profile.phone || '',
+						wechat: this.profile.wechat || '',
+						password: this.profile.password || '未设置'
+					};
+				}
 				
 				console.log('获取的用户信息:', this.userInfo);
 			} catch (error) {
@@ -237,15 +298,18 @@ export default {
 		addTag() {
 			if (!this.newTag.trim()) return;
 			
-			if (this.userInfo.tags.length >= 5) {
+			const maxCount = this.maxTagsCount;
+			const currentTags = this.displayTags;
+			
+			if (currentTags.length >= maxCount) {
 				uni.showToast({
-					title: '最多添加5个标签',
+					title: `最多添加${maxCount}个标签`,
 					icon: 'none'
 				});
 				return;
 			}
 			
-			if (this.userInfo.tags.includes(this.newTag.trim())) {
+			if (currentTags.includes(this.newTag.trim())) {
 				uni.showToast({
 					title: '标签已存在',
 					icon: 'none'
@@ -253,7 +317,14 @@ export default {
 				return;
 			}
 			
-			this.userInfo.tags.push(this.newTag.trim());
+			if (this.isTeacher) {
+				// 老师角色：添加到otherTags
+				this.userInfo.otherTags.push(this.newTag.trim());
+			} else {
+				// 学生角色：添加到tags
+				this.userInfo.tags.push(this.newTag.trim());
+			}
+			
 			this.newTag = '';
 			this.showingTagInput = false;
 		},
@@ -263,7 +334,13 @@ export default {
 		 * @param {Number} index - 标签索引
 		 */
 		removeTag(index) {
-			this.userInfo.tags.splice(index, 1);
+			if (this.isTeacher) {
+				// 老师角色：从otherTags中删除
+				this.userInfo.otherTags.splice(index, 1);
+			} else {
+				// 学生角色：从tags中删除
+				this.userInfo.tags.splice(index, 1);
+			}
 		},
 		
 		/**
@@ -302,16 +379,28 @@ export default {
 			try {
 				this.updating = true;
 				
-				// 提交更新 - 会调用user.api.js中的updateUserProfile方法
-				await this.updateProfile({
+				// 准备要更新的数据
+				const profileData = {
 					avatar: this.userInfo.avatar,
 					nickname: this.userInfo.nickname,
-					tags: this.userInfo.tags,
 					introduction: this.userInfo.introduction,
 					gender: this.userInfo.gender,
 					phone: this.userInfo.phone,
 					wechat: this.userInfo.wechat
-				});
+				};
+				
+				// 根据角色添加标签信息
+				if (this.isTeacher) {
+					// 老师角色：分别设置certTag和otherTags
+					profileData.certTag = this.userInfo.certTag;
+					profileData.otherTags = this.userInfo.otherTags;
+				} else {
+					// 学生角色：直接设置tags
+					profileData.tags = this.userInfo.tags;
+				}
+				
+				// 提交更新 - 会调用user.api.js中的updateUserProfile方法
+				await this.updateProfile(profileData);
 				
 				uni.showToast({
 					title: '保存成功',
@@ -435,6 +524,43 @@ export default {
 	flex-direction: row;
 	flex-wrap: wrap;
 	margin-bottom: 20rpx;
+}
+
+/* 认证标签容器样式 */
+.cert-tag-container {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 20rpx;
+}
+
+.cert-tag-label {
+	font-size: 28rpx;
+	color: #666666;
+	margin-right: 10rpx;
+}
+
+.cert-tag {
+	background-color: #e3f2fd;
+	border-radius: 30rpx;
+	padding: 10rpx 30rpx;
+	display: flex;
+	align-items: center;
+	border: 1rpx solid #2196F3;
+}
+
+.cert-tag .tag-text {
+	font-size: 26rpx;
+	color: #2196F3;
+	font-weight: bold;
+}
+
+/* 其他标签标题 */
+.sub-label {
+	font-size: 28rpx;
+	color: #666666;
+	margin-bottom: 15rpx;
+	display: block;
 }
 
 .tag-item {
