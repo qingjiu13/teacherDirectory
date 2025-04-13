@@ -64,32 +64,35 @@ export const getTeacherDetail = (teacherId) => {
     setTimeout(() => {
       const id = parseInt(teacherId.replace('t', ''));
       
+      // 返回符合teacher.js期望的数据结构
       resolve({
         success: true,
         data: {
-          id: teacherId,
-          name: `老师${id}`,
-          avatar: `https://example.com/avatars/teacher${id}.png`,
-          subject: ['数学', '英语', '物理', '化学', '生物'][id % 5],
-          level: ['小学', '初中', '高中', '大学'][id % 4],
-          rating: 4 + (id % 10) / 10,
-          price: 100 + (id % 20) * 5,
-          intro: `我是一名有着多年教学经验的${['数学', '英语', '物理', '化学', '生物'][id % 5]}老师，擅长${['小学', '初中', '高中', '大学'][id % 4]}课程辅导。`,
-          education: '北京大学硕士',
-          experience: `${5 + id % 10}年教学经验`,
-          tags: ['耐心', '专业', '经验丰富'].slice(0, 1 + id % 3),
-          availableTime: [
-            { day: '周一', slots: ['9:00-11:00', '14:00-16:00'] },
-            { day: '周三', slots: ['9:00-11:00', '14:00-16:00'] },
-            { day: '周五', slots: ['9:00-11:00', '14:00-16:00'] }
-          ],
-          courses: [
-            { id: 'c1', title: '数学提高班', price: 200, duration: '10课时' },
-            { id: 'c2', title: '一对一辅导', price: 300, duration: '按需' }
-          ],
-          comments: [
-            { id: 'cm1', user: '学生A', content: '老师讲解非常清晰', rating: 5, date: '2023-09-01' },
-            { id: 'cm2', user: '学生B', content: '课程安排合理，进步很大', rating: 4, date: '2023-08-15' }
+          teacher: {
+            id: teacherId,
+            nickname: `老师${id}`, // 从name改为nickname
+            avatar: `https://example.com/avatars/teacher${id}.png`,
+            school: '北京大学', // 新增字段
+            major: ['数学', '英语', '物理', '化学', '生物'][id % 5], // 新增字段
+            score: (4 + (id % 10) / 10).toFixed(1), // 评分
+            tags: ['耐心', '专业', '经验丰富'].slice(0, 1 + id % 3),
+            introduction: `我是一名有着多年教学经验的${['数学', '英语', '物理', '化学', '生物'][id % 5]}老师，擅长${['小学', '初中', '高中', '大学'][id % 4]}课程辅导。` // 从intro改为introduction
+          },
+          services: [
+            { 
+              id: `s${id}1`, 
+              title: '数学提高班', 
+              price: 200, 
+              duration: '10课时',
+              description: '适合需要提高数学成绩的学生'
+            },
+            { 
+              id: `s${id}2`, 
+              title: '一对一辅导', 
+              price: 300, 
+              duration: '按需',
+              description: '根据学生需求定制的个性化辅导课程'
+            }
           ]
         }
       });

@@ -4,7 +4,6 @@
  */
 
 // 导入Vuex
-import { createSSRApp } from 'vue'
 import { createStore } from 'vuex'
 
 // 导入API服务
@@ -14,7 +13,6 @@ import * as apiServices from './services';
 import auth from './modules/common/auth';
 import app from './modules/common/app';
 import message from './modules/common/message';
-import settings from './modules/common/settings';
 import aiChat from './modules/common/ai-chat';
 import match from './modules/common/match';
 import teacher from './modules/common/teacher';
@@ -36,7 +34,6 @@ const store = createStore({
     auth,            // 认证相关
     app,             // 应用全局状态
     message,         // 消息通知
-    settings,        // 用户设置
     
     // 用户信息模块
     user,            // 用户基本信息

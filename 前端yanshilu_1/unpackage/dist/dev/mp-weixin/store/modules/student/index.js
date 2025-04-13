@@ -2,7 +2,6 @@
 const store_services_index = require("../../services/index.js");
 const store_modules_student_courses = require("./courses.js");
 const store_modules_student_learning = require("./learning.js");
-const store_modules_student_assignments = require("./assignments.js");
 const state = {
   studentProfile: null,
   loading: false,
@@ -73,8 +72,7 @@ const actions = {
     try {
       await Promise.all([
         dispatch("fetchStudentProfile"),
-        dispatch("courses/fetchEnrolledCourses"),
-        dispatch("assignments/fetchPendingAssignments")
+        dispatch("courses/fetchEnrolledCourses")
       ]);
       commit(LOAD_INITIAL_DATA_SUCCESS);
       return { success: true };
@@ -93,10 +91,8 @@ const student = {
   modules: {
     courses: store_modules_student_courses.courses,
     // 已选课程管理
-    learning: store_modules_student_learning.learning,
+    learning: store_modules_student_learning.learning
     // 学习进度
-    assignments: store_modules_student_assignments.assignments
-    // 作业管理
   }
 };
 exports.student = student;

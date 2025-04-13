@@ -41,19 +41,11 @@ const getLearningProgress = (courseId) => {
     url: `${API_PREFIX}/courses/${courseId}/progress`
   });
 };
-const submitAssignment = (courseId, assignmentId, submission) => {
-  return request({
-    url: `${API_PREFIX}/courses/${courseId}/assignments/${assignmentId}/submit`,
-    method: "POST",
-    data: submission
-  });
-};
 const student = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   getEnrolledCourses,
   getLearningProgress,
   getStudentProfile,
-  submitAssignment,
   updateStudentProfile
 }, Symbol.toStringTag, { value: "Module" }));
 exports.student = student;

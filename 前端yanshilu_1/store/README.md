@@ -25,7 +25,7 @@ store/
 │       ├── index.js        # 学生模块入口
 │       ├── courses.js      # 已选课程
 │       ├── learning.js     # 学习进度
-│       └── assignments.js  # 作业管理
+│  
 ├── services/               # API服务
 │   ├── index.js            # 服务入口
 │   ├── auth.api.js         # 认证相关API
@@ -76,7 +76,6 @@ store/
 
 - **已选课程（courses）**：学生选课列表和课程详情
 - **学习进度（learning）**：课程学习进度跟踪
-- **作业管理（assignments）**：作业提交和成绩查看
 
 ### 3. API服务（services）
 

@@ -71,19 +71,4 @@ export const getLearningProgress = (courseId) => {
   return request({
     url: `${API_PREFIX}/courses/${courseId}/progress`
   });
-};
-
-/**
- * @description 提交作业
- * @param {string} courseId - 课程ID
- * @param {string} assignmentId - 作业ID
- * @param {Object} submission - 提交内容
- * @returns {Promise<Object>} 提交结果
- */
-export const submitAssignment = (courseId, assignmentId, submission) => {
-  return request({
-    url: `${API_PREFIX}/courses/${courseId}/assignments/${assignmentId}/submit`,
-    method: 'POST',
-    data: submission
-  });
 }; 

@@ -7,6 +7,7 @@ const store_services_course_api = require("./course.api.js");
 const store_services_order_api = require("./order.api.js");
 const store_services_common_api = require("./common.api.js");
 const store_services_match_api = require("./match.api.js");
+const store_services_user_api = require("./user.api.js");
 const store_services_mockData = require("./mock-data.js");
 const mock = store_services_mockData.mockData;
 const services = {
@@ -26,6 +27,8 @@ const services = {
   // 通用API
   match: store_services_match_api.match,
   // 匹配功能API
+  user: store_services_user_api.user,
+  // 用户通用API
   mock
   // 模拟数据
 };

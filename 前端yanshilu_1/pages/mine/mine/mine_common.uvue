@@ -19,18 +19,6 @@
       <view class="edit-profile-btn" @click="handleEditProfile">
         <text>修改个人信息</text>
       </view>
-      
-      <!-- 调试用：角色切换按钮 -->
-      <view class="debug-section">
-        <view class="role-switch-container">
-          <view class="role-btn" :class="{ active: userRole === 'student' }" @click="switchRole('student')">
-            <text>学生模式</text>
-          </view>
-          <view class="role-btn" :class="{ active: userRole === 'teacher' }" @click="switchRole('teacher')">
-            <text>老师模式</text>
-          </view>
-        </view>
-      </view>
     </view>
     
     <!-- 菜单列表 -->
@@ -92,14 +80,6 @@
       </view>
     </view>
     
-    <!-- 退出登录按钮 - 对所有角色都显示 -->
-    <view class="menu-item" @click="handleLogout()" v-if="isLoggedIn">
-      <view class="icon-circle warning">
-        <text class="icon-text">⚠</text>
-      </view>
-      <text class="menu-text">退出登录</text>
-    </view>
-    
     <!-- 添加自定义底部导航栏 -->
     <TabBar pageName="mine" />
   </view>
@@ -112,6 +92,7 @@
 import { Navigator, MineRoutes } from '@/router/Router.js';
 import TabBar from '../../../components/tab-bar/tab-bar.uvue';
 import store, { loadTeacherData, loadStudentData } from '@/store/index.js';
+import { services } from '@/store/services';
 
 export default {
   components: {
@@ -124,44 +105,7 @@ export default {
       userData: {},
       isLoggedIn: true, // 默认设为true方便调试
       MineRoutes, // 引入路由对象方便模板使用
-      isLoading: false, // 加载状态
-      // 模拟数据
-      mockTeacherData: {
-        id: 'teacher123',
-        nickname: '王教授',
-        avatarUrl: '/static/image/tab-bar/default_avatar.png',
-        tag: '已认证',
-        role: 'teacher',
-        school: '北京大学',
-        major: '计算机科学',
-        score: 4.9,
-        wallet: {
-          balance: 2580.50,
-          income: 5000.00
-        },
-        qualifications: {
-          isVerified: true,
-          certificates: ['教师资格证', '心理咨询师证']
-        },
-        services: [
-          { id: 1, title: '高数一对一', price: 300 },
-          { id: 2, title: '编程辅导', price: 250 }
-        ]
-      },
-      mockStudentData: {
-        id: 'student456',
-        nickname: '小明同学',
-        avatarUrl: '/static/image/tab-bar/default_avatar.png',
-        tag: '学生',
-        role: 'student',
-        school: '清华大学',
-        major: '机械工程',
-        grade: '大二',
-        courses: [
-          { id: 101, title: '高等数学', progress: 60 },
-          { id: 102, title: 'C++编程基础', progress: 85 }
-        ]
-      }
+      isLoading: false // 加载状态
     }
   },
   async onLoad() {
@@ -197,6 +141,10 @@ export default {
     // 每次显示页面时检查角色状态
     const storedUserRole = uni.getStorageSync('userRole');
     
+    // 检查并获取模拟数据设置
+    const useMockData = uni.getStorageSync('use_mock_api') === 'true';
+    console.log('onShow: 模拟数据状态:', useMockData ? '启用' : '禁用');
+    
     if (storedUserRole && storedUserRole !== this.userRole) {
       this.isLoading = true;
       
@@ -212,13 +160,37 @@ export default {
           console.log('学生数据已重新加载');
         }
         
-        // 重新加载对应的测试数据
+        // 确保无论是否角色变更，都重新加载对应的测试数据
         this.loadMockData();
         console.log("onShow 更新用户角色:", this.userRole);
       } catch (error) {
         console.error('角色切换时加载数据失败:', error);
       } finally {
         this.isLoading = false;
+      }
+    } else {
+      // 即使角色没变，也要检查是否需要重新加载模拟数据
+      // 避免因为设置变更而数据未更新的情况
+      if (useMockData) {
+        this.loadMockData();
+        console.log('onShow: 重新加载模拟数据');
+      }
+    }
+    
+    // 检查登录状态
+    const token = uni.getStorageSync('token');
+    const isCurrentlyLoggedIn = !!token;
+    
+    if (this.isLoggedIn !== isCurrentlyLoggedIn) {
+      this.isLoggedIn = isCurrentlyLoggedIn;
+      
+      if (!this.isLoggedIn) {
+        // 用户已退出登录，更新显示
+        this.userData = {};
+        this.userName = '';
+      } else {
+        // 用户已登录，刷新数据
+        this.loadMockData();
       }
     }
   },
@@ -227,79 +199,45 @@ export default {
      * @description 加载模拟数据
      */
     loadMockData() {
-      // 根据当前角色加载对应的模拟数据
-      if (this.userRole === 'teacher') {
-        this.userData = this.mockTeacherData;
-      } else {
-        this.userData = this.mockStudentData;
+      // 检查是否使用模拟数据 - 增强检测逻辑
+      const storageSetting = uni.getStorageSync('use_mock_api');
+      const useMockData = storageSetting === 'true' || process.env.NODE_ENV === 'development';
+      
+      console.log('加载用户数据，模拟数据状态:', useMockData ? '启用' : '禁用', 'Storage值:', storageSetting);
+      
+      // 如果明确设置了使用模拟数据，确保设置保持一致
+      if (useMockData && storageSetting !== 'true') {
+        uni.setStorageSync('use_mock_api', 'true');
+        console.log('已更新storage中的模拟数据设置为: true');
       }
       
-      this.userName = this.userData.nickname;
+      // 使用services.user.getUserProfile获取用户资料
+      // 这将调用user.api.js中的getUserProfile方法
+      this.isLoading = true;
       
-      // 保存当前角色到storage
-      uni.setStorageSync('userRole', this.userRole);
-      uni.setStorageSync('userInfo', JSON.stringify(this.userData));
-      uni.setStorageSync('token', 'mock_token_for_testing'); // 模拟token
-      
-      this.isLoggedIn = true; // 测试模式下始终为登录状态
-      console.log("加载模拟数据:", this.userData);
-    },
-    
-    /**
-     * @description 切换用户角色（用于调试）
-     * @param {String} role - 目标角色
-     */
-    switchRole(role) {
-      if (this.userRole !== role) {
-        this.userRole = role;
-        this.loadMockData();
-        uni.showToast({
-          title: role === 'teacher' ? '已切换为老师模式' : '已切换为学生模式',
-          icon: 'none'
-        });
-      }
-    },
-    
-    /**
-     * @description 加载用户数据（保留原方法，但在调试模式不使用）
-     */
-    loadUserData() {
-      // 在测试模式下，使用模拟数据而不是从storage加载
-      if (uni.getStorageSync('debug_mode') === 'true') {
-        this.loadMockData();
-        return;
-      }
-      
-      // 检查登录状态
-      const token = uni.getStorageSync('token');
-      this.isLoggedIn = !!token;
-      
-      if (this.isLoggedIn) {
-        // 获取用户信息
-        const userInfo = uni.getStorageSync('userInfo');
-        if (userInfo) {
-          try {
-            this.userData = typeof userInfo === 'string' ? JSON.parse(userInfo) : userInfo;
+      services.user.getUserProfile(this.userRole)
+        .then(response => {
+          if (response && response.data) {
+            this.userData = response.data;
             this.userName = this.userData.nickname || '用户';
             
-            // 如果存储中有用户角色，使用存储的角色
-            if (this.userData.role) {
-              this.userRole = this.userData.role;
-              // 同步更新到storage
-              uni.setStorageSync('userRole', this.userData.role);
-            }
-          } catch (e) {
-            console.error('解析用户信息失败:', e);
+            // 同步更新到storage
+            uni.setStorageSync('userRole', this.userRole);
+            uni.setStorageSync('userInfo', JSON.stringify(this.userData));
+            uni.setStorageSync('token', 'mock_token_for_testing'); // 模拟token
+            
+            this.isLoggedIn = true; // 测试模式下始终为登录状态
+            console.log("加载用户资料成功:", this.userData);
+          } else {
+            console.error('获取用户资料失败: 响应数据无效');
           }
-        }
-      } else {
-        this.userData = {};
-        this.userName = '';
-        // 未登录时默认显示学生界面
-        this.userRole = 'student';
-      }
-      
-      console.log("加载用户数据后的角色:", this.userRole); // 调试输出
+        })
+        .catch(error => {
+          console.error('获取用户资料失败:', error);
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
     },
     
     /**
@@ -333,35 +271,6 @@ export default {
     navigateTo(url) {
       // 简化处理，不检查登录状态
       Navigator.navigateTo(url);
-    },
-    
-    /**
-     * @description 处理退出登录
-     */
-    handleLogout() {
-      uni.showModal({
-        title: '提示',
-        content: '确定要退出登录吗？',
-        success: (res) => {
-          if (res.confirm) {
-            // 清除登录信息
-            uni.removeStorageSync('token');
-            uni.removeStorageSync('userInfo');
-            uni.removeStorageSync('userRole');
-            
-            // 更新页面显示
-            this.isLoggedIn = false;
-            this.userData = {};
-            this.userName = '';
-            this.userRole = 'student'; // 退出后默认显示学生界面
-            
-            uni.showToast({
-              title: '已退出登录',
-              icon: 'success'
-            });
-          }
-        }
-      });
     }
   }
 }
@@ -435,43 +344,6 @@ export default {
 .edit-profile-btn text {
   font-size: 28rpx;
   color: #333;
-}
-
-/* 调试工具样式 */
-.debug-section {
-  width: 100%;
-  margin-top: 20rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.role-switch-container {
-  display: flex;
-  flex-direction: row;
-  background-color: #f0f0f0;
-  border-radius: 40rpx;
-  padding: 6rpx;
-  margin: 10rpx 0;
-}
-
-.role-btn {
-  padding: 10rpx 30rpx;
-  border-radius: 30rpx;
-  margin: 0 5rpx;
-}
-
-.role-btn text {
-  font-size: 26rpx;
-  color: #666;
-}
-
-.role-btn.active {
-  background-color: #2196F3;
-}
-
-.role-btn.active text {
-  color: #ffffff;
 }
 
 /* 菜单列表 */

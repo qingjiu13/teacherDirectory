@@ -4,7 +4,7 @@
 import { services } from '../../services';
 import courses from './courses';
 import learning from './learning';
-import assignments from './assignments';
+
 
 // 初始状态
 const state = {
@@ -89,7 +89,6 @@ const actions = {
       await Promise.all([
         dispatch('fetchStudentProfile'),
         dispatch('courses/fetchEnrolledCourses'),
-        dispatch('assignments/fetchPendingAssignments')
       ]);
       
       commit(LOAD_INITIAL_DATA_SUCCESS);
@@ -110,6 +109,5 @@ export default {
   modules: {
     courses,      // 已选课程管理
     learning,     // 学习进度
-    assignments   // 作业管理
   }
 };

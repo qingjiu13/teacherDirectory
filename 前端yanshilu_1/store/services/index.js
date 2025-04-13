@@ -11,6 +11,7 @@ import * as course from './course.api';
 import * as order from './order.api';
 import * as common from './common.api';
 import * as match from './match.api';
+import * as user from './user.api';
 import mockData from './mock-data';
 
 // 导出模拟数据，方便在其他地方使用
@@ -26,6 +27,7 @@ export const services = {
   order,    // 订单相关API
   common,   // 通用API
   match,    // 匹配功能API
+  user,     // 用户通用API
   mock      // 模拟数据
 };
 
@@ -38,5 +40,6 @@ export {
   course,
   order,
   common,
-  match
+  match,
+  user
 }; 

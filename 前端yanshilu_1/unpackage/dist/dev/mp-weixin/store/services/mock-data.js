@@ -1,4 +1,5 @@
 "use strict";
+const common_vendor = require("../../common/vendor.js");
 const mockDelay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
 const mockTeachers = [
   {
@@ -306,9 +307,30 @@ const mockStudentData = {
   school: "清华大学",
   major: "机械工程",
   grade: "大二",
+  gender: "male",
+  phone: "13900139000",
+  wechat: "student456",
+  hasPassword: false,
+  introduction: "大二学生，正在备战考研，希望能考上理想的大学。",
+  tags: ["考研", "计算机", "自律"],
   courses: [
     { id: 101, title: "高等数学", progress: 60 },
     { id: 102, title: "C++编程基础", progress: 85 }
+  ],
+  // 学生特有数据
+  targetSchools: ["北京大学", "清华大学", "上海交通大学"],
+  targetMajors: ["计算机科学", "软件工程"],
+  studyPlan: {
+    startDate: "2023-09-01",
+    examDate: "2024-12-20",
+    dailyHours: 8,
+    focusAreas: ["数学", "英语", "专业课"]
+  },
+  testScores: [
+    { subject: "模拟政治", score: 65, date: "2023-10-15" },
+    { subject: "模拟英语", score: 72, date: "2023-10-15" },
+    { subject: "模拟数学", score: 68, date: "2023-10-15" },
+    { subject: "模拟专业课", score: 75, date: "2023-10-15" }
   ]
 };
 const mockTeacherData = {
@@ -320,17 +342,42 @@ const mockTeacherData = {
   school: "北京大学",
   major: "计算机科学",
   score: 4.9,
+  gender: "male",
+  phone: "13800138000",
+  wechat: "teacher123",
+  hasPassword: true,
+  introduction: "资深教育工作者，专注于考研辅导多年。熟悉各高校计算机专业考研要求，擅长数据结构与算法教学。",
+  tags: ["认证学校", "经验丰富", "答疑及时", "通俗易懂"],
+  // 教师特有数据
+  title: "教授",
+  education: "博士",
+  teachingYears: 15,
+  specialities: ["数据结构", "算法", "计算机网络"],
   wallet: {
     balance: 2580.5,
-    income: 5e3
+    income: 5e3,
+    transactions: [
+      { id: "t001", amount: 300, type: "income", date: "2023-11-01", desc: "一对一辅导" },
+      { id: "t002", amount: 250, type: "income", date: "2023-10-28", desc: "答疑服务" }
+    ]
   },
   qualifications: {
     isVerified: true,
-    certificates: ["教师资格证", "心理咨询师证"]
+    certificates: ["教师资格证", "心理咨询师证"],
+    verifiedDate: "2022-05-15"
   },
   services: [
-    { id: 1, title: "高数一对一", price: 300 },
-    { id: 2, title: "编程辅导", price: 250 }
+    { id: 1, title: "高数一对一", price: 300, sessions: 8, bookings: 12 },
+    { id: 2, title: "编程辅导", price: 250, sessions: 6, bookings: 8 }
+  ],
+  schedule: [
+    { day: "周一", timeSlots: ["9:00-11:00", "14:00-16:00"] },
+    { day: "周三", timeSlots: ["9:00-11:00", "14:00-16:00"] },
+    { day: "周五", timeSlots: ["9:00-11:00", "14:00-16:00"] }
+  ],
+  studentReviews: [
+    { id: "r001", studentName: "张同学", content: "王教授讲课非常清晰，很有耐心", rating: 5, date: "2023-10-15" },
+    { id: "r002", studentName: "李同学", content: "通过王教授的辅导，我的成绩有了明显提升", rating: 5, date: "2023-09-30" }
   ]
 };
 const mockApiResponse = (data, success = true, message = "") => {
@@ -360,6 +407,45 @@ const getMockTeacherDetailWithServices = (teacherId) => {
     }
   };
 };
+const getMockUserProfile = (role) => {
+  common_vendor.index.__f__("log", "at store/services/mock-data.js:455", "【模拟数据】获取用户资料:", role);
+  let userData;
+  if (role === "teacher") {
+    userData = {
+      avatar: mockTeacherData.avatarUrl,
+      nickname: mockTeacherData.nickname,
+      tags: mockTeacherData.tags || [],
+      introduction: mockTeacherData.introduction,
+      gender: mockTeacherData.gender,
+      phone: mockTeacherData.phone,
+      wechat: mockTeacherData.wechat,
+      hasPassword: mockTeacherData.hasPassword,
+      school: mockTeacherData.school,
+      major: mockTeacherData.major,
+      title: mockTeacherData.title,
+      tag: mockTeacherData.tag
+      // 确保有tag字段
+    };
+  } else {
+    userData = {
+      avatar: mockStudentData.avatarUrl,
+      nickname: mockStudentData.nickname,
+      tags: mockStudentData.tags || [],
+      introduction: mockStudentData.introduction,
+      gender: mockStudentData.gender,
+      phone: mockStudentData.phone,
+      wechat: mockStudentData.wechat,
+      hasPassword: mockStudentData.hasPassword,
+      school: mockStudentData.school,
+      major: mockStudentData.major,
+      grade: mockStudentData.grade,
+      tag: mockStudentData.tag
+      // 确保有tag字段
+    };
+  }
+  common_vendor.index.__f__("log", "at store/services/mock-data.js:490", "【模拟数据】返回用户资料:", userData);
+  return userData;
+};
 const mockData = {
   mockDelay,
   mockTeachers,
@@ -369,9 +455,11 @@ const mockData = {
   mockStudentData,
   mockTeacherData,
   mockApiResponse,
-  getMockTeacherDetailWithServices
+  getMockTeacherDetailWithServices,
+  getMockUserProfile
 };
 exports.getMockTeacherDetailWithServices = getMockTeacherDetailWithServices;
+exports.getMockUserProfile = getMockUserProfile;
 exports.mockApiResponse = mockApiResponse;
 exports.mockChatDetails = mockChatDetails;
 exports.mockChatSummaries = mockChatSummaries;

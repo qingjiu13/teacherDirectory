@@ -4,7 +4,6 @@ require("./services/mock-data.js");
 const store_modules_common_auth = require("./modules/common/auth.js");
 const store_modules_common_app = require("./modules/common/app.js");
 const store_modules_common_message = require("./modules/common/message.js");
-const store_modules_common_settings = require("./modules/common/settings.js");
 const store_modules_common_aiChat = require("./modules/common/ai-chat.js");
 const store_modules_common_match = require("./modules/common/match.js");
 const store_modules_common_teacher = require("./modules/common/teacher.js");
@@ -21,8 +20,6 @@ const store = common_vendor.createStore({
     // 应用全局状态
     message: store_modules_common_message.message,
     // 消息通知
-    settings: store_modules_common_settings.settings,
-    // 用户设置
     // 用户信息模块
     user: store_modules_common_user.user,
     // 用户基本信息
@@ -48,7 +45,7 @@ const initializeApp = async () => {
       success: true
     };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:74", "应用初始化失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:71", "应用初始化失败:", error);
     return { success: false, error };
   }
 };
@@ -57,7 +54,7 @@ const loadTeacherData = async () => {
     await store.dispatch("teacher/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:89", "加载教师数据失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:86", "加载教师数据失败:", error);
     return { success: false, error };
   }
 };
@@ -66,7 +63,7 @@ const loadStudentData = async () => {
     await store.dispatch("student/loadInitialData");
     return { success: true };
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/index.js:104", "加载学生数据失败:", error);
+    common_vendor.index.__f__("error", "at store/index.js:101", "加载学生数据失败:", error);
     return { success: false, error };
   }
 };

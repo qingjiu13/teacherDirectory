@@ -63,38 +63,6 @@
   color: #333;
 }
 
-/* 调试工具样式 */
-.debug-section {
-  width: 100%;
-  margin-top: 20rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.role-switch-container {
-  display: flex;
-  flex-direction: row;
-  background-color: #f0f0f0;
-  border-radius: 40rpx;
-  padding: 6rpx;
-  margin: 10rpx 0;
-}
-.role-btn {
-  padding: 10rpx 30rpx;
-  border-radius: 30rpx;
-  margin: 0 5rpx;
-}
-.role-btn text {
-  font-size: 26rpx;
-  color: #666;
-}
-.role-btn.active {
-  background-color: #2196F3;
-}
-.role-btn.active text {
-  color: #ffffff;
-}
-
 /* 菜单列表 */
 .menu-list {
   width: 100%;
