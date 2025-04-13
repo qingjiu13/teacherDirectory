@@ -140,21 +140,29 @@ export default {
             uni.removeStorageSync('token');
             uni.removeStorageSync('userInfo');
             
-            // 清除用户资料（通过Vuex）
-            this.clearProfile();
-            
-            // 更新页面显示
-            this.isLoggedIn = false;
-            
-            uni.showToast({
-              title: '已退出登录',
-              icon: 'success'
-            });
-            
-            // 返回到"我的"页面
-            setTimeout(() => {
-              Navigator.redirectTo('/pages/mine/mine/mine_common');
-            }, 1500);
+            // 清除其他可能的用户相关数据
+            // 但保留用户角色和模拟数据设置，避免影响应用其他功能
+            try {
+              // 清除用户资料（通过Vuex）
+              this.clearProfile();
+              
+              uni.showToast({
+                title: '已退出登录',
+                icon: 'success'
+              });
+              
+              // 增加延迟确保数据清除
+              setTimeout(() => {
+                // 返回到"我的"页面
+                Navigator.redirectTo('/pages/mine/mine/mine_common');
+              }, 1500);
+            } catch (error) {
+              console.error('退出登录时出错:', error);
+              uni.showToast({
+                title: '退出登录时出错',
+                icon: 'none'
+              });
+            }
           }
         }
       });

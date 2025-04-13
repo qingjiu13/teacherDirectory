@@ -82,15 +82,22 @@ const _sfc_main = common_vendor.defineComponent({
           if (res.confirm) {
             common_vendor.index.removeStorageSync("token");
             common_vendor.index.removeStorageSync("userInfo");
-            this.clearProfile();
-            this.isLoggedIn = false;
-            common_vendor.index.showToast({
-              title: "已退出登录",
-              icon: "success"
-            });
-            setTimeout(() => {
-              router_Router.Navigator.redirectTo("/pages/mine/mine/mine_common");
-            }, 1500);
+            try {
+              this.clearProfile();
+              common_vendor.index.showToast({
+                title: "已退出登录",
+                icon: "success"
+              });
+              setTimeout(() => {
+                router_Router.Navigator.redirectTo("/pages/mine/mine/mine_common");
+              }, 1500);
+            } catch (error) {
+              common_vendor.index.__f__("error", "at pages/mine/settings.uvue:160", "退出登录时出错:", error);
+              common_vendor.index.showToast({
+                title: "退出登录时出错",
+                icon: "none"
+              });
+            }
           }
         }
       });

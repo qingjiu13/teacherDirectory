@@ -138,7 +138,20 @@ export default {
     }
   },
   async onShow() {
-    // 每次显示页面时检查角色状态
+    // 每次显示页面时检查登录状态
+    const token = uni.getStorageSync('token');
+    const isCurrentlyLoggedIn = !!token;
+    
+    // 更新登录状态并处理相应的UI
+    this.isLoggedIn = isCurrentlyLoggedIn;
+    if (!this.isLoggedIn) {
+      // 用户未登录，清除显示数据
+      this.userData = {};
+      this.userName = '';
+      console.log('onShow: 用户未登录，清除用户数据显示');
+      return; // 未登录则不继续加载数据
+    }
+    
     const storedUserRole = uni.getStorageSync('userRole');
     
     // 检查并获取模拟数据设置
@@ -176,23 +189,6 @@ export default {
         console.log('onShow: 重新加载模拟数据');
       }
     }
-    
-    // 检查登录状态
-    const token = uni.getStorageSync('token');
-    const isCurrentlyLoggedIn = !!token;
-    
-    if (this.isLoggedIn !== isCurrentlyLoggedIn) {
-      this.isLoggedIn = isCurrentlyLoggedIn;
-      
-      if (!this.isLoggedIn) {
-        // 用户已退出登录，更新显示
-        this.userData = {};
-        this.userName = '';
-      } else {
-        // 用户已登录，刷新数据
-        this.loadMockData();
-      }
-    }
   },
   methods: {
     /**
@@ -211,6 +207,18 @@ export default {
         console.log('已更新storage中的模拟数据设置为: true');
       }
       
+      // 首先检查登录状态
+      const token = uni.getStorageSync('token');
+      this.isLoggedIn = !!token;
+      
+      // 如果未登录，清除用户数据并返回
+      if (!this.isLoggedIn) {
+        this.userData = {};
+        this.userName = '';
+        console.log('用户未登录，不加载用户资料');
+        return;
+      }
+      
       // 使用services.user.getUserProfile获取用户资料
       // 这将调用user.api.js中的getUserProfile方法
       this.isLoading = true;
@@ -221,12 +229,11 @@ export default {
             this.userData = response.data;
             this.userName = this.userData.nickname || '用户';
             
-            // 同步更新到storage
+            // 同步更新到storage，但不重设token
             uni.setStorageSync('userRole', this.userRole);
             uni.setStorageSync('userInfo', JSON.stringify(this.userData));
-            uni.setStorageSync('token', 'mock_token_for_testing'); // 模拟token
+            // 不再设置模拟token：uni.setStorageSync('token', 'mock_token_for_testing');
             
-            this.isLoggedIn = true; // 测试模式下始终为登录状态
             console.log("加载用户资料成功:", this.userData);
           } else {
             console.error('获取用户资料失败: 响应数据无效');

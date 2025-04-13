@@ -43,42 +43,40 @@ const _sfc_main = common_vendor.defineComponent({
   },
   onShow() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
+      const token = common_vendor.index.getStorageSync("token");
+      const isCurrentlyLoggedIn = !!token;
+      this.isLoggedIn = isCurrentlyLoggedIn;
+      if (!this.isLoggedIn) {
+        this.userData = new UTSJSONObject({});
+        this.userName = "";
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:151", "onShow: 用户未登录，清除用户数据显示");
+        return Promise.resolve(null);
+      }
       const storedUserRole = common_vendor.index.getStorageSync("userRole");
       const useMockData = common_vendor.index.getStorageSync("use_mock_api") === "true";
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:146", "onShow: 模拟数据状态:", useMockData ? "启用" : "禁用");
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:159", "onShow: 模拟数据状态:", useMockData ? "启用" : "禁用");
       if (storedUserRole && storedUserRole !== this.userRole) {
         this.isLoading = true;
         try {
           this.userRole = storedUserRole;
           if (this.userRole === "teacher") {
             yield store_index.loadTeacherData();
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:157", "教师数据已重新加载");
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:170", "教师数据已重新加载");
           } else {
             yield store_index.loadStudentData();
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:160", "学生数据已重新加载");
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:173", "学生数据已重新加载");
           }
           this.loadMockData();
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:165", "onShow 更新用户角色:", this.userRole);
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:178", "onShow 更新用户角色:", this.userRole);
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:167", "角色切换时加载数据失败:", error);
+          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:180", "角色切换时加载数据失败:", error);
         } finally {
           this.isLoading = false;
         }
       } else {
         if (useMockData) {
           this.loadMockData();
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:176", "onShow: 重新加载模拟数据");
-        }
-      }
-      const token = common_vendor.index.getStorageSync("token");
-      const isCurrentlyLoggedIn = !!token;
-      if (this.isLoggedIn !== isCurrentlyLoggedIn) {
-        this.isLoggedIn = isCurrentlyLoggedIn;
-        if (!this.isLoggedIn) {
-          this.userData = new UTSJSONObject({});
-          this.userName = "";
-        } else {
-          this.loadMockData();
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:189", "onShow: 重新加载模拟数据");
         }
       }
     });
@@ -90,10 +88,18 @@ const _sfc_main = common_vendor.defineComponent({
     loadMockData() {
       const storageSetting = common_vendor.index.getStorageSync("use_mock_api");
       const useMockData = storageSetting === "true" || true;
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:206", "加载用户数据，模拟数据状态:", useMockData ? "启用" : "禁用", "Storage值:", storageSetting);
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:202", "加载用户数据，模拟数据状态:", useMockData ? "启用" : "禁用", "Storage值:", storageSetting);
       if (useMockData && storageSetting !== "true") {
         common_vendor.index.setStorageSync("use_mock_api", "true");
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:211", "已更新storage中的模拟数据设置为: true");
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:207", "已更新storage中的模拟数据设置为: true");
+      }
+      const token = common_vendor.index.getStorageSync("token");
+      this.isLoggedIn = !!token;
+      if (!this.isLoggedIn) {
+        this.userData = new UTSJSONObject({});
+        this.userName = "";
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:218", "用户未登录，不加载用户资料");
+        return null;
       }
       this.isLoading = true;
       store_services_index.services.user.getUserProfile(this.userRole).then((response = null) => {
@@ -102,14 +108,12 @@ const _sfc_main = common_vendor.defineComponent({
           this.userName = this.userData.nickname || "用户";
           common_vendor.index.setStorageSync("userRole", this.userRole);
           common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userData));
-          common_vendor.index.setStorageSync("token", "mock_token_for_testing");
-          this.isLoggedIn = true;
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:230", "加载用户资料成功:", this.userData);
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.uvue:237", "加载用户资料成功:", this.userData);
         } else {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:232", "获取用户资料失败: 响应数据无效");
+          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:239", "获取用户资料失败: 响应数据无效");
         }
       }).catch((error = null) => {
-        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:236", "获取用户资料失败:", error);
+        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.uvue:243", "获取用户资料失败:", error);
       }).finally(() => {
         this.isLoading = false;
       });
