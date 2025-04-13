@@ -100,7 +100,7 @@ export default {
               
               // 返回到"我的"页面并刷新
               setTimeout(() => {
-                Navigator.redirectTo('/pages/mine/mine/mine_common');
+                Navigator.reLaunch('/pages/mine/mine/mine_common');
               }, 1500);
             } catch (error) {
               console.error('切换角色失败:', error);
@@ -154,7 +154,7 @@ export default {
               // 增加延迟确保数据清除
               setTimeout(() => {
                 // 返回到"我的"页面
-                Navigator.redirectTo('/pages/mine/mine/mine_common');
+                Navigator.reLaunch('/pages/mine/mine/mine_common');
               }, 1500);
             } catch (error) {
               console.error('退出登录时出错:', error);

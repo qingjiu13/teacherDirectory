@@ -45,7 +45,7 @@ const _sfc_main = common_vendor.defineComponent({
                   icon: "none"
                 });
                 setTimeout(() => {
-                  router_Router.Navigator.redirectTo("/pages/mine/mine/mine_common");
+                  router_Router.Navigator.reLaunch("/pages/mine/mine/mine_common");
                 }, 1500);
               } catch (error) {
                 common_vendor.index.__f__("error", "at pages/mine/settings.uvue:106", "切换角色失败:", error);
@@ -89,7 +89,7 @@ const _sfc_main = common_vendor.defineComponent({
                 icon: "success"
               });
               setTimeout(() => {
-                router_Router.Navigator.redirectTo("/pages/mine/mine/mine_common");
+                router_Router.Navigator.reLaunch("/pages/mine/mine/mine_common");
               }, 1500);
             } catch (error) {
               common_vendor.index.__f__("error", "at pages/mine/settings.uvue:160", "退出登录时出错:", error);
