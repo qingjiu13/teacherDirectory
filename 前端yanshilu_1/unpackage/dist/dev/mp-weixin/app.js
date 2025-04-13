@@ -10,8 +10,7 @@ if (!Math) {
   "./pages/message/message.js";
   "./pages/message/chat.js";
   "./pages/login/login.js";
-  "./pages/login/student/student.js";
-  "./pages/login/teacher/teacher.js";
+  "./pages/login/login_detail.js";
   "./pages/login/wechat_login.js";
   "./pages/mine/mine/mine_common.js";
   "./pages/mine/modify.js";

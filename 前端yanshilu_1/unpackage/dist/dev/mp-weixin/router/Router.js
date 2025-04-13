@@ -16,8 +16,7 @@ const MessageRoutes = {
 };
 const LoginRoutes = {
   LOGIN: "/pages/login/login",
-  STUDENT_LOGIN: "/pages/login/student/student",
-  TEACHER_LOGIN: "/pages/login/teacher/teacher",
+  LOGIN_DETAIL: "/pages/login/login_detail",
   WECHAT_LOGIN: "/pages/login/wechat_login"
 };
 const MineRoutes = {
@@ -145,16 +144,11 @@ const Navigator = {
     this.navigateTo(LoginRoutes.LOGIN);
   },
   /**
-   * @description 跳转到学生登录页面
+   * @description 跳转到登录详情页面
+   * @param {String} type - 登录类型，可以是'student'或'teacher'
    */
-  toStudentLogin() {
-    this.navigateTo(LoginRoutes.STUDENT_LOGIN);
-  },
-  /**
-   * @description 跳转到教师登录页面
-   */
-  toTeacherLogin() {
-    this.navigateTo(LoginRoutes.TEACHER_LOGIN);
+  toLoginDetail(type) {
+    this.navigateTo(LoginRoutes.LOGIN_DETAIL, { type });
   },
   /**
    * @description 跳转到微信登录页面

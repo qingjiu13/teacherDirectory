@@ -43,15 +43,9 @@
 			}
 		},
 		{
-			"path": "pages/login/student/student",
+			"path": "pages/login/login_detail",
 			"style": {
-				"navigationBarTitleText": "学生登录"
-			}
-		},
-		{
-			"path": "pages/login/teacher/teacher",
-			"style": {
-				"navigationBarTitleText": "教师登录"
+				"navigationBarTitleText": "登录详情"
 			}
 		},
 		{
