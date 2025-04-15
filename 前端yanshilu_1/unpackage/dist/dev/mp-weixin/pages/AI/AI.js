@@ -621,7 +621,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     g: common_vendor.o((...args) => $options.toggleSidebar && $options.toggleSidebar(...args)),
     h: common_vendor.o((...args) => $options.startNewChat && $options.startNewChat(...args)),
-    i: common_vendor.sr("filterSection", "be726fe0-1"),
+    i: common_vendor.sr("filterSection", "55d6b378-1"),
     j: common_vendor.o($options.onSchoolClick),
     k: common_vendor.o($options.onMajorClick),
     l: common_vendor.o($options.onSchoolSearch),
@@ -631,7 +631,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["major-index"]: $data.majorIndex,
       ["major-list"]: $data.majorList
     }),
-    n: common_vendor.sr("messageList", "be726fe0-2"),
+    n: common_vendor.sr("messageList", "55d6b378-2"),
     o: common_vendor.o($options.onScrollToUpper),
     p: common_vendor.o($options.onScroll),
     q: common_vendor.o($options.retryMessage),
