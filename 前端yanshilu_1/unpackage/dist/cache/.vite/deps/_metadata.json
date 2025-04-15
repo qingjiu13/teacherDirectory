@@ -1,8 +1,21 @@
 {
-  "hash": "15a6ea6d",
-  "configHash": "8b7c9290",
-  "lockfileHash": "5b0d2aa9",
-  "browserHash": "72cba7af",
-  "optimized": {},
+  "hash": "408fe108",
+  "configHash": "80916ef6",
+  "lockfileHash": "bcfa20e7",
+  "browserHash": "52a43881",
+  "optimized": {
+    "jwt-decode": {
+      "src": "../../../../../node_modules/jwt-decode/build/esm/index.js",
+      "file": "jwt-decode.js",
+      "fileHash": "1d5fe5af",
+      "needsInterop": false
+    },
+    "js-base64": {
+      "src": "../../../../../node_modules/js-base64/base64.mjs",
+      "file": "js-base64.js",
+      "fileHash": "d164a925",
+      "needsInterop": false
+    }
+  },
   "chunks": {}
 }
