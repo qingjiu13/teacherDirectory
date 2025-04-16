@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "AI助手",
+  "usingComponents": {
+    "history-sidebar": "../../components/ai-chat/HistorySidebar",
+    "filter-section": "../../components/ai-chat/FilterSection",
+    "message-list": "../../components/ai-chat/MessageList",
+    "mode-selector": "../../components/ai-chat/ModeSelector",
+    "input-section": "../../components/ai-chat/InputSection"
+  }
+}

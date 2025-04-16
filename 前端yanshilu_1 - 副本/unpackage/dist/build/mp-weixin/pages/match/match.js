@@ -1,0 +1,1 @@
+"use strict";const e=require("../../common/vendor.js"),o=e.defineComponent({components:{TabBar:()=>"../../components/tab-bar/tab-bar.js"},onLoad(){console.log("匹配页面已加载")},data:()=>({})});if(!Array){e.resolveComponent("tab-bar")()}Math;const a=e._export_sfc(o,[["render",function(o,a,t,n,r,s){return{a:e.p({pageName:"match"}),b:e.sei(o.virtualHostId,"view")}}]]);wx.createPage(a);

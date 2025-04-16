@@ -1,0 +1,476 @@
+<template>
+	<view class="container" @click="onPageClick">
+		<!-- 筛选区域 -->
+		<view class="filter-section" @click.stop>
+			<!-- 第一行：学校和专业 -->
+			<view class="filter-row">
+				<view class="choice-wrapper flex-1">
+					<choice-selected 
+						:defaultText="'学校'" 
+						:choiceIndex="schoolIndex" 
+						:choiceList="schoolList"
+						mode="search"
+						:searchPlaceholder="'学校'"
+						@onChoiceClick="onSchoolClick"
+						@search-input="onSchoolSearch">
+					</choice-selected>
+				</view>
+				
+				<view class="choice-wrapper flex-1">
+					<choice-selected 
+						:defaultText="'专业'" 
+						:choiceIndex="majorIndex" 
+						:choiceList="majorList"
+						@onChoiceClick="onMajorClick">
+					</choice-selected>
+				</view>
+			</view>
+			
+			<!-- 第二行：排序筛选和筛选按钮 -->
+			<view class="filter-row">
+				<view class="choice-wrapper flex-1">
+					<choice-selected 
+						:defaultText="'排序筛选'" 
+						:choiceIndex="sortIndex" 
+						:choiceList="sortList"
+						@onChoiceClick="onSortClick">
+					</choice-selected>
+				</view>
+				
+				<view class="filter-btn-wrapper">
+					<button class="filter-btn" @click="applyFilter">筛选</button>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 老师卡片列表 -->
+		<scroll-view class="card-list" scroll-y="true" id="step2" @scrolltolower="loadMore">
+			<view class="teacher-card" v-for="(teacher, index) in filteredMatchList" :key="index">
+				<view class="card-left">
+					<image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
+				</view>
+				<view class="card-middle">
+					<view class="card-middle-top">
+						<view class="teacher-name">{{ teacher.name }}</view>
+						<view class="teacher-info">{{ teacher.school }} | {{ teacher.major }} | {{ teacher.teacherScore }}</view>
+					</view>
+				</view>
+				<view class="card-right">
+					<button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
+				</view>
+			</view>
+			
+			<view class="empty-state" v-if="filteredMatchList.length === 0 && !isLoading">
+				<text>暂无匹配的老师信息</text>
+			</view>
+			
+			<!-- 加载提示 -->
+			<view class="loading-more" v-if="isLoading">
+				<text>加载中...</text>
+			</view>
+		</scroll-view>
+	</view>
+</template>
+
+<script>
+	import choiceSelected from '../../components/combobox/combobox'
+	import { Navigator } from '@/router/Router.js'
+	import store from '@/store/index.js'
+	import { mapState, mapGetters } from 'vuex'
+	
+	export default {
+		components: {
+			choiceSelected
+		},
+		data() {
+			return {
+				// 筛选相关数据
+				schoolList: [
+					{ choiceItemId: "bjdx", choiceItemContent: "北京大学" },
+					{ choiceItemId: "qhdx", choiceItemContent: "清华大学" },
+					{ choiceItemId: "fddx", choiceItemContent: "复旦大学" },
+					{ choiceItemId: "zjdx", choiceItemContent: "浙江大学" },
+					{ choiceItemId: "njdx", choiceItemContent: "南京大学" },
+					{ choiceItemId: "scdx", choiceItemContent: "四川大学" },
+					{ choiceItemId: "whdx", choiceItemContent: "武汉大学" },
+					{ choiceItemId: "zsdx", choiceItemContent: "中山大学" },
+					{ choiceItemId: "xjtu", choiceItemContent: "西安交通大学" },
+					{ choiceItemId: "sysu", choiceItemContent: "中山大学" },
+					{ choiceItemId: "hust", choiceItemContent: "华中科技大学" },
+					{ choiceItemId: "hit", choiceItemContent: "哈尔滨工业大学" },
+					{ choiceItemId: "sjtu", choiceItemContent: "上海交通大学" }
+				],
+				majorList: [
+					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
+					{ choiceItemId: "rjgc", choiceItemContent: "软件工程" },
+					{ choiceItemId: "sx", choiceItemContent: "数学" },
+					{ choiceItemId: "wl", choiceItemContent: "物理" },
+					{ choiceItemId: "hx", choiceItemContent: "化学" },
+					{ choiceItemId: "sw", choiceItemContent: "生物" },
+					{ choiceItemId: "jdxy", choiceItemContent: "机电工程" },
+					{ choiceItemId: "dqxy", choiceItemContent: "电气工程" },
+					{ choiceItemId: "jzxy", choiceItemContent: "建筑学" },
+					{ choiceItemId: "lyxy", choiceItemContent: "临床医学" },
+					{ choiceItemId: "yyxy", choiceItemContent: "药学" },
+					{ choiceItemId: "glxy", choiceItemContent: "管理学" },
+					{ choiceItemId: "jjxy", choiceItemContent: "经济学" },
+					{ choiceItemId: "flxy", choiceItemContent: "法学" }
+				],
+				sortList: [
+					{ choiceItemId: "zh", choiceItemContent: "综合排序" },
+					{ choiceItemId: "fs", choiceItemContent: "分数排序" }
+				],
+				// 临时选择变量（用户选择但尚未应用）
+				tempSelectedSchool: '',
+				tempSelectedMajor: '',
+				tempSelectedSort: '综合排序',
+				// 下拉框索引
+				schoolIndex: -1,
+				majorIndex: -1,
+				sortIndex: -1,
+				// 页面状态
+				isLoading: false,
+				// 存储筛选后的数据
+				filteredTeachers: []
+			}
+		},
+		computed: {
+			...mapGetters('match', ['filteredMatchList']),
+			
+			/**
+			 * @description 获取页面展示的老师列表
+			 * @returns {Array} 要展示的老师列表
+			 */
+			filteredMatchList() {
+				return this.filteredTeachers;
+			}
+		},
+		onLoad() {
+			console.log('匹配页面已加载');
+			// 初始化页面数据
+			this.loadData();
+		},
+		methods: {
+			/**
+			 * @description 加载数据
+			 */
+			async loadData() {
+				try {
+					this.isLoading = true;
+					// 显示加载提示
+					uni.showLoading({
+						title: '加载中...'
+					});
+					
+					// 构建筛选条件对象
+					const filters = {
+						school: this.tempSelectedSchool,
+						major: this.tempSelectedMajor,
+						sort: this.tempSelectedSort
+					};
+					
+					// 调用Vuex action获取数据
+					const result = await store.dispatch('match/getFilteredMatchList', filters);
+					
+					// 从结果中获取筛选后的数据
+					this.filteredTeachers = result.data;
+				} catch (error) {
+					console.error('加载数据失败:', error);
+					// 显示来自后端的错误信息
+					uni.showToast({
+						title: error.message || '加载失败，请重试',
+						icon: 'none'
+					});
+				} finally {
+					this.isLoading = false;
+					uni.hideLoading();
+				}
+			},
+			
+			/**
+			 * @description 加载更多数据
+			 */
+			async loadMore() {
+				// 滚动到底部时加载更多数据
+				console.log('加载更多数据');
+				// 在实际应用中，这里应该触发新的API请求，加载下一页数据
+			},
+			
+			// 页面点击事件
+			onPageClick() {
+				// 关闭所有下拉框
+				let comboboxComponents = this.$children.filter(child => child.$options.name === 'ChoiceSelected');
+				comboboxComponents.forEach(component => {
+					if (component.closeDropdown) {
+						component.closeDropdown();
+					}
+				});
+			},
+			
+			// 应用筛选
+			async applyFilter() {
+				console.log('应用筛选:', {
+					school: this.tempSelectedSchool,
+					major: this.tempSelectedMajor,
+					sort: this.tempSelectedSort
+				});
+				
+				// 重新加载数据
+				await this.loadData();
+			},
+			
+			// 下拉框选择处理
+			onSchoolClick(position) {
+				this.schoolIndex = position;
+				// 只更新临时选择，不立即应用
+				this.tempSelectedSchool = this.schoolList[position].choiceItemContent;
+			},
+			
+			onMajorClick(position) {
+				this.majorIndex = position;
+				// 只更新临时选择，不立即应用
+				this.tempSelectedMajor = this.majorList[position].choiceItemContent;
+			},
+			
+			onSortClick(position) {
+				this.sortIndex = position;
+				// 只更新临时选择，不立即应用
+				this.tempSelectedSort = this.sortList[position].choiceItemContent;
+			},
+			
+			/**
+			 * @description 处理学校搜索输入事件
+			 * @param {String} keyword - 搜索关键词
+			 */
+			onSchoolSearch(keyword) {
+				console.log('学校搜索:', keyword);
+				// 此处无需实际处理，因为学校列表已在本地
+			},
+			
+			/**
+			 * @description 与老师沟通
+			 * @param {String} teacherId - 老师ID
+			 */
+			async handleCommunicate(teacherId) {
+				// 显示加载状态
+				uni.showLoading({
+					title: '正在连接...'
+				});
+				
+				try {
+					// 获取老师信息并保存，以便在聊天页面使用
+					await store.dispatch('match/getTeacherById', teacherId);
+					
+					// 延迟后跳转
+					setTimeout(() => {
+						uni.hideLoading();
+						// 使用router.js中的方法跳转到聊天页面
+						Navigator.toChat(teacherId);
+					}, 1000);
+				} catch (error) {
+					console.error('获取老师信息失败:', error);
+					uni.hideLoading();
+					// 显示来自后端的错误信息
+					uni.showToast({
+						title: error.message || '连接失败，请重试',
+						icon: 'none'
+					});
+				}
+			},
+			
+			/**
+			 * @description 查看老师详情
+			 * @param {String} teacherId - 老师ID
+			 */
+			async viewTeacherDetail(teacherId) {
+				try {
+					// 显示加载提示
+					uni.showLoading({
+						title: '加载中...'
+					});
+					
+					// 获取老师详细信息并保存到store
+					const result = await store.dispatch('match/getTeacherById', teacherId);
+					
+					// 跳转到老师详情页
+					Navigator.toTeacher(teacherId);
+				} catch (error) {
+					console.error('获取老师详情失败:', error);
+					// 显示来自后端的错误信息
+					uni.showToast({
+						title: error.message || '加载失败，请重试',
+						icon: 'none'
+					});
+				} finally {
+					uni.hideLoading();
+				}
+			}
+		}
+	}
+</script>
+
+<style>
+	.container {
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		background-color: #F5F9FC;
+		position: relative;
+		overflow: hidden;
+		width: 100%;
+	}
+	
+	.filter-section {
+		display: flex;
+		flex-direction: column;
+		padding: 15px;
+		background-color: #ffffff;
+		border-radius: 15px;
+		margin: 15px 10px;
+		margin-top: 20px;
+		width: auto;
+	}
+	
+	.filter-row {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		margin-bottom: 10px;
+	}
+	
+	.filter-row:last-child {
+		margin-bottom: 0;
+	}
+	
+	.choice-wrapper {
+		flex: 1;
+		margin: 0 4px;
+		min-width: 90px;
+	}
+	
+	.flex-1 {
+		flex: 1;
+	}
+	
+	.card-list {
+		flex: 1;
+		padding: 10px 15px;
+		position: relative;
+		z-index: 1;
+	}
+	
+	.teacher-card {
+		display: flex;
+		flex-direction: row;
+		background-color: #ffffff;
+		border-radius: 16px;
+		padding: 18px;
+		margin-bottom: 15px;
+		box-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
+		position: relative;
+		min-height: 110px;
+	}
+	
+	.card-left {
+		margin-right: 15px;
+		align-self: flex-start;
+	}
+	
+	.teacher-avatar {
+		width: 70px;
+		height: 70px;
+		border-radius: 35px;
+		background-color: #f5f5f5;
+	}
+	
+	.card-middle {
+		flex: 1;
+		padding-right: 65px;
+		display: flex;
+		flex-direction: column;
+		min-height: 70px;
+		justify-content: space-between;
+		width: calc(100% - 85px);
+		box-sizing: border-box;
+	}
+	
+	.card-middle-top {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+	}
+	
+	.teacher-name {
+		font-size: 18px;
+		font-weight: bold;
+		margin-bottom: 6px;
+		color: #333333;
+	}
+	
+	.teacher-info {
+		font-size: 14px;
+		color: #666666;
+		margin-bottom: 12px;
+	}
+	
+	.card-right {
+		position: absolute;
+		top: 18px;
+		right: 18px;
+		z-index: 2;
+	}
+	
+	.communicate-btn {
+		background-color: #1E90FF;
+		color: #ffffff;
+		font-size: 14px;
+		padding: 6px 12px;
+		border-radius: 20px;
+		border: none;
+		font-weight: 500;
+		line-height: 1.2;
+		min-width: 80px;
+	}
+	
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		height: 200px;
+		color: #999999;
+		font-size: 16px;
+	}
+	
+	.loading-more {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 60px;
+		color: #999999;
+		font-size: 14px;
+	}
+	
+	.filter-btn-wrapper {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-left: 10px;
+		width: 100px;
+	}
+	
+	.filter-btn {
+		background-color: #1E90FF;
+		color: #ffffff;
+		font-size: 14px;
+		padding: 0 15px;
+		height: 60rpx;
+		line-height: 60rpx;
+		border-radius: 10rpx;
+		border: none;
+		font-weight: 500;
+		width: 100%;
+		text-align: center;
+		box-shadow: 0 2px 6px rgba(30, 144, 255, 0.2);
+	}
+</style>

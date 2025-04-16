@@ -1,0 +1,141 @@
+{
+	"pages": [ 
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "研师录"
+			}
+		},
+		{
+			"path": "pages/match/match",
+			"style": {
+				"navigationBarTitleText": "精准匹配"
+			}
+		},
+		{
+			"path": "pages/teacher/teacher",
+			"style": {
+				"navigationBarTitleText": "导师详情"
+			}
+		},
+		{
+			"path": "pages/AI/AI",
+			"style": {
+				"navigationBarTitleText": "AI助手"
+			}
+		},
+		{
+			"path": "pages/message/message",
+			"style": {
+				"navigationBarTitleText": "消息列表"
+			}
+		},
+		{
+			"path": "pages/message/chat",
+			"style": {
+				"navigationBarTitleText": "聊天"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/login/login_detail",
+			"style": {
+				"navigationBarTitleText": "登录详情"
+			}
+		},
+		{
+			"path": "pages/login/wechat_login",
+			"style": {
+				"navigationBarTitleText": "微信登录"
+			}
+		},
+		{
+			"path": "pages/mine/mine/mine_common",
+			"style": {
+				"navigationBarTitleText": "个人中心（共用）"
+			}
+		},
+		{
+			"path": "pages/mine/modify",
+			"style": {
+				"navigationBarTitleText": "修改资料"
+			}
+		},
+		{
+			"path": "pages/mine/course/course",
+			"style": {
+				"navigationBarTitleText": "我的课程"
+			}
+		},
+		{
+			"path": "pages/mine/course/course_detail",
+			"style": {
+				"navigationBarTitleText": "课程详情"
+			}
+		},
+		{
+			"path": "pages/mine/order",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+			}
+		},
+		{
+			"path": "pages/mine/order/order_common",
+			"style": {
+				"navigationBarTitleText": "我的订单（共用）"
+			}
+		},
+		{
+			"path": "pages/mine/order/appraise/appraise",
+			"style": {
+				"navigationBarTitleText": "评价"
+			}
+		},
+		{
+			"path": "pages/mine/qualification",
+			"style": {
+				"navigationBarTitleText": "资质认证"
+			}
+		},
+		{
+			"path": "pages/mine/service",
+			"style": {
+				"navigationBarTitleText": "服务设置"
+			}
+		},
+		{
+			"path": "pages/mine/settings",
+			"style": {
+				"navigationBarTitleText": "系统设置"
+			}
+		},
+		{
+			"path": "pages/mine/wallet",
+			"style": {
+				"navigationBarTitleText": "我的钱包"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "研师录",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F8F8F8"
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^history-sidebar$": "components/ai-chat/HistorySidebar",
+			"^message-list$": "components/ai-chat/MessageList",
+			"^filter-section$": "components/ai-chat/FilterSection", 
+			"^mode-selector$": "components/ai-chat/ModeSelector",
+			"^input-section$": "components/ai-chat/InputSection"
+		}
+	},
+	"uniIdRouter": {}
+}
