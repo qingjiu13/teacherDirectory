@@ -1,13 +1,31 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const router = require("../../router.js");
+const router_Router = require("../../router/Router.js");
+require("../../store/index.js");
 const choiceSelected = () => "../../components/combobox/combobox.js";
 const _sfc_main = common_vendor.defineComponent({
   components: {
     choiceSelected
   },
   onLoad() {
-    common_vendor.index.__f__("log", "at pages/match/match.uvue:86", "匹配页面已加载");
+    return common_vendor.__awaiter(this, void 0, void 0, function* () {
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:101", "匹配页面已加载");
+      yield this.getSavedNavigationType();
+      yield this.getTeachersList();
+      this.updateFilterSelections();
+    });
+  },
+  onShow() {
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:113", "匹配页面显示");
+    this.updateFilterSelections();
+  },
+  onUnload() {
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:118", "匹配页面卸载");
+    this.handleNavigationExit();
+  },
+  onHide() {
+    common_vendor.index.__f__("log", "at pages/match/match.uvue:123", "匹配页面隐藏");
+    this.navigateDefault();
   },
   data() {
     return {
@@ -50,114 +68,89 @@ const _sfc_main = common_vendor.defineComponent({
       tempSelectedSchool: "",
       tempSelectedMajor: "",
       tempSelectedSort: "综合排序",
-      // 实际应用的筛选变量（点击筛选按钮后才会更新）
-      appliedSelectedSchool: "",
-      appliedSelectedMajor: "",
-      appliedSelectedSort: "综合排序",
       // 下拉框索引
       schoolIndex: -1,
       majorIndex: -1,
-      sortIndex: -1,
-      // 加载状态
-      isLoading: false,
-      // 老师数据
-      teachers: [
-        new UTSJSONObject({
-          id: 1,
-          nickname: "王教授",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "北京大学",
-          major: "计算机科学",
-          title: "教授",
-          score: "考研400分",
-          tags: ["认证学校", "经验丰富", "答疑及时", "通俗易懂"]
-        }),
-        new UTSJSONObject({
-          id: 2,
-          nickname: "李博士",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "清华大学",
-          major: "软件工程",
-          title: "副教授",
-          score: "考研390分",
-          tags: ["认证学校", "教学认真"]
-        }),
-        new UTSJSONObject({
-          id: 3,
-          nickname: "张老师",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "复旦大学",
-          major: "数学",
-          title: "讲师",
-          score: "考研380分",
-          tags: ["认证学校", "耐心细致"]
-        }),
-        new UTSJSONObject({
-          id: 4,
-          nickname: "刘教授",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "浙江大学",
-          major: "物理",
-          title: "教授",
-          score: "考研410分",
-          tags: ["认证学校", "通俗易懂"]
-        }),
-        new UTSJSONObject({
-          id: 5,
-          nickname: "陈老师",
-          avatar: "/static/image/tab-bar/default_avatar.png",
-          school: "南京大学",
-          major: "化学",
-          title: "副教授",
-          score: "考研385分",
-          tags: ["认证学校", "答疑及时"]
-        })
-      ]
+      sortIndex: -1
     };
   },
-  computed: {
-    filteredTeachers() {
-      let result = [...this.teachers];
-      if (this.appliedSelectedSchool) {
-        result = result.filter((teacher) => {
-          return teacher.school === this.appliedSelectedSchool;
+  computed: Object.assign(Object.assign({}, common_vendor.mapState("match", [
+    "teachers",
+    "currentPage",
+    "totalPages",
+    "loading",
+    "loadingMore",
+    "filters"
+  ])), common_vendor.mapGetters("match", [
+    "filteredTeachers",
+    "isLoading",
+    "isLoadingMore",
+    "hasMoreData",
+    "currentFilters"
+  ])),
+  methods: Object.assign(Object.assign({}, common_vendor.mapActions("match", [
+    "getTeachers",
+    "loadMoreTeachers",
+    "searchTeachers",
+    "resetAndGetTeachers",
+    "selectTeacher",
+    "navigateToChat",
+    "navigateToTeacherDetail",
+    "navigateDefault",
+    "handleNavigationExit",
+    "getSavedNavigationType"
+  ])), {
+    /**
+     * @description 根据当前筛选条件更新界面选择状态
+     */
+    updateFilterSelections() {
+      const currentFilters = this.filters;
+      this.tempSelectedSchool = currentFilters.school || "";
+      this.tempSelectedMajor = currentFilters.major || "";
+      if (this.tempSelectedSchool) {
+        const schoolIndex = this.schoolList.findIndex((item) => {
+          return item.choiceItemContent === this.tempSelectedSchool;
         });
+        this.schoolIndex = schoolIndex >= 0 ? schoolIndex : -1;
+      } else {
+        this.schoolIndex = -1;
       }
-      if (this.appliedSelectedMajor) {
-        result = result.filter((teacher) => {
-          return teacher.major === this.appliedSelectedMajor;
+      if (this.tempSelectedMajor) {
+        const majorIndex = this.majorList.findIndex((item) => {
+          return item.choiceItemContent === this.tempSelectedMajor;
         });
+        this.majorIndex = majorIndex >= 0 ? majorIndex : -1;
+      } else {
+        this.majorIndex = -1;
       }
-      result.sort((a, b) => {
-        const scoreA = parseInt(a.score.match(/\d+/)[0]);
-        const scoreB = parseInt(b.score.match(/\d+/)[0]);
-        return scoreB - scoreA;
+    },
+    // 获取老师列表
+    getTeachersList() {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        yield this.getTeachers(new UTSJSONObject({ page: 1, limit: 10 }));
       });
-      return result;
-    }
-  },
-  methods: {
+    },
     // 页面点击事件
     onPageClick() {
       let comboboxComponents = this.$children.filter((child) => {
         return child.$options.name === "ChoiceSelected";
       });
       comboboxComponents.forEach((component) => {
-        if (component.isShowChoice) {
-          component.isShowChoice = false;
+        if (component.closeDropdown) {
+          component.closeDropdown();
         }
       });
     },
     // 应用筛选
     applyFilter() {
-      this.appliedSelectedSchool = this.tempSelectedSchool;
-      this.appliedSelectedMajor = this.tempSelectedMajor;
-      this.appliedSelectedSort = this.tempSelectedSort;
-      common_vendor.index.__f__("log", "at pages/match/match.uvue:237", "应用筛选:", new UTSJSONObject({
-        学校: this.appliedSelectedSchool,
-        专业: this.appliedSelectedMajor,
-        排序: this.appliedSelectedSort
-      }));
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        const filters = new UTSJSONObject({
+          school: this.tempSelectedSchool,
+          major: this.tempSelectedMajor
+        });
+        common_vendor.index.__f__("log", "at pages/match/match.uvue:261", "应用筛选:", filters);
+        yield this.searchTeachers(filters);
+      });
     },
     // 下拉框选择处理
     onSchoolClick(position = null) {
@@ -172,18 +165,32 @@ const _sfc_main = common_vendor.defineComponent({
       this.sortIndex = position;
       this.tempSelectedSort = this.sortList[position].choiceItemContent;
     },
-    // 保留原有方法
+    /**
+     * @description 处理学校搜索输入事件
+     * @param {String} keyword - 搜索关键词
+     */
+    onSchoolSearch(keyword = null) {
+      common_vendor.index.__f__("log", "at pages/match/match.uvue:291", "学校搜索:", keyword);
+    },
+    // 与老师沟通
     handleCommunicate(teacherId = null) {
-      this.isLoading = true;
+      this.selectTeacher(teacherId);
+      this.navigateToChat();
+      common_vendor.index.showLoading({
+        title: "正在连接..."
+      });
       setTimeout(() => {
-        this.isLoading = false;
-        router.Navigator.toChat(teacherId);
+        common_vendor.index.hideLoading();
+        router_Router.Navigator.toChat(teacherId);
       }, 1e3);
     },
+    // 查看老师详情
     viewTeacherDetail(teacherId = null) {
-      router.Navigator.toTeacher(teacherId);
+      this.selectTeacher(teacherId);
+      this.navigateToTeacherDetail();
+      router_Router.Navigator.toTeacher(teacherId);
     }
-  }
+  })
 });
 if (!Array) {
   const _component_choice_selected = common_vendor.resolveComponent("choice-selected");
@@ -192,32 +199,35 @@ if (!Array) {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.o($options.onSchoolClick),
-    b: common_vendor.p({
+    b: common_vendor.o($options.onSchoolSearch),
+    c: common_vendor.p({
       defaultText: "学校",
       choiceIndex: $data.schoolIndex,
-      choiceList: $data.schoolList
+      choiceList: $data.schoolList,
+      mode: "search",
+      searchPlaceholder: "学校"
     }),
-    c: common_vendor.o($options.onMajorClick),
-    d: common_vendor.p({
+    d: common_vendor.o($options.onMajorClick),
+    e: common_vendor.p({
       defaultText: "专业",
       choiceIndex: $data.majorIndex,
       choiceList: $data.majorList
     }),
-    e: common_vendor.o($options.onSortClick),
-    f: common_vendor.p({
+    f: common_vendor.o($options.onSortClick),
+    g: common_vendor.p({
       defaultText: "排序筛选",
       choiceIndex: $data.sortIndex,
       choiceList: $data.sortList
     }),
-    g: common_vendor.o((...args) => $options.applyFilter && $options.applyFilter(...args)),
-    h: common_vendor.o(() => {
+    h: common_vendor.o((...args) => $options.applyFilter && $options.applyFilter(...args)),
+    i: common_vendor.o(() => {
     }),
-    i: common_vendor.f($options.filteredTeachers, (teacher, index, i0) => {
+    j: common_vendor.f(_ctx.filteredTeachers, (teacher, index, i0) => {
       return {
-        a: teacher.avatar || "/static/image/tab-bar/default_avatar.svg",
+        a: teacher.avatar || "/static/image/tab-bar/default_avatar.png",
         b: common_vendor.o(($event) => $options.viewTeacherDetail(teacher.id), index),
         c: common_vendor.t(teacher.nickname),
-        d: common_vendor.t(teacher.title || "教授"),
+        d: common_vendor.t(teacher.school),
         e: common_vendor.t(teacher.major),
         f: common_vendor.t(teacher.score),
         g: common_vendor.f(teacher.tags, (tag, tagIndex, i1) => {
@@ -230,13 +240,18 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         i: index
       };
     }),
-    j: $options.filteredTeachers.length === 0
-  }, $options.filteredTeachers.length === 0 ? {} : {}, {
-    k: common_vendor.sei("step2", "scroll-view"),
-    l: $data.isLoading
-  }, $data.isLoading ? {} : {}, {
-    m: common_vendor.sei(_ctx.virtualHostId, "view"),
-    n: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
+    k: _ctx.filteredTeachers.length === 0 && !_ctx.isLoading && !_ctx.isLoadingMore
+  }, _ctx.filteredTeachers.length === 0 && !_ctx.isLoading && !_ctx.isLoadingMore ? {} : {}, {
+    l: _ctx.isLoadingMore
+  }, _ctx.isLoadingMore ? {} : {}, {
+    m: !_ctx.hasMoreData && _ctx.filteredTeachers.length > 0 && !_ctx.isLoadingMore
+  }, !_ctx.hasMoreData && _ctx.filteredTeachers.length > 0 && !_ctx.isLoadingMore ? {} : {}, {
+    n: common_vendor.sei("step2", "scroll-view"),
+    o: common_vendor.o((...args) => _ctx.loadMoreTeachers && _ctx.loadMoreTeachers(...args)),
+    p: _ctx.isLoading
+  }, _ctx.isLoading ? {} : {}, {
+    q: common_vendor.sei(_ctx.virtualHostId, "view"),
+    r: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

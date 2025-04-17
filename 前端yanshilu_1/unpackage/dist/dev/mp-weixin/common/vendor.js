@@ -5630,6 +5630,10 @@ function vFor(source, renderItem) {
   }
   return ret;
 }
+function setRef(ref2, id, opts = {}) {
+  const { $templateRefs } = getCurrentInstance();
+  $templateRefs.push({ i: id, r: ref2, k: opts.k, f: opts.f });
+}
 function setUniElementId(id, options, ref2, refOpts) {
   const ins = getCurrentInstance();
   if (ins) {
@@ -5711,6 +5715,7 @@ const e = (target, ...sources) => extend(target, ...sources);
 const n = (value) => normalizeClass(value);
 const t = (val) => toDisplayString(val);
 const p = (props) => renderProps(props);
+const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 const sei = setUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -7569,7 +7574,7 @@ function initOnError() {
 function initRuntimeSocketService() {
   const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_B1M4MF";
+  const id = "mp-weixin_omdjQL";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9856,59 +9861,109 @@ Store.prototype._withCommit = function _withCommit(fn) {
   this._committing = committing;
 };
 Object.defineProperties(Store.prototype, prototypeAccessors);
-class InvalidTokenError extends Error {
+var mapState = normalizeNamespace(function(namespace, states) {
+  var res = {};
+  if (!isValidMap(states)) {
+    console.error("[vuex] mapState: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(states).forEach(function(ref2) {
+    var key = ref2.key;
+    var val = ref2.val;
+    res[key] = function mappedState() {
+      var state = this.$store.state;
+      var getters = this.$store.getters;
+      if (namespace) {
+        var module2 = getModuleByNamespace(this.$store, "mapState", namespace);
+        if (!module2) {
+          return;
+        }
+        state = module2.context.state;
+        getters = module2.context.getters;
+      }
+      return typeof val === "function" ? val.call(this, state, getters) : state[val];
+    };
+    res[key].vuex = true;
+  });
+  return res;
+});
+var mapGetters = normalizeNamespace(function(namespace, getters) {
+  var res = {};
+  if (!isValidMap(getters)) {
+    console.error("[vuex] mapGetters: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(getters).forEach(function(ref2) {
+    var key = ref2.key;
+    var val = ref2.val;
+    val = namespace + val;
+    res[key] = function mappedGetter() {
+      if (namespace && !getModuleByNamespace(this.$store, "mapGetters", namespace)) {
+        return;
+      }
+      if (!(val in this.$store.getters)) {
+        console.error("[vuex] unknown getter: " + val);
+        return;
+      }
+      return this.$store.getters[val];
+    };
+    res[key].vuex = true;
+  });
+  return res;
+});
+var mapActions = normalizeNamespace(function(namespace, actions) {
+  var res = {};
+  if (!isValidMap(actions)) {
+    console.error("[vuex] mapActions: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(actions).forEach(function(ref2) {
+    var key = ref2.key;
+    var val = ref2.val;
+    res[key] = function mappedAction() {
+      var args = [], len = arguments.length;
+      while (len--)
+        args[len] = arguments[len];
+      var dispatch2 = this.$store.dispatch;
+      if (namespace) {
+        var module2 = getModuleByNamespace(this.$store, "mapActions", namespace);
+        if (!module2) {
+          return;
+        }
+        dispatch2 = module2.context.dispatch;
+      }
+      return typeof val === "function" ? val.apply(this, [dispatch2].concat(args)) : dispatch2.apply(this.$store, [val].concat(args));
+    };
+  });
+  return res;
+});
+function normalizeMap(map) {
+  if (!isValidMap(map)) {
+    return [];
+  }
+  return Array.isArray(map) ? map.map(function(key) {
+    return { key, val: key };
+  }) : Object.keys(map).map(function(key) {
+    return { key, val: map[key] };
+  });
 }
-InvalidTokenError.prototype.name = "InvalidTokenError";
-function b64DecodeUnicode(str) {
-  return decodeURIComponent(atob(str).replace(/(.)/g, (m, p2) => {
-    let code = p2.charCodeAt(0).toString(16).toUpperCase();
-    if (code.length < 2) {
-      code = "0" + code;
+function isValidMap(map) {
+  return Array.isArray(map) || isObject(map);
+}
+function normalizeNamespace(fn) {
+  return function(namespace, map) {
+    if (typeof namespace !== "string") {
+      map = namespace;
+      namespace = "";
+    } else if (namespace.charAt(namespace.length - 1) !== "/") {
+      namespace += "/";
     }
-    return "%" + code;
-  }));
+    return fn(namespace, map);
+  };
 }
-function base64UrlDecode(str) {
-  let output = str.replace(/-/g, "+").replace(/_/g, "/");
-  switch (output.length % 4) {
-    case 0:
-      break;
-    case 2:
-      output += "==";
-      break;
-    case 3:
-      output += "=";
-      break;
-    default:
-      throw new Error("base64 string is not of the correct length");
+function getModuleByNamespace(store, helper, namespace) {
+  var module2 = store._modulesNamespaceMap[namespace];
+  if (!module2) {
+    console.error("[vuex] module namespace not found in " + helper + "(): " + namespace);
   }
-  try {
-    return b64DecodeUnicode(output);
-  } catch (err) {
-    return atob(output);
-  }
-}
-function jwtDecode(token, options) {
-  if (typeof token !== "string") {
-    throw new InvalidTokenError("Invalid token specified: must be a string");
-  }
-  options || (options = {});
-  const pos = options.header === true ? 0 : 1;
-  const part = token.split(".")[pos];
-  if (typeof part !== "string") {
-    throw new InvalidTokenError(`Invalid token specified: missing part #${pos + 1}`);
-  }
-  let decoded;
-  try {
-    decoded = base64UrlDecode(part);
-  } catch (e2) {
-    throw new InvalidTokenError(`Invalid token specified: invalid base64 for part #${pos + 1} (${e2.message})`);
-  }
-  try {
-    return JSON.parse(decoded);
-  } catch (e2) {
-    throw new InvalidTokenError(`Invalid token specified: invalid json for part #${pos + 1} (${e2.message})`);
-  }
+  return module2;
 }
 const version = "3.7.7";
 const VERSION = version;
@@ -10063,6 +10118,60 @@ const gBase64 = {
   extendUint8Array,
   extendBuiltins
 };
+class InvalidTokenError extends Error {
+}
+InvalidTokenError.prototype.name = "InvalidTokenError";
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(atob(str).replace(/(.)/g, (m, p2) => {
+    let code = p2.charCodeAt(0).toString(16).toUpperCase();
+    if (code.length < 2) {
+      code = "0" + code;
+    }
+    return "%" + code;
+  }));
+}
+function base64UrlDecode(str) {
+  let output = str.replace(/-/g, "+").replace(/_/g, "/");
+  switch (output.length % 4) {
+    case 0:
+      break;
+    case 2:
+      output += "==";
+      break;
+    case 3:
+      output += "=";
+      break;
+    default:
+      throw new Error("base64 string is not of the correct length");
+  }
+  try {
+    return b64DecodeUnicode(output);
+  } catch (err) {
+    return atob(output);
+  }
+}
+function jwtDecode(token, options) {
+  if (typeof token !== "string") {
+    throw new InvalidTokenError("Invalid token specified: must be a string");
+  }
+  options || (options = {});
+  const pos = options.header === true ? 0 : 1;
+  const part = token.split(".")[pos];
+  if (typeof part !== "string") {
+    throw new InvalidTokenError(`Invalid token specified: missing part #${pos + 1}`);
+  }
+  let decoded;
+  try {
+    decoded = base64UrlDecode(part);
+  } catch (e2) {
+    throw new InvalidTokenError(`Invalid token specified: invalid base64 for part #${pos + 1} (${e2.message})`);
+  }
+  try {
+    return JSON.parse(decoded);
+  } catch (e2) {
+    throw new InvalidTokenError(`Invalid token specified: invalid json for part #${pos + 1} (${e2.message})`);
+  }
+}
 exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
@@ -10073,10 +10182,14 @@ exports.f = f;
 exports.gBase64 = gBase64;
 exports.index = index;
 exports.jwtDecode = jwtDecode;
+exports.mapActions = mapActions;
+exports.mapGetters = mapGetters;
+exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
 exports.p = p;
 exports.resolveComponent = resolveComponent;
 exports.sei = sei;
+exports.sr = sr;
 exports.t = t;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

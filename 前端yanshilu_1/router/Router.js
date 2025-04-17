@@ -38,8 +38,7 @@ export const MessageRoutes = {
  */
 export const LoginRoutes = {
 	LOGIN: '/pages/login/login',
-	STUDENT_LOGIN: '/pages/login/student/student',
-	TEACHER_LOGIN: '/pages/login/teacher/teacher',
+	LOGIN_DETAIL: '/pages/login/login_detail',
 	WECHAT_LOGIN: '/pages/login/wechat_login'
 };
 
@@ -47,15 +46,9 @@ export const LoginRoutes = {
  * @description 我的相关路由
  */
 export const MineRoutes = {
-	// 我的 - 学生
-	STUDENT_MINE: '/pages/mine/mine/student_mine',
+	// 我的页面
+	MINE: '/pages/mine/mine/mine_common',
 	
-	// 我的 - 老师
-	TEACHER_MINE: '/pages/mine/mine/teacher_mine',
-	
-	//我的 - 共用
-	MINE_COMMON:'/pages/mine/mine/mine_common',
-
 	// 个人信息修改
 	MODIFY: '/pages/mine/modify',
 	
@@ -64,11 +57,8 @@ export const MineRoutes = {
 	COURSE_DETAIL: '/pages/mine/course/course_detail',
 	
 	// 订单相关
-	ORDER: '/pages/mine/order',
-	STUDENT_ORDER: '/pages/mine/order/student_order',
-	TEACHER_ORDER: '/pages/mine/order/teacher_order',
+	ORDER: '/pages/mine/order/order_common',
 	APPRAISE: '/pages/mine/order/appraise/appraise',
-	ORDER_COMMON:'/pages/mine/order/order_common',
 	
 	// 其他设置
 	QUALIFICATION: '/pages/mine/qualification',
@@ -212,17 +202,11 @@ export const Navigator = {
 	},
 	
 	/**
-	 * @description 跳转到学生登录页面
+	 * @description 跳转到登录详情页面
+	 * @param {String} type - 登录类型，可以是'student'或'teacher'
 	 */
-	toStudentLogin() {
-		this.navigateTo(LoginRoutes.STUDENT_LOGIN);
-	},
-	
-	/**
-	 * @description 跳转到教师登录页面
-	 */
-	toTeacherLogin() {
-		this.navigateTo(LoginRoutes.TEACHER_LOGIN);
+	toLoginDetail(type) {
+		this.navigateTo(LoginRoutes.LOGIN_DETAIL, { type });
 	},
 	
 	/**
@@ -259,7 +243,7 @@ export const Navigator = {
 	 * 根据存储的用户角色自动显示对应内容
 	 */
 	toOrder() {
-		this.navigateTo(MineRoutes.ORDER_COMMON);
+		this.navigateTo(MineRoutes.ORDER);
 	},
 	
 	/**
@@ -300,10 +284,9 @@ export const Navigator = {
 	
 	/**
 	 * @description 跳转到"我的"页面
-	 * 根据存储的用户角色自动显示对应内容
 	 */
 	toMine() {
-		this.navigateTo(MineRoutes.MINE_COMMON);
+		this.navigateTo(MineRoutes.MINE);
 	}
 };
 

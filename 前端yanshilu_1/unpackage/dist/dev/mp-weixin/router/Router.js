@@ -16,34 +16,34 @@ const MessageRoutes = {
 };
 const LoginRoutes = {
   LOGIN: "/pages/login/login",
-  STUDENT_LOGIN: "/pages/login/student/student",
-  TEACHER_LOGIN: "/pages/login/teacher/teacher",
+  LOGIN_DETAIL: "/pages/login/login_detail",
   WECHAT_LOGIN: "/pages/login/wechat_login"
 };
 const MineRoutes = {
-  // 我的 - 学生
-  STUDENT_MINE: "/pages/mine/mine/student_mine",
-  // 我的 - 老师
-  TEACHER_MINE: "/pages/mine/mine/teacher_mine",
-  //我的 - 共用
-  MINE_COMMON: "/pages/mine/mine/mine_common",
+  // 我的页面
+  MINE: "/pages/mine/mine/mine_common",
   // 个人信息修改
   MODIFY: "/pages/mine/modify",
   // 课程相关
   COURSE: "/pages/mine/course/course",
   COURSE_DETAIL: "/pages/mine/course/course_detail",
   // 订单相关
-  ORDER: "/pages/mine/order",
-  STUDENT_ORDER: "/pages/mine/order/student_order",
-  TEACHER_ORDER: "/pages/mine/order/teacher_order",
+  ORDER: "/pages/mine/order/order_common",
   APPRAISE: "/pages/mine/order/appraise/appraise",
-  ORDER_COMMON: "/pages/mine/order/order_common",
   // 其他设置
   QUALIFICATION: "/pages/mine/qualification",
   SERVICE: "/pages/mine/service",
   SETTINGS: "/pages/mine/settings",
   WALLET: "/pages/mine/wallet"
 };
+({
+  ...IndexRoutes,
+  ...MatchRoutes,
+  ...AIRoutes,
+  ...MessageRoutes,
+  ...LoginRoutes,
+  ...MineRoutes
+});
 const Navigator = {
   /**
    * @description 普通页面跳转
@@ -144,16 +144,11 @@ const Navigator = {
     this.navigateTo(LoginRoutes.LOGIN);
   },
   /**
-   * @description 跳转到学生登录页面
+   * @description 跳转到登录详情页面
+   * @param {String} type - 登录类型，可以是'student'或'teacher'
    */
-  toStudentLogin() {
-    this.navigateTo(LoginRoutes.STUDENT_LOGIN);
-  },
-  /**
-   * @description 跳转到教师登录页面
-   */
-  toTeacherLogin() {
-    this.navigateTo(LoginRoutes.TEACHER_LOGIN);
+  toLoginDetail(type) {
+    this.navigateTo(LoginRoutes.LOGIN_DETAIL, { type });
   },
   /**
    * @description 跳转到微信登录页面
@@ -185,7 +180,7 @@ const Navigator = {
    * 根据存储的用户角色自动显示对应内容
    */
   toOrder() {
-    this.navigateTo(MineRoutes.ORDER_COMMON);
+    this.navigateTo(MineRoutes.ORDER);
   },
   /**
    * @description 跳转到评价页面
@@ -220,11 +215,13 @@ const Navigator = {
   },
   /**
    * @description 跳转到"我的"页面
-   * 根据存储的用户角色自动显示对应内容
    */
   toMine() {
-    this.navigateTo(MineRoutes.MINE_COMMON);
+    this.navigateTo(MineRoutes.MINE);
   }
 };
+exports.IndexRoutes = IndexRoutes;
+exports.MessageRoutes = MessageRoutes;
+exports.MineRoutes = MineRoutes;
 exports.Navigator = Navigator;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/router/Router.js.map

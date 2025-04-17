@@ -56,44 +56,87 @@
 .dropdown-icon-rotate {
         transform: rotate(180deg);
 }
-.dropdown-content {
-        color: black;
+
+    /* 统一的内容容器 */
+.input-content-wrapper {
+        flex: 1;
+        height: 60rpx;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+}
+    
+    /* 统一的文本样式 */
+.input-text {
+        flex: 1;
         font-size: 28rpx;
-        padding-left: 10rpx;
-        padding-top: 5rpx;
-        padding-bottom: 5rpx;
-        flex-grow: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        color: #333;
+        height: 50rpx;
+        line-height: 50rpx;
+        padding-left: 20rpx;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+}
+.input-placeholder {
+        flex: 1;
+        font-size: 28rpx;
+        color: #999;
+        height: 50rpx;
+        line-height: 50rpx;
+        padding-left: 20rpx;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
 }
 .drop-down-box-selected {
         display: flex;
         flex-direction: row;
         align-items: center;
-        min-height: 60rpx;
+        height: 60rpx;
         width: 100%;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
-        padding: 0 5rpx;
-        border-radius: 10rpx; /* 添加圆角 */
+        padding: 0 10rpx;
+        border-radius: 10rpx;
 }
 .drop-down-box {
         display: flex;
         flex-direction: row;
         align-items: center;
-        min-height: 60rpx;
+        height: 60rpx;
         width: 100%;
         border: 2rpx solid gray;
-        border-radius: 10rpx; /* 添加圆角 */
+        border-radius: 10rpx;
         box-sizing: border-box;
-        padding: 0 5rpx;
+        padding: 0 10rpx;
 }
 .selected-all {
         display: flex;
         flex-direction: column;
         justify-content: center;
         width: 100%;
+}
+    
+    /* 箭头容器 */
+.arrow-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5rpx;
+        width: 30rpx;
+        height: 60rpx;
+        flex-shrink: 0;
+        z-index: 2;
+}
+.empty-result {
+        display: flex;
+        justify-content: center;
+        padding: 20rpx 0;
+}
+.empty-result-text {
+        color: #999;
+        font-size: 28rpx;
 }
 
     /* start */

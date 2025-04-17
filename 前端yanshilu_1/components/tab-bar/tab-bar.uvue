@@ -2,15 +2,15 @@
 	<view class="tab-bar-wrapper">
 		<view class="tab-bar">
 			<view class="tab-item" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
-				<image class="nav-icon" :src="pageName === 'index' ? '/static/image/tab-bar/home_24dp_active.svg' : '/static/image/tab-bar/home_24dp_E3E3E3.svg'"></image>
+				<image class="nav-icon" :src="getIconPath('index')"></image>
 				<text class="tab-text">首页</text>
 			</view>
 			<view class="tab-item" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
-				<image class="nav-icon" :src="pageName === 'message' ? '/static/image/tab-bar/mail_outline_24dp_active.svg' : '/static/image/tab-bar/mail_outline_24dp_E3E3E3.svg'"></image>
+				<image class="nav-icon" :src="getIconPath('message')"></image>
 				<text class="tab-text">消息</text>
 			</view>
 			<view class="tab-item" :class="{ active: pageName === 'mine' }" @click="switchPage('mine')">
-				<image class="nav-icon" :src="pageName === 'mine' ? '/static/image/tab-bar/person_24dp_active.svg' : '/static/image/tab-bar/person_24dp_E3E3E3.svg'"></image>
+				<image class="nav-icon" :src="getIconPath('mine')"></image>
 				<text class="tab-text">我的</text>
 			</view>
 		</view>
@@ -38,11 +38,39 @@
 				tabRoutes: {
 					'index': IndexRoutes.INDEX,
 					'message': MessageRoutes.MESSAGE,
-					'mine': MineRoutes.MINE_COMMON
+					'mine': MineRoutes.MINE
+				},
+				/**
+				 * @description 页面图标路径映射
+				 */
+				iconPaths: {
+					'index': {
+						normal: '/static/image/tab-bar/wechat.png',
+						active: '/static/image/tab-bar/default_avatar.png'
+					},
+					'message': {
+						normal: '/static/image/tab-bar/wechat.png',
+						active: '/static/image/tab-bar/default_avatar.png'
+					},
+					'mine': {
+						normal: '/static/image/tab-bar/wechat.png',
+						active: '/static/image/tab-bar/default_avatar.png'
+					}
 				}
 			}
 		},
 		methods: {
+			/**
+			 * @description 获取页面对应的图标路径
+			 * @param {string} page - 页面名称
+			 * @returns {string} 图标路径
+			 */
+			getIconPath(page) {
+				const isActive = page === this.pageName;
+				const iconConfig = this.iconPaths[page];
+				return isActive ? iconConfig.active : iconConfig.normal;
+			},
+			
 			/**
 			 * @description 切换到指定页面
 			 * @param {string} page - 页面名称
@@ -60,16 +88,41 @@
 				}
 				
 				try {
-					// 根据页面类型执行不同的跳转
+					// 获取当前页面栈深度
+					const pages = getCurrentPages();
+					const stackDepth = pages.length;
+					
+					// 如果页面栈深度接近上限(8或以上)，使用reLaunch清空页面栈
+					// 微信小程序页面栈上限为10
+					if (stackDepth >= 8) {
+						console.warn('页面栈接近上限，使用reLaunch清空页面栈');
+						switch(page) {
+							case 'index':
+								Navigator.reLaunch(IndexRoutes.INDEX);
+								break;
+							case 'message':
+								Navigator.reLaunch(MessageRoutes.MESSAGE);
+								break;
+							case 'mine':
+								Navigator.reLaunch(MineRoutes.MINE);
+								break;
+							default:
+								console.error('未知的页面类型:', page);
+						}
+						return;
+					}
+					
+					// 修改：使用redirectTo而不是switchTab
+					// redirectTo会关闭当前页面，跳转到应用内的某个页面
 					switch(page) {
 						case 'index':
-							Navigator.switchTab(IndexRoutes.INDEX);
+							Navigator.redirectTo(IndexRoutes.INDEX);
 							break;
 						case 'message':
-							Navigator.switchTab(MessageRoutes.MESSAGE);
+							Navigator.redirectTo(MessageRoutes.MESSAGE);
 							break;
 						case 'mine':
-							Navigator.switchTab(MineRoutes.MINE_COMMON);
+							Navigator.redirectTo(MineRoutes.MINE);
 							break;
 						default:
 							console.error('未知的页面类型:', page);

@@ -10,24 +10,19 @@ if (!Math) {
   "./pages/message/message.js";
   "./pages/message/chat.js";
   "./pages/login/login.js";
-  "./pages/login/student/student.js";
-  "./pages/login/teacher/teacher.js";
+  "./pages/login/login_detail.js";
   "./pages/login/wechat_login.js";
-  "./pages/mine/mine/student_mine.js";
-  "./pages/mine/mine/teacher_mine.js";
+  "./pages/mine/mine/mine_common.js";
   "./pages/mine/modify.js";
   "./pages/mine/course/course.js";
   "./pages/mine/course/course_detail.js";
   "./pages/mine/order.js";
-  "./pages/mine/order/student_order.js";
-  "./pages/mine/order/teacher_order.js";
+  "./pages/mine/order/order_common.js";
   "./pages/mine/order/appraise/appraise.js";
   "./pages/mine/qualification.js";
   "./pages/mine/service.js";
   "./pages/mine/settings.js";
   "./pages/mine/wallet.js";
-  "./pages/mine/mine/mine_common.js";
-  "./pages/mine/order/order_common.js";
 }
 const _sfc_main = common_vendor.defineComponent({
   onLaunch: function() {
@@ -62,6 +57,7 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function createApp() {
   const app = common_vendor.createSSRApp(_sfc_main);
+  app.use(store_index.store);
   return {
     app
   };

@@ -1,19 +1,19 @@
 {
-  "hash": "408fe108",
+  "hash": "ae1b9d90",
   "configHash": "80916ef6",
-  "lockfileHash": "bcfa20e7",
-  "browserHash": "52a43881",
+  "lockfileHash": "b68699e1",
+  "browserHash": "0ab06b6c",
   "optimized": {
-    "jwt-decode": {
-      "src": "../../../../../node_modules/jwt-decode/build/esm/index.js",
-      "file": "jwt-decode.js",
-      "fileHash": "1d5fe5af",
-      "needsInterop": false
-    },
     "js-base64": {
       "src": "../../../../../node_modules/js-base64/base64.mjs",
       "file": "js-base64.js",
-      "fileHash": "d164a925",
+      "fileHash": "a6940605",
+      "needsInterop": false
+    },
+    "jwt-decode": {
+      "src": "../../../../../node_modules/jwt-decode/build/esm/index.js",
+      "file": "jwt-decode.js",
+      "fileHash": "422d244a",
       "needsInterop": false
     }
   },

@@ -10,8 +10,12 @@ const _sfc_main = common_vendor.defineComponent({
       dropdownTop: 0,
       dropdownLeft: 0,
       dropdownWidth: 0,
-      displayContent: this.defaultText
-      // 使用传入的默认文本
+      displayContent: this.defaultText,
+      searchKeyword: "",
+      searchTimer: null,
+      filteredList: [],
+      isFocused: false
+      // 是否处于聚焦状态
     };
   },
   props: {
@@ -29,6 +33,21 @@ const _sfc_main = common_vendor.defineComponent({
     defaultText: {
       type: String,
       default: "请选择"
+    },
+    mode: {
+      type: String,
+      default: "select",
+      validator: (value = null) => {
+        return ["select", "search"].includes(value);
+      }
+    },
+    debounce: {
+      type: Number,
+      default: 300
+    },
+    searchPlaceholder: {
+      type: String,
+      default: "请输入关键词"
     }
   },
   created() {
@@ -39,13 +58,37 @@ const _sfc_main = common_vendor.defineComponent({
     if (index > -1) {
       dropdownInstances.splice(index, 1);
     }
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+  },
+  computed: {
+    /**
+     * @description 根据搜索关键词过滤选项列表
+     * @returns {Array} 过滤后的选项列表
+     */
+    filteredChoiceList() {
+      if (!this.searchKeyword || this.mode === "select") {
+        return this.choiceList;
+      }
+      return this.choiceList.filter((item = null) => {
+        return item.choiceItemContent.toLowerCase().includes(this.searchKeyword.toLowerCase());
+      });
+    }
   },
   watch: {
     choiceIndex(newVal = null) {
       if (newVal >= 0 && newVal < this.choiceList.length) {
-        this.displayContent = this.choiceList[newVal].choiceItemContent;
+        const selectedItem = this.choiceList[newVal];
+        this.displayContent = selectedItem.choiceItemContent;
+        if (this.mode === "search") {
+          this.searchKeyword = selectedItem.choiceItemContent;
+        }
       } else {
         this.displayContent = this.defaultText;
+        if (this.mode === "search") {
+          this.searchKeyword = "";
+        }
       }
     },
     defaultText(newVal = null) {
@@ -62,6 +105,16 @@ const _sfc_main = common_vendor.defineComponent({
     btnChoiceClick: function(position = null) {
       var _this = this;
       _this.isShowChoice = false;
+      if (_this.mode === "search" && _this.searchKeyword) {
+        const selectedItem = _this.filteredChoiceList[position];
+        const originalIndex = _this.choiceList.findIndex((item = null) => {
+          return item.choiceItemId === selectedItem.choiceItemId;
+        });
+        if (originalIndex !== -1) {
+          _this.$emit("onChoiceClick", originalIndex);
+          return null;
+        }
+      }
       _this.$emit("onChoiceClick", position);
     },
     /**
@@ -95,36 +148,84 @@ const _sfc_main = common_vendor.defineComponent({
           instance.isShowChoice = false;
         }
       });
+    },
+    /**
+     * @description 处理搜索输入事件，带防抖
+     * @param {Event} event - 输入事件对象
+     */
+    onSearchInput(event = null) {
+      const _this = this;
+      if (_this.searchTimer) {
+        clearTimeout(_this.searchTimer);
+      }
+      _this.searchTimer = setTimeout(() => {
+        _this.$emit("search-input", _this.searchKeyword);
+        if (!_this.isShowChoice) {
+          _this.btnShowHideClick(event);
+        }
+      }, _this.debounce);
+    },
+    /**
+     * @description 处理输入框聚焦事件
+     * @param {Event} event - 聚焦事件对象
+     */
+    onInputFocus(event = null) {
+      this.isFocused = true;
+      event.stopPropagation();
+      if (!this.isShowChoice) {
+        this.btnShowHideClick(event);
+      }
+    },
+    /**
+     * @description 关闭当前下拉框
+     * @public 供外部调用
+     */
+    closeDropdown() {
+      if (this.isShowChoice) {
+        this.isShowChoice = false;
+      }
     }
   }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.t($data.displayContent),
-    b: $data.isShowChoice ? 1 : "",
-    c: common_assets._imports_0,
-    d: common_vendor.sei("r0-83613ed8", "view", "dropdownTrigger"),
-    e: common_vendor.n($data.isShowChoice ? "drop-down-box-selected" : "drop-down-box"),
-    f: common_vendor.o((...args) => $options.btnShowHideClick && $options.btnShowHideClick(...args)),
-    g: $data.isShowChoice
-  }, $data.isShowChoice ? {
-    h: common_vendor.f($props.choiceList, (item, index, i0) => {
+    a: $props.mode === "select"
+  }, $props.mode === "select" ? {
+    b: common_vendor.t($data.displayContent),
+    c: common_vendor.n($props.choiceIndex === -1 ? "input-placeholder" : "input-text")
+  } : {
+    d: $props.searchPlaceholder,
+    e: common_vendor.o([($event) => $data.searchKeyword = $event.detail.value, (...args) => $options.onSearchInput && $options.onSearchInput(...args)]),
+    f: common_vendor.o((...args) => $options.onInputFocus && $options.onInputFocus(...args)),
+    g: $data.searchKeyword
+  }, {
+    h: $data.isShowChoice ? 1 : "",
+    i: common_assets._imports_0,
+    j: common_vendor.sei("r0-83613ed8", "view", "dropdownTrigger"),
+    k: common_vendor.n($data.isShowChoice ? "drop-down-box-selected" : "drop-down-box"),
+    l: common_vendor.o((...args) => $options.btnShowHideClick && $options.btnShowHideClick(...args)),
+    m: $data.isShowChoice
+  }, $data.isShowChoice ? common_vendor.e({
+    n: $options.filteredChoiceList.length > 0
+  }, $options.filteredChoiceList.length > 0 ? {
+    o: common_vendor.f($options.filteredChoiceList, (item, index, i0) => {
       return {
         a: common_vendor.t(item.choiceItemContent),
         b: $props.choiceIndex == index ? 1 : "",
         c: item.choiceItemId,
         d: common_vendor.o(($event) => $options.btnChoiceClick(index), item.choiceItemId)
       };
-    }),
-    i: $data.isShowChoice ? 1 : "",
-    j: $data.dropdownTop + "px",
-    k: $data.dropdownLeft + "px",
-    l: $data.dropdownWidth + "px",
-    m: common_vendor.o(() => {
     })
   } : {}, {
-    n: common_vendor.sei(_ctx.virtualHostId, "view"),
-    o: common_vendor.o(() => {
+    p: $data.isShowChoice ? 1 : "",
+    q: $data.dropdownTop + "px",
+    r: $data.dropdownLeft + "px",
+    s: $data.dropdownWidth + "px",
+    t: common_vendor.o(() => {
+    })
+  }) : {}, {
+    v: common_vendor.sei(_ctx.virtualHostId, "view"),
+    w: common_vendor.o(() => {
     })
   });
 }
