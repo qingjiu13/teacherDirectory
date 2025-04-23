@@ -1,3 +1,0 @@
-@import "../../../uvue.wxss";
-:host{display:flex;flex-direction:column}
-.container{display:flex;flex-direction:column;min-height:100%;padding-bottom:50px}header{padding:20rpx;font-size:32rpx;text-align:center}

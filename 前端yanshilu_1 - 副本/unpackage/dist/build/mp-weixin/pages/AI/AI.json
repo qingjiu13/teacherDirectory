@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "AI助手",
-  "usingComponents": {
-    "choice-selected": "../../components/combobox/combobox"
-  }
-}
