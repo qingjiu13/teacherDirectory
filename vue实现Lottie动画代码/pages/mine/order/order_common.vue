@@ -1,0 +1,863 @@
+<template>
+  <view class="container">
+    <!-- Tab栏 -->
+    <view class="tab-container">
+      <view 
+        v-for="(tab, index) in tabs" 
+        :key="index"
+        class="tab-item"
+        :class="{ active: currentTab === index }"
+        @click="switchTab(index)"
+      >
+        <text>{{ tab }}</text>
+      </view>
+    </view>
+
+    <!-- 订单列表 -->
+    <scroll-view class="order-list" scroll-y>
+      <!-- 学生订单内容 -->
+      <block v-if="userRole === 'student'">
+        <view v-for="(order, index) in orders" :key="index" class="order-item">
+          <view class="order-header">
+            <text class="order-time">{{ order.time }}</text>
+            <text class="order-status">{{ order.status }}</text>
+          </view>
+          <view class="order-content">
+            <text class="order-title">{{ order.title }}</text>
+            <text class="order-price">¥{{ order.price }}</text>
+          </view>
+          <view class="order-footer">
+            <view class="button-group">
+              <button v-if="currentTab === 0" class="cancel-btn" @click="cancelOrder(order)">取消订单</button>
+              <button v-if="currentTab === 0" class="pay-btn" @click="payOrder(order)">立即支付</button>
+              <button v-if="currentTab === 1" class="appraise-btn small-btn" @click="goToAppraise(order)">评价</button>
+              <button v-if="currentTab === 1" class="detail-btn small-btn" @click="viewDetail(order)">查看详情</button>
+              <button v-if="currentTab === 2" class="delete-btn small-btn" @click="deleteOrder(order)">删除订单</button>
+            </view>
+          </view>
+        </view>
+      </block>
+      
+      <!-- 教师订单内容 -->
+      <block v-else>
+        <view v-for="(order, index) in teacherOrders" :key="index" class="order-item">
+          <view class="order-header">
+            <text class="order-time">{{ order.time }}</text>
+            <text class="order-status">{{ order.status }}</text>
+          </view>
+          <view class="order-content">
+            <text class="order-title">{{ order.title }}</text>
+            <text class="order-price">¥{{ order.price }}</text>
+            <text class="order-student">学生: {{ order.studentName }}</text>
+          </view>
+          <view class="order-footer">
+            <view class="button-group">
+              <button v-if="currentTab === 0" class="confirm-btn" @click="confirmOrder(order)">确认订单</button>
+              <button v-if="currentTab === 1" class="detail-btn small-btn" @click="viewDetail(order)">查看详情</button>
+              <button v-if="currentTab === 2" class="delete-btn small-btn" @click="deleteOrder(order)">删除订单</button>
+            </view>
+          </view>
+        </view>
+      </block>
+    </scroll-view>
+
+    <!-- 取消订单确认弹窗 -->
+    <view class="modal" v-if="showCancelModal">
+      <view class="modal-content">
+        <view class="modal-title">
+          <text>确认取消订单</text>
+        </view>
+        <view class="modal-body">
+          <text>取消后订单将无法恢复。</text>
+          <text>确认取消吗？</text>
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn cancel" @click="showCancelModal = false">再想想</button>
+          <button class="modal-btn confirm" @click="confirmCancel">确认取消</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 支付确认弹窗 -->
+    <view class="modal" v-if="showPayModal">
+      <view class="modal-content">
+        <view class="modal-title">
+          <text>确认支付</text>
+        </view>
+        <view class="modal-body">
+          <text class="price-text">支付金额：¥{{currentOrder?.price}}</text>
+          <view class="payment-selector">
+            <text class="payment-title">支付方式</text>
+            <view class="payment-dropdown">
+              <view 
+                class="selected-payment"
+                :class="{ 'active': isPaymentDropdownOpen }"
+                @click="togglePaymentDropdown"
+              >
+                <view class="payment-info">
+                  <view class="payment-icon" :class="paymentMethods[selectedPayment].type">
+                    <text class="icon-text">{{ paymentMethods[selectedPayment].icon }}</text>
+                  </view>
+                  <text class="payment-name">{{ paymentMethods[selectedPayment].name }}</text>
+                </view>
+                <text class="dropdown-arrow" :class="{ 'arrow-up': isPaymentDropdownOpen }">▼</text>
+              </view>
+              
+              <view 
+                class="payment-options"
+                :class="{ 'show': isPaymentDropdownOpen }"
+              >
+                <view 
+                  v-for="(method, index) in paymentMethods" 
+                  :key="index"
+                  class="payment-option"
+                  :class="{ 'selected': selectedPayment === index }"
+                  @click="selectPayment(index)"
+                >
+                  <view class="payment-info">
+                    <view class="payment-icon" :class="method.type">
+                      <text class="icon-text">{{ method.icon }}</text>
+                    </view>
+                    <text class="payment-name">{{ method.name }}</text>
+                  </view>
+                  <text v-if="selectedPayment === index" class="check-icon">✓</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn cancel" @click="showPayModal = false">取消</button>
+          <button class="modal-btn confirm" @click="confirmPay">确认支付</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 查看详情弹窗 -->
+    <view class="modal" v-if="showDetailModal">
+      <view class="modal-content">
+        <view class="modal-title">
+          <text>订单详情</text>
+        </view>
+        <view class="modal-body">
+          <view class="detail-item">
+            <text class="detail-label">订单时间：</text>
+            <text class="detail-value">{{ currentOrder?.time }}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">课程名称：</text>
+            <text class="detail-value">{{ currentOrder?.title }}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">订单金额：</text>
+            <text class="detail-value">¥{{ currentOrder?.price }}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">订单状态：</text>
+            <text class="detail-value">{{ currentOrder?.status }}</text>
+          </view>
+          <view class="detail-item" v-if="userRole === 'teacher' && currentOrder?.studentName">
+            <text class="detail-label">学生姓名：</text>
+            <text class="detail-value">{{ currentOrder.studentName }}</text>
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn confirm" @click="closeDetailModal">确定</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 删除确认弹窗 -->
+    <view class="modal" v-if="showDeleteModal">
+      <view class="modal-content">
+        <view class="modal-title">
+          <text>删除订单</text>
+        </view>
+        <view class="modal-body">
+          <text>确认要删除该订单吗？</text>
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn cancel" @click="showDeleteModal = false">取消</button>
+          <button class="modal-btn confirm" @click="confirmDelete">确认删除</button>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 确认订单弹窗（教师角色专用） -->
+    <view class="modal" v-if="showConfirmOrderModal">
+      <view class="modal-content">
+        <view class="modal-title">
+          <text>确认订单</text>
+        </view>
+        <view class="modal-body">
+          <text>确认接受该订单吗？确认后将无法取消。</text>
+        </view>
+        <view class="modal-footer">
+          <button class="modal-btn cancel" @click="showConfirmOrderModal = false">取消</button>
+          <button class="modal-btn confirm" @click="confirmOrderAction">确认接受</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+/**
+ * @description 订单管理页面（通用）
+ */
+import { Navigator, MineRoutes } from '@/router/Router.js';
+
+export default {
+  data() {
+    return {
+      userRole: 'teacher', // 默认为学生角色
+      userName: '',
+      userData: {},
+      isLoggedIn: false,
+      
+      // Tab栏配置
+      currentTab: 0,
+      tabs: ['待支付', '已完成', '已取消'],
+      teacherTabs: ['待确认', '进行中', '已完成'],
+      
+      // 学生订单列表
+      orders: [
+        {
+          id: '1001',
+          time: '2024-03-20 14:30',
+          status: '待支付',
+          title: '课程A - 一对一辅导',
+          price: '299.00'
+        },
+        {
+          id: '1002',
+          time: '2024-03-19 10:15',
+          status: '已完成',
+          title: '课程B - 小组课程',
+          price: '199.00'
+        },
+        {
+          id: '1003',
+          time: '2024-03-18 16:45',
+          status: '已取消',
+          title: '课程C - 专项训练',
+          price: '399.00'
+        }
+      ],
+      
+      // 教师订单列表
+      teacherOrders: [
+        {
+          id: '2001',
+          time: '2024-03-21 15:30',
+          status: '待确认',
+          title: '高数辅导 - 一对一',
+          price: '350.00',
+          studentName: '张三'
+        },
+        {
+          id: '2002',
+          time: '2024-03-20 09:00',
+          status: '进行中',
+          title: '英语口语 - 一对一',
+          price: '280.00',
+          studentName: '李四'
+        },
+        {
+          id: '2003',
+          time: '2024-03-15 16:30',
+          status: '已完成',
+          title: '物理辅导 - 一对一',
+          price: '320.00',
+          studentName: '王五'
+        }
+      ],
+      
+      // 弹窗控制
+      showCancelModal: false,
+      showPayModal: false,
+      showDetailModal: false,
+      showDeleteModal: false,
+      showConfirmOrderModal: false,
+      
+      // 当前操作的订单
+      currentOrder: null,
+      
+      // 支付方式
+      isPaymentDropdownOpen: false,
+      selectedPayment: 0,
+      paymentMethods: [
+        {
+          name: '支付宝支付',
+          icon: '支',
+          type: 'alipay'
+        },
+        {
+          name: '微信支付',
+          icon: '微',
+          type: 'wechat'
+        },
+        {
+          name: '银行卡支付',
+          icon: '卡',
+          type: 'bank'
+        }
+      ]
+    }
+  },
+  computed: {
+    /**
+     * @description 根据用户角色返回不同的Tab标签
+     */
+    currentTabs() {
+      return this.userRole === 'teacher' ? this.teacherTabs : this.tabs;
+    }
+  },
+  onLoad() {
+    // 初始化数据
+  },
+  onShow() {
+    // 使用 nextTick 确保数据更新
+    this.$nextTick(() => {
+      this.loadUserData();
+      const storedUserRole = uni.getStorageSync('userRole');
+    });
+  },
+  methods: {
+    /**
+     * @description 加载用户数据
+     */
+    loadUserData() {
+      // 检查登录状态
+      const token = uni.getStorageSync('token');
+      this.isLoggedIn = !!token;
+      
+      if (this.isLoggedIn) {
+        // 获取用户信息
+        const userInfo = uni.getStorageSync('userInfo');
+        if (userInfo) {
+          try {
+            this.userData = typeof userInfo === 'string' ? JSON.parse(userInfo) : userInfo;
+            this.userName = this.userData.nickname || '用户';
+            
+            // 如果存储中有用户角色，使用存储的角色
+            if (this.userData.role) {
+              this.userRole = this.userData.role;
+              // 同步更新到storage
+              uni.setStorageSync('userRole', this.userData.role);
+            }
+          } catch (e) {
+            console.error('解析用户信息失败:', e);
+          }
+        }
+      } else {
+        this.userData = {};
+        this.userName = '';
+        // 未登录时默认显示学生界面
+        this.userRole = 'student';
+      }
+    },
+    
+    /**
+     * @description 加载订单数据
+     */
+    loadOrderData() {
+      // 这里可以根据角色从API加载不同的订单数据
+      // 目前使用模拟数据
+      console.log(`加载${this.userRole}角色的订单数据`);
+    },
+    
+    /**
+     * @description 切换标签页
+     * @param {Number} index 标签索引
+     */
+    switchTab(index) {
+      this.currentTab = index;
+      // 这里可以根据tab切换加载不同的订单数据
+    },
+    
+    /**
+     * @description 取消订单
+     * @param {Object} order 订单对象
+     */
+    cancelOrder(order) {
+      this.currentOrder = order;
+      this.showCancelModal = true;
+    },
+    
+    /**
+     * @description 确认取消订单
+     */
+    confirmCancel() {
+      // 这里实现取消订单的具体逻辑
+      uni.showToast({
+        title: '订单已取消',
+        icon: 'success'
+      });
+      this.showCancelModal = false;
+      // 可以在这里更新订单状态或重新加载订单列表
+    },
+    
+    /**
+     * @description 支付订单
+     * @param {Object} order 订单对象
+     */
+    payOrder(order) {
+      this.currentOrder = order;
+      this.showPayModal = true;
+    },
+    
+    /**
+     * @description 切换支付方式下拉菜单
+     */
+    togglePaymentDropdown() {
+      this.isPaymentDropdownOpen = !this.isPaymentDropdownOpen;
+    },
+    
+    /**
+     * @description 选择支付方式
+     * @param {Number} index 支付方式索引
+     */
+    selectPayment(index) {
+      this.selectedPayment = index;
+      setTimeout(() => {
+        this.isPaymentDropdownOpen = false;
+      }, 200);
+    },
+    
+    /**
+     * @description 确认支付
+     */
+    confirmPay() {
+      const payMethod = this.paymentMethods[this.selectedPayment].name;
+      uni.showToast({
+        title: `${payMethod}支付成功`,
+        icon: 'success'
+      });
+      this.showPayModal = false;
+      this.isPaymentDropdownOpen = false;
+    },
+    
+    /**
+     * @description 查看订单详情
+     * @param {Object} order 订单对象
+     */
+    viewDetail(order) {
+      this.currentOrder = order;
+      this.showDetailModal = true;
+    },
+    
+    /**
+     * @description 关闭详情弹窗
+     */
+    closeDetailModal() {
+      this.showDetailModal = false;
+      this.currentOrder = null;
+    },
+    
+    /**
+     * @description 删除订单
+     * @param {Object} order 订单对象
+     */
+    deleteOrder(order) {
+      this.currentOrder = order;
+      this.showDeleteModal = true;
+    },
+    
+    /**
+     * @description 确认删除订单
+     */
+    confirmDelete() {
+      uni.showToast({
+        title: '删除成功',
+        icon: 'success'
+      });
+      this.showDeleteModal = false;
+      // 这里可以添加实际的删除逻辑
+    },
+    
+    /**
+     * @description 跳转到评价页面
+     * @param {Object} order 订单对象
+     */
+    goToAppraise(order) {
+      // 跳转到评价页面
+      Navigator.toAppraise(order.id);
+    },
+    
+    /**
+     * @description 教师确认订单
+     * @param {Object} order 订单对象
+     */
+    confirmOrder(order) {
+      this.currentOrder = order;
+      this.showConfirmOrderModal = true;
+    },
+    
+    /**
+     * @description 教师确认接受订单操作
+     */
+    confirmOrderAction() {
+      uni.showToast({
+        title: '已接受订单',
+        icon: 'success'
+      });
+      this.showConfirmOrderModal = false;
+      // 这里可以添加实际的接受订单逻辑
+    }
+  }
+}
+</script>
+
+<style>
+.container {
+  flex: 1;
+  background-color: #f5f5f5;
+}
+
+.tab-container {
+  flex-direction: row;
+  height: 88rpx;
+  background-color: #ffffff;
+  border-bottom-width: 1rpx;
+  border-bottom-color: #eeeeee;
+}
+
+.tab-item {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.tab-item text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.tab-item.active text {
+  color: #007AFF;
+  font-weight: bold;
+}
+
+.order-list {
+  flex: 1;
+  padding: 20rpx;
+}
+
+.order-item {
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.order-header {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.order-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.order-status {
+  font-size: 24rpx;
+  color: #007AFF;
+}
+
+.order-content {
+  margin-bottom: 20rpx;
+}
+
+.order-title {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 10rpx;
+}
+
+.order-price {
+  font-size: 32rpx;
+  color: #FF6B6B;
+  font-weight: bold;
+}
+
+.order-student {
+  font-size: 24rpx;
+  color: #666666;
+  margin-top: 10rpx;
+}
+
+.order-footer {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.button-group {
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.cancel-btn, .pay-btn, .confirm-btn {
+  padding: 0 20rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  border-radius: 25rpx;
+  font-size: 22rpx;
+}
+
+.cancel-btn {
+  background-color: #ffffff;
+  color: #666666;
+  border-width: 1rpx;
+  border-color: #dddddd;
+  margin-right: 16rpx;
+}
+
+.pay-btn, .confirm-btn {
+  background-color: #007AFF;
+  color: #ffffff;
+}
+
+.appraise-btn {
+  background-color: #ffffff;
+  color: #FFA500;
+  border-width: 1rpx;
+  border-color: #FFA500;
+  margin-right: 16rpx;
+}
+
+.detail-btn {
+  background-color: #ffffff;
+  color: #007AFF;
+  border-width: 1rpx;
+  border-color: #007AFF;
+  margin-right: 16rpx;
+}
+
+.delete-btn {
+  background-color: #ffffff;
+  color: #FF6B6B;
+  border-width: 1rpx;
+  border-color: #FF6B6B;
+}
+
+/* 弹窗样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  width: 560rpx;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.modal-title {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.modal-title text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+}
+
+.modal-body {
+  margin-bottom: 30rpx;
+}
+
+.modal-body text {
+  font-size: 28rpx;
+  color: #666666;
+  text-align: center;
+}
+
+.modal-footer {
+  margin-top: 30rpx;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.modal-btn {
+  width: 180rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  text-align: center;
+  border-radius: 35rpx;
+  font-size: 28rpx;
+  margin: 0 15rpx;
+}
+
+.modal-btn.cancel {
+  background-color: #f5f5f5;
+  color: #666666;
+}
+
+.modal-btn.confirm {
+  background-color: #007AFF;
+  color: #ffffff;
+}
+
+/* 支付选择器样式 */
+.payment-selector {
+  margin-top: 30rpx;
+}
+
+.payment-title {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 20rpx;
+  padding: 0 30rpx;
+}
+
+.payment-dropdown {
+  position: relative;
+  margin: 0 30rpx;
+}
+
+.selected-payment {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  background-color: #f8f8f8;
+  border-radius: 12rpx;
+  border: 2rpx solid #eeeeee;
+}
+
+.selected-payment.active {
+  border-color: #007AFF;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.payment-info {
+  flex-direction: row;
+  align-items: center;
+}
+
+.payment-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-text {
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.alipay {
+  background: linear-gradient(135deg, #1677FF, #0091FF);
+}
+
+.wechat {
+  background: linear-gradient(135deg, #07C160, #10D574);
+}
+
+.bank {
+  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+}
+
+.payment-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.dropdown-arrow {
+  font-size: 24rpx;
+  color: #999999;
+  transition: transform 0.3s;
+}
+
+.arrow-up {
+  transform: rotate(180deg);
+}
+
+.payment-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 2rpx solid #007AFF;
+  border-top: none;
+  border-bottom-left-radius: 12rpx;
+  border-bottom-right-radius: 12rpx;
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: all 0.3s ease;
+  opacity: 0;
+  z-index: 100;
+}
+
+.payment-options.show {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+.payment-option {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  border-bottom: 2rpx solid #eeeeee;
+}
+
+.payment-option:last-child {
+  border-bottom: none;
+}
+
+.payment-option.selected {
+  background-color: #f0f9ff;
+}
+
+.check-icon {
+  font-size: 32rpx;
+  color: #007AFF;
+  font-weight: bold;
+}
+
+/* 详情弹窗样式 */
+.detail-item {
+  flex-direction: row;
+  margin-bottom: 20rpx;
+}
+
+.detail-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.detail-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+/* 小按钮样式 */
+.small-btn {
+  padding: 0 20rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  border-radius: 25rpx;
+  font-size: 22rpx;
+}
+</style>

@@ -1,0 +1,102 @@
+@import "../../uvue.wxss";
+:host{display:flex;flex-direction:column}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background-color: #ffffff;
+  padding: 20rpx 0;
+}
+.settings-list {
+  width: 100%;
+}
+.settings-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 30rpx 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.icon-circle {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 30rpx;
+  flex-shrink: 0;
+}
+.success {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+.warning {
+  background-color: rgba(255, 82, 82, 0.1);
+}
+.info {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+.icon-text {
+  font-size: 30rpx;
+  font-weight: bold;
+}
+.success .icon-text {
+  color: #4CAF50;
+}
+.warning .icon-text {
+  color: #FF5252;
+}
+.info .icon-text {
+  color: #2196F3;
+}
+.settings-text {
+  font-size: 30rpx;
+  color: #333;
+  text-align: left;
+  flex: 1;
+}
+.role-badge {
+  background-color: #FF9800;
+  border-radius: 20rpx;
+  padding: 4rpx 16rpx;
+  margin-right: 30rpx;
+}
+.badge-text {
+  color: #FFFFFF;
+  font-size: 20rpx;
+}
+
+/* 模拟数据信息样式 */
+.mock-info {
+  margin: 20rpx;
+  border-radius: 10rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+.mock-info-header {
+  background-color: #FFB300;
+  padding: 20rpx;
+}
+.mock-info-title {
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+.mock-info-content {
+  background-color: #FFF9C4;
+  padding: 20rpx;
+}
+.mock-info-item {
+  margin-bottom: 10rpx;
+}
+.mock-label {
+  font-size: 26rpx;
+  color: #FF6F00;
+  font-weight: bold;
+}
+.mock-value {
+  font-size: 26rpx;
+  color: #333333;
+}

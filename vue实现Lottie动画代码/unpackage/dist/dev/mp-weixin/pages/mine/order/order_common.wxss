@@ -1,0 +1,302 @@
+@import "../../../uvue.wxss";
+:host{display:flex;flex-direction:column}
+
+.container {
+  flex: 1;
+  background-color: #f5f5f5;
+}
+.tab-container {
+  flex-direction: row;
+  height: 88rpx;
+  background-color: #ffffff;
+  border-bottom-width: 1rpx;
+  border-bottom-color: #eeeeee;
+}
+.tab-item {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+.tab-item text {
+  font-size: 28rpx;
+  color: #666666;
+}
+.tab-item.active text {
+  color: #007AFF;
+  font-weight: bold;
+}
+.order-list {
+  flex: 1;
+  padding: 20rpx;
+}
+.order-item {
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+.order-header {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.order-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+.order-status {
+  font-size: 24rpx;
+  color: #007AFF;
+}
+.order-content {
+  margin-bottom: 20rpx;
+}
+.order-title {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 10rpx;
+}
+.order-price {
+  font-size: 32rpx;
+  color: #FF6B6B;
+  font-weight: bold;
+}
+.order-student {
+  font-size: 24rpx;
+  color: #666666;
+  margin-top: 10rpx;
+}
+.order-footer {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.button-group {
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+.cancel-btn, .pay-btn, .confirm-btn {
+  padding: 0 20rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  border-radius: 25rpx;
+  font-size: 22rpx;
+}
+.cancel-btn {
+  background-color: #ffffff;
+  color: #666666;
+  border-width: 1rpx;
+  border-color: #dddddd;
+  margin-right: 16rpx;
+}
+.pay-btn, .confirm-btn {
+  background-color: #007AFF;
+  color: #ffffff;
+}
+.appraise-btn {
+  background-color: #ffffff;
+  color: #FFA500;
+  border-width: 1rpx;
+  border-color: #FFA500;
+  margin-right: 16rpx;
+}
+.detail-btn {
+  background-color: #ffffff;
+  color: #007AFF;
+  border-width: 1rpx;
+  border-color: #007AFF;
+  margin-right: 16rpx;
+}
+.delete-btn {
+  background-color: #ffffff;
+  color: #FF6B6B;
+  border-width: 1rpx;
+  border-color: #FF6B6B;
+}
+
+/* 弹窗样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  width: 560rpx;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+.modal-title {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+.modal-title text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+}
+.modal-body {
+  margin-bottom: 30rpx;
+}
+.modal-body text {
+  font-size: 28rpx;
+  color: #666666;
+  text-align: center;
+}
+.modal-footer {
+  margin-top: 30rpx;
+  flex-direction: row;
+  justify-content: center;
+}
+.modal-btn {
+  width: 180rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  text-align: center;
+  border-radius: 35rpx;
+  font-size: 28rpx;
+  margin: 0 15rpx;
+}
+.modal-btn.cancel {
+  background-color: #f5f5f5;
+  color: #666666;
+}
+.modal-btn.confirm {
+  background-color: #007AFF;
+  color: #ffffff;
+}
+
+/* 支付选择器样式 */
+.payment-selector {
+  margin-top: 30rpx;
+}
+.payment-title {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 20rpx;
+  padding: 0 30rpx;
+}
+.payment-dropdown {
+  position: relative;
+  margin: 0 30rpx;
+}
+.selected-payment {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  background-color: #f8f8f8;
+  border-radius: 12rpx;
+  border: 2rpx solid #eeeeee;
+}
+.selected-payment.active {
+  border-color: #007AFF;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.payment-info {
+  flex-direction: row;
+  align-items: center;
+}
+.payment-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+  justify-content: center;
+  align-items: center;
+}
+.icon-text {
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+.alipay {
+  background: linear-gradient(135deg, #1677FF, #0091FF);
+}
+.wechat {
+  background: linear-gradient(135deg, #07C160, #10D574);
+}
+.bank {
+  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+}
+.payment-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+.dropdown-arrow {
+  font-size: 24rpx;
+  color: #999999;
+  transition: transform 0.3s;
+}
+.arrow-up {
+  transform: rotate(180deg);
+}
+.payment-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 2rpx solid #007AFF;
+  border-top: none;
+  border-bottom-left-radius: 12rpx;
+  border-bottom-right-radius: 12rpx;
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: all 0.3s ease;
+  opacity: 0;
+  z-index: 100;
+}
+.payment-options.show {
+  transform: scaleY(1);
+  opacity: 1;
+}
+.payment-option {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  border-bottom: 2rpx solid #eeeeee;
+}
+.payment-option:last-child {
+  border-bottom: none;
+}
+.payment-option.selected {
+  background-color: #f0f9ff;
+}
+.check-icon {
+  font-size: 32rpx;
+  color: #007AFF;
+  font-weight: bold;
+}
+
+/* 详情弹窗样式 */
+.detail-item {
+  flex-direction: row;
+  margin-bottom: 20rpx;
+}
+.detail-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #666666;
+}
+.detail-value {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+/* 小按钮样式 */
+.small-btn {
+  padding: 0 20rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  border-radius: 25rpx;
+  font-size: 22rpx;
+}

@@ -1,0 +1,176 @@
+<template>
+	<view class="filter-section" @click.stop>
+		<!-- 第一行：学校 -->
+		<view class="filter-row">
+			<view class="filter-item full-width">
+				<text class="filter-label">所在学校：</text>
+				<view class="choice-wrapper">
+					<choice-selected 
+						:defaultText="'请选择学校'" 
+						:choiceIndex="schoolIndex" 
+						:choiceList="schoolList"
+						mode="search"
+						:searchPlaceholder="'搜索学校'"
+						@onChoiceClick="onSchoolClick"
+						@search-input="onSchoolSearch"
+						ref="schoolDropdown">
+					</choice-selected>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 第二行：专业 -->
+		<view class="filter-row">
+			<view class="filter-item full-width">
+				<text class="filter-label">专业：</text>
+				<view class="choice-wrapper">
+					<choice-selected 
+						:defaultText="'请选择专业'" 
+						:choiceIndex="majorIndex" 
+						:choiceList="majorList"
+						@onChoiceClick="onMajorClick"
+						ref="majorDropdown">
+					</choice-selected>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import choiceSelected from '../../components/combobox/combobox'
+	
+	/**
+	 * @description 筛选区域组件
+	 * @property {Number} schoolIndex - 选中的学校索引
+	 * @property {Array} schoolList - 学校列表
+	 * @property {Number} majorIndex - 选中的专业索引
+	 * @property {Array} majorList - 专业列表
+	 * @event {Function} schoolChange - 学校变更事件
+	 * @event {Function} majorChange - 专业变更事件
+	 * @event {Function} schoolSearch - 学校搜索事件
+	 */
+	export default {
+		name: "FilterSection",
+		components: {
+			choiceSelected
+		},
+		props: {
+			schoolIndex: {
+				type: Number,
+				default: -1
+			},
+			schoolList: {
+				type: Array,
+				default: () => []
+			},
+			majorIndex: {
+				type: Number,
+				default: -1
+			},
+			majorList: {
+				type: Array,
+				default: () => []
+			}
+		},
+		methods: {
+			/**
+			 * @description 学校选择事件处理
+			 * @param {Number} position - 选择的索引位置
+			 */
+			onSchoolClick(position) {
+				this.$emit('schoolChange', position);
+			},
+			
+			/**
+			 * @description 专业选择事件处理
+			 * @param {Number} position - 选择的索引位置
+			 */
+			onMajorClick(position) {
+				this.$emit('majorChange', position);
+			},
+			
+			/**
+			 * @description 处理学校搜索输入
+			 * @param {String} keyword - 搜索关键词
+			 */
+			onSchoolSearch(keyword) {
+				this.$emit('schoolSearch', keyword);
+			},
+			
+			/**
+			 * @description 关闭所有下拉框
+			 */
+			closeAllDropdowns() {
+				if (this.$refs && this.$refs.schoolDropdown) {
+					this.$refs.schoolDropdown.closeDropdown && this.$refs.schoolDropdown.closeDropdown();
+				}
+				if (this.$refs && this.$refs.majorDropdown) {
+					this.$refs.majorDropdown.closeDropdown && this.$refs.majorDropdown.closeDropdown();
+				}
+			}
+		}
+	}
+</script>
+
+<style>
+	/* 筛选区域 */
+	.filter-section {
+		width: 100%;
+		padding: 20rpx 15rpx;
+		background-color: #ffffff;
+		border-radius: 0 0 16rpx 16rpx; /* 调整圆角，让顶部与导航栏无缝连接 */
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		box-sizing: border-box;
+		margin-top: 0;
+		position: relative;
+		z-index: 10;
+	}
+	
+	.filter-row {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		margin-bottom: 20rpx;
+		box-sizing: border-box;
+	}
+	
+	.filter-row:last-child {
+		margin-bottom: 0;
+	}
+	
+	.filter-item {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		box-sizing: border-box;
+		width: 100%;
+	}
+	
+	.full-width {
+		width: 100%;
+	}
+	
+	.filter-label {
+		font-size: 28rpx;
+		color: #333;
+		white-space: nowrap;
+		margin-right: 10rpx;
+		width: 140rpx; /* 改为固定宽度，不用min-width */
+		padding-left: 10rpx;
+		text-align: left;
+		box-sizing: border-box;
+	}
+	
+	.choice-wrapper {
+		flex: 1;
+		box-sizing: border-box;
+		width: calc(100% - 150rpx); /* 考虑标签宽度和间距 */
+		padding-right: 10rpx; /* 防止右侧超出边界 */
+	}
+	
+	.flex-1 {
+		flex: 1;
+	}
+</style> 

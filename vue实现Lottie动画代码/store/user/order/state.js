@@ -1,0 +1,55 @@
+/**
+ * User模块的状态
+ * @module store/user/User/state
+ */
+
+export default {
+    unpaid:[
+        {
+            orderId:'',//订单id
+            teacherId:'',//老师id
+            teacherName:'',//老师姓名
+            typeName:'',//服务类型
+            price:0,
+            orderTime:'',//订单时间
+            status:'',//订单状态
+            payWay:'',//支付方式
+        }
+    ],
+    service:[
+        {
+            orderId:'',//订单id
+            teacherId:'',//老师id
+            teacherName:'',//老师姓名
+            typeName:'',//服务类型
+            price:0,
+            orderTime:'',//订单时间
+            status:'',//订单状态
+            payWay:'',//支付方式
+        }
+    ],
+    finished:[
+        {
+            orderId:'',//订单id
+            teacherId:'',//老师id
+            teacherName:'',//老师姓名
+            typeName:'',//服务类型
+            price:0,
+            orderTime:'',//订单时间
+            status:'',//订单状态
+            payWay:'',//支付方式
+        }
+    ],
+    cancel:[
+        {
+            orderId:'',//订单id
+            teacherId:'',//老师id
+            teacherName:'',//老师姓名
+            typeName:'',//服务类型
+            price:0,
+            orderTime:'',//订单时间
+            status:'',//订单状态
+            payWay:'',//支付方式
+        }
+    ]
+}; 

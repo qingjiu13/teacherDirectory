@@ -1,0 +1,1 @@
+{"version":3,"file":"actions.js","sources":["store/user/myService/actions.js"],"sourcesContent":["/**\r\n * myService模块的actions\r\n * @module store/user/myService/actions\r\n */\r\n\r\nexport default {\r\n    // 这里放置actions方法\r\n}; "],"names":[],"mappings":";AAKA,MAAe,UAAA;AAAA;AAEf;;"}

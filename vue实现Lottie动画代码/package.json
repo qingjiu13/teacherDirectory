@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@chinaso2018/lottie-miniprogram": "^1.1.5",
+    "@dcloudio/uni-ui": "^1.5.7",
+    "@lottiefiles/dotlottie-vue": "^0.6.2",
+    "lottie-miniprogram": "^1.0.12",
+    "lottie-web": "^5.9.1",
+    "vue": "^3.2.47",
+    "vuex": "^4.0.0"
+  }
+}
