@@ -1,4 +1,4 @@
-// ../../../../../yanshilu重新来过/前端yanshilu_1/node_modules/js-base64/base64.mjs
+// ../../../../github/teacherDirectory/前端yanshilu_1/node_modules/js-base64/base64.mjs
 var version = "3.7.7";
 var VERSION = version;
 var _hasBuffer = typeof Buffer === "function";
