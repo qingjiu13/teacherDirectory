@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "登录详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "choice-selected": "../../components/combobox/combobox"
+  }
 }

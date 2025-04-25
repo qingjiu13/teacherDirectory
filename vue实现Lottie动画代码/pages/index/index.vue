@@ -5,13 +5,6 @@
       <view class="sub-title">一站式对接目标院校专业学长学姐</view>
     </view>
 
-    <canvas
-      canvas-id="lottie-canvas"
-      id="lottie-canvas"
-      type="2d"
-      style="width: 300px; height: 300px;"
-    ></canvas>
-
     <view class="button-area">
       <view class="match-button" @click="navigateToMatch">
         <view class="button-text">精准匹配</view>
@@ -34,39 +27,6 @@ export default {
     AICartoon,
     TabBar
   },
-  data() {
-    return {
-      animation: null
-    }
-  },
-  mounted() {
-    this.initLottie()
-  },
-  methods: {
-    async initLottie() {
-      const query = uni.createSelectorQuery().in(this)
-      query.select('#lottie-canvas')
-        .fields({ node: true, size: true })
-        .exec((res) => {
-          const canvas = res[0].node
-          const ctx = canvas.getContext('2d')
-          const dpr = uni.getSystemInfoSync().pixelRatio
-          canvas.width = 300 * dpr
-          canvas.height = 300 * dpr
-          ctx.scale(dpr, dpr)
-		  const lottie = require('../../components/lottie/miniprogram_dist/index.js');
-          this.animation = lottie.loadAnimation({
-			loop: true,
-            autoplay: true,
-            animationData: null,
-            path: 'https://lottie.host/5082ce37-c10e-4773-984c-ea2558105fd8/KhTUklUfWb.json',
-            rendererSettings: {
-              context: ctx,
-              clearCanvas: true
-            }
-          })
-        })
-    },
 
     async navigateToMatch() {
       try {
@@ -82,12 +42,8 @@ export default {
         })
       }
 	}
-},
-  
-  beforeDestroy() {
-    this.animation?.destroy()
-  }
 }
+
 </script>
 
 
