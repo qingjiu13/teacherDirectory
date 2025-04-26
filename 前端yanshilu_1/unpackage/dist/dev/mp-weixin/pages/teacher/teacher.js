@@ -30,7 +30,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.loadTeacherData();
     });
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 切换标签页
      * @param {String} tab - 标签名称
@@ -78,7 +78,7 @@ const _sfc_main = common_vendor.defineComponent({
         router_Router.Navigator.toChat(this.teacherId);
       }, 800);
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -115,7 +115,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     o: common_vendor.o((...args) => $options.startConsultation && $options.startConsultation(...args))
   } : {}) : {}, {
-    p: common_vendor.sei(_ctx.virtualHostId, "view")
+    p: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

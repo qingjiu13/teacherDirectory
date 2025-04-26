@@ -16,16 +16,26 @@ const mutations = {
    * @param {Object} payload.detailInfo - 教师详细信息
    */
   UPDATE_TEACHER_DETAIL(state, { id, detailInfo }) {
-    if (!state.matchList || state.matchList.length === 0)
+    if (!state.matchList || state.matchList.length === 0) {
+      state.matchList = [{ id, ...detailInfo }];
       return;
+    }
     const teacherIndex = state.matchList.findIndex((teacher) => teacher.id === id);
     if (teacherIndex !== -1) {
       state.matchList[teacherIndex] = {
         ...state.matchList[teacherIndex],
-        selfIntroduction: detailInfo.selfIntroduction || "",
-        service: detailInfo.service || []
+        ...detailInfo
       };
+    } else {
+      state.matchList.push({ id, ...detailInfo });
     }
+  },
+  /**
+   * 清空匹配老师列表
+   * @param {Object} state - match模块的state
+   */
+  CLEAR_MATCH_LIST(state) {
+    state.matchList = [];
   }
 };
 exports.mutations = mutations;

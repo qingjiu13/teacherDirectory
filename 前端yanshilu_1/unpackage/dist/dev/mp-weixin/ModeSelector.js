@@ -3,15 +3,15 @@ const common_vendor = require("./common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "ModeSelector",
   props: {
-    currentMode: {
+    currentMode: new UTSJSONObject({
       type: String,
       default: "general",
       validator: (value = null) => {
         return ["general", "school", "career"].includes(value);
       }
-    }
+    })
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 切换对话模式
      * @param {String} mode - 对话模式
@@ -21,7 +21,7 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       this.$emit("modeChange", mode);
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
@@ -31,7 +31,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     d: common_vendor.o(($event) => $options.switchMode("school")),
     e: $props.currentMode === "career" ? 1 : "",
     f: common_vendor.o(($event) => $options.switchMode("career")),
-    g: common_vendor.sei(_ctx.virtualHostId, "view")
+    g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

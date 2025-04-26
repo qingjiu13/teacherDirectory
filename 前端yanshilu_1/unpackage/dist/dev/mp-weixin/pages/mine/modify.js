@@ -21,7 +21,7 @@ const _sfc_main = common_vendor.defineComponent({
       updating: false
     };
   },
-  computed: Object.assign(Object.assign({}, common_vendor.mapGetters("user", [
+  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("user", [
     "profile",
     "isTeacher",
     "userRole",
@@ -56,7 +56,7 @@ const _sfc_main = common_vendor.defineComponent({
     maxTagsCount() {
       return this.isTeacher ? 4 : 5;
     }
-  }),
+  })),
   watch: {
     updateLoading(val = null) {
       this.updating = val;
@@ -117,7 +117,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 选择头像
      */
     chooseAvatar() {
-      common_vendor.index.chooseImage({
+      common_vendor.index.chooseImage(new UTSJSONObject({
         count: 1,
         sizeType: ["compressed"],
         sourceType: ["album", "camera"],
@@ -125,7 +125,7 @@ const _sfc_main = common_vendor.defineComponent({
           const tempFilePath = res.tempFilePaths[0];
           this.userInfo.avatar = tempFilePath;
         }
-      });
+      }));
     },
     /**
      * @description 显示标签输入框
@@ -283,7 +283,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     B: common_vendor.o((...args) => $options.navigateToPasswordPage && $options.navigateToPasswordPage(...args)),
     C: common_vendor.o((...args) => $options.saveProfile && $options.saveProfile(...args)),
     D: $data.updating,
-    E: common_vendor.sei(_ctx.virtualHostId, "view")
+    E: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

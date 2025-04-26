@@ -4,26 +4,26 @@
     <scroll-view class="content-area" scroll-y="true">
       
       <!-- 头像独立于容器 -->
-      <image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
+      <image class="teacher-avatar" :src="teacherData.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
       
       <!-- 老师个人信息卡片 -->
       <view class="teacher-profile">
         <!-- 昵称部分 -->
         <view class="name-row">
           <view class="teacher-info">
-            <text class="teacher-name">{{teacher.name}}</text>
+            <text class="teacher-name">{{teacherData.name}}</text>
           </view>
         </view>
         
         <!-- 学校专业信息 -->
         <view class="education-info">
-          {{teacher.school}} | {{teacher.major}} | {{teacher.teacherScore}}
+          {{teacherData.school}} | {{teacherData.major}} | {{teacherData.teacherScore}}
         </view>
         
         <!-- 个人简介 -->
         <view class="profile-intro">
           <text class="intro-title">个人简介：</text>
-          <text class="intro-text">{{teacher.selfIntroduction || '这位老师很懒，还没有填写个人简介。'}}</text>
+          <text class="intro-text">{{teacherData.selfIntroduction || '这位老师很懒，还没有填写个人简介。'}}</text>
         </view>
       </view>
       
@@ -71,67 +71,80 @@
 </template>
 
 <script>
-    import { Navigator, MessageRoutes } from '@/router/Router.js'
-    import store from '@/store/index.js'
-    import { mapGetters } from 'vuex'
-    /**
-    * @file 老师详情页
-    * @description 展示老师个人信息和服务
-    */
-    export default {
-        data() {
-        return {
-            teacherId: null,
-            activeTab: 'services', // 当前选中的标签页
-            isLoading: false // 是否正在加载
-        }
-        },
-    
-    computed: {
-        /**
-        * @description 从Vuex获取老师信息
-        * @returns {Object} 老师信息对象
-        */
-        ...mapGetters('match', ['teacherInfo']),
+import { Navigator, MessageRoutes } from '@/router/Router.js'
+import { mapGetters, mapState } from 'vuex'
 
-        /**
-        * @description 获取当前老师对象
-        * @returns {Object} 老师对象
-        */
-        teacher() {
-            const teacherData = this.teacherInfo(this.teacherId);
-            return teacherData || {
-                id: null,
-                name: '',
-                avatar: '/static/image/tab-bar/default_avatar.png',
-                school: '',
-                major: '',
-                teacherScore: 0, 
-                certificate: 0,
-                selfIntroduction: '加载中...'
-            };
-        },
-
-        /**
-        * @description 获取老师的服务列表
-        * @returns {Array} 服务列表
-        */
-        services() {
-            if (!this.teacher || !this.teacher.service) {
-                return [];
-            }
-            return this.teacher.service || [];
-        }
+/**
+* @file 老师详情页
+* @description 展示老师个人信息和服务
+*/
+export default {
+    data() {
+      return {
+          teacherId: null,
+          activeTab: 'services', // 当前选中的标签页
+          isLoading: false, // 是否正在加载
+          teacherData: {
+            id: null,
+            name: '',
+            avatar: '/static/image/tab-bar/default_avatar.png',
+            school: '',
+            major: '',
+            teacherScore: 0, 
+            certificate: 0,
+            selfIntroduction: '加载中...',
+            service: []
+          }
+      }
     },
     
-    async onLoad(options) {
+    computed: {
+      /**
+      * @description 从Vuex获取老师信息
+      * @returns {Object} 老师信息对象
+      */
+      ...mapGetters('user/match', ['teacherInfo']),
+      
+      /**
+      * @description 获取老师的服务列表
+      * @returns {Array} 服务列表
+      */
+      services() {
+        if (!this.teacherData || !this.teacherData.service) {
+          return [];
+        }
+        return this.teacherData.service || [];
+      }
+    },
+    
+    onLoad(options) {
       // 获取老师ID
       this.teacherId = options.id || '';
+      
+      if (!this.teacherId) {
+        uni.showToast({
+          title: '未获取到教师ID',
+          icon: 'none'
+        });
+        return;
+      }
       
       // 显示加载状态
       this.isLoading = true;
       
-      // 加载老师信息状态结束
+      // 从Vuex store获取教师信息
+      const teacherData = this.teacherInfo(this.teacherId);
+      
+      if (teacherData) {
+        this.teacherData = teacherData;
+      } else {
+        uni.showToast({
+          title: '未找到该教师信息',
+          icon: 'none'
+        });
+      }
+      
+      // 加载结束
       this.isLoading = false;
     },
     
@@ -159,7 +172,7 @@
         }, 800);
       }
     }
-  }
+}
 </script>
 
 <style>

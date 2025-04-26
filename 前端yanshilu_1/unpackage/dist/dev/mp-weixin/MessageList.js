@@ -7,26 +7,26 @@ const _sfc_main = common_vendor.defineComponent({
     MessageItem
   },
   props: {
-    messages: {
+    messages: new UTSJSONObject({
       type: Array,
       default: () => {
         return [];
       }
-    },
-    emptyText: {
+    }),
+    emptyText: new UTSJSONObject({
       type: String,
       default: "您可以开始提问了..."
-    },
-    aiTitle: {
+    }),
+    aiTitle: new UTSJSONObject({
       type: String,
       default: "研师录AI"
-    },
-    autoScrollId: {
+    }),
+    autoScrollId: new UTSJSONObject({
       type: String,
       default: ""
-    }
+    })
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 处理滚动到顶部事件
      * @param {Object} e - 事件对象
@@ -49,7 +49,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.$emit("updateAutoScrollId", "msg-" + (this.messages.length - 1));
       }
     }
-  }
+  })
 });
 if (!Array) {
   const _component_message_item = common_vendor.resolveComponent("message-item");
@@ -81,7 +81,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: $props.autoScrollId,
     f: common_vendor.o((...args) => $options.onScrollToUpper && $options.onScrollToUpper(...args)),
     g: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
-    h: common_vendor.sei(_ctx.virtualHostId, "view")
+    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

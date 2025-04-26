@@ -1,24 +1,13 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
-require("../../store/index.js");
 const _sfc_main = common_vendor.defineComponent({
   data() {
     return {
       teacherId: null,
       activeTab: "services",
-      isLoading: false
-      // 是否正在加载
-    };
-  },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("match", ["teacherInfo"])), {
-    /**
-    * @description 获取当前老师对象
-    * @returns {Object} 老师对象
-    */
-    teacher() {
-      const teacherData = this.teacherInfo(this.teacherId);
-      return teacherData || new UTSJSONObject({
+      isLoading: false,
+      teacherData: new UTSJSONObject({
         id: null,
         name: "",
         avatar: "/static/image/tab-bar/default_avatar.png",
@@ -26,26 +15,43 @@ const _sfc_main = common_vendor.defineComponent({
         major: "",
         teacherScore: 0,
         certificate: 0,
-        selfIntroduction: "加载中..."
-      });
-    },
+        selfIntroduction: "加载中...",
+        service: []
+      })
+    };
+  },
+  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("user/match", ["teacherInfo"])), {
     /**
     * @description 获取老师的服务列表
     * @returns {Array} 服务列表
     */
     services() {
-      if (!this.teacher || !this.teacher.service) {
+      if (!this.teacherData || !this.teacherData.service) {
         return [];
       }
-      return this.teacher.service || [];
+      return this.teacherData.service || [];
     }
   })),
   onLoad(options) {
-    return common_vendor.__awaiter(this, void 0, void 0, function* () {
-      this.teacherId = options.id || "";
-      this.isLoading = true;
-      this.isLoading = false;
-    });
+    this.teacherId = options.id || "";
+    if (!this.teacherId) {
+      common_vendor.index.showToast({
+        title: "未获取到教师ID",
+        icon: "none"
+      });
+      return null;
+    }
+    this.isLoading = true;
+    const teacherData = this.teacherInfo(this.teacherId);
+    if (teacherData) {
+      this.teacherData = teacherData;
+    } else {
+      common_vendor.index.showToast({
+        title: "未找到该教师信息",
+        icon: "none"
+      });
+    }
+    this.isLoading = false;
   },
   methods: new UTSJSONObject({
     /**
@@ -71,12 +77,12 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: $options.teacher.avatar || "/static/image/tab-bar/default_avatar.png",
-    b: common_vendor.t($options.teacher.name),
-    c: common_vendor.t($options.teacher.school),
-    d: common_vendor.t($options.teacher.major),
-    e: common_vendor.t($options.teacher.teacherScore),
-    f: common_vendor.t($options.teacher.selfIntroduction || "这位老师很懒，还没有填写个人简介。"),
+    a: $data.teacherData.avatar || "/static/image/tab-bar/default_avatar.png",
+    b: common_vendor.t($data.teacherData.name),
+    c: common_vendor.t($data.teacherData.school),
+    d: common_vendor.t($data.teacherData.major),
+    e: common_vendor.t($data.teacherData.teacherScore),
+    f: common_vendor.t($data.teacherData.selfIntroduction || "这位老师很懒，还没有填写个人简介。"),
     g: $data.activeTab === "services" ? 1 : "",
     h: common_vendor.o(($event) => $options.switchTab("services")),
     i: $data.activeTab === "services"

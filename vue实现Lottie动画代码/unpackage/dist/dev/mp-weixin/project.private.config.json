@@ -7,6 +7,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/teacher",
+          "pathName": "pages/teacher/teacher",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/order",
           "pathName": "pages/mine/course/course",
           "query": "",

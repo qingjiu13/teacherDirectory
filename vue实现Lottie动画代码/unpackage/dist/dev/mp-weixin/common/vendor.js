@@ -9431,6 +9431,11 @@ new Set(
  * @license MIT
  */
 var storeKey = "store";
+function useStore(key) {
+  if (key === void 0)
+    key = null;
+  return inject(key !== null ? key : storeKey);
+}
 function forEachValue(obj, fn) {
   Object.keys(obj).forEach(function(key) {
     return fn(obj[key], key);
@@ -14361,11 +14366,14 @@ exports.mapMutations = mapMutations;
 exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
+exports.onMounted = onMounted;
 exports.p = p;
+exports.reactive = reactive;
 exports.ref = ref;
 exports.resolveComponent = resolveComponent;
 exports.sei = sei;
 exports.sr = sr;
 exports.t = t;
 exports.unref = unref;
+exports.useStore = useStore;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

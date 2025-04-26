@@ -74,7 +74,7 @@ const _sfc_main = common_vendor.defineComponent({
       sortIndex: -1
     };
   },
-  computed: Object.assign(Object.assign({}, common_vendor.mapState("match", [
+  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapState("match", [
     "teachers",
     "currentPage",
     "totalPages",
@@ -87,7 +87,7 @@ const _sfc_main = common_vendor.defineComponent({
     "isLoadingMore",
     "hasMoreData",
     "currentFilters"
-  ])),
+  ]))),
   methods: Object.assign(Object.assign({}, common_vendor.mapActions("match", [
     "getTeachers",
     "loadMoreTeachers",
@@ -250,7 +250,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     o: common_vendor.o((...args) => _ctx.loadMoreTeachers && _ctx.loadMoreTeachers(...args)),
     p: _ctx.isLoading
   }, _ctx.isLoading ? {} : {}, {
-    q: common_vendor.sei(_ctx.virtualHostId, "view"),
+    q: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     r: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }

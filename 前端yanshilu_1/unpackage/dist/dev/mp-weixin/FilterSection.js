@@ -7,28 +7,28 @@ const _sfc_main = common_vendor.defineComponent({
     choiceSelected
   },
   props: {
-    schoolIndex: {
+    schoolIndex: new UTSJSONObject({
       type: Number,
       default: -1
-    },
-    schoolList: {
+    }),
+    schoolList: new UTSJSONObject({
       type: Array,
       default: () => {
         return [];
       }
-    },
-    majorIndex: {
+    }),
+    majorIndex: new UTSJSONObject({
       type: Number,
       default: -1
-    },
-    majorList: {
+    }),
+    majorList: new UTSJSONObject({
       type: Array,
       default: () => {
         return [];
       }
-    }
+    })
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 学校选择事件处理
      * @param {Number} position - 选择的索引位置
@@ -61,7 +61,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.$refs.majorDropdown.closeDropdown && this.$refs.majorDropdown.closeDropdown();
       }
     }
-  }
+  })
 });
 if (!Array) {
   const _component_choice_selected = common_vendor.resolveComponent("choice-selected");
@@ -86,7 +86,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       choiceIndex: $props.majorIndex,
       choiceList: $props.majorList
     }),
-    h: common_vendor.sei(_ctx.virtualHostId, "view"),
+    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     i: common_vendor.o(() => {
     })
   };

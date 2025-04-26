@@ -3,41 +3,41 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "MessageItem",
   props: {
-    type: {
+    type: new UTSJSONObject({
       type: String,
       default: "user",
       validator: (value = null) => {
         return ["user", "ai", "system"].includes(value);
       }
-    },
-    content: {
+    }),
+    content: new UTSJSONObject({
       type: String,
       default: ""
-    },
-    status: {
+    }),
+    status: new UTSJSONObject({
       type: String,
       default: "sent",
       validator: (value = null) => {
         return ["sending", "sent", "error"].includes(value);
       }
-    },
-    streaming: {
+    }),
+    streaming: new UTSJSONObject({
       type: Boolean,
       default: false
-    },
-    aiTitle: {
+    }),
+    aiTitle: new UTSJSONObject({
       type: String,
       default: "研师录AI"
-    }
+    })
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 重试发送消息
      */
     onRetry() {
       this.$emit("retry");
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -52,7 +52,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.status === "error" ? {
     f: common_vendor.o((...args) => $options.onRetry && $options.onRetry(...args))
   } : {}, {
-    g: common_vendor.sei(_ctx.virtualHostId, "view"),
+    g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     h: common_vendor.n($props.type),
     i: common_vendor.n({
       "streaming": $props.streaming

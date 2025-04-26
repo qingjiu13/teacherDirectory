@@ -18,7 +18,7 @@ const _sfc_main = common_vendor.defineComponent({
       // 是否处于聚焦状态
     };
   },
-  props: {
+  props: new UTSJSONObject({
     choiceIndex: {
       type: Number,
       default: -1
@@ -49,7 +49,7 @@ const _sfc_main = common_vendor.defineComponent({
       type: String,
       default: "请输入关键词"
     }
-  },
+  }),
   created() {
     dropdownInstances.push(this);
   },
@@ -62,7 +62,7 @@ const _sfc_main = common_vendor.defineComponent({
       clearTimeout(this.searchTimer);
     }
   },
-  computed: {
+  computed: new UTSJSONObject({
     /**
      * @description 根据搜索关键词过滤选项列表
      * @returns {Array} 过滤后的选项列表
@@ -75,7 +75,7 @@ const _sfc_main = common_vendor.defineComponent({
         return item.choiceItemContent.toLowerCase().includes(this.searchKeyword.toLowerCase());
       });
     }
-  },
+  }),
   watch: {
     choiceIndex(newVal = null) {
       if (newVal >= 0 && newVal < this.choiceList.length) {
@@ -97,7 +97,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
     }
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 处理选项点击事件，关闭下拉框并触发选择事件
      * @param {Number} position - 选中项的索引位置
@@ -185,7 +185,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.isShowChoice = false;
       }
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -224,7 +224,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     t: common_vendor.o(() => {
     })
   }) : {}, {
-    v: common_vendor.sei(_ctx.virtualHostId, "view"),
+    v: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     w: common_vendor.o(() => {
     })
   });

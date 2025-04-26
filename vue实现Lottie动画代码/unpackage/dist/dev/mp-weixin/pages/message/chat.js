@@ -14,6 +14,7 @@ const _sfc_main = common_vendor.defineComponent({
       ]
     };
   },
+  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapGetters("user/match", ["teacherInfo"]))),
   onLoad(options) {
     if (options.userId) {
       this.teacherId = options.userId;
@@ -21,9 +22,7 @@ const _sfc_main = common_vendor.defineComponent({
     } else if (options.teacherId) {
       this.teacherId = options.teacherId;
       this.teacherName = options.teacherName || "老师";
-      if (!options.teacherName) {
-        this.loadTeacherInfo();
-      }
+      this.loadTeacherInfo();
     }
   },
   methods: {
@@ -37,16 +36,29 @@ const _sfc_main = common_vendor.defineComponent({
      * 加载教师信息
      */
     loadTeacherInfo() {
-      setTimeout(() => {
-        const teachers = new UTSJSONObject({
-          "1": "王教授",
-          "2": "李博士",
-          "3": "张老师",
-          "4": "刘教授",
-          "5": "陈老师"
-        });
-        this.teacherName = teachers[this.teacherId] || "老师";
-      }, 100);
+      if (!this.teacherId)
+        return null;
+      const teacherData = this.teacherInfo(this.teacherId);
+      if (teacherData && teacherData.name) {
+        this.teacherName = teacherData.name;
+      } else {
+        this.getTeacherNameFromLocal();
+      }
+    },
+    /**
+     * 从本地模拟数据获取教师姓名（作为后备方案）
+     */
+    getTeacherNameFromLocal() {
+      const teachers = new UTSJSONObject({
+        "teacher001": "张老师",
+        "teacher002": "李老师",
+        "1": "王教授",
+        "2": "李博士",
+        "3": "张老师",
+        "4": "刘教授",
+        "5": "陈老师"
+      });
+      this.teacherName = teachers[this.teacherId] || "老师";
     },
     /**
      * 发送消息

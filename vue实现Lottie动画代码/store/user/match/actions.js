@@ -54,23 +54,22 @@ export default {
      * @param {String} teacherId - 老师ID
      * @returns {Promise} - 返回获取结果的Promise
      */
-    getTeacherById({ state }, teacherId) {
-        return new Promise((resolve, reject) => {
+    getTeacherById({ commit }, teacherId) {
+        return new Promise(async (resolve, reject) => {
             try {
-                // 从state中查找对应ID的老师
-                const teacher = state.matchList.find(item => item.id === teacherId);
+                // 通过API获取老师详情
+                const result = await getTeacherDetail(teacherId);
                 
-                if (teacher) {
-                    resolve({
-                        success: true,
-                        data: teacher
-                    });
-                } else {
-                    reject({
-                        success: false,
-                        message: '未找到该老师信息'
-                    });
-                }
+                // 将数据更新到state中对应的老师
+                commit('UPDATE_TEACHER_DETAIL', {
+                    id: teacherId,
+                    detailInfo: result
+                });
+                
+                resolve({
+                    success: true,
+                    data: result
+                });
             } catch (error) {
                 reject({
                     success: false,
