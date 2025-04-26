@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const store_index = require("../../store/index.js");
+require("../../store/index.js");
 const router_Router = require("../../router/Router.js");
 const AICartoon = () => "../../components/AI-cartoon/AI-cartoon.js";
 const TabBar = () => "../../components/tab-bar/tab-bar.js";
@@ -9,22 +9,11 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     AICartoon,
     TabBar
   },
-  navigateToMatch() {
-    return common_vendor.__awaiter(this, void 0, void 0, function* () {
-      try {
-        common_vendor.index.showLoading({ title: "加载中..." });
-        yield store_index.store.dispatch("match/getFilteredMatchList", new UTSJSONObject({}));
-        common_vendor.index.hideLoading();
-        router_Router.Navigator.toMatch();
-      } catch (error) {
-        common_vendor.index.hideLoading();
-        common_vendor.index.showToast({
-          title: "数据加载失败，请重试",
-          icon: "none"
-        });
-      }
-    });
-  }
+  methods: new UTSJSONObject({
+    navigateToMatch() {
+      router_Router.Navigator.toMatch();
+    }
+  })
 }));
 if (!Array) {
   const _component_AICartoon = common_vendor.resolveComponent("AICartoon");
@@ -33,7 +22,7 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: common_vendor.o((...args) => _ctx.navigateToMatch && _ctx.navigateToMatch(...args)),
+    a: common_vendor.o((...args) => $options.navigateToMatch && $options.navigateToMatch(...args)),
     b: common_vendor.p({
       pageName: "index"
     }),

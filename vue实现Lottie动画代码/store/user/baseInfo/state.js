@@ -4,6 +4,7 @@
  */
 
 export default {
+    // 用户基本身份信息
     id: '123456',
     avatar: '/static/image/tab-bar/default_avatar.png',
     name: '张三',

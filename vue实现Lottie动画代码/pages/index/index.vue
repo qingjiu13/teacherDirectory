@@ -27,21 +27,12 @@ export default {
     AICartoon,
     TabBar
   },
+  methods:{
+	  navigateToMatch() {
+	      Navigator.toMatch()
+	  }
+  }
 
-    async navigateToMatch() {
-      try {
-        uni.showLoading({ title: '加载中...' })
-        await store.dispatch('match/getFilteredMatchList', {})
-        uni.hideLoading()
-        Navigator.toMatch()
-      } catch (error) {
-        uni.hideLoading()
-        uni.showToast({
-          title: '数据加载失败，请重试',
-          icon: 'none'
-        })
-      }
-	}
 }
 
 </script>

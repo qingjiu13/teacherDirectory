@@ -1,4 +1,5 @@
 // Vuex store 主入口文件
+import { createApp } from 'vue'
 import { createStore } from 'vuex'
 
 // 导入过滤器模块

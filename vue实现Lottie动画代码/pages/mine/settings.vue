@@ -7,9 +7,6 @@
           <text class="icon-text">🔄</text>
         </view>
         <text class="settings-text">切换身份（当前：{{isTeacher ? '老师' : '学生'}}）</text>
-        <view class="role-badge" v-if="useMockData">
-          <text class="badge-text">模拟</text>
-        </view>
       </view>
       
       <!-- 联系我们 -->
@@ -27,31 +24,6 @@
         </view>
         <text class="settings-text">退出登录</text>
       </view>
-      
-      <!-- 模拟数据开关 -->
-      <view class="settings-item" @click="toggleMockData">
-        <view class="icon-circle" :class="{'success': useMockData, 'info': !useMockData}">
-          <text class="icon-text">{{useMockData ? '✓' : '🔄'}}</text>
-        </view>
-        <text class="settings-text">{{useMockData ? '关闭' : '开启'}}模拟数据</text>
-      </view>
-      
-      <!-- 当前使用的模拟数据状态 -->
-      <view class="mock-info" v-if="useMockData">
-        <view class="mock-info-header">
-          <text class="mock-info-title">模拟数据信息</text>
-        </view>
-        <view class="mock-info-content">
-          <view class="mock-info-item">
-            <text class="mock-label">模拟用户：</text>
-            <text class="mock-value">{{mockUserInfo}}</text>
-          </view>
-          <view class="mock-info-item">
-            <text class="mock-label">测试账号：</text>
-            <text class="mock-value">学生：zhangsan/123456；老师：lisi/654321</text>
-          </view>
-        </view>
-      </view>
     </view>
   </view>
 </template>
@@ -62,15 +34,12 @@
  */
 import { Navigator } from '@/router/Router.js';
 import store from '@/store';
-import { USE_MOCK_DATA, getApiImplementation } from '@/store/user/baseInfo/config.js';
 
 export default {
   data() {
     return {
       isLoggedIn: true, // 默认设为true方便调试
       switching: false,  // 角色切换中状态
-      useMockData: false,  // 模拟数据开关
-      mockUserInfo: '' // 当前模拟用户信息
     }
   },
   computed: {
@@ -92,48 +61,9 @@ export default {
     // 检查登录状态
     const token = uni.getStorageSync('token');
     this.isLoggedIn = !!token;
-    
-    // 检查模拟数据设置
-    this.checkMockDataStatus();
-    
-    // 获取模拟用户信息
-    this.getMockUserInfo();
   },
   methods: {
     // 直接调用store的dispatch方法，替代mapActions
-    
-    /**
-     * @description 检查模拟数据状态
-     */
-    checkMockDataStatus() {
-      // 首先检查全局配置
-      this.useMockData = USE_MOCK_DATA;
-      
-      // 然后检查本地存储设置，优先使用本地存储的设置
-      const localMockSetting = uni.getStorageSync('use_mock_api');
-      if (localMockSetting !== '') {
-        this.useMockData = localMockSetting === 'true';
-      }
-      
-      console.log('当前模拟数据状态:', this.useMockData ? '使用模拟数据' : '使用真实API');
-    },
-    
-    /**
-     * @description 获取模拟用户信息
-     */
-    async getMockUserInfo() {
-      if (this.useMockData) {
-        try {
-          await store.dispatch('user/baseInfo/getUserInfo');
-          this.mockUserInfo = `${this.profile.nickname || '未登录'} (${this.isTeacher ? '老师' : '学生'})`;
-        } catch (error) {
-          console.error('获取模拟用户信息失败:', error);
-          this.mockUserInfo = '未知用户';
-        }
-      } else {
-        this.mockUserInfo = '';
-      }
-    },
     
     /**
      * @description 处理切换身份
@@ -222,40 +152,6 @@ export default {
           }
         }
       });
-    },
-    
-    /**
-     * @description 切换模拟数据开关
-     */
-    toggleMockData() {
-      // 切换设置
-      this.useMockData = !this.useMockData;
-      // 保存设置
-      uni.setStorageSync('use_mock_api', this.useMockData ? 'true' : 'false');
-      
-      // 更新模拟用户信息
-      this.getMockUserInfo();
-      
-      uni.showToast({
-        title: this.useMockData ? '已开启模拟数据' : '已关闭模拟数据',
-        icon: 'none'
-      });
-      
-      // 提示需要重启应用
-      setTimeout(() => {
-        uni.showModal({
-          title: '提示',
-          content: '设置已更改，推荐刷新或重启应用以使更改完全生效',
-          showCancel: true,
-          confirmText: '刷新',
-          success: (res) => {
-            if (res.confirm) {
-              // 刷新当前页面
-              Navigator.reLaunch('/pages/mine/settings');
-            }
-          }
-        });
-      }, 1000);
     }
   }
 }
@@ -328,56 +224,5 @@ export default {
   color: #333;
   text-align: left;
   flex: 1;
-}
-
-.role-badge {
-  background-color: #FF9800;
-  border-radius: 20rpx;
-  padding: 4rpx 16rpx;
-  margin-right: 30rpx;
-}
-
-.badge-text {
-  color: #FFFFFF;
-  font-size: 20rpx;
-}
-
-/* 模拟数据信息样式 */
-.mock-info {
-  margin: 20rpx;
-  border-radius: 10rpx;
-  overflow: hidden;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.mock-info-header {
-  background-color: #FFB300;
-  padding: 20rpx;
-}
-
-.mock-info-title {
-  color: #FFFFFF;
-  font-size: 28rpx;
-  font-weight: bold;
-}
-
-.mock-info-content {
-  background-color: #FFF9C4;
-  padding: 20rpx;
-}
-
-.mock-info-item {
-  margin-bottom: 10rpx;
-}
-
-.mock-label {
-  font-size: 26rpx;
-  color: #FF6F00;
-  font-weight: bold;
-}
-
-.mock-value {
-  font-size: 26rpx;
-  color: #333333;
 }
 </style>

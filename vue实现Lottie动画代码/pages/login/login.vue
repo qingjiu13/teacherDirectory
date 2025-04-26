@@ -18,20 +18,35 @@
   </view>
 </template>
 
-<script setup>
+<script>
 import { Navigator } from '../../router/Router';
 import store from '../../store' 
 
-/**
- * 选择用户身份并更新到Vuex中
- * @param {string} identity - 用户身份类型 ('student'或'teacher')
- */
-function selectIdentity(identity) {
-  console.log("选中的身份是:", identity);
-  // 更新vuex中的角色信息
-  const role = identity === 'student' ? '学生' : '老师';
-  store.commit('user/baseInfo/updateRole', role);
-  Navigator.toLoginDetail();
+export default {
+  methods: {
+    /**
+     * 选择用户身份并更新到Vuex中
+     * @param {string} identity - 用户身份类型 ('student'或'teacher')
+     */
+    selectIdentity(identity) {
+      console.log("选中的身份是:", identity);
+      
+      try {
+        // 直接使用导入的store实例调用mutation
+        // 传递英文的角色代码，让mutation内部处理角色名称转换
+        store.commit('user/baseInfo/updateRole', identity);
+        
+        // 导航到下一页
+        Navigator.toLoginDetail();
+      } catch (error) {
+        console.error('选择身份时出错:', error);
+        uni.showToast({
+          title: '系统错误，请重试',
+          icon: 'none'
+        });
+      }
+    }
+  }
 }
 </script>
 

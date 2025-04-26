@@ -3,6 +3,7 @@
  * @module store/user
  */
 
+// 导入子模块
 import myService from './myService'
 import money from './money'
 import baseInfo from './baseInfo'
@@ -10,6 +11,10 @@ import chat from './chat'
 import match from './match'
 import aiChat from './ai-chat'
 
+/**
+ * 用户模块配置
+ * @type {Object}
+ */
 export default {
     namespaced: true,
     modules: {
@@ -20,7 +25,5 @@ export default {
         match,
         aiChat,
     }
-};
+}
 
-// 重新导出子模块的常量
-export { constants as aiChatConstants } from './ai-chat';

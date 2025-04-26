@@ -3,12 +3,11 @@
     <!-- 用户信息区 -->
     <view class="user-info">
       <view class="user-info-row">
-        <image class="avatar" :src="userData.avatar || profile.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleAvatarClick"></image>
+        <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleAvatarClick"></image>
         <view class="user-info-content">
           <view class="nickname-row">
-            <text class="login-text" @click="handleLoginClick">{{ userData.nickname || profile.nickname || '登录' }}</text>
+            <text class="login-text" @click="handleLoginClick">{{ userData.name || storeName || '登录' }}</text>
           </view>
-          
           <!-- 修改个人信息链接 -->
           <text class="edit-profile-link" @click="handleEditProfile">修改个人信息</text>
         </view>
@@ -18,7 +17,7 @@
     <!-- 菜单列表 -->
     <view class="menu-list">
       <!-- 老师特有功能菜单 -->
-      <view v-if="isTeacher" class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
+      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
         <view class="icon-circle info">
           <text class="icon-text">⏱</text>
         </view>
@@ -42,7 +41,7 @@
       </view>
       
       <!-- 老师特有菜单项：资质认证 -->
-      <view v-if="isTeacher" class="menu-item" @click="navigateTo(MineRoutes.QUALIFICATION)">
+      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="navigateTo(MineRoutes.QUALIFICATION)">
         <view class="icon-circle info">
           <text class="icon-text">📃</text>
         </view>
@@ -50,7 +49,7 @@
       </view>
       
       <!-- 老师特有菜单项：我的钱包 -->
-      <view v-if="isTeacher" class="menu-item" @click="navigateTo(MineRoutes.WALLET)">
+      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="navigateTo(MineRoutes.WALLET)">
         <view class="icon-circle warning">
           <text class="icon-text">💰</text>
         </view>
@@ -86,7 +85,7 @@
 import { Navigator, MineRoutes } from '@/router/Router.js';
 import TabBar from '../../../components/tab-bar/tab-bar.vue';
 import store from '@/store/index.js';
-import { USE_MOCK_DATA } from '../../../store/user/baseInfo/config.js';
+import { mapState } from 'vuex';
 
 export default {
   components: {
@@ -94,67 +93,75 @@ export default {
   },
   data() {
     return {
-      userName: '',
       userData: {},
       isLoggedIn: false,
       MineRoutes,
       isLoading: false,
-      useMockData: USE_MOCK_DATA
+      isDebug: true  // 显示调试信息
     }
   },
   
   computed: {
-    // 直接从store获取状态
-    profile() {
-      try {
-        return store?.getters?.['user/baseInfo/profile'] || {};
-      } catch (e) {
-        console.error('获取profile失败', e);
-        return {};
-      }
-    },
-    userRole() {
-      try {
-        return store?.getters?.['user/baseInfo/userRole'] || 'student';
-      } catch (e) {
-        console.error('获取userRole失败', e);
-        return 'student';
-      }
-    },
-    isTeacher() {
-      try {
-        return store?.getters?.['user/baseInfo/isTeacher'] || false;
-      } catch (e) {
-        console.error('获取isTeacher失败', e);
-        return false;
-      }
-    }
+    // 直接使用mapState获取state中的数据
+    ...mapState('user/baseInfo', {
+      storeId: state => state.id,
+      storeAvatar: state => state.avatar,
+      storeName: state => state.name,
+      storeGender: state => state.gender,
+      storeSelfIntroduction: state => state.selfIntroduction,
+      storeWechatNumber: state => state.wechatNumber,
+      storePhoneNumber: state => state.phoneNumber,
+      storeUserInfo: state => state.userInfo
+    })
   },
   
   async onLoad() {
+    console.log('mine_common.vue onLoad开始执行');
     try {
-      // 优先从本地存储恢复用户令牌
-      this.ensureUserLogin();
+      // 确保Vuex store已经初始化并注入到Vue实例中
+      await this.$nextTick();
+      
+      // 直接从store获取数据
+      this.initFromStore();
+      
+      // 加载数据
       await this.loadUserData();
+      
+      console.log('mine_common.vue onLoad执行完成，userData:', JSON.stringify(this.userData));
+      console.log('store中的name值:', this.storeName);
     } catch (error) {
       console.error('onLoad错误:', error);
     }
   },
   
   async onShow() {
+    console.log('mine_common.vue onShow开始执行');
     try {
+      // 确保Vuex store已经初始化
+      await this.$nextTick();
+      
+      // 检查store中是否有数据
+      console.log('onShow检查store数据:', {
+        storeName: this.storeName,
+        storeAvatar: this.storeAvatar
+      });
+      
+      // 从store初始化
+      this.initFromStore();
+      
+      // 获取角色
       const storedUserRole = uni.getStorageSync('userRole');
       if (storedUserRole) {
         await this.updateUserRole(storedUserRole);
-        await this.loadUserData();
-      } else {
-        if (!this.profile || !this.profile.nickname) {
-          await this.loadUserData();
-        } else {
-          this.userData = { ...this.profile };
-          this.userName = this.profile.nickname || '用户';
-        }
       }
+      
+      // 检查是否需要加载数据
+      if (!this.userData.name && !this.storeName) {
+        console.log('用户数据为空，尝试重新加载');
+        await this.loadUserData();
+      }
+      
+      console.log('mine_common.vue onShow执行完成，userData:', JSON.stringify(this.userData));
     } catch (error) {
       console.error('onShow错误:', error);
     }
@@ -162,13 +169,32 @@ export default {
   
   methods: {
     /**
-     * @description 确保用户已登录
+     * @description 从store初始化数据
      */
-    ensureUserLogin() {
-      if (this.useMockData && !uni.getStorageSync('userId')) {
-        // 在模拟模式下，自动设置模拟用户ID和令牌
-        uni.setStorageSync('userId', '123456');
-        uni.setStorageSync('user-token', 'mock_token_for_testing');
+    initFromStore() {
+      console.log('initFromStore - 从store直接获取数据');
+      console.log('store中的数据:', {
+        id: this.storeId,
+        name: this.storeName,
+        avatar: this.storeAvatar,
+        role: this.storeUserInfo.role
+      });
+      
+      // 如果store有数据，直接使用
+      if (this.storeName) {
+        this.userData = {
+          id: this.storeId,
+          avatar: this.storeAvatar,
+          name: this.storeName,
+          gender: this.storeGender,
+          selfIntroduction: this.storeSelfIntroduction,
+          wechatNumber: this.storeWechatNumber,
+          phoneNumber: this.storePhoneNumber
+        };
+        this.isLoggedIn = true;
+        console.log('从store初始化userData成功:', this.userData);
+      } else {
+        console.log('store中没有用户数据');
       }
     },
     
@@ -178,22 +204,19 @@ export default {
      */
     async updateUserRole(role) {
       try {
-        if (store && typeof store.dispatch === 'function') {
-          await store.dispatch('user/baseInfo/updateRole', role);
+        console.log('更新用户角色:', role);
+        // 直接使用store.dispatch
+        if (this.$store) {
+          await this.$store.dispatch('user/baseInfo/updateRole', role);
+          console.log('角色更新成功, 新角色:', this.storeUserInfo.role);
         } else {
-          console.warn('store.dispatch不可用，使用本地存储');
+          console.warn('$store不可用，直接使用本地存储');
           uni.setStorageSync('userRole', role);
         }
       } catch (error) {
         console.error('更新用户角色失败', error);
-        try {
-          if (store && typeof store.commit === 'function') {
-            store.commit('user/baseInfo/updateRole', role);
-          }
-          uni.setStorageSync('userRole', role);
-        } catch (e) {
-          console.error('更新用户角色本地存储失败', e);
-        }
+        // 本地存储作为备份
+        uni.setStorageSync('userRole', role);
       }
     },
     
@@ -201,60 +224,90 @@ export default {
      * @description 加载用户数据
      */
     async loadUserData() {
+      console.log('loadUserData 开始执行');
       this.isLoading = true;
       
       try {
-        // 确保用户已登录（模拟模式下）
-        this.ensureUserLogin();
-        
-        await this.syncUserDataFromVuex();
-      } catch (error) {
-        console.error('加载用户数据失败', error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    
-    /**
-     * @description 从Vuex同步用户数据
-     */
-    async syncUserDataFromVuex() {
-      try {
-        if (store && typeof store.dispatch === 'function') {
-          const result = await store.dispatch('user/baseInfo/getUserInfo');
+        if (this.$store) {
+          console.log('使用Vuex获取用户数据');
+          // 直接使用store.dispatch
+          const result = await this.$store.dispatch('user/baseInfo/getUserInfo');
           
-          if (result && result.nickname) {
-            this.userData = { ...result };
-            this.userName = result.nickname || '用户';
-            this.isLoggedIn = true;
-          } else if (this.profile && this.profile.nickname) {
-            this.userData = { ...this.profile };
-            this.userName = this.profile.nickname || '用户';
-            this.isLoggedIn = true;
+          console.log('getUserInfo返回结果:', result);
+          
+          // 检查store中的数据是否更新
+          console.log('store中的数据是否更新:', {
+            storeName: this.storeName
+          });
+          
+          // 无论API返回什么，都再次从store初始化
+          this.initFromStore();
+          
+          // 如果store仍然没有数据，使用API返回的结果
+          if (!this.userData.name && result) {
+            console.log('使用API返回的结果更新userData');
+            this.userData = {
+              id: result.id || '',
+              avatar: result.avatar || '',
+              name: result.name || result.nickname || '',
+              gender: result.gender || '',
+              selfIntroduction: result.selfIntroduction || result.introduction || '',
+              wechatNumber: result.wechatNumber || result.wechat || '',
+              phoneNumber: result.phoneNumber || result.phone || ''
+            };
+            this.isLoggedIn = !!this.userData.name;
+            
+            // 备份到本地存储
+            uni.setStorageSync('userData', JSON.stringify(this.userData));
+            console.log('更新userData成功:', this.userData);
+          } else if (!this.userData.name) {
+            console.log('尝试从本地存储恢复数据');
+            this.recoverFromLocalStorage();
           }
         } else {
-          // 如果store不可用，加载模拟数据
-          this.loadMockDataFallback();
+          console.warn('$store不可用，从本地存储加载');
+          this.recoverFromLocalStorage();
         }
       } catch (error) {
-        console.error('同步用户数据失败', error);
-        // 加载模拟数据作为回退方案
-        this.loadMockDataFallback();
+        console.error('加载用户数据失败', error);
+        this.recoverFromLocalStorage();
+      } finally {
+        this.isLoading = false;
+        console.log('loadUserData 执行完成, userData:', this.userData);
       }
     },
     
     /**
-     * @description 加载模拟数据作为回退
+     * @description 从本地存储恢复数据
      */
-    loadMockDataFallback() {
-      if (this.useMockData) {
-        this.userData = {
-          avatar: '/static/image/tab-bar/default_avatar.png',
-          nickname: '模拟用户',
-          role: 'teacher'
-        };
-        this.userName = '模拟用户';
-        this.isLoggedIn = true;
+    recoverFromLocalStorage() {
+      console.log('从本地存储恢复数据');
+      const localUserData = uni.getStorageSync('userData');
+      if (localUserData) {
+        try {
+          this.userData = JSON.parse(localUserData);
+          this.isLoggedIn = !!this.userData.name;
+          console.log('从userData恢复成功:', this.userData);
+        } catch (e) {
+          console.error('解析本地用户数据失败', e);
+        }
+      }
+      
+      // 如果本地存储没有数据，尝试从userBaseInfo恢复
+      if (!this.userData.name) {
+        const baseInfo = uni.getStorageSync('userBaseInfo');
+        if (baseInfo) {
+          try {
+            const parsedInfo = JSON.parse(baseInfo);
+            this.userData = { ...parsedInfo };
+            this.isLoggedIn = !!this.userData.name;
+            console.log('从userBaseInfo恢复成功:', this.userData);
+          } catch (e) {
+            console.error('解析userBaseInfo失败', e);
+          }
+        } else {
+          console.log('本地存储中没有用户数据');
+        }
       }
     },
     
@@ -346,6 +399,21 @@ export default {
   font-size: 32rpx;
   font-weight: bold;
   margin-right: 20rpx;
+}
+
+/* 调试信息 */
+.debug-info {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10rpx;
+  border: 1px dashed #ccc;
+  padding: 5rpx;
+  font-size: 24rpx;
+}
+
+.debug-text {
+  color: #666;
+  margin-bottom: 4rpx;
 }
 
 /* 修改个人信息链接样式 */

@@ -91,6 +91,7 @@
 	import InputSection from '../../components/ai-chat/InputSection'
 	import store from '../../store'
 	import universityData from '../../store/data/2886所大学.json'
+	import { mapState, mapGetters, mapActions } from 'vuex';
 	
 	// 消息类型常量
 	const MESSAGE_TYPE = {
@@ -123,24 +124,17 @@
 			InputSection
 		},
 		computed: {
-			// 从Vuex中获取状态
-			testResult() {
-				return store.getters['user/aiChat/testResult'];
-			},
-			isTesting() {
-				return store.getters['user/aiChat/isTesting'];
-			},
-			isLoading() {
-				return store.getters['user/aiChat/isLoading'];
-			},
-			// 历史会话摘要
-			historySummaries() {
-				return store.getters['user/aiChat/historySummaries'] || [];
-			},
-			// 历史会话
-			historyChats() {
-				return store.getters['user/aiChat/historyChats'] || [];
-			},
+			// 使用mapGetters从Vuex中获取状态
+			...mapGetters('user/aiChat', [
+				'testResult',
+				'isTesting',
+				'isLoading',
+				'historySummaries',
+				'historyChats',
+				'activeConversation',
+				'chatMode'
+			]),
+			
 			// 当前选择的学校名称
 			currentSchool() {
 				return this.schoolIndex >= 0 ? this.schoolList[this.schoolIndex] : '';
@@ -213,12 +207,10 @@
 			}
 		},
 		watch: {
-			// 监听historyChats变化
-			historyChats: {
+			// 监听activeConversation的变化
+			activeConversation: {
 				handler(newVal) {
-					if (newVal && newVal.length) {
-						// 历史会话在Store中维护，这里不需要额外逻辑
-					}
+					this.currentChatId = newVal;
 				},
 				immediate: true
 			}
@@ -254,6 +246,18 @@
 			}, 300);
 		},
 		methods: {
+			// 使用mapActions从Vuex获取actions
+			...mapActions('user/aiChat', [
+				'testAIQA',
+				'getHistoryChats',
+				'loadChat',
+				'saveChat',
+				'deleteChat',
+				'setCurrentChat',
+				'updateChatMode',
+				'updateUserInfo'
+			]),
+			
 			/**
 			 * @description 从JSON文件加载大学数据并转换为下拉框格式
 			 */
@@ -297,7 +301,25 @@
 				try {
 					const userInfo = uni.getStorageSync('userInfo');
 					if (userInfo) {
-						const parsedInfo = JSON.parse(userInfo);
+						let parsedInfo;
+						
+						// 检查userInfo是否已经是对象
+						if (typeof userInfo === 'object' && userInfo !== null) {
+							parsedInfo = userInfo;
+						} else {
+							// 尝试解析JSON字符串
+							try {
+								parsedInfo = JSON.parse(userInfo);
+							} catch (parseError) {
+								console.error('解析用户信息失败:', parseError);
+								// 初始化默认值
+								parsedInfo = {
+									school: '',
+									major: ''
+								};
+							}
+						}
+						
 						this.userInfo = parsedInfo;
 						
 						// 根据保存的用户信息设置选择框的索引
@@ -305,6 +327,11 @@
 					}
 				} catch (e) {
 					console.error('获取用户信息失败:', e);
+					// 确保userInfo有默认值
+					this.userInfo = {
+						school: '',
+						major: ''
+					};
 				}
 			},
 			
@@ -312,6 +339,15 @@
 			 * @description 根据用户信息设置学校和专业的索引
 			 */
 			setUserSelectionIndexes() {
+				// 确保userInfo存在且是对象
+				if (!this.userInfo || typeof this.userInfo !== 'object') {
+					this.userInfo = {
+						school: '',
+						major: ''
+					};
+					return;
+				}
+				
 				if (this.userInfo.school) {
 					const schoolIndex = this.schoolList.indexOf(this.userInfo.school);
 					if (schoolIndex !== -1) {
@@ -334,6 +370,15 @@
 			 */
 			saveUserInfo() {
 				try {
+					// 确保userInfo是有效的对象
+					if (!this.userInfo || typeof this.userInfo !== 'object') {
+						this.userInfo = {
+							school: '',
+							major: ''
+						};
+					}
+					
+					// 确保存储有效的JSON字符串
 					uni.setStorageSync('userInfo', JSON.stringify(this.userInfo));
 				} catch (e) {
 					console.error('保存用户信息失败:', e);
@@ -418,7 +463,7 @@
 			startNewChat() {
 				this.messages = [];
 				this.currentChatId = 'chat_' + Date.now();
-				store.dispatch('user/aiChat/setCurrentChat', this.currentChatId);
+				this.setCurrentChat(this.currentChatId);
 				this.addSystemMessage('开始新对话，请输入您的问题');
 				this.closeSidebar();
 			},
@@ -468,11 +513,11 @@
 					// 确保有当前会话ID
 					if (!this.currentChatId) {
 						this.currentChatId = 'chat_' + Date.now();
-						store.dispatch('user/aiChat/setCurrentChat', this.currentChatId);
+						this.setCurrentChat(this.currentChatId);
 					}
 					
-					// 直接通过Vuex调用后端API
-					const response = await store.dispatch('user/aiChat/testAIQA', {
+					// 使用映射的action调用后端API
+					const response = await this.testAIQA({
 						question: messageContent,
 						contextInfo: this.contextInfo,
 						chatId: this.currentChatId
@@ -631,7 +676,7 @@
 					this.toggleLoading('正在加载对话内容...');
 					
 					// 通过Vuex从后端加载完整对话内容
-					store.dispatch('user/aiChat/loadChat', chatId).then(response => {
+					this.loadChat(chatId).then(response => {
 						if (response.success) {
 							// 设置当前会话ID（这个在action中已经设置了）
 							this.currentChatId = chatId;
@@ -679,7 +724,7 @@
 			 */
 			loadChatHistoryFromStorage() {
 				// 从Vuex获取历史会话摘要列表
-				store.dispatch('user/aiChat/getHistoryChats').then(response => {
+				this.getHistoryChats().then(response => {
 					if (!response.success) {
 						console.error('加载历史会话摘要失败:', response.error || response.message);
 						this.showToast('加载历史对话记录失败，将使用本地缓存', 'none', 2000);
@@ -710,7 +755,7 @@
 				};
 				
 				// 保存到Vuex
-				store.dispatch('user/aiChat/saveChat', chatData);
+				this.saveChat(chatData);
 			},
 			
 			/**
@@ -738,8 +783,8 @@
 								mask: true
 							});
 							
-							// 使用Vuex删除历史记录
-							store.dispatch('user/aiChat/deleteChat', chatId).then(response => {
+							// 使用映射的action删除历史记录
+							this.deleteChat(chatId).then(response => {
 								// 隐藏加载提示
 								uni.hideLoading();
 								

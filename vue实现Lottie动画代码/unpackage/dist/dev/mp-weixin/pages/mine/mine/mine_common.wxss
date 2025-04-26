@@ -48,6 +48,20 @@
   margin-right: 20rpx;
 }
 
+/* 调试信息 */
+.debug-info {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10rpx;
+  border: 1px dashed #ccc;
+  padding: 5rpx;
+  font-size: 24rpx;
+}
+.debug-text {
+  color: #666;
+  margin-bottom: 4rpx;
+}
+
 /* 修改个人信息链接样式 */
 .edit-profile-link {
   font-size: 28rpx;

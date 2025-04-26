@@ -17,7 +17,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObjec
     };
     return (_ctx = null, _cache = null) => {
       const __returned__ = {
-        a: common_vendor.sr(cLottieRef, "74c39be4-0", {
+        a: common_vendor.sr(cLottieRef, "fc3b16b4-0", {
           "k": "cLottieRef"
         }),
         b: common_vendor.o(onLoopComplete),
