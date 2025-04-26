@@ -33,11 +33,11 @@ const _sfc_main = common_vendor.defineComponent({
       gradeList: ["大一", "大二", "大三", "大四", "研究生"]
     };
   },
-  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState(new UTSJSONObject({
+  computed: Object.assign({}, common_vendor.mapState(new UTSJSONObject({
     userRole: (state = null) => {
       return state.user.baseInfo.userInfo.role;
     }
-  })))),
+  }))),
   methods: {
     handleSchoolSelect(index = null) {
       this.formData.schoolIndex = index;
@@ -177,7 +177,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     q: common_vendor.o(($event) => $data.formData.teacherScore = $event.detail.value)
   } : {}, {
     r: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
-    s: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    s: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-5ca72b3d"]]);

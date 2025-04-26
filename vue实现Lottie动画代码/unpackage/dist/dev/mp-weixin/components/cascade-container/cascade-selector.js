@@ -12,66 +12,66 @@ const _sfc_main = common_vendor.defineComponent({
      * @type {Array}
      * @default []
      */
-    options: new UTSJSONObject({
+    options: {
       type: Array,
       default: () => {
         return [];
       }
-    }),
+    },
     /**
      * 是否禁用
      * @type {Boolean}
      * @default false
      */
-    disabled: new UTSJSONObject({
+    disabled: {
       type: Boolean,
       default: false
-    }),
+    },
     /**
      * 占位文本
      * @type {String}
      * @default '请选择'
      */
-    placeholder: new UTSJSONObject({
+    placeholder: {
       type: String,
       default: "请选择"
-    }),
+    },
     /**
      * 选中的值
      * @type {String|Number}
      * @default ''
      */
-    value: new UTSJSONObject({
+    value: {
       type: [String, Number],
       default: ""
-    }),
+    },
     /**
      * 是否支持搜索
      * @type {Boolean}
      * @default false
      */
-    searchable: new UTSJSONObject({
+    searchable: {
       type: Boolean,
       default: false
-    }),
+    },
     /**
      * 搜索框占位文本
      * @type {String}
      * @default '搜索'
      */
-    searchPlaceholder: new UTSJSONObject({
+    searchPlaceholder: {
       type: String,
       default: "搜索"
-    }),
+    },
     /**
      * 下拉框宽度
      * @type {String}
      * @default '100%'
      */
-    width: new UTSJSONObject({
+    width: {
       type: String,
       default: "100%"
-    })
+    }
   },
   data() {
     return {
@@ -79,7 +79,7 @@ const _sfc_main = common_vendor.defineComponent({
       searchKeyword: ""
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * 格式化选项，将options转换为combobox需要的格式
      * @returns {Array} 格式化后的选项列表
@@ -93,7 +93,7 @@ const _sfc_main = common_vendor.defineComponent({
         });
       });
     }
-  }),
+  },
   watch: {
     /**
      * 监听value变化，更新选中索引
@@ -120,7 +120,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.selectedIndex = index;
     }
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * 选择选项
      * @param {Number} index 选项索引
@@ -149,7 +149,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.$refs.comboboxRef.closeDropdown();
       }
     }
-  })
+  }
 });
 if (!Array) {
   const _component_choice_selected = common_vendor.resolveComponent("choice-selected");
@@ -157,7 +157,7 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: common_vendor.sr("comboboxRef", "1c834fbc-0"),
+    a: common_vendor.sr("comboboxRef", "a9af0ce4-0"),
     b: common_vendor.o($options.selectOption),
     c: common_vendor.o($options.onSearch),
     d: common_vendor.p({
@@ -168,7 +168,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       searchPlaceholder: $props.searchPlaceholder,
       disabled: $props.disabled
     }),
-    e: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    e: common_vendor.sei(_ctx.virtualHostId, "view"),
     f: $props.width
   };
 }

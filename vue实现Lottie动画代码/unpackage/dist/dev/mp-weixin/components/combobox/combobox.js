@@ -18,7 +18,7 @@ const _sfc_main = common_vendor.defineComponent({
       // 是否处于聚焦状态
     };
   },
-  props: new UTSJSONObject({
+  props: {
     choiceIndex: {
       type: Number,
       default: -1
@@ -49,7 +49,7 @@ const _sfc_main = common_vendor.defineComponent({
       type: String,
       default: "请输入关键词"
     }
-  }),
+  },
   created() {
     dropdownInstances.push(this);
   },
@@ -62,7 +62,7 @@ const _sfc_main = common_vendor.defineComponent({
       clearTimeout(this.searchTimer);
     }
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * @description 根据搜索关键词过滤选项列表
      * @returns {Array} 过滤后的选项列表
@@ -81,7 +81,7 @@ const _sfc_main = common_vendor.defineComponent({
         return false;
       });
     }
-  }),
+  },
   watch: {
     choiceIndex(newVal = null) {
       if (newVal >= 0 && newVal < this.choiceList.length) {
@@ -103,7 +103,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
     }
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 处理选项点击事件，关闭下拉框并触发选择事件
      * @param {Number} position - 选中项的索引位置
@@ -201,7 +201,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.isShowChoice = false;
       }
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -216,8 +216,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     g: $data.searchKeyword
   }, {
     h: $data.isShowChoice ? 1 : "",
-    i: common_assets._imports_0$1,
-    j: common_vendor.sei("r0-4c16e9dc", "view", "dropdownTrigger"),
+    i: common_assets._imports_0$2,
+    j: common_vendor.sei("r0-deccda20", "view", "dropdownTrigger"),
     k: common_vendor.n($data.isShowChoice ? "drop-down-box-selected" : "drop-down-box"),
     l: common_vendor.o((...args) => $options.btnShowHideClick && $options.btnShowHideClick(...args)),
     m: $data.isShowChoice
@@ -240,7 +240,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     t: common_vendor.o(() => {
     })
   }) : {}, {
-    v: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    v: common_vendor.sei(_ctx.virtualHostId, "view"),
     w: common_vendor.o(() => {
     })
   });

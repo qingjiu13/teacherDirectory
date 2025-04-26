@@ -4,7 +4,7 @@ const router_Router = require("../../../router/Router.js");
 const store_index = require("../../../store/index.js");
 const store_user_baseInfo_config = require("../../../store/user/baseInfo/config.js");
 const TabBar = () => "../../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   components: {
     TabBar
   },
@@ -18,7 +18,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       useMockData: store_user_baseInfo_config.USE_MOCK_DATA
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     // 直接从store获取状态
     profile() {
       var _a;
@@ -47,7 +47,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
         return false;
       }
     }
-  }),
+  },
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       try {
@@ -78,7 +78,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       }
     });
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 确保用户已登录
      */
@@ -199,8 +199,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     navigateTo(url = null) {
       router_Router.Navigator.navigateTo(url);
     }
-  })
-}));
+  }
+});
 if (!Array) {
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
   _component_TabBar();
@@ -231,7 +231,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     p: common_vendor.p({
       pageName: "mine"
     }),
-    q: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    q: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

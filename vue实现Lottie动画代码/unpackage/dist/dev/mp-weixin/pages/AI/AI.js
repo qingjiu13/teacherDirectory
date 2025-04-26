@@ -3402,7 +3402,7 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       }
       common_vendor.index.__f__("log", "at pages/AI/AI.vue:727", "请求删除历史记录:", chatId);
-      common_vendor.index.showModal(new UTSJSONObject({
+      common_vendor.index.showModal({
         title: "确认删除",
         content: "确定要删除这条对话记录吗？",
         success: (res) => {
@@ -3440,7 +3440,7 @@ const _sfc_main = common_vendor.defineComponent({
             });
           }
         }
-      }));
+      });
     },
     /**
      * @description 格式化时间
@@ -3492,7 +3492,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     g: common_vendor.o((...args) => $options.toggleSidebar && $options.toggleSidebar(...args)),
     h: common_vendor.o((...args) => $options.startNewChat && $options.startNewChat(...args)),
-    i: common_vendor.sr("filterSection", "4e6adde4-1"),
+    i: common_vendor.sr("filterSection", "23d2cd7a-1"),
     j: common_vendor.o($options.onSchoolClick),
     k: common_vendor.o($options.onMajorClick),
     l: common_vendor.o($options.onSchoolSearch),
@@ -3502,7 +3502,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["major-index"]: $data.majorIndex,
       ["major-list"]: $data.majorList
     }),
-    n: common_vendor.sr("messageList", "4e6adde4-2"),
+    n: common_vendor.sr("messageList", "23d2cd7a-2"),
     o: common_vendor.o($options.onScrollToUpper),
     p: common_vendor.o($options.onScroll),
     q: common_vendor.o($options.retryMessage),
@@ -3525,7 +3525,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.isFullLoading ? {
     B: common_vendor.t($data.loadingText)
   } : {}, {
-    C: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    C: common_vendor.sei(_ctx.virtualHostId, "view"),
     D: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }

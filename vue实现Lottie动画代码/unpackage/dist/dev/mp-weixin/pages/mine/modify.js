@@ -16,11 +16,11 @@ const _sfc_main = common_vendor.defineComponent({
       updating: false
     };
   },
-  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapGetters("user/baseInfo", [
+  computed: Object.assign({}, common_vendor.mapGetters("user/baseInfo", [
     "profile",
     "userRole",
     "isTeacher"
-  ]))),
+  ])),
   watch: {
     updateLoading(val = null) {
       this.updating = val;
@@ -65,7 +65,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 选择头像
      */
     chooseAvatar() {
-      common_vendor.index.chooseImage(new UTSJSONObject({
+      common_vendor.index.chooseImage({
         count: 1,
         sizeType: ["compressed"],
         sourceType: ["album", "camera"],
@@ -73,7 +73,7 @@ const _sfc_main = common_vendor.defineComponent({
           const tempFilePath = res.tempFilePaths[0];
           this.userInfo.avatar = tempFilePath;
         }
-      }));
+      });
     },
     /**
      * @description 跳转到密码设置页面
@@ -155,7 +155,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     q: common_vendor.o((...args) => $options.navigateToPasswordPage && $options.navigateToPasswordPage(...args)),
     r: common_vendor.o((...args) => $options.saveProfile && $options.saveProfile(...args)),
     s: $data.updating,
-    t: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    t: common_vendor.sei(_ctx.virtualHostId, "view")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -12,10 +12,10 @@ const _sfc_main = common_vendor.defineComponent({
      * @type {Boolean}
      * @default false
      */
-    autoApply: new UTSJSONObject({
+    autoApply: {
       type: Boolean,
       default: false
-    })
+    }
   },
   data() {
     return {
@@ -24,7 +24,7 @@ const _sfc_main = common_vendor.defineComponent({
       selectedSubject: ""
     };
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("filter", [
+  computed: Object.assign(Object.assign({}, common_vendor.mapGetters("filter", [
     "schoolOptions",
     "majorOptions",
     "subjectOptions",
@@ -68,8 +68,8 @@ const _sfc_main = common_vendor.defineComponent({
         });
       });
     }
-  })),
-  methods: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapActions("filter", [
+  }),
+  methods: Object.assign(Object.assign({}, common_vendor.mapActions("filter", [
     "selectSchool",
     "selectMajor",
     "selectSubject",
@@ -89,11 +89,11 @@ const _sfc_main = common_vendor.defineComponent({
       this.selectSchool(school.value);
       this.$emit("school-change", school.value);
       if (this.autoApply) {
-        this.$emit("apply-filter", new UTSJSONObject({
+        this.$emit("apply-filter", {
           school: this.selectedSchool,
           major: "",
           subject: ""
-        }));
+        });
       }
     },
     /**
@@ -106,11 +106,11 @@ const _sfc_main = common_vendor.defineComponent({
       this.selectMajor(major.value);
       this.$emit("major-change", major.value);
       if (this.autoApply) {
-        this.$emit("apply-filter", new UTSJSONObject({
+        this.$emit("apply-filter", {
           school: this.selectedSchool,
           major: this.selectedMajor,
           subject: ""
-        }));
+        });
       }
     },
     /**
@@ -122,11 +122,11 @@ const _sfc_main = common_vendor.defineComponent({
       this.selectSubject(subject.value);
       this.$emit("subject-change", subject.value);
       if (this.autoApply) {
-        this.$emit("apply-filter", new UTSJSONObject({
+        this.$emit("apply-filter", {
           school: this.selectedSchool,
           major: this.selectedMajor,
           subject: this.selectedSubject
-        }));
+        });
       }
     },
     /**
@@ -154,11 +154,11 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 应用筛选条件
      */
     applyFilter() {
-      this.$emit("apply-filter", new UTSJSONObject({
+      this.$emit("apply-filter", {
         school: this.selectedSchool,
         major: this.selectedMajor,
         subject: this.selectedSubject
-      }));
+      });
     },
     /**
      * @description 重置筛选条件
@@ -181,7 +181,7 @@ const _sfc_main = common_vendor.defineComponent({
         subject: this.selectedSubject
       });
     }
-  }))
+  })
 });
 if (!Array) {
   const _component_cascade_selector = common_vendor.resolveComponent("cascade-selector");
@@ -218,7 +218,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["search-placeholder"]: "搜索考研科目",
       modelValue: $data.selectedSubject
     }),
-    l: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    l: common_vendor.sei(_ctx.virtualHostId, "view")
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

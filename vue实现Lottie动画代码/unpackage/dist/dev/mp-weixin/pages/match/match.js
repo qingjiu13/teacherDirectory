@@ -38,7 +38,7 @@ const _sfc_main = common_vendor.defineComponent({
       isLoading: false
     };
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("match", ["filteredMatchList", "teacherInfo"])), {
+  computed: Object.assign(Object.assign({}, common_vendor.mapGetters("match", ["filteredMatchList", "teacherInfo"])), {
     /**
      * @description 获取页面展示的老师列表
      * @returns {Array} 要展示的老师列表
@@ -46,7 +46,7 @@ const _sfc_main = common_vendor.defineComponent({
     matchTeachers() {
       return this.filteredMatchList || [];
     }
-  })),
+  }),
   onLoad() {
     common_vendor.index.__f__("log", "at pages/match/match.vue:114", "匹配页面已加载");
     this.initPage();
@@ -215,7 +215,7 @@ if (!Math) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.sr("cascadeFilter", "43141b5a-0"),
+    a: common_vendor.sr("cascadeFilter", "6f2056c6-0"),
     b: common_vendor.o($options.onFilterApply),
     c: common_vendor.o($options.onSortClick),
     d: common_vendor.p({
@@ -245,7 +245,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.isLoading ? {} : {}, {
     j: common_vendor.sei("step2", "scroll-view"),
     k: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args)),
-    l: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    l: common_vendor.sei(_ctx.virtualHostId, "view"),
     m: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }

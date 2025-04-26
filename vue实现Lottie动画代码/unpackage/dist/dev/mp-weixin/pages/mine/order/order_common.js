@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
 const router_Router = require("../../../router/Router.js");
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   data() {
     return {
       userRole: "teacher",
@@ -93,14 +93,14 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       ]
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * @description 根据用户角色返回不同的Tab标签
      */
     currentTabs() {
       return this.userRole === "teacher" ? this.teacherTabs : this.tabs;
     }
-  }),
+  },
   onLoad() {
   },
   onShow() {
@@ -109,7 +109,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       common_vendor.index.getStorageSync("userRole");
     });
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 加载用户数据
      */
@@ -261,8 +261,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       });
       this.showConfirmOrderModal = false;
     }
-  })
-}));
+  }
+});
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   var _a, _b, _c, _d, _e, _f, _g;
   return common_vendor.e({
@@ -375,7 +375,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     O: common_vendor.o(($event) => $data.showConfirmOrderModal = false),
     P: common_vendor.o((...args) => $options.confirmOrderAction && $options.confirmOrderAction(...args))
   } : {}, {
-    Q: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    Q: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

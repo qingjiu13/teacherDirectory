@@ -15,6 +15,7 @@ if (!Math) {
   "./pages/mine/mine/mine_common.js";
   "./pages/mine/modify.js";
   "./pages/mine/course/course.js";
+  "./pages/mine/course/course_detail.js";
   "./pages/mine/order.js";
   "./pages/mine/order/order_common.js";
   "./pages/mine/order/appraise/appraise.js";
@@ -24,7 +25,7 @@ if (!Math) {
   "./pages/mine/wallet.js";
   "./pages/test/test.js";
 }
-const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "App",
   setup(__props) {
     common_vendor.onLaunch(() => {
@@ -48,7 +49,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObjec
     return () => {
     };
   }
-}));
+});
 const handleError = (err) => {
   common_vendor.index.__f__("error", "at main.js:8", "捕获到全局错误:", err);
 };

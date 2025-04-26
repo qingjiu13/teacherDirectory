@@ -3,7 +3,7 @@ const common_vendor = require("../../common/vendor.js");
 const common_assets = require("../../common/assets.js");
 const router_Router = require("../../router/Router.js");
 const store_index = require("../../store/index.js");
-const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "login",
   setup(__props) {
     function selectIdentity(identity = null) {
@@ -22,12 +22,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObjec
         d: common_vendor.o(($event = null) => {
           return selectIdentity("teacher");
         }),
-        e: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+        e: common_vendor.sei(_ctx.virtualHostId, "view")
       };
       return __returned__;
     };
   }
-}));
+});
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-e4e4508d"]]);
 wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/login/login.js.map

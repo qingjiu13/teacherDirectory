@@ -11,7 +11,7 @@
 		<scroll-view scroll-y class="course-list" refresher-enabled @refresherrefresh="onRefresh">
 			<view class="course-card" v-for="(course, index) in filteredCourses" :key="index">
 				<view class="card-header">
-					<image class="teacher-avatar" :src="course.avatar" mode="aspectFill"></image>
+					<image class="teacher-avatar" :src="'/static/image/sculpture of head/' + course.id + '.png'" mode="aspectFill" style="margin-left: 10rpx;"></image>
 					<view class="course-info">
 						<text class="course-name">{{course.name}}</text>
 						<text class="teacher">{{course.teacher}}</text>
@@ -25,11 +25,13 @@
 					</view>
 					<view class="info-row">
 						<text class="label">评分:</text>
-						<uni-rate :value="course.rating" disabled size="14"></uni-rate>
+						<uni-rate :value="course.rating" disabled size="14" style="margin-left: 10rpx;"></uni-rate>
+						<text class="rating-value">{{course.rating}}</text>
 					</view>
 					<view class="info-row">
 						<text class="label">进度:</text>
-						<progress class="progress" :percent="course.progress" stroke-width="6" activeColor="#1890ff" />
+						<progress class="progress" :percent="course.progress" stroke-width="6" activeColor="#1890ff" style="flex: 1; margin-left: 10rpx;" />
+						<text class="progress-value">{{course.progress}}%</text>
 					</view>
 				</view>
 				<view class="card-footer">
@@ -44,22 +46,31 @@
 import { ref, computed } from 'vue';
 
 // 模拟课程数据
-// 生成随机头像（保持原有逻辑）
+// 生成随机头像
 const generateAvatar = (name) => {
   const colors = ['#1890ff', '#36cffd', '#096dd9', '#1d39c4', '#531dab'];
   const color = colors[Math.floor(Math.random() * colors.length)];
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${color.replace('#', '')}&color=fff&size=80`;
 };
 
-// 统一头像生成逻辑
 const courses = ref([
+	{
+		id: 1,
+		name: '考研英语强化班',
+		teacher: '张老师',
+		time: '2023-09-01 至 2023-12-31',
+		status: 'ongoing',
+		avatar: generateAvatar('张老师'),
+		rating: 4.5,
+		progress: 65
+	},
 	{
 		id: 2,
 		name: '考研政治冲刺班',
 		teacher: '李老师',
 		time: '2023-10-15 至 2023-12-15',
 		status: 'upcoming',
-		avatar: generateAvatar('李老师'),
+		avatar: '/static/image/1.png',
 		rating: 4.8,
 		progress: 0
 	},
@@ -67,8 +78,11 @@ const courses = ref([
 		id: 3,
 		name: '考研数学基础班',
 		teacher: '王老师',
+		time: '2023-08-01 至 2023-08-31',
 		status: 'completed',
-		avatar: generateAvatar('王老师')
+		avatar: '/static/image/teacher3.png',
+		rating: 4.2,
+		progress: 100
 	},
 	{
 		id: 4,
@@ -89,21 +103,6 @@ const courses = ref([
 		avatar: '/static/image/teacher5.png',
 		rating: 4.9,
 		progress: 0
-	},
-	// 新增课程数据
-	{
-		id: 6,
-		name: '考研写作专项',
-		teacher: '孙老师',
-		time: '每周一、三 19:00-21:00',
-		status: 'ongoing',
-		avatar: generateAvatar('孙老师'),
-		rating: 4.6,
-		progress: 45,
-		details: {
-			duration: '24课时',
-			students: 128
-		}
 	}
 ]);
 
@@ -208,11 +207,16 @@ const onRefresh = () => {
 				
 				.course-info {
 					flex: 1;
-					flex-direction: column;
-					margin-left: 20rpx;
 					
 					.course-name {
-						margin-bottom: 8rpx;
+						font-size: 32rpx;
+						font-weight: bold;
+						margin-bottom: 5rpx;
+					}
+					
+					.teacher {
+						font-size: 24rpx;
+						color: #999;
 					}
 				}
 				
@@ -257,8 +261,15 @@ const onRefresh = () => {
 						color: #333;
 					}
 					
+					.rating-value, .progress-value {
+						font-size: 26rpx;
+						color: #1890ff;
+						margin-left: 10rpx;
+					}
+					
 					.progress {
 						flex: 1;
+						margin-left: 10rpx;
 					}
 				}
 			}
@@ -278,22 +289,3 @@ const onRefresh = () => {
 	}
 }
 </style>
-
-// 添加进度百分比显示
-.progress {
-  position: relative;
-  &::after {
-    content: attr(percent);
-    margin-left: 20rpx;
-    font-size: 24rpx;
-    color: #666;
-  }
-}
-
-// 调整信息容器间距
-.course-info {
-  margin-left: 15rpx;
-  .teacher {
-    font-size: 22rpx;
-  }
-}

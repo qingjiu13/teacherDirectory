@@ -4,7 +4,7 @@ const store_index = require("../../store/index.js");
 const router_Router = require("../../router/Router.js");
 const AICartoon = () => "../../components/AI-cartoon/AI-cartoon.js";
 const TabBar = () => "../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   components: {
     AICartoon,
     TabBar
@@ -25,7 +25,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       }
     });
   }
-}));
+});
 if (!Array) {
   const _component_AICartoon = common_vendor.resolveComponent("AICartoon");
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
@@ -37,7 +37,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     b: common_vendor.p({
       pageName: "index"
     }),
-    c: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    c: common_vendor.sei(_ctx.virtualHostId, "view")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

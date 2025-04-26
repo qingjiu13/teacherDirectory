@@ -1,0 +1,426 @@
+<template>
+	<view class="course-detail-container">
+		<view class="header">
+			<!-- 修改头像路径 -->
+			<image class="teacher-avatar" src="/static/image/default_avatar.png" mode="aspectFill"></image>
+			<view class="header-info">
+				<text class="course-name">{{course.name}}</text>
+				<text class="teacher">讲师: {{course.teacher}}</text>
+				<text class="status" :class="course.status">{{getStatusText(course.status)}}</text>
+			</view>
+		</view>
+
+		<view class="basic-info">
+			<view class="info-card">
+				<text class="title">课程信息</text>
+				<view class="info-row">
+					<text class="label">时间:</text>
+					<text class="value">{{course.time}}</text>
+				</view>
+				<view class="info-row">
+					<text class="label">评分:</text>
+					<uni-rate :value="course.rating" disabled size="14"></uni-rate>
+					<text class="rating-value">{{course.rating}}</text>
+				</view>
+				<view class="info-row">
+					<text class="label">进度:</text>
+					<progress :percent="course.progress" stroke-width="6" activeColor="#1890ff" />
+					<text class="progress-value">{{course.progress}}%</text>
+				</view>
+			</view>
+		</view>
+
+		<view class="tabs">
+			<uni-segmented-control :current="currentTab" :values="detailTabs" @clickItem="changeDetailTab" />
+		</view>
+
+		<view class="tab-content">
+			<view v-if="currentTab === 0" class="introduction">
+				<text class="section-title">课程介绍</text>
+				<text class="content">{{course.introduction || '暂无课程介绍'}}</text>
+			</view>
+
+			<view v-if="currentTab === 1" class="syllabus">
+				<text class="section-title">教学大纲</text>
+				<view class="chapter" v-for="(chapter, index) in course.syllabus" :key="index">
+					<text class="chapter-title">{{chapter.title}}</text>
+					<view class="lesson" v-for="(lesson, i) in chapter.lessons" :key="i">
+						<text class="lesson-title">{{lesson.title}}</text>
+						<text class="lesson-duration">{{lesson.duration}}分钟</text>
+					</view>
+				</view>
+			</view>
+
+			<view v-if="currentTab === 2" class="resources">
+				<text class="section-title">学习资料</text>
+				<view class="resource" v-for="(resource, index) in course.resources" :key="index">
+					<text class="resource-name">{{resource.name}}</text>
+					<button class="download-btn" @click="downloadResource(resource)">下载</button>
+				</view>
+			</view>
+		</view>
+
+		<view class="action-buttons">
+			<button class="primary-btn" @click="startLearning">开始学习</button>
+			<button class="secondary-btn" @click="goBack">返回</button>
+		</view>
+	</view>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import uniRate from '@dcloudio/uni-ui/lib/uni-rate/uni-rate.vue';
+
+const course = ref({});
+const currentTab = ref(0);
+const detailTabs = ['介绍', '大纲', '资料'];
+
+// 模拟课程详情数据
+const mockCourses = {
+	1: {
+		id: 1,
+		name: '考研英语强化班',
+		teacher: '张老师',
+		time: '2023-09-01 至 2023-12-31',
+		status: 'ongoing',
+		rating: 4.5,
+		progress: 65,
+		introduction: '本课程针对考研英语进行全面强化训练，重点突破阅读理解和写作两大难点。通过系统讲解和大量练习，帮助考生在短时间内提升英语成绩。',
+		syllabus: [
+			{
+				title: '第一部分: 阅读理解',
+				lessons: [
+					{ title: '阅读技巧精讲', duration: 45 },
+					{ title: '真题解析', duration: 60 },
+					{ title: '模拟训练', duration: 90 }
+				]
+			},
+			{
+				title: '第二部分: 写作',
+				lessons: [
+					{ title: '写作模板讲解', duration: 45 },
+					{ title: '高分句型训练', duration: 60 },
+					{ title: '真题作文批改', duration: 90 }
+				]
+			}
+		],
+		resources: [
+			{ name: '考研英语高频词汇表.pdf' },
+			{ name: '阅读理解真题集.zip' },
+			{ name: '写作模板.docx' }
+		]
+	},
+	2: {
+		id: 2,
+		name: '高等数学基础班',
+		teacher: '李老师',
+		time: '2023-10-01 至 2024-01-31',
+		status: 'ongoing',
+		rating: 4.8,
+		progress: 40,
+		introduction: '本课程系统讲解高等数学基础知识，包括微积分、线性代数和概率统计等内容，适合数学基础薄弱的学生。',
+		syllabus: [
+			{
+				title: '第一部分: 微积分',
+				lessons: [
+					{ title: '极限与连续', duration: 60 },
+					{ title: '导数与微分', duration: 60 },
+					{ title: '积分与应用', duration: 90 }
+				]
+			},
+			{
+				title: '第二部分: 线性代数',
+				lessons: [
+					{ title: '矩阵与行列式', duration: 60 },
+					{ title: '向量空间', duration: 60 },
+					{ title: '特征值与特征向量', duration: 90 }
+				]
+			}
+		],
+		resources: [
+			{ name: '高等数学公式大全.pdf' },
+			{ name: '微积分习题集.zip' },
+			{ name: '线性代数讲义.docx' }
+		]
+	},
+	3: {
+		id: 3,
+		name: '数据结构与算法',
+		teacher: '王老师',
+		time: '2023-11-01 至 2024-02-28',
+		status: 'upcoming',
+		rating: 4.7,
+		progress: 0,
+		introduction: '本课程讲解常见数据结构和算法，包括数组、链表、树、图等数据结构，以及排序、查找等经典算法。',
+		syllabus: [
+			{
+				title: '第一部分: 数据结构',
+				lessons: [
+					{ title: '线性结构', duration: 60 },
+					{ title: '树与二叉树', duration: 60 },
+					{ title: '图与图算法', duration: 90 }
+				]
+			},
+			{
+				title: '第二部分: 算法',
+				lessons: [
+					{ title: '排序算法', duration: 60 },
+					{ title: '查找算法', duration: 60 },
+					{ title: '动态规划', duration: 90 }
+				]
+			}
+		],
+		resources: [
+			{ name: '数据结构图解.pdf' },
+			{ name: '算法练习题.zip' },
+			{ name: '编程实践案例.docx' }
+		]
+	}
+};
+
+// 获取状态文本
+const getStatusText = (status) => {
+	const statusMap = {
+		ongoing: '进行中',
+		upcoming: '即将开始',
+		completed: '已结束'
+	};
+	return statusMap[status] || '';
+};
+
+// 切换详情tab
+const changeDetailTab = (e) => {
+	currentTab.value = e.currentIndex;
+};
+
+// 下载资料
+const downloadResource = (resource) => {
+	uni.showToast({
+		title: `正在下载: ${resource.name}`,
+		icon: 'none'
+	});
+};
+
+// 开始学习
+const startLearning = () => {
+	uni.showToast({
+		title: '即将进入学习页面',
+		icon: 'none'
+	});
+};
+
+// 返回
+const goBack = () => {
+	uni.navigateBack();
+};
+
+onLoad((options) => {
+	const id = options.id;
+	course.value = mockCourses[id] || {};
+});
+</script>
+
+<style lang="scss">
+.course-detail-container {
+	padding: 20rpx;
+	
+	.header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 30rpx;
+		
+		.teacher-avatar {
+			width: 120rpx;
+			height: 120rpx;
+			border-radius: 50%;
+			margin-right: 30rpx;
+		}
+		
+		.header-info {
+			flex: 1;
+			
+			.course-name {
+				font-size: 36rpx;
+				font-weight: bold;
+				margin-bottom: 10rpx;
+			}
+			
+			.teacher {
+				font-size: 28rpx;
+				color: #666;
+				margin-bottom: 10rpx;
+			}
+			
+			.status {
+				font-size: 24rpx;
+				padding: 5rpx 15rpx;
+				border-radius: 20rpx;
+				font-weight: 500;
+				
+				&.ongoing {
+					background: linear-gradient(to right, #1890ff, #36cffd);
+					color: #fff;
+				}
+				
+				&.upcoming {
+					background: linear-gradient(to right, #fa8c16, #ffc069);
+					color: #fff;
+				}
+				
+				&.completed {
+					background: linear-gradient(to right, #52c41a, #73d13d);
+					color: #fff;
+				}
+			}
+		}
+	}
+	
+	.basic-info {
+		margin-bottom: 30rpx;
+		
+		.info-card {
+			background-color: #fff;
+			border-radius: 10rpx;
+			padding: 20rpx;
+			box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.2);
+			border: 1rpx solid #1890ff;
+			background: linear-gradient(to bottom, #f9fcff, #e6f4ff);
+			
+			.title {
+				font-size: 30rpx;
+				font-weight: bold;
+				margin-bottom: 20rpx;
+				color: #1890ff;
+			}
+			
+			.info-row {
+				display: flex;
+				align-items: center;
+				margin-bottom: 15rpx;
+				
+				.label {
+					font-size: 28rpx;
+					color: #666;
+					margin-right: 15rpx;
+					width: 100rpx;
+				}
+				
+				.value, .rating-value, .progress-value {
+					font-size: 28rpx;
+					color: #333;
+				}
+				
+				progress {
+					flex: 1;
+					margin: 0 10rpx;
+				}
+			}
+		}
+	}
+	
+	.tabs {
+		margin-bottom: 20rpx;
+	}
+	
+	.tab-content {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		margin-bottom: 30rpx;
+		box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.1);
+		
+		.section-title {
+			font-size: 32rpx;
+			font-weight: bold;
+			margin-bottom: 20rpx;
+			color: #1890ff;
+		}
+		
+		.content {
+			font-size: 28rpx;
+			line-height: 1.6;
+			color: #333;
+		}
+		
+		.chapter {
+			margin-bottom: 20rpx;
+			
+			.chapter-title {
+				font-size: 30rpx;
+				font-weight: bold;
+				margin-bottom: 10rpx;
+				color: #333;
+			}
+			
+			.lesson {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 15rpx 0;
+				border-bottom: 1rpx solid #eee;
+				
+				.lesson-title {
+					font-size: 28rpx;
+					color: #666;
+				}
+				
+				.lesson-duration {
+					font-size: 26rpx;
+					color: #999;
+				}
+			}
+		}
+		
+		.resource {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 15rpx 0;
+			border-bottom: 1rpx solid #eee;
+			
+			.resource-name {
+				font-size: 28rpx;
+				color: #666;
+			}
+			
+			.download-btn {
+				background: linear-gradient(to right, #1890ff, #36cffd);
+				color: #fff;
+				border-radius: 6rpx;
+				font-size: 26rpx;
+				border: none;
+				height: 60rpx;
+				line-height: 60rpx;
+				padding: 0 30rpx;
+			}
+		}
+	}
+	
+	.action-buttons {
+		display: flex;
+		justify-content: space-between;
+		
+		.primary-btn, .secondary-btn {
+			width: 48%;
+			height: 80rpx;
+			line-height: 80rpx;
+			border-radius: 10rpx;
+			font-size: 30rpx;
+			font-weight: bold;
+		}
+		
+		.primary-btn {
+			background: linear-gradient(to right, #1890ff, #36cffd);
+			color: #fff;
+			border: none;
+		}
+		
+		.secondary-btn {
+			background: #fff;
+			color: #1890ff;
+			border: 1rpx solid #1890ff;
+		}
+	}
+}
+</style>

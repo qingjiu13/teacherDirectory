@@ -3967,8 +3967,7 @@ function createComponentInstance(vnode, parent2, suspense) {
     $uniElements: /* @__PURE__ */ new Map(),
     $templateUniElementRefs: [],
     $templateUniElementStyles: {},
-    $eS: {},
-    $eA: {}
+    $eS: {}
   };
   {
     instance.ctx = createDevRenderContext(instance);
@@ -4466,7 +4465,6 @@ function patch(instance, data2, oldData) {
   }
   data2 = deepCopy(data2);
   data2.$eS = instance.$eS || {};
-  data2.$eA = instance.$eA || {};
   const ctx = instance.ctx;
   const mpType = ctx.mpType;
   if (mpType === "page" || mpType === "component") {
@@ -5175,7 +5173,7 @@ class UniCSSStyleDeclaration {
       get: (target, prop) => {
         if (prop in target) {
           const value2 = target[prop];
-          return isFunction(value2) ? value2.bind(target) : value2;
+          return typeof value2 === "function" ? value2.bind(target) : value2;
         }
         return target.getPropertyValue(prop);
       },
@@ -5220,160 +5218,6 @@ function hyphenateCssProperty(str) {
     return "-webkit-" + hyphenate(str.slice(6));
   }
   return hyphenate(str);
-}
-class UniAnimation {
-  constructor(id, scope, keyframes, options = {}) {
-    var _a;
-    this._playState = "";
-    this.parsedKeyframes = [];
-    this.options = {};
-    this.onfinish = null;
-    this.oncancel = null;
-    this.id = id;
-    this.scope = scope;
-    this.options = typeof options === "number" ? { duration: options } : options;
-    if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.iterations) === Infinity) {
-      this.options.iterations = -1;
-    }
-    this.parsedKeyframes = coverAnimateToStyle(keyframes, options);
-    this.onfinish = () => {
-    };
-    this.oncancel = () => {
-    };
-  }
-  get playState() {
-    return this._playState;
-  }
-  get currentTime() {
-    throw new Error("currentTime not implemented.");
-  }
-  cancel() {
-    toRaw(this.scope).setData({
-      ["$eA." + this.id]: JSON.stringify({
-        id: this.id,
-        playState: "cancel",
-        keyframes: this.parsedKeyframes,
-        options: this.options
-      })
-    });
-  }
-  finish() {
-    throw new Error("finish not implemented.");
-  }
-  pause() {
-    throw new Error("pause not implemented.");
-  }
-  play() {
-    this.scope.setData({
-      ["$eA." + this.id]: JSON.stringify({
-        id: this.id,
-        playState: "running",
-        keyframes: this.parsedKeyframes,
-        options: this.options
-      })
-    });
-  }
-}
-function handleDirection(keyframes, direction) {
-  if (direction === "reverse") {
-    keyframes.reverse();
-  } else if (direction === "alternate") {
-    keyframes = [...keyframes, ...keyframes.slice().reverse().slice(1)];
-  } else if (direction === "alternate-reverse") {
-    keyframes = keyframes.reverse().concat(keyframes.slice(1, -1).reverse());
-  }
-  return JSON.parse(JSON.stringify(keyframes));
-}
-function normalizeKeyframes(keyframes, direction = "normal") {
-  if (keyframes.length === 0) {
-    return [];
-  }
-  keyframes.forEach((kf) => {
-    Object.keys(kf).forEach((key) => {
-      const newKey = hyphenate(key);
-      if (key !== newKey) {
-        kf[newKey] = kf[key];
-        delete kf[key];
-      }
-    });
-  });
-  keyframes = handleDirection(keyframes, direction);
-  const existingOffsets = keyframes.map((kf, index2) => ({
-    index: index2,
-    offset: kf.offset
-  })).filter((item) => item.offset !== void 0);
-  if (existingOffsets.length === 0) {
-    for (let i2 = 0; i2 < keyframes.length; i2++) {
-      keyframes[i2].offset = i2 / (keyframes.length - 1);
-    }
-    return keyframes;
-  }
-  if (existingOffsets[0].index > 0) {
-    const firstOffset = existingOffsets[0].offset / existingOffsets[0].index;
-    for (let i2 = 0; i2 < existingOffsets[0].index; i2++) {
-      keyframes[i2].offset = firstOffset * i2;
-    }
-  }
-  for (let i2 = 0; i2 < existingOffsets.length - 1; i2++) {
-    const startOffset = existingOffsets[i2].offset;
-    const endOffset = existingOffsets[i2 + 1].offset;
-    const diffFrames = existingOffsets[i2 + 1].index - existingOffsets[i2].index;
-    if (diffFrames !== 1) {
-      const step = (endOffset - startOffset) / diffFrames;
-      for (let j2 = 1; j2 <= diffFrames; j2++) {
-        keyframes[existingOffsets[i2].index + j2].offset = startOffset + j2 * step;
-      }
-    }
-  }
-  if (existingOffsets[existingOffsets.length - 1].index < keyframes.length - 1) {
-    const lastOffset = existingOffsets[existingOffsets.length - 1].offset;
-    const numFrames = keyframes.length - existingOffsets[existingOffsets.length - 1].index;
-    const step = (1 - lastOffset) / (numFrames - 1);
-    for (let i2 = 0; i2 < numFrames; i2++) {
-      keyframes[existingOffsets[existingOffsets.length - 1].index + i2].offset = lastOffset + i2 * step;
-    }
-  }
-  return keyframes.map((kf) => {
-    kf.offset = Number(kf.offset.toFixed(5));
-    return kf;
-  });
-}
-function coverAnimateToStyle(keyframes, options) {
-  let duration = (options === null || options === void 0 ? void 0 : options.duration) || 0;
-  const direction = (options === null || options === void 0 ? void 0 : options.direction) || "normal";
-  if (!Array.isArray(keyframes)) {
-    const propertyNames = Object.keys(keyframes);
-    const arrayLength = keyframes[propertyNames[0]].length;
-    const frames2 = Array.from({ length: arrayLength }, (_, i2) => {
-      const frame = {};
-      propertyNames.forEach((prop) => {
-        frame[prop] = keyframes[prop][i2];
-      });
-      return frame;
-    });
-    return coverAnimateToStyle(frames2, options);
-  }
-  const frames = normalizeKeyframes(keyframes, direction);
-  if (direction === "alternate") {
-    duration = duration * 2;
-  }
-  return frames.map((frame, index2) => {
-    var _a;
-    const currentOffset = frame.offset;
-    let stepDuration;
-    const prevOffset = ((_a = frames[index2 - 1]) === null || _a === void 0 ? void 0 : _a.offset) || 0;
-    const currentDuration = Math.round(duration * (currentOffset - prevOffset));
-    const currentOffsetStartTime = Math.round(duration * prevOffset);
-    stepDuration = currentDuration;
-    const result = frame;
-    return Object.assign({}, result, {
-      // ...result,
-      offset: void 0,
-      transition: `all ${stepDuration}ms linear`,
-      _duration: stepDuration,
-      _startTime: currentOffsetStartTime
-    });
-  });
 }
 class UniElement {
   constructor(id = "", name = "") {
@@ -5483,22 +5327,6 @@ class UniElement {
   }
   setAttribute(name, value2) {
     console.warn(`Miniprogram does not support UniElement.setAttribute(${name}, value)`);
-  }
-  animate(keyframes, options) {
-    if (!this.id) {
-      throw new Error("animate is only supported on elements with id");
-    }
-    const root = this.$vm.$root;
-    const scope = root && root.$scope;
-    if (!scope) {
-      throw new Error(`animate is only supported on elements in page`);
-    }
-    if (!keyframes) {
-      throw new Error("animate keyframes is required");
-    }
-    const animation = new UniAnimation(this.id, scope, keyframes, options);
-    animation.play();
-    return animation;
   }
   $destroy() {
     if (this.style) {
@@ -5881,21 +5709,6 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
     });
   }
 }
-function hasIdProp(_ctx) {
-  return _ctx.$.propsOptions && _ctx.$.propsOptions[0] && "id" in _ctx.$.propsOptions[0];
-}
-function hasVirtualHostId(_ctx) {
-  return _ctx.virtualHostId !== "";
-}
-function genIdWithVirtualHost(_ctx, idBinding) {
-  if (!hasVirtualHostId(_ctx) || hasIdProp(_ctx)) {
-    return idBinding;
-  }
-  return _ctx.virtualHostId;
-}
-function genUniElementId(_ctx, idBinding, genId) {
-  return genIdWithVirtualHost(_ctx, idBinding) || genId || "";
-}
 const o = (value2, key) => vOn(value2, key);
 const f = (source, renderItem) => vFor(source, renderItem);
 const e = (target, ...sources) => extend(target, ...sources);
@@ -5904,21 +5717,11 @@ const t = (val2) => toDisplayString(val2);
 const p = (props) => renderProps(props);
 const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 const sei = setUniElementId;
-const gei = genUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
   return createVueApp(rootComponent, rootProps).use(plugin);
 }
 const createSSRApp = createApp$1;
-function getLocaleLanguage$1() {
-  let localeLanguage = "";
-  {
-    const appBaseInfo = wx.getAppBaseInfo();
-    const language = appBaseInfo && appBaseInfo.language ? appBaseInfo.language : LOCALE_EN;
-    localeLanguage = normalizeLocale(language) || LOCALE_EN;
-  }
-  return localeLanguage;
-}
 function validateProtocolFail(name, msg) {
   console.warn(`${name}: ${msg}`);
 }
@@ -6568,9 +6371,7 @@ const $once = defineSyncApi(API_ONCE, (name, callback) => {
 const $off = defineSyncApi(API_OFF, (name, callback) => {
   if (!isArray(name))
     name = name ? [name] : [];
-  name.forEach((n2) => {
-    eventBus.off(n2, callback);
-  });
+  name.forEach((n2) => eventBus.off(n2, callback));
 }, OffProtocol);
 const $emit = defineSyncApi(API_EMIT, (name, ...args) => {
   eventBus.emit(name, ...args);
@@ -6801,9 +6602,6 @@ function initWrapper(protocols2) {
   }
   return function wrapper(methodName, method) {
     const hasProtocol = hasOwn(protocols2, methodName);
-    if (!hasProtocol && typeof wx[methodName] !== "function") {
-      return method;
-    }
     const needWrapper = hasProtocol || isFunction(protocols2.returnValue) || isContextApi(methodName) || isTaskApi(methodName);
     const hasMethod = hasProtocol || isFunction(method);
     if (!hasProtocol && !method) {
@@ -6843,7 +6641,7 @@ const getLocale = () => {
   if (app && app.$vm) {
     return app.$vm.$locale;
   }
-  return getLocaleLanguage$1();
+  return normalizeLocale(wx.getAppBaseInfo().language) || LOCALE_EN;
 };
 const setLocale = (locale) => {
   const app = isFunction(getApp) && getApp();
@@ -6925,9 +6723,9 @@ function populateParameters(fromRes, toRes) {
     appVersion: "1.0.0",
     appVersionCode: "100",
     appLanguage: getAppLanguage(hostLanguage),
-    uniCompileVersion: "4.57",
-    uniCompilerVersion: "4.57",
-    uniRuntimeVersion: "4.57",
+    uniCompileVersion: "4.45",
+    uniCompilerVersion: "4.45",
+    uniRuntimeVersion: "4.45",
     uniPlatform: "mp-weixin",
     deviceBrand,
     deviceModel: model,
@@ -6955,8 +6753,8 @@ function populateParameters(fromRes, toRes) {
   };
   {
     try {
-      parameters.uniCompilerVersionCode = parseFloat("4.57");
-      parameters.uniRuntimeVersionCode = parseFloat("4.57");
+      parameters.uniCompilerVersionCode = parseFloat("4.45");
+      parameters.uniRuntimeVersionCode = parseFloat("4.45");
     } catch (error) {
     }
   }
@@ -7083,14 +6881,14 @@ const getAppBaseInfo = {
       appLanguage: getAppLanguage(hostLanguage),
       isUniAppX: true,
       uniPlatform: "mp-weixin",
-      uniCompileVersion: "4.57",
-      uniCompilerVersion: "4.57",
-      uniRuntimeVersion: "4.57"
+      uniCompileVersion: "4.45",
+      uniCompilerVersion: "4.45",
+      uniRuntimeVersion: "4.45"
     };
     {
       try {
-        parameters.uniCompilerVersionCode = parseFloat("4.57");
-        parameters.uniRuntimeVersionCode = parseFloat("4.57");
+        parameters.uniCompilerVersionCode = parseFloat("4.45");
+        parameters.uniRuntimeVersionCode = parseFloat("4.45");
       } catch (error) {
       }
     }
@@ -7275,23 +7073,11 @@ function createSelectorQuery() {
   const query = wx$2.createSelectorQuery();
   const oldIn = query.in;
   query.in = function newIn(component) {
-    if (component.$scope) {
-      return oldIn.call(this, component.$scope);
-    }
     return oldIn.call(this, initComponentMocks(component));
   };
   return query;
 }
 const wx$2 = initWx();
-if (!wx$2.canIUse("getAppBaseInfo")) {
-  wx$2.getAppBaseInfo = wx$2.getSystemInfoSync;
-}
-if (!wx$2.canIUse("getWindowInfo")) {
-  wx$2.getWindowInfo = wx$2.getSystemInfoSync;
-}
-if (!wx$2.canIUse("getDeviceInfo")) {
-  wx$2.getDeviceInfo = wx$2.getSystemInfoSync;
-}
 let baseInfo = wx$2.getAppBaseInfo && wx$2.getAppBaseInfo();
 if (!baseInfo) {
   baseInfo = wx$2.getSystemInfoSync();
@@ -7327,9 +7113,6 @@ var shims = /* @__PURE__ */ Object.freeze({
 function returnValue(method, res) {
   return parseXReturnValue(method, res);
 }
-const chooseFile = {
-  name: "chooseMessageFile"
-};
 const compressImage = {
   args(fromArgs, toArgs) {
     if (fromArgs.compressedHeight && !toArgs.compressHeight) {
@@ -7342,7 +7125,6 @@ const compressImage = {
 };
 var protocols = /* @__PURE__ */ Object.freeze({
   __proto__: null,
-  chooseFile,
   compressImage,
   getAppAuthorizeSetting,
   getAppBaseInfo,
@@ -7361,48 +7143,84 @@ var protocols = /* @__PURE__ */ Object.freeze({
 });
 const wx$1 = initWx();
 var index = initUni(shims, protocols, wx$1);
-function initRuntimeSocket(hosts, port, id) {
-  if (hosts == "" || port == "" || id == "")
-    return Promise.resolve(null);
-  return hosts.split(",").reduce((promise, host2) => {
-    return promise.then((socket) => {
-      if (socket != null)
-        return Promise.resolve(socket);
-      return tryConnectSocket(host2, port, id);
-    });
-  }, Promise.resolve(null));
+const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
+let sendConsole = null;
+const messageQueue = [];
+function sendConsoleMessages(messages) {
+  if (sendConsole == null) {
+    messageQueue.push(...messages);
+    return;
+  }
+  sendConsole(JSON.stringify({
+    type: "console",
+    data: messages
+  }));
 }
-const SOCKET_TIMEOUT = 500;
-function tryConnectSocket(host2, port, id) {
-  return new Promise((resolve2, reject) => {
-    const socket = index.connectSocket({
-      url: `ws://${host2}:${port}/${id}`,
-      multiple: true,
-      // 支付宝小程序 是否开启多实例
-      fail() {
-        resolve2(null);
+function setSendConsole(value2) {
+  sendConsole = value2;
+  if (value2 != null && messageQueue.length > 0) {
+    const messages = messageQueue.slice();
+    messageQueue.length = 0;
+    sendConsoleMessages(messages);
+  }
+}
+const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
+  methods[type] = console[type].bind(console);
+  return methods;
+}, {});
+const atFileRegex = /^at\s+[\w/./-]+:\d+$/;
+function rewriteConsole() {
+  function wrapConsole(type) {
+    return function(...args) {
+      const originalArgs = [...args];
+      if (originalArgs.length) {
+        const maybeAtFile = originalArgs[originalArgs.length - 1];
+        if (typeof maybeAtFile === "string" && atFileRegex.test(maybeAtFile)) {
+          originalArgs.pop();
+        }
       }
+      {
+        originalConsole[type](...originalArgs);
+      }
+      sendConsoleMessages([formatMessage(type, args)]);
+    };
+  }
+  if (isConsoleWritable()) {
+    CONSOLE_TYPES.forEach((type) => {
+      console[type] = wrapConsole(type);
     });
-    const timer = setTimeout(() => {
-      socket.close({
-        code: 1006,
-        reason: "connect timeout"
+    return function restoreConsole() {
+      CONSOLE_TYPES.forEach((type) => {
+        console[type] = originalConsole[type];
       });
-      resolve2(null);
-    }, SOCKET_TIMEOUT);
-    socket.onOpen((e2) => {
-      clearTimeout(timer);
-      resolve2(socket);
-    });
-    socket.onClose((e2) => {
-      clearTimeout(timer);
-      resolve2(null);
-    });
-    socket.onError((e2) => {
-      clearTimeout(timer);
-      resolve2(null);
-    });
-  });
+    };
+  } else {
+    const oldLog = index.__f__;
+    if (oldLog) {
+      index.__f__ = function(...args) {
+        const [type, filename, ...rest] = args;
+        oldLog(type, "", ...rest);
+        sendConsoleMessages([formatMessage(type, [...rest, filename])]);
+      };
+      return function restoreConsole() {
+        index.__f__ = oldLog;
+      };
+    }
+  }
+  return function restoreConsole() {
+  };
+}
+function isConsoleWritable() {
+  const value2 = console.log;
+  const sym = Symbol();
+  try {
+    console.log = sym;
+  } catch (ex) {
+    return false;
+  }
+  const isWritable = console.log === sym;
+  console.log = value2;
+  return isWritable;
 }
 function formatMessage(type, args) {
   try {
@@ -7411,6 +7229,7 @@ function formatMessage(type, args) {
       args: formatArgs(args)
     };
   } catch (e2) {
+    originalConsole.error(e2);
   }
   return {
     type,
@@ -7427,67 +7246,7 @@ function formatArg(arg, depth = 0) {
       value: "[Maximum depth reached]"
     };
   }
-  const type = typeof arg;
-  switch (type) {
-    case "string":
-      return formatString(arg);
-    case "number":
-      return formatNumber(arg);
-    case "boolean":
-      return formatBoolean(arg);
-    case "object":
-      return formatObject(arg, depth);
-    case "undefined":
-      return formatUndefined();
-    case "function":
-      return formatFunction(arg);
-    case "symbol": {
-      return formatSymbol(arg);
-    }
-    case "bigint":
-      return formatBigInt(arg);
-  }
-}
-function formatFunction(value2) {
-  return {
-    type: "function",
-    value: `function ${value2.name}() {}`
-  };
-}
-function formatUndefined() {
-  return {
-    type: "undefined"
-  };
-}
-function formatBoolean(value2) {
-  return {
-    type: "boolean",
-    value: String(value2)
-  };
-}
-function formatNumber(value2) {
-  return {
-    type: "number",
-    value: String(value2)
-  };
-}
-function formatBigInt(value2) {
-  return {
-    type: "bigint",
-    value: String(value2)
-  };
-}
-function formatString(value2) {
-  return {
-    type: "string",
-    value: value2
-  };
-}
-function formatSymbol(value2) {
-  return {
-    type: "symbol",
-    value: value2.description
-  };
+  return ARG_FORMATTERS[typeof arg](arg, depth);
 }
 function formatObject(value2, depth) {
   if (value2 === null) {
@@ -7495,19 +7254,17 @@ function formatObject(value2, depth) {
       type: "null"
     };
   }
-  {
-    if (isComponentPublicInstance(value2)) {
-      return formatComponentPublicInstance(value2, depth);
-    }
-    if (isComponentInternalInstance(value2)) {
-      return formatComponentInternalInstance(value2, depth);
-    }
-    if (isUniElement(value2)) {
-      return formatUniElement(value2, depth);
-    }
-    if (isCSSStyleDeclaration(value2)) {
-      return formatCSSStyleDeclaration(value2, depth);
-    }
+  if (isComponentPublicInstance(value2)) {
+    return formatComponentPublicInstance(value2, depth);
+  }
+  if (isComponentInternalInstance(value2)) {
+    return formatComponentInternalInstance(value2, depth);
+  }
+  if (isUniElement(value2)) {
+    return formatUniElement(value2, depth);
+  }
+  if (isCSSStyleDeclaration(value2)) {
+    return formatCSSStyleDeclaration(value2, depth);
   }
   if (Array.isArray(value2)) {
     return {
@@ -7573,20 +7330,10 @@ function formatObject(value2, depth) {
       className: value2.name || "Error"
     };
   }
-  let className = void 0;
-  {
-    const constructor = value2.constructor;
-    if (constructor) {
-      if (constructor.get$UTSMetadata$) {
-        className = constructor.get$UTSMetadata$().name;
-      }
-    }
-  }
   return {
     type: "object",
-    className,
     value: {
-      properties: Object.entries(value2).map((entry) => formatObjectProperty(entry[0], entry[1], depth + 1))
+      properties: Object.entries(value2).map(([name, value22]) => formatObjectProperty(name, value22, depth + 1))
     }
   };
 }
@@ -7647,14 +7394,14 @@ function formatCSSStyleDeclaration(style, depth) {
   };
 }
 function formatObjectProperty(name, value2, depth) {
-  const result = formatArg(value2, depth);
-  result.name = name;
-  return result;
+  return Object.assign(formatArg(value2, depth), {
+    name
+  });
 }
 function formatArrayElement(value2, index2, depth) {
-  const result = formatArg(value2, depth);
-  result.name = `${index2}`;
-  return result;
+  return Object.assign(formatArg(value2, depth), {
+    name: `${index2}`
+  });
 }
 function formatSetEntry(value2, depth) {
   return {
@@ -7667,94 +7414,97 @@ function formatMapEntry(value2, depth) {
     value: formatArg(value2[1], depth)
   };
 }
-const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
-let sendConsole = null;
-const messageQueue = [];
-const messageExtra = {};
-function sendConsoleMessages(messages) {
-  if (sendConsole == null) {
-    messageQueue.push(...messages);
-    return;
-  }
-  sendConsole(JSON.stringify(Object.assign({
-    type: "console",
-    data: messages
-  }, messageExtra)));
-}
-function setSendConsole(value2, extra = {}) {
-  sendConsole = value2;
-  Object.assign(messageExtra, extra);
-  if (value2 != null && messageQueue.length > 0) {
-    const messages = messageQueue.slice();
-    messageQueue.length = 0;
-    sendConsoleMessages(messages);
-  }
-}
-const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
-  methods[type] = console[type].bind(console);
-  return methods;
-}, {});
-const atFileRegex = /^\s*at\s+[\w/./-]+:\d+$/;
-function rewriteConsole() {
-  function wrapConsole(type) {
-    return function(...args) {
-      const originalArgs = [...args];
-      if (originalArgs.length) {
-        const maybeAtFile = originalArgs[originalArgs.length - 1];
-        if (typeof maybeAtFile === "string" && atFileRegex.test(maybeAtFile)) {
-          originalArgs.pop();
-        }
-      }
-      {
-        originalConsole[type](...originalArgs);
-      }
-      sendConsoleMessages([formatMessage(type, args)]);
+const ARG_FORMATTERS = {
+  function(value2) {
+    return {
+      type: "function",
+      value: `function ${value2.name}() {}`
+    };
+  },
+  undefined() {
+    return {
+      type: "undefined"
+    };
+  },
+  object(value2, depth) {
+    return formatObject(value2, depth);
+  },
+  boolean(value2) {
+    return {
+      type: "boolean",
+      value: String(value2)
+    };
+  },
+  number(value2) {
+    return {
+      type: "number",
+      value: String(value2)
+    };
+  },
+  bigint(value2) {
+    return {
+      type: "bigint",
+      value: String(value2)
+    };
+  },
+  string(value2) {
+    return {
+      type: "string",
+      value: value2
+    };
+  },
+  symbol(value2) {
+    return {
+      type: "symbol",
+      value: value2.description
     };
   }
-  if (isConsoleWritable()) {
-    CONSOLE_TYPES.forEach((type) => {
-      console[type] = wrapConsole(type);
+};
+function initRuntimeSocket(hosts, port, id) {
+  if (!hosts || !port || !id)
+    return Promise.resolve(null);
+  return hosts.split(",").reduce((promise, host2) => {
+    return promise.then((socket) => {
+      if (socket)
+        return socket;
+      return tryConnectSocket(host2, port, id);
     });
-    return function restoreConsole() {
-      CONSOLE_TYPES.forEach((type) => {
-        console[type] = originalConsole[type];
-      });
-    };
-  } else {
-    {
-      if (typeof index !== "undefined" && index.__f__) {
-        const oldLog = index.__f__;
-        if (oldLog) {
-          index.__f__ = function(...args) {
-            const [type, filename, ...rest] = args;
-            oldLog(type, "", ...rest);
-            sendConsoleMessages([formatMessage(type, [...rest, filename])]);
-          };
-          return function restoreConsole() {
-            index.__f__ = oldLog;
-          };
-        }
-      }
-    }
-  }
-  return function restoreConsole() {
-  };
+  }, Promise.resolve(null));
 }
-function isConsoleWritable() {
-  const value2 = console.log;
-  const sym = Symbol();
-  try {
-    console.log = sym;
-  } catch (ex) {
-    return false;
-  }
-  const isWritable = console.log === sym;
-  console.log = value2;
-  return isWritable;
+const SOCKET_TIMEOUT = 500;
+function tryConnectSocket(host2, port, id) {
+  return new Promise((resolve2, reject) => {
+    const socket = index.connectSocket({
+      url: `ws://${host2}:${port}/${id}`,
+      // 支付宝小程序 是否开启多实例
+      multiple: true,
+      fail() {
+        resolve2(null);
+      }
+    });
+    const timer = setTimeout(() => {
+      socket.close({
+        code: 1006,
+        reason: "connect timeout"
+      });
+      resolve2(null);
+    }, SOCKET_TIMEOUT);
+    socket.onOpen((e2) => {
+      clearTimeout(timer);
+      resolve2(socket);
+    });
+    socket.onClose((e2) => {
+      clearTimeout(timer);
+      resolve2(null);
+    });
+    socket.onError((e2) => {
+      clearTimeout(timer);
+      resolve2(null);
+    });
+  });
 }
 let sendError = null;
 const errorQueue = /* @__PURE__ */ new Set();
-const errorExtra = {};
 function sendErrorMessages(errors) {
   if (sendError == null) {
     errors.forEach((error) => {
@@ -7762,38 +7512,30 @@ function sendErrorMessages(errors) {
     });
     return;
   }
-  const data2 = errors.map((err) => {
-    const isPromiseRejection = err && "promise" in err && "reason" in err;
-    const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
-    if (isPromiseRejection) {
-      err = err.reason;
-    }
-    if (err instanceof Error && err.stack) {
-      if (err.message && !err.stack.includes(err.message)) {
-        return `${prefix}${err.message}
-${err.stack}`;
+  sendError(JSON.stringify({
+    type: "error",
+    data: errors.map((err) => {
+      const isPromiseRejection = err && "promise" in err && "reason" in err;
+      const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
+      if (isPromiseRejection) {
+        err = err.reason;
       }
-      return `${prefix}${err.stack}`;
-    }
-    if (typeof err === "object" && err !== null) {
-      try {
-        return prefix + JSON.stringify(err);
-      } catch (err2) {
-        return prefix + String(err2);
+      if (err instanceof Error && err.stack) {
+        return prefix + err.stack;
       }
-    }
-    return prefix + String(err);
-  }).filter(Boolean);
-  if (data2.length > 0) {
-    sendError(JSON.stringify(Object.assign({
-      type: "error",
-      data: data2
-    }, errorExtra)));
-  }
+      if (typeof err === "object" && err !== null) {
+        try {
+          return prefix + JSON.stringify(err);
+        } catch (err2) {
+          return prefix + String(err2);
+        }
+      }
+      return prefix + String(err);
+    })
+  }));
 }
-function setSendError(value2, extra = {}) {
+function setSendError(value2) {
   sendError = value2;
-  Object.assign(errorExtra, extra);
   if (value2 != null && errorQueue.size > 0) {
     const errors = Array.from(errorQueue);
     errorQueue.clear();
@@ -7830,9 +7572,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.78.77.216,127.0.0.1";
+  const hosts = "100.78.196.19,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_U7gipn";
+  const id = "mp-weixin_SuiI8T";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -8015,7 +7757,7 @@ function isInstanceOf(value2, type) {
     return value2 && value2[Symbol.iterator];
   }
   const isNativeInstanceofType = value2 instanceof type;
-  if (isNativeInstanceofType || typeof value2 !== "object" || value2 === null) {
+  if (isNativeInstanceofType || typeof value2 !== "object") {
     return isNativeInstanceofType;
   }
   const proto = Object.getPrototypeOf(value2).constructor;
@@ -8039,7 +7781,6 @@ function normalizeGenericValue(value2, genericType, isJSONParse = false) {
 class UTSType {
   static get$UTSMetadata$(...args) {
     return {
-      name: "",
       kind: UTS_CLASS_METADATA_KIND.TYPE,
       interfaces: [],
       fields: {}
@@ -8114,15 +7855,14 @@ class UTSType {
         }
       }
       if (isUTSType(type)) {
-        obj[key] = isJSONParse ? (
-          // @ts-ignore
-          new type(options[realKey], void 0, isJSONParse)
-        ) : options[realKey];
+        obj[key] = new type(options[realKey], void 0, isJSONParse);
       } else if (type === Array) {
         if (!Array.isArray(options[realKey])) {
           throw new UTSError(`Failed to contruct type, property ${key} is not an array`);
         }
-        obj[key] = options[realKey];
+        obj[key] = options[realKey].map((item) => {
+          return item == null ? null : item;
+        });
       } else {
         obj[key] = options[realKey];
       }
@@ -8417,19 +8157,18 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
     }
     return keyPathArr;
   }
-  _getValue(keyPath, defaultValue) {
+  _getValue(keyPath) {
     const keyPathArr = this._resolveKeyPath(keyPath);
-    const realDefaultValue = defaultValue === void 0 ? null : defaultValue;
     if (keyPathArr.length === 0) {
-      return realDefaultValue;
+      return null;
     }
     let value2 = this;
     for (let i2 = 0; i2 < keyPathArr.length; i2++) {
       const key = keyPathArr[i2];
       if (value2 instanceof Object) {
-        value2 = key in value2 ? value2[key] : realDefaultValue;
+        value2 = value2[key];
       } else {
-        return realDefaultValue;
+        return null;
       }
     }
     return value2;
@@ -8440,43 +8179,43 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
   set(key, value2) {
     this[key] = value2;
   }
-  getAny(key, defaultValue) {
-    return this._getValue(key, defaultValue);
+  getAny(key) {
+    return this._getValue(key);
   }
-  getString(key, defaultValue) {
-    const value2 = this._getValue(key, defaultValue);
+  getString(key) {
+    const value2 = this._getValue(key);
     if (typeof value2 === "string") {
       return value2;
     } else {
       return null;
     }
   }
-  getNumber(key, defaultValue) {
-    const value2 = this._getValue(key, defaultValue);
+  getNumber(key) {
+    const value2 = this._getValue(key);
     if (typeof value2 === "number") {
       return value2;
     } else {
       return null;
     }
   }
-  getBoolean(key, defaultValue) {
-    const boolean = this._getValue(key, defaultValue);
+  getBoolean(key) {
+    const boolean = this._getValue(key);
     if (typeof boolean === "boolean") {
       return boolean;
     } else {
       return null;
     }
   }
-  getJSON(key, defaultValue) {
-    let value2 = this._getValue(key, defaultValue);
+  getJSON(key) {
+    let value2 = this._getValue(key);
     if (value2 instanceof Object) {
-      return value2;
+      return new UTSJSONObject2(value2);
     } else {
       return null;
     }
   }
-  getArray(key, defaultValue) {
-    let value2 = this._getValue(key, defaultValue);
+  getArray(key) {
+    let value2 = this._getValue(key);
     if (value2 instanceof Array) {
       return value2;
     } else {
@@ -8622,15 +8361,6 @@ function findVmByVueId(instance, vuePid) {
       return parentVm;
     }
   }
-}
-function getLocaleLanguage() {
-  let localeLanguage = "";
-  {
-    const appBaseInfo = wx.getAppBaseInfo();
-    const language = appBaseInfo && appBaseInfo.language ? appBaseInfo.language : LOCALE_EN;
-    localeLanguage = normalizeLocale(language) || LOCALE_EN;
-  }
-  return localeLanguage;
 }
 const MP_METHODS = [
   "createSelectorQuery",
@@ -8909,7 +8639,9 @@ function initAppLifecycle(appOptions, vm) {
   }
 }
 function initLocale(appVm) {
-  const locale = ref(getLocaleLanguage());
+  const locale = ref(
+    normalizeLocale(wx.getAppBaseInfo().language) || LOCALE_EN
+  );
   Object.defineProperty(appVm, "$locale", {
     get() {
       return locale.value;
@@ -10208,6 +9940,7 @@ const createHook = (lifecycle) => (hook, target = getCurrentInstance()) => {
 const onShow = /* @__PURE__ */ createHook(ON_SHOW);
 const onHide = /* @__PURE__ */ createHook(ON_HIDE);
 const onLaunch = /* @__PURE__ */ createHook(ON_LAUNCH);
+const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
 function __awaiter(thisArg, _arguments, P, generator) {
   function adopt(value2) {
     return value2 instanceof P ? value2 : new P(function(resolve2) {
@@ -14326,12 +14059,12 @@ var miniprogram_dist = {};
 const lottie = /* @__PURE__ */ getDefaultExportFromCjs(miniprogram_dist);
 exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
+exports.computed = computed;
 exports.createSSRApp = createSSRApp;
 exports.createStore = createStore;
 exports.defineComponent = defineComponent;
 exports.e = e;
 exports.f = f;
-exports.gei = gei;
 exports.index = index;
 exports.isRef = isRef;
 exports.lottie = lottie;
@@ -14342,6 +14075,7 @@ exports.n = n;
 exports.o = o;
 exports.onHide = onHide;
 exports.onLaunch = onLaunch;
+exports.onLoad = onLoad;
 exports.onShow = onShow;
 exports.p = p;
 exports.ref = ref;
