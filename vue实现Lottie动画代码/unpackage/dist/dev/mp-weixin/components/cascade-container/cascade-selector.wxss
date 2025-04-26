@@ -1,7 +1,0 @@
-:host{display:flex;flex-direction:column}
-
-.cascade-selector-container {
-  position: relative;
-  z-index: 100;
-  font-size: 14px;
-}

@@ -206,6 +206,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.search-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
 .page {
   display: flex;
   flex-direction: column;
@@ -246,7 +252,7 @@ onMounted(() => {
   position: relative;
   white-space: nowrap;
   display: flex;
-  flex-direction: column; /* 垂直排列 */
+  flex-direction: row; /* 水平排列 */
   align-items: center;
   justify-content: center;
 }
