@@ -7,8 +7,22 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/test",
-          "pathName": "pages/test/test",
+          "name": "pages/order",
+          "pathName": "pages/mine/course/course",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/match",
+          "pathName": "pages/match/match",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/login",
+          "pathName": "pages/login/wechat_login",
           "query": "",
           "launchMode": "default",
           "scene": null

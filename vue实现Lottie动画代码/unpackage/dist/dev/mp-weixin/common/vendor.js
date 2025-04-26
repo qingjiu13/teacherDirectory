@@ -2743,21 +2743,21 @@ function injectHook(type, hook, target = currentInstance, prepend = false) {
     );
   }
 }
-const createHook$1 = (lifecycle) => (hook, target = currentInstance) => (
+const createHook = (lifecycle) => (hook, target = currentInstance) => (
   // post-create lifecycle registrations are noops during SSR (except for serverPrefetch)
   (!isInSSRComponentSetup || lifecycle === "sp") && injectHook(lifecycle, (...args) => hook(...args), target)
 );
-const onBeforeMount = createHook$1("bm");
-const onMounted = createHook$1("m");
-const onBeforeUpdate = createHook$1("bu");
-const onUpdated = createHook$1("u");
-const onBeforeUnmount = createHook$1("bum");
-const onUnmounted = createHook$1("um");
-const onServerPrefetch = createHook$1("sp");
-const onRenderTriggered = createHook$1(
+const onBeforeMount = createHook("bm");
+const onMounted = createHook("m");
+const onBeforeUpdate = createHook("bu");
+const onUpdated = createHook("u");
+const onBeforeUnmount = createHook("bum");
+const onUnmounted = createHook("um");
+const onServerPrefetch = createHook("sp");
+const onRenderTriggered = createHook(
   "rtg"
 );
-const onRenderTracked = createHook$1(
+const onRenderTracked = createHook(
   "rtc"
 );
 function onErrorCaptured(hook, target = currentInstance) {
@@ -5909,7 +5909,6 @@ function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
   return createVueApp(rootComponent, rootProps).use(plugin);
 }
-const createSSRApp = createApp$1;
 function getLocaleLanguage$1() {
   let localeLanguage = "";
   {
@@ -7832,7 +7831,7 @@ function initOnError() {
 function initRuntimeSocketService() {
   const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_U7gipn";
+  const id = "mp-weixin_9MHdSn";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -10123,6 +10122,31 @@ var mapState = normalizeNamespace(function(namespace, states) {
   });
   return res;
 });
+var mapMutations = normalizeNamespace(function(namespace, mutations) {
+  var res = {};
+  if (!isValidMap(mutations)) {
+    console.error("[vuex] mapMutations: mapper parameter must be either an Array or an Object");
+  }
+  normalizeMap(mutations).forEach(function(ref2) {
+    var key = ref2.key;
+    var val2 = ref2.val;
+    res[key] = function mappedMutation() {
+      var args = [], len2 = arguments.length;
+      while (len2--)
+        args[len2] = arguments[len2];
+      var commit2 = this.$store.commit;
+      if (namespace) {
+        var module2 = getModuleByNamespace(this.$store, "mapMutations", namespace);
+        if (!module2) {
+          return;
+        }
+        commit2 = module2.context.commit;
+      }
+      return typeof val2 === "function" ? val2.apply(this, [commit2].concat(args)) : commit2.apply(this.$store, [val2].concat(args));
+    };
+  });
+  return res;
+});
 var mapGetters = normalizeNamespace(function(namespace, getters) {
   var res = {};
   if (!isValidMap(getters)) {
@@ -10202,12 +10226,6 @@ function getModuleByNamespace(store, helper, namespace) {
   }
   return module2;
 }
-const createHook = (lifecycle) => (hook, target = getCurrentInstance()) => {
-  !isInSSRComponentSetup && injectHook(lifecycle, hook, target);
-};
-const onShow = /* @__PURE__ */ createHook(ON_SHOW);
-const onHide = /* @__PURE__ */ createHook(ON_HIDE);
-const onLaunch = /* @__PURE__ */ createHook(ON_LAUNCH);
 function __awaiter(thisArg, _arguments, P, generator) {
   function adopt(value2) {
     return value2 instanceof P ? value2 : new P(function(resolve2) {
@@ -14326,23 +14344,23 @@ var miniprogram_dist = {};
 const lottie = /* @__PURE__ */ getDefaultExportFromCjs(miniprogram_dist);
 exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
-exports.createSSRApp = createSSRApp;
+exports.createApp = createApp$1;
 exports.createStore = createStore;
 exports.defineComponent = defineComponent;
 exports.e = e;
 exports.f = f;
 exports.gei = gei;
+exports.getCurrentInstance = getCurrentInstance;
 exports.index = index;
+exports.inject = inject;
 exports.isRef = isRef;
 exports.lottie = lottie;
 exports.mapActions = mapActions;
 exports.mapGetters = mapGetters;
+exports.mapMutations = mapMutations;
 exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
-exports.onHide = onHide;
-exports.onLaunch = onLaunch;
-exports.onShow = onShow;
 exports.p = p;
 exports.ref = ref;
 exports.resolveComponent = resolveComponent;

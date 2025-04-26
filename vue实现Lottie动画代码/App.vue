@@ -12,6 +12,12 @@
 		if (uni && !uni.$store) {
 			uni.$store = store;
 		}
+		
+		// 初始化默认用户数据
+		store.dispatch('user/baseInfo/updateUserInfo', {
+			userName: '默认用户',
+			avatar: '/static/image/tab-bar/default_avatar.png'
+		});
 	})
 	
 	// 应用显示时
