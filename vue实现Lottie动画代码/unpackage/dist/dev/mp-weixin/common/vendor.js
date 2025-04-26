@@ -7830,9 +7830,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.78.77.216,127.0.0.1";
+  const hosts = "100.81.1.13,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_U7gipn";
+  const id = "mp-weixin_GyowAw";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -10098,31 +10098,6 @@ Store.prototype._withCommit = function _withCommit(fn) {
   this._committing = committing;
 };
 Object.defineProperties(Store.prototype, prototypeAccessors);
-var mapState = normalizeNamespace(function(namespace, states) {
-  var res = {};
-  if (!isValidMap(states)) {
-    console.error("[vuex] mapState: mapper parameter must be either an Array or an Object");
-  }
-  normalizeMap(states).forEach(function(ref2) {
-    var key = ref2.key;
-    var val2 = ref2.val;
-    res[key] = function mappedState() {
-      var state = this.$store.state;
-      var getters = this.$store.getters;
-      if (namespace) {
-        var module2 = getModuleByNamespace(this.$store, "mapState", namespace);
-        if (!module2) {
-          return;
-        }
-        state = module2.context.state;
-        getters = module2.context.getters;
-      }
-      return typeof val2 === "function" ? val2.call(this, state, getters) : state[val2];
-    };
-    res[key].vuex = true;
-  });
-  return res;
-});
 var mapGetters = normalizeNamespace(function(namespace, getters) {
   var res = {};
   if (!isValidMap(getters)) {
@@ -14337,7 +14312,6 @@ exports.isRef = isRef;
 exports.lottie = lottie;
 exports.mapActions = mapActions;
 exports.mapGetters = mapGetters;
-exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
 exports.onHide = onHide;
