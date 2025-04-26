@@ -45,12 +45,12 @@
 			<view class="form-item">
 				<text class="form-label">性别</text>
 				<view class="radio-group">
-					<view class="radio-item" @click="userInfo.gender = 'male'">
-						<view class="radio-circle" :class="{'selected': userInfo.gender === 'male'}"></view>
+					<view class="radio-item" @click="userInfo.gender = '男'">
+						<view class="radio-circle" :class="{'selected': userInfo.gender === '男'}"></view>
 						<text class="radio-text">男</text>
 					</view>
-					<view class="radio-item" @click="userInfo.gender = 'female'">
-						<view class="radio-circle" :class="{'selected': userInfo.gender === 'female'}"></view>
+					<view class="radio-item" @click="userInfo.gender = '女'">
+						<view class="radio-circle" :class="{'selected': userInfo.gender === '女'}"></view>
 						<text class="radio-text">女</text>
 					</view>
 				</view>
@@ -81,12 +81,15 @@
 			</view>
 			
 			<!-- 密码 -->
-			<view class="form-item password-item" @click="navigateToPasswordPage">
+			<view class="form-item">
 				<text class="form-label">密码</text>
-				<view class="password-value">
-					<text>{{userInfo.password}}</text>
-					<text class="arrow-right">></text>
-				</view>
+				<input 
+					type="password" 
+					v-model="userInfo.password" 
+					placeholder="请输入密码" 
+					class="form-input" 
+					maxlength="20"
+				/>
 			</view>
 		</view>
 		
@@ -121,6 +124,17 @@ export default {
 		}
 	},
 	computed: {
+		...mapState('user/baseInfo', {
+			storeId: state => state.id,
+			storeAvatar: state => state.avatar,
+			storeName: state => state.name,
+			storeGender: state => state.gender,
+			storeSelfIntroduction: state => state.selfIntroduction,
+			storeWechatNumber: state => state.wechatNumber,
+			storePhoneNumber: state => state.phoneNumber,
+			storePassword: state => state.password,
+			storeUserRole: state => state.userInfo.role
+		}),
 		...mapGetters('user/baseInfo', [
 			'profile',
 			'userRole',
@@ -136,6 +150,10 @@ export default {
 		// 初始化用户信息
 		this.initUserInfo();
 	},
+	onShow() {
+		// 每次页面显示时重新加载数据
+		this.initUserInfo();
+	},
 	methods: {
 		...mapActions('user/baseInfo', [
 			'getUserInfo'
@@ -149,28 +167,23 @@ export default {
 		 */
 		async initUserInfo() {
 			try {
-				// 从storage获取当前角色，确保使用正确的角色数据
-				const currentRole = uni.getStorageSync('userRole') || 'student';
-				console.log('当前角色:', currentRole);
+				console.log('初始化用户信息...');
 				
-				// 尝试获取最新的用户信息
-				await this.getUserInfo();
-				
-				// 复制用户信息到本地状态
+				// 从store获取用户数据
 				this.userInfo = {
-					avatar: this.profile.avatar || '',
-					nickname: this.profile.nickname || '',
-					introduction: this.profile.introduction || this.profile.selfIntroduction || '',
-					gender: this.profile.gender || '',
-					phone: this.profile.phone || this.profile.phoneNumber || '',
-					wechat: this.profile.wechat || this.profile.wechatNumber || '',
-					password: this.profile.password || '未设置'
+					avatar: this.storeAvatar || '',
+					nickname: this.storeName || '',
+					introduction: this.storeSelfIntroduction || '',
+					gender: this.storeGender || '',
+					phone: this.storePhoneNumber || '',
+					wechat: this.storeWechatNumber || '',
+					password: this.storePassword || '未设置'
 				};
+				
+				console.log('从store获取的用户信息:', this.userInfo);
 				
 				// 保存原始数据副本用于后续比较
 				this.originalData = JSON.parse(JSON.stringify(this.userInfo));
-				
-				console.log('获取的用户信息:', this.userInfo);
 			} catch (error) {
 				console.error('获取用户信息失败', error);
 				uni.showToast({
@@ -197,16 +210,6 @@ export default {
 			});
 		},
 		
-		/**
-		 * @description 跳转到密码设置页面
-		 */
-		navigateToPasswordPage() {
-			// 实际应用中应该跳转到密码设置页面
-			uni.showToast({
-				title: '密码设置功能开发中',
-				icon: 'none'
-			});
-		},
 		
 		/**
 		 * @description 保存用户资料
@@ -244,27 +247,36 @@ export default {
 			
 			try {
 				this.updating = true;
+				console.log('开始保存用户资料...');
 				
 				// 准备要更新的数据
 				const profileData = {
 					avatar: this.userInfo.avatar,
-					nickname: this.userInfo.nickname,
-					selfIntroduction: this.userInfo.introduction, // 兼容state.js中的字段名
+					nickname: this.userInfo.nickname, // 提交时使用nickname字段
+					name: this.userInfo.nickname, // 同时提供name字段以确保兼容性
+					selfIntroduction: this.userInfo.introduction,
+					introduction: this.userInfo.introduction, // 提供两个字段名以确保兼容性
 					gender: this.userInfo.gender,
-					phoneNumber: this.userInfo.phone, // 兼容state.js中的字段名
-					wechatNumber: this.userInfo.wechat // 兼容state.js中的字段名
+					phoneNumber: this.userInfo.phone,
+					phone: this.userInfo.phone, // 提供两个字段名以确保兼容性
+					wechatNumber: this.userInfo.wechat,
+					
+					password: this.userInfo.password // 添加password字段到更新数据中
 				};
 				
-				// 使用mutation直接更新store中的数据
+				console.log('要更新的用户资料:', profileData);
+				
+				// 使用mutation更新store中的数据
 				this.UPDATE_USER_PROFILE(profileData);
 				
-				// 同时保存到本地存储
-				uni.setStorageSync('userProfile', JSON.stringify(profileData));
-				
+				// 显示成功提示
 				uni.showToast({
 					title: '保存成功',
 					icon: 'success'
 				});
+				
+				// 更新原始数据，防止重复提交
+				this.originalData = JSON.parse(JSON.stringify(this.userInfo));
 				
 				// 返回个人页面
 				setTimeout(() => {

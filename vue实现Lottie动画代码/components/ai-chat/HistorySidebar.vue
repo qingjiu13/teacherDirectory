@@ -18,8 +18,11 @@
 						<text class="history-title">{{item.abstract || item.title || '对话 ' + (index + 1)}}</text>
 						<text class="history-time">{{formatTime(item.updatedAt || item.createdAt)}}</text>
 					</view>
-					<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
-						<text class="delete-icon">×</text>
+					<view class="history-actions">
+						<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+						<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+							<text class="delete-icon">×</text>
+						</view>
 					</view>
 				</view>
 			</view>
@@ -52,7 +55,29 @@
 				default: ''
 			}
 		},
+		watch: {
+			historySummaries: {
+				handler(newVal) {
+					console.log('HistorySidebar 接收到历史摘要数据:', newVal && newVal.length);
+				},
+				immediate: true
+			}
+		},
 		methods: {
+			/**
+			 * @description 获取对话模式的中文标签
+			 * @param {String} mode - 对话模式
+			 * @returns {String} 对话模式的中文标签
+			 */
+			getModeLabel(mode) {
+				const modeLabels = {
+					'general': '通用',
+					'school': '择校',
+					'career': '职业规划'
+				};
+				return modeLabels[mode] || '通用';
+			},
+			
 			/**
 			 * @description 加载聊天历史
 			 * @param {String} chatId - 聊天ID
@@ -198,6 +223,21 @@
 		color: #999;
 	}
 	
+	.history-actions {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+	
+	.mode-badge {
+		font-size: 22rpx;
+		color: #fff;
+		background-color: #1890ff;
+		padding: 6rpx 12rpx;
+		border-radius: 20rpx;
+		margin-right: 16rpx;
+	}
+	
 	.history-delete {
 		width: 60rpx;
 		height: 60rpx;
@@ -206,7 +246,6 @@
 		align-items: center;
 		border-radius: 50%;
 		background-color: #f5f5f5;
-		margin-left: 20rpx;
 	}
 	
 	.delete-icon {

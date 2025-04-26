@@ -18,6 +18,12 @@ export default {
         chatMode: 'general',
         
         /**
+         * 历史会话摘要列表
+         * @type {Array<Object>}
+         */
+        historySummaries: [],
+        
+        /**
          * 用户个人信息
          * @type {Object}
          */
