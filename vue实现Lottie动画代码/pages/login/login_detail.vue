@@ -80,44 +80,72 @@
       
       <!-- 学生特有字段：目标学校和目标专业 -->
       <block v-if="userRole === '学生'">
-        <!-- Target School - 仅学生显示 -->
-        <view class="form-row">
-          <text class="form-label">目标学校</text>
-          <ChoiceSelected
-            class="form-select"
-            :choiceIndex="formData.targetSchoolIndex"
-            :choiceList="schoolList"
-            defaultText="请选择目标学校"
-            mode="search"
-            searchPlaceholder="输入目标学校名称"
-            @onChoiceClick="handleTargetSchoolSelect"
-            @search-input="handleTargetSchoolSearch"
-            ref="targetSchoolDropdown"
-          />
-        </view>
-        
-        <!-- Target Major - 仅学生显示 -->
-        <view class="form-row">
-          <text class="form-label">目标专业</text>
-          <ChoiceSelected
-            class="form-select"
-            :choiceIndex="formData.targetMajorIndex"
-            :choiceList="majorList"
-            defaultText="请选择目标专业"
-            mode="search"
-            searchPlaceholder="输入目标专业名称"
-            @onChoiceClick="handleTargetMajorSelect"
-            @search-input="handleTargetMajorSearch"
-            ref="targetMajorDropdown"
-          />
-        </view>
-      </block>
+          <!-- Target School - 仅学生显示 -->
+          <view class="form-row">
+            <text class="form-label">目标学校</text>
+            <ChoiceSelected
+              class="form-select"
+              componentType="graduateSchool"
+              :choiceIndex="formData.targetSchoolIndex"
+              :choiceList="targetSchoolList"
+              defaultText="请选择目标学校"
+              mode="search"
+              searchPlaceholder="输入目标学校名称"
+              @onChoiceClick="handleTargetSchoolSelect"
+              @search-input="handleTargetSchoolSearch"
+              @linkage-change="handleSchoolChange"
+              :enablePagination="true"
+              :pageSize="10"
+              ref="targetSchoolDropdown"
+            />
+          </view>
+          
+          <!-- Target Major - 仅学生显示 -->
+          <view class="form-row">
+            <text class="form-label">目标专业</text>
+            <ChoiceSelected
+              class="form-select"
+              componentType="graduateMajor"
+              :choiceIndex="formData.targetMajorIndex"
+              :choiceList="targetMajorList"
+              :parentValue="formData.targetSchool"
+              :isLinkage="true"
+              :defaultText="formData.targetSchool ? '请选择专业' : '请先选择学校'"
+              mode="search"
+              searchPlaceholder="输入目标专业名称"
+              @onChoiceClick="handleTargetMajorSelect"
+              @search-input="handleTargetMajorSearch"
+              @reset-selection="resetMajorSelection"
+              :enablePagination="true"
+              :pageSize="10"
+              ref="targetMajorDropdown"
+            />
+          </view>
+</block>
       
 
       
       <!-- 按钮区域 -->
       <view class="button-container">
         <button class="submit-btn" @click="submitForm">提交信息</button>
+      </view>
+    </view>
+    
+    <!-- 老师角色协议确认浮窗 -->
+    <view class="modal-overlay" v-if="showAgreementModal" @click.stop="closeModal">
+      <view class="modal-content" @click.stop>
+        <view class="modal-title">入驻协议</view>
+        <view class="modal-body">
+          <view class="agreement-text">
+            <view class="agreement-item">就平台入驻涉及的权利和义务与您做出如下约定：</view>
+            <view class="agreement-item">1、您知晓并同意，登署本协议即代表您依照本协议公布的规则履行义务并享有权利。</view>
+            <view class="agreement-item">2、您同意，申请入驻平台认证老师后按照平台要求提供服务，包括并不限于向平台用户提供线上线下考研咨询及资料服务。</view>
+            <view class="agreement-item">3、您同意，入驻平台认证学长通过后，进行线上服务时就服务标准内容进行回复，不得向用户索要用户私人联系方式包括(微信、手机号等)，平台会对站内聊天内容进行监控，若发现违规内容，平台有权进行处理，处理方式包括并不限于限制消息发送、删除消息等，若违规行为次数超过2次，平台有权对您的认证状态进行撤销。</view>
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="agree-btn" @click="confirmAgreement">我已悉知并同意</button>
+        </view>
       </view>
     </view>
   </view>
@@ -127,7 +155,7 @@
 import ChoiceSelected from '../../components/combobox/combobox'
 import store from '../../store'
 import { Navigator } from '../../router/Router';
-import universityData from '../../store/data/2886所大学.json'
+import GraduateStore from '../../components/combobox/graduate_school_major.js';
 
 export default {
   components: {
@@ -146,16 +174,14 @@ export default {
         majorIndex: -1,
         targetSchoolIndex: -1,  // 目标学校索引
         targetMajorIndex: -1,   // 目标专业索引
-        gradeIndex: -1
+        gradeIndex: -1,
+        targetSchool: '',
+        targetMajor: '', // 添加目标专业字段
       },
-      schoolList: [],
-      majorList: [
-        '计算机科学',
-        '电子工程',
-        '机械工程',
-        '经济学',
-        '法学',
-      ],
+      schoolList: [], // 普通学校列表
+      majorList: [], // 普通专业列表
+      targetSchoolList: [], // 目标学校列表（考研）
+      targetMajorList: [], // 目标专业列表（考研）
       // 存储原始完整的学校和专业列表，用于搜索恢复
       originalSchoolList: [],
       originalMajorList: [
@@ -166,7 +192,15 @@ export default {
         '法学',
       ],
       allGradeList: ['大一', '大二', '大三', '大四', '研一', '研二', '研三'],
-      userRole: ''  // 默认空值
+      userRole: '学生',  // 默认值为学生
+      showAgreementModal: false, // 控制协议浮窗显示
+      pendingUserInfo: null, // 暂存待提交的用户信息
+      graduateStore: {
+        schools: {},
+        schoolKeyword: '',
+        selectedSchool: '',
+        majorKeyword: ''
+      }
     };
   },
   computed: {
@@ -180,6 +214,21 @@ export default {
       } else {
         return this.allGradeList.filter(grade => grade.includes('大'));
       }
+    },
+    /**
+     * @description 获取过滤后的目标学校列表
+     * @returns {Array} 过滤后的目标学校列表
+     */
+    filteredTargetSchoolList() {
+      return GraduateStore.getters.filteredSchoolList(this.graduateStore);
+    },
+    
+    /**
+     * @description 获取过滤后的目标专业列表
+     * @returns {Array} 过滤后的目标专业列表
+     */
+    filteredTargetMajorList() {
+      return GraduateStore.getters.filteredMajorList(this.graduateStore);
     }
   },
   methods: {
@@ -189,11 +238,23 @@ export default {
     handleMajorSelect(index) {
       this.formData.majorIndex = index;
     },
-    handleTargetSchoolSelect(index) {
+    handleTargetSchoolSelect(index, school) {
       this.formData.targetSchoolIndex = index;
+      this.formData.targetSchool = school;
+      
+      // 更新专业列表的依赖值
+      GraduateStore.actions.updateSelectedSchool({
+        commit: (mutation, payload) => {
+          GraduateStore.mutations[mutation](this.graduateStore, payload);
+        }
+      }, school);
+      
+      // 重置专业选择
+      this.resetMajorSelection();
     },
-    handleTargetMajorSelect(index) {
+    handleTargetMajorSelect(index, major) {
       this.formData.targetMajorIndex = index;
+      this.formData.targetMajor = major;
     },
     handleGradeSelect(index) {
       this.formData.gradeIndex = index;
@@ -204,16 +265,25 @@ export default {
      * @param {String} keyword - 搜索关键词
      */
     handleSchoolSearch(keyword) {
-      if (keyword === '') {
-        // 如果关键词为空，恢复原始列表
-        this.schoolList = [...this.originalSchoolList];
-        return;
-      }
+      // 创建一个临时的state对象，用于复用GraduateStore的筛选逻辑
+      const tempState = {
+        schools: {},
+        schoolKeyword: keyword,
+        selectedSchool: '',
+        majorKeyword: ''
+      };
       
-      // 根据关键词过滤学校列表
-      this.schoolList = this.originalSchoolList.filter(
-        school => school.toLowerCase().includes(keyword.toLowerCase())
-      );
+      // 将originalSchoolList转换为符合schools结构的对象
+      this.originalSchoolList.forEach(school => {
+        tempState.schools[school] = [];
+      });
+      
+      // 使用GraduateStore的筛选逻辑
+      if (keyword === '') {
+        this.schoolList = [...this.originalSchoolList];
+      } else {
+        this.schoolList = GraduateStore.getters.filteredSchoolList(tempState);
+      }
     },
     
     /**
@@ -221,16 +291,20 @@ export default {
      * @param {String} keyword - 搜索关键词
      */
     handleMajorSearch(keyword) {
-      if (keyword === '') {
-        // 如果关键词为空，恢复原始列表
-        this.majorList = [...this.originalMajorList];
-        return;
-      }
+      // 创建一个临时的state对象，用于复用GraduateStore的筛选逻辑
+      const tempState = {
+        schools: { 'tempSchool': this.originalMajorList },
+        schoolKeyword: '',
+        selectedSchool: 'tempSchool',
+        majorKeyword: keyword
+      };
       
-      // 根据关键词过滤专业列表
-      this.majorList = this.originalMajorList.filter(
-        major => major.toLowerCase().includes(keyword.toLowerCase())
-      );
+      // 使用GraduateStore的筛选逻辑
+      if (keyword === '') {
+        this.majorList = [...this.originalMajorList];
+      } else {
+        this.majorList = GraduateStore.getters.filteredMajorList(tempState);
+      }
     },
     
     /**
@@ -238,16 +312,12 @@ export default {
      * @param {String} keyword - 搜索关键词
      */
     handleTargetSchoolSearch(keyword) {
-      if (keyword === '') {
-        // 如果关键词为空，恢复原始列表
-        this.schoolList = [...this.originalSchoolList];
-        return;
-      }
-      
-      // 根据关键词过滤学校列表
-      this.schoolList = this.originalSchoolList.filter(
-        school => school.toLowerCase().includes(keyword.toLowerCase())
-      );
+      // 更新学校搜索关键词
+      GraduateStore.actions.updateSchoolKeyword({
+        commit: (mutation, payload) => {
+          GraduateStore.mutations[mutation](this.graduateStore, payload);
+        }
+      }, keyword);
     },
     
     /**
@@ -255,16 +325,12 @@ export default {
      * @param {String} keyword - 搜索关键词
      */
     handleTargetMajorSearch(keyword) {
-      if (keyword === '') {
-        // 如果关键词为空，恢复原始列表
-        this.majorList = [...this.originalMajorList];
-        return;
-      }
-      
-      // 根据关键词过滤专业列表
-      this.majorList = this.originalMajorList.filter(
-        major => major.toLowerCase().includes(keyword.toLowerCase())
-      );
+      // 更新专业搜索关键词
+      GraduateStore.actions.updateMajorKeyword({
+        commit: (mutation, payload) => {
+          GraduateStore.mutations[mutation](this.graduateStore, payload);
+        }
+      }, keyword);
     },
     
     /**
@@ -310,22 +376,71 @@ export default {
      * 加载大学数据
      */
     loadUniversityData() {
-				try {
-					// 直接使用大学数据字符串数组，不再创建对象
-					this.schoolList = universityData;
-					// 保存一份原始数据用于搜索后恢复
-					this.originalSchoolList = [...universityData];
-					console.log('成功加载', this.schoolList.length, '所大学数据');
-				} catch (error) {
-					console.error('加载大学数据失败:', error);
-					// 设置一个默认的学校列表，以防加载失败
-					this.schoolList = ["北京大学", "清华大学", "复旦大学"];
-					this.originalSchoolList = ["北京大学", "清华大学", "复旦大学"];
-					this.showToast('加载大学数据失败，使用默认列表');
-				}
-			},
+      try {
+        // 初始化考研数据（目标学校和专业）
+        this.initGraduateData(); 
+        
+        // 普通学校列表（就读学校）- 使用相同的数据源
+        if (!this.originalSchoolList || this.originalSchoolList.length === 0) {
+          this.schoolList = [...this.targetSchoolList];
+          this.originalSchoolList = [...this.targetSchoolList];
+        }
+        
+        console.log('成功加载学校数据，普通学校:', this.schoolList.length, '所，目标学校:', this.targetSchoolList.length, '所');
+      } catch (error) {
+        console.error('加载大学数据失败:', error);
+        
+        // 设置默认学校列表
+        const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
+        
+        // 设置普通学校列表（就读学校）
+        this.schoolList = defaultSchools;
+        this.originalSchoolList = [...defaultSchools];
+        
+        // 设置目标学校列表（考研学校）
+        this.targetSchoolList = defaultSchools;
+        
+        uni.showToast({
+          title: '加载大学数据失败，使用默认列表',
+          icon: 'none'
+        });
+      }
+    },
+    
     /**
-     * 提交表单信息
+     * @description 关闭协议确认浮窗
+     */
+    closeModal() {
+      this.showAgreementModal = false;
+      this.pendingUserInfo = null;
+    },
+    
+    /**
+     * @description 确认同意协议并提交信息
+     */
+    confirmAgreement() {
+      if (this.pendingUserInfo) {
+        // 使用导入的store实例更新用户信息
+        store.commit('user/baseInfo/UPDATE_USER_INFO', this.pendingUserInfo);
+        
+        // 提示成功
+        uni.showToast({
+          title: '信息保存成功',
+          icon: 'success'
+        });
+        
+        // 关闭浮窗
+        this.showAgreementModal = false;
+        
+        // 跳转到下一个页面
+        setTimeout(() => {
+          Navigator.toMine();
+        }, 1500);
+      }
+    },
+    
+    /**
+     * @description 提交表单信息
      */
     submitForm() {
       // 验证表单内容
@@ -355,11 +470,19 @@ export default {
         
         // 如果是学生角色，添加目标学校和目标专业
         if (currentRole === '学生') {
-          userInfo.userInfo.targetSchool = this.schoolList[this.formData.targetSchoolIndex] || '';
-          userInfo.userInfo.targetMajor = this.majorList[this.formData.targetMajorIndex] || '';
+          // 使用保存的目标学校和专业值，而不是通过索引获取
+          userInfo.userInfo.targetSchool = this.formData.targetSchool || '';
+          userInfo.userInfo.targetMajor = this.formData.targetMajor || '';
         }
         
-        // 使用导入的store实例更新用户信息
+        // 如果是老师角色，显示协议确认浮窗
+        if (currentRole === '老师') {
+          this.pendingUserInfo = userInfo; // 暂存用户信息
+          this.showAgreementModal = true; // 显示协议浮窗
+          return; // 终止后续处理，等待用户确认
+        }
+        
+        // 学生角色直接提交信息
         store.commit('user/baseInfo/UPDATE_USER_INFO', userInfo);
         
         // 提示成功
@@ -440,6 +563,48 @@ export default {
         return false;
       }
       return true;
+    },
+    /**
+     * @description 初始化考研数据
+     */
+    initGraduateData() {
+      try {
+        // 从GraduateStore初始化数据
+        this.graduateStore = JSON.parse(JSON.stringify(GraduateStore.state));
+        
+        // 设置目标学校列表 - 仅用于目标学校下拉框
+        const graduateSchools = Object.keys(this.graduateStore.schools);
+        this.targetSchoolList = graduateSchools;
+        
+        console.log('初始化考研数据成功，学校数量:', graduateSchools.length);
+        return graduateSchools;
+      } catch (error) {
+        console.error('初始化考研数据失败:', error);
+        
+        // 设置默认数据
+        const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
+        this.targetSchoolList = defaultSchools;
+        return defaultSchools;
+      }
+    },
+    
+    /**
+     * @description 处理学校变更事件
+     * @param {String} school - 变更后的学校名称
+     */
+    handleSchoolChange(school) {
+      if (!school) {
+        // 学校被清空，重置专业选择
+        this.resetMajorSelection();
+      }
+    },
+    
+    /**
+     * @description 重置专业选择
+     */
+    resetMajorSelection() {
+      this.formData.targetMajorIndex = -1;
+      this.formData.targetMajor = '';
     }
   },
   created() {
@@ -454,6 +619,23 @@ export default {
     if (this.userRole !== newRole) {
       this.userRole = newRole;
       this.formData.gradeIndex = -1; // 重置年级选择
+    }
+  },
+  watch: {
+    // 监听过滤后的学校列表变化
+    filteredTargetSchoolList: {
+      handler(newVal) {
+        this.targetSchoolList = newVal;
+      },
+      immediate: true
+    },
+    
+    // 监听过滤后的专业列表变化
+    filteredTargetMajorList: {
+      handler(newVal) {
+        this.targetMajorList = newVal;
+      },
+      immediate: true
     }
   }
 };
@@ -551,5 +733,71 @@ export default {
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;
+}
+
+/* 协议浮窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  width: 80%;
+  max-height: 70vh;
+  background-color: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-title {
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  padding: 30rpx 0;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-body {
+  padding: 30rpx;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.agreement-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.agreement-item {
+  margin-bottom: 20rpx;
+}
+
+.modal-footer {
+  padding: 20rpx 30rpx 40rpx;
+  border-top: 1px solid #f0f0f0;
+}
+
+.agree-btn {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background-color: #007AFF;
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
 }
 </style>

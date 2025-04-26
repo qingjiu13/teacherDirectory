@@ -2,8 +2,7 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
 
-// 导入过滤器模块
-import filter from './modules/filter'
+
 // 导入用户模块
 import user from './user'
 
@@ -16,7 +15,6 @@ import user from './user'
  */
 export default createStore({
   modules: {
-    filter,
     user,
     // 加载其他模块
     // TODO: 添加其他现有模块
