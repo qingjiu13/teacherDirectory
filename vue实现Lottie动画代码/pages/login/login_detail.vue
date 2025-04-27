@@ -185,6 +185,10 @@ import GraduateStore from '../../components/combobox/graduate_school_major.js';
 import UndergraduateStore from '../../components/combobox/undergraduate_school.js';
 
 export default {
+  onPageScroll() {
+    // 通知所有组件页面已滚动
+    uni.$emit('page-scroll');
+  },
   components: {
     ChoiceSelected,
   },

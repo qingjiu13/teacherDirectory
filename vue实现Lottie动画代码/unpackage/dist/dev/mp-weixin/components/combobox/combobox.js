@@ -19,8 +19,10 @@ const _sfc_main = common_vendor.defineComponent({
       pageSize: 10,
       currentPage: 1,
       isLoadingMore: false,
-      hasMoreItems: true
-      // 是否还有更多数据
+      hasMoreItems: true,
+      // 滚动监听
+      pageScrollListener: null
+      // 页面滚动监听器
     };
   },
   props: new UTSJSONObject({
@@ -85,8 +87,10 @@ const _sfc_main = common_vendor.defineComponent({
   }),
   created() {
     dropdownInstances.push(this);
+    common_vendor.index.$on("page-scroll", this.handlePageScroll);
   },
-  beforeDestroy() {
+  beforeUnmount() {
+    common_vendor.index.$off("page-scroll", this.handlePageScroll);
     const index = dropdownInstances.indexOf(this);
     if (index > -1) {
       dropdownInstances.splice(index, 1);
@@ -155,6 +159,15 @@ const _sfc_main = common_vendor.defineComponent({
     }
   },
   methods: new UTSJSONObject({
+    /**
+     * @description 处理页面滚动事件
+     * 当页面滚动时关闭下拉框
+     */
+    handlePageScroll() {
+      if (this.isShowChoice) {
+        this.closeDropdown();
+      }
+    },
     /**
      * @description 重置分页状态
      */
@@ -286,7 +299,7 @@ const _sfc_main = common_vendor.defineComponent({
         clearTimeout(_this.searchTimer);
       }
       _this.searchTimer = setTimeout(() => {
-        common_vendor.index.__f__("log", "at components/combobox/combobox.vue:384", "发送搜索请求:", _this.searchKeyword);
+        common_vendor.index.__f__("log", "at components/combobox/combobox.vue:403", "发送搜索请求:", _this.searchKeyword);
         _this.$emit("search-input", _this.searchKeyword);
         if (!_this.isShowChoice) {
           _this.btnShowHideClick(event);
@@ -381,7 +394,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }) : {}, {
     y: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     z: common_vendor.o(() => {
-    })
+    }),
+    A: common_vendor.o((...args) => $options.handlePageScroll && $options.handlePageScroll(...args))
   });
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

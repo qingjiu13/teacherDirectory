@@ -1,6 +1,6 @@
 <template name="ChoiceSelected">
     <!-- 自定义下拉选择框 start-->
-    <view class="selected-all" @click.stop>
+    <view class="selected-all" @click.stop @touchmove="handlePageScroll">
         <view :class="isShowChoice ? 'drop-down-box-selected' : 'drop-down-box'" @click="btnShowHideClick" ref="dropdownTrigger">
             <!-- 统一的内容容器 -->
             <view class="input-content-wrapper">
@@ -75,7 +75,10 @@
                 pageSize: 10, // 每页显示数量
                 currentPage: 1, // 当前页码
                 isLoadingMore: false, // 是否正在加载更多
-                hasMoreItems: true // 是否还有更多数据
+                hasMoreItems: true, // 是否还有更多数据
+                
+                // 滚动监听
+                pageScrollListener: null // 页面滚动监听器
             };
         },
         props: {
@@ -134,8 +137,14 @@
         created() {
             // 将当前实例添加到实例数组，便于全局管理
             dropdownInstances.push(this);
+            
+            // 注册全局触摸开始事件用于检测滚动
+            uni.$on('page-scroll', this.handlePageScroll);
         },
-        beforeDestroy() {
+        beforeUnmount() {
+            // 解绑全局事件
+            uni.$off('page-scroll', this.handlePageScroll);
+            
             // 移除当前实例
             const index = dropdownInstances.indexOf(this);
             if (index > -1) {
@@ -220,6 +229,16 @@
             }
         },
         methods: {
+            /**
+             * @description 处理页面滚动事件
+             * 当页面滚动时关闭下拉框
+             */
+            handlePageScroll() {
+                if (this.isShowChoice) {
+                    this.closeDropdown();
+                }
+            },
+            
             /**
              * @description 重置分页状态
              */
