@@ -124,6 +124,53 @@
 			}
 		}
 	}
+	// 根据tab筛选
+	if (currentTab.value === 1) {
+		filtered = filtered.filter(course => course.status === 'ongoing');
+	} else if (currentTab.value === 2) {
+		filtered = filtered.filter(course => course.status === 'upcoming');
+	} else if (currentTab.value === 3) {
+		filtered = filtered.filter(course => course.status === 'completed');
+	}
+	
+	// 根据搜索文本筛选
+	if (searchText.value) {
+		filtered = filtered.filter(course => 
+			course.name.includes(searchText.value) || 
+			course.teacher.includes(searchText.value)
+		);
+	}
+	
+
+// 获取状态文本
+const getStatusText = (status) => {
+	const statusMap = {
+		ongoing: '进行中',
+		upcoming: '即将开始',
+		completed: '已结束'
+	};
+	return statusMap[status] || '';
+};
+
+// 搜索课程
+const searchCourse = (e) => {
+	searchText.value = e.value;
+};
+
+// 切换tab
+const changeTab = (e) => {
+	currentTab.value = e.currentIndex;
+};
+
+
+
+// 下拉刷新
+const onRefresh = () => {
+	setTimeout(() => {
+		uni.stopPullDownRefresh();
+	}, 1000);
+};
+
 </script>
 
 <style>
@@ -185,3 +232,4 @@
 		font-size: 28rpx;
 	}
 </style>
+
