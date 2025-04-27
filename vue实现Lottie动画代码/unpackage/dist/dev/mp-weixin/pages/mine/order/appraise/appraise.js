@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../../../common/vendor.js");
-const _sfc_main = common_vendor.defineComponent({
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   data() {
     return {
       overallRating: 0,
@@ -9,7 +9,7 @@ const _sfc_main = common_vendor.defineComponent({
       comment: ""
     };
   },
-  methods: {
+  methods: new UTSJSONObject({
     setRating(type = null, rating = null) {
       switch (type) {
         case "overall":
@@ -39,8 +39,8 @@ const _sfc_main = common_vendor.defineComponent({
         common_vendor.index.navigateBack();
       }, 1500);
     }
-  }
-});
+  })
+}));
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_vendor.f(5, (star, index, i0) => {
@@ -68,7 +68,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: common_vendor.o(($event) => $data.comment = $event.detail.value),
     f: common_vendor.t($data.comment.length),
     g: common_vendor.o((...args) => $options.submitAppraise && $options.submitAppraise(...args)),
-    h: common_vendor.sei(_ctx.virtualHostId, "view")
+    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -153,7 +153,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           return {
             a: course.avatar || "/static/image/default_avatar.png",
             b: common_vendor.t(course.name),
-            c: "206de0d8-2-" + i0,
+            c: "0cb8e478-2-" + i0,
             d: common_vendor.p({
               value: course.rating,
               disabled: true,
@@ -164,7 +164,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             g: common_vendor.t(getStatusText(course.status)),
             h: common_vendor.n(course.status),
             i: common_vendor.t(course.time),
-            j: "206de0d8-3-" + i0,
+            j: "0cb8e478-3-" + i0,
             k: common_vendor.p({
               value: course.rating,
               disabled: true,
@@ -179,7 +179,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           };
         }),
         f: common_vendor.o(onRefresh),
-        g: common_vendor.sei(_ctx.virtualHostId, "view")
+        g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
       };
       return __returned__;
     };

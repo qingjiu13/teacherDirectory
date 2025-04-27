@@ -7,28 +7,28 @@ const _sfc_main = common_vendor.defineComponent({
     choiceSelected
   },
   props: {
-    schoolIndex: {
+    schoolIndex: new UTSJSONObject({
       type: Number,
       default: -1
-    },
-    schoolList: {
+    }),
+    schoolList: new UTSJSONObject({
       type: Array,
       default: () => {
         return [];
       }
-    },
-    majorIndex: {
+    }),
+    majorIndex: new UTSJSONObject({
       type: Number,
       default: -1
-    },
-    majorList: {
+    }),
+    majorList: new UTSJSONObject({
       type: Array,
       default: () => {
         return [];
       }
-    }
+    })
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 学校选择事件处理
      * @param {Number} position - 选择的索引位置
@@ -61,7 +61,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.$refs.majorDropdown.closeDropdown && this.$refs.majorDropdown.closeDropdown();
       }
     }
-  }
+  })
 });
 if (!Array) {
   const _component_choice_selected = common_vendor.resolveComponent("choice-selected");
@@ -69,11 +69,7 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-<<<<<<< HEAD
-    a: common_vendor.sr("schoolDropdown", "3e78161c-0"),
-=======
-    a: common_vendor.sr("schoolDropdown", "39035120-0"),
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
+    a: common_vendor.sr("schoolDropdown", "874fd1f0-0"),
     b: common_vendor.o($options.onSchoolClick),
     c: common_vendor.o($options.onSchoolSearch),
     d: common_vendor.p({
@@ -83,18 +79,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       mode: "search",
       searchPlaceholder: "搜索学校"
     }),
-<<<<<<< HEAD
-    e: common_vendor.sr("majorDropdown", "3e78161c-1"),
-=======
-    e: common_vendor.sr("majorDropdown", "39035120-1"),
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
+    e: common_vendor.sr("majorDropdown", "874fd1f0-1"),
     f: common_vendor.o($options.onMajorClick),
     g: common_vendor.p({
       defaultText: "请选择专业",
       choiceIndex: $props.majorIndex,
       choiceList: $props.majorList
     }),
-    h: common_vendor.sei(_ctx.virtualHostId, "view"),
+    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     i: common_vendor.o(() => {
     })
   };

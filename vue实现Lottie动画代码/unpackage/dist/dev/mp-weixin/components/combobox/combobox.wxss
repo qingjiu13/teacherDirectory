@@ -138,5 +138,17 @@
         color: #999;
         font-size: 28rpx;
 }
+    
+    /* 加载更多样式 */
+.loading-more {
+        display: flex;
+        justify-content: center;
+        padding: 10rpx 0;
+        background-color: #f8f8f8;
+}
+.loading-text {
+        color: #999;
+        font-size: 24rpx;
+}
 
     /* start */

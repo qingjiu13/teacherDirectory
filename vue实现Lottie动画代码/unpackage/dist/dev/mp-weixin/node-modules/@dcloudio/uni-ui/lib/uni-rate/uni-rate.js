@@ -3,71 +3,71 @@ const common_vendor = require("../../../../../common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "UniRate",
   props: {
-    isFill: {
+    isFill: new UTSJSONObject({
       // 星星的类型，是否镂空
       type: [Boolean, String],
       default: true
-    },
-    color: {
+    }),
+    color: new UTSJSONObject({
       // 星星未选中的颜色
       type: String,
       default: "#ececec"
-    },
-    activeColor: {
+    }),
+    activeColor: new UTSJSONObject({
       // 星星选中状态颜色
       type: String,
       default: "#ffca3e"
-    },
-    disabledColor: {
+    }),
+    disabledColor: new UTSJSONObject({
       // 星星禁用状态颜色
       type: String,
       default: "#c0c0c0"
-    },
-    size: {
+    }),
+    size: new UTSJSONObject({
       // 星星的大小
       type: [Number, String],
       default: 24
-    },
-    value: {
+    }),
+    value: new UTSJSONObject({
       // 当前评分
       type: [Number, String],
       default: 0
-    },
-    modelValue: {
+    }),
+    modelValue: new UTSJSONObject({
       // 当前评分
       type: [Number, String],
       default: 0
-    },
-    max: {
+    }),
+    max: new UTSJSONObject({
       // 最大评分
       type: [Number, String],
       default: 5
-    },
-    margin: {
+    }),
+    margin: new UTSJSONObject({
       // 星星的间距
       type: [Number, String],
       default: 0
-    },
-    disabled: {
+    }),
+    disabled: new UTSJSONObject({
       // 是否可点击
       type: [Boolean, String],
       default: false
-    },
-    readonly: {
+    }),
+    readonly: new UTSJSONObject({
       // 是否只读
       type: [Boolean, String],
       default: false
-    },
-    allowHalf: {
+    }),
+    allowHalf: new UTSJSONObject({
       // 是否显示半星
       type: [Boolean, String],
       default: false
-    },
-    touchable: {
+    }),
+    touchable: new UTSJSONObject({
       // 是否支持滑动手势
       type: [Boolean, String],
       default: true
-    }
+    })
   },
   data() {
     return {
@@ -85,7 +85,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.valueSync = Number(newVal);
     }
   },
-  computed: {
+  computed: new UTSJSONObject({
     stars() {
       const value = this.valueSync ? this.valueSync : 0;
       const starList = [];
@@ -111,7 +111,7 @@ const _sfc_main = common_vendor.defineComponent({
     marginNumber() {
       return Number(this.margin);
     }
-  },
+  }),
   created() {
     this.valueSync = Number(this.value || this.modelValue);
     this._rateBoxLeft = 0;
@@ -122,7 +122,7 @@ const _sfc_main = common_vendor.defineComponent({
       this._getSize();
     }, 100);
   },
-  methods: {
+  methods: new UTSJSONObject({
     touchstart(e = null) {
       if (this.readonly || this.disabled)
         return null;
@@ -181,9 +181,9 @@ const _sfc_main = common_vendor.defineComponent({
     _onChange() {
       this.$emit("input", this.valueSync);
       this.$emit("update:modelValue", this.valueSync);
-      this.$emit("change", {
+      this.$emit("change", new UTSJSONObject({
         value: this.valueSync
-      });
+      }));
     },
     /**
      * 获取星星距离屏幕左侧距离
@@ -195,7 +195,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
       });
     }
-  }
+  })
 });
 if (!Array) {
   const _component_uni_icons = common_vendor.resolveComponent("uni-icons");
@@ -205,8 +205,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_vendor.f($options.stars, (star, index, i0) => {
       return {
-        a: "4a5c90da-0-" + i0,
-        b: "4a5c90da-1-" + i0,
+        a: "6ca39f24-0-" + i0,
+        b: "6ca39f24-1-" + i0,
         c: star.activeWitch,
         d: index,
         e: common_vendor.o((...args) => $options.touchstart && $options.touchstart(...args), index),
@@ -228,8 +228,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     d: $props.disabled ? 1 : "",
     e: $options.marginNumber + "px",
-    f: common_vendor.sei("r0-4a5c90da", "view", "uni-rate"),
-    g: common_vendor.sei(_ctx.virtualHostId, "view")
+    f: common_vendor.sei("r0-6ca39f24", "view", "uni-rate"),
+    g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

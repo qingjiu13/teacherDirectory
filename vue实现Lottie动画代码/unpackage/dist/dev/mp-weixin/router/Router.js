@@ -34,7 +34,8 @@ const MineRoutes = {
   QUALIFICATION: "/pages/mine/qualification",
   SERVICE: "/pages/mine/service",
   SETTINGS: "/pages/mine/settings",
-  WALLET: "/pages/mine/wallet"
+  WALLET: "/pages/mine/wallet",
+  SUBSCRIBE: "/pages/mine/subscribe"
 };
 ({
   ...IndexRoutes,
@@ -134,8 +135,8 @@ const Navigator = {
    * @description 跳转到聊天页面
    * @param {String} userId - 聊天对象ID
    */
-  toChat(userId) {
-    this.navigateTo(MessageRoutes.CHAT, { userId });
+  toChat(id) {
+    this.navigateTo(MessageRoutes.CHAT, { id });
   },
   /**
    * @description 跳转到登录页面
@@ -169,22 +170,9 @@ const Navigator = {
     this.navigateTo(MineRoutes.COURSE);
   },
   /**
-   * @description 跳转到课程详情页面
-   * @param {String} id - 课程ID
+   * @description 跳转到订单列表页面
    */
-  toCourseDetail(id) {
-    this.navigateTo(MineRoutes.COURSE_DETAIL, { id });
-  },
-  /**
-   * @description 跳转到订单页面
-   */
-  toOrder() {
-    this.toOrderList();
-  },
-  /**
-   * @description 跳转到订单列表页面（详细版）
-   */
-  toOrderList() {
+  toOrderCommon() {
     this.navigateTo(MineRoutes.ORDER_COMMON);
   },
   /**
@@ -223,6 +211,12 @@ const Navigator = {
    */
   toMine() {
     this.navigateTo(MineRoutes.MINE);
+  },
+  /**
+   * @description 跳转到公众号订阅页面
+   */
+  toSubscribe() {
+    this.navigateTo(MineRoutes.SUBSCRIBE);
   }
 };
 exports.IndexRoutes = IndexRoutes;

@@ -3,10 +3,10 @@ const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const _sfc_main = common_vendor.defineComponent({
   props: {
-    pageName: {
+    pageName: new UTSJSONObject({
       type: String,
       default: "index"
-    }
+    })
   },
   data() {
     return {
@@ -37,7 +37,7 @@ const _sfc_main = common_vendor.defineComponent({
       })
     };
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 获取页面对应的图标路径
      * @param {string} page - 页面名称
@@ -97,7 +97,7 @@ const _sfc_main = common_vendor.defineComponent({
         common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:131", "Tab切换失败:", e);
       }
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
@@ -110,7 +110,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     g: $options.getIconPath("mine"),
     h: $props.pageName === "mine" ? 1 : "",
     i: common_vendor.o(($event) => $options.switchPage("mine")),
-    j: common_vendor.sei(_ctx.virtualHostId, "view")
+    j: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -2,7 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const common_assets = require("../../common/assets.js");
-const _sfc_main = common_vendor.defineComponent({
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   data() {
     return {
       hasLogin: false,
@@ -15,7 +15,7 @@ const _sfc_main = common_vendor.defineComponent({
   onLoad() {
     this.checkLoginStatus();
   },
-  methods: {
+  methods: new UTSJSONObject({
     // 检查登录状态
     checkLoginStatus() {
       const userInfo = common_vendor.index.getStorageSync("userInfo");
@@ -42,7 +42,7 @@ const _sfc_main = common_vendor.defineComponent({
       common_vendor.index.showLoading({
         title: "登录中..."
       });
-      common_vendor.index.login({
+      common_vendor.index.login(new UTSJSONObject({
         provider: "weixin",
         success: (loginRes) => {
           setTimeout(() => {
@@ -66,7 +66,7 @@ const _sfc_main = common_vendor.defineComponent({
           });
           common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:131", "微信登录失败:", err);
         }
-      });
+      }));
     },
     // 跳转首页
     toHome() {
@@ -84,8 +84,8 @@ const _sfc_main = common_vendor.defineComponent({
         url: "/pages/agreement/index?type=privacy"
       });
     }
-  }
-});
+  })
+}));
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_assets._imports_0,
@@ -103,7 +103,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, {
     i: common_vendor.o((...args) => $options.showAgreement && $options.showAgreement(...args)),
     j: common_vendor.o((...args) => $options.showPrivacy && $options.showPrivacy(...args)),
-    k: common_vendor.sei(_ctx.virtualHostId, "view")
+    k: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-ff132c6c"]]);

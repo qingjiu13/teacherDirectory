@@ -24,16 +24,16 @@ const remove = (arr, el) => {
   }
 };
 const hasOwnProperty$1 = Object.prototype.hasOwnProperty;
-const hasOwn = (val2, key) => hasOwnProperty$1.call(val2, key);
-const isArray = Array.isArray;
+const hasOwn$1 = (val2, key) => hasOwnProperty$1.call(val2, key);
+const isArray$1 = Array.isArray;
 const isMap = (val2) => toTypeString(val2) === "[object Map]";
 const isSet = (val2) => toTypeString(val2) === "[object Set]";
 const isFunction = (val2) => typeof val2 === "function";
-const isString = (val2) => typeof val2 === "string";
+const isString$1 = (val2) => typeof val2 === "string";
 const isSymbol = (val2) => typeof val2 === "symbol";
-const isObject$1 = (val2) => val2 !== null && typeof val2 === "object";
+const isObject$2 = (val2) => val2 !== null && typeof val2 === "object";
 const isPromise$1 = (val2) => {
-  return (isObject$1(val2) || isFunction(val2)) && isFunction(val2.then) && isFunction(val2.catch);
+  return (isObject$2(val2) || isFunction(val2)) && isFunction(val2.then) && isFunction(val2.catch);
 };
 const objectToString = Object.prototype.toString;
 const toTypeString = (value2) => objectToString.call(value2);
@@ -41,7 +41,7 @@ const toRawType = (value2) => {
   return toTypeString(value2).slice(8, -1);
 };
 const isPlainObject$1 = (val2) => toTypeString(val2) === "[object Object]";
-const isIntegerKey = (key) => isString(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
+const isIntegerKey = (key) => isString$1(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
 const isReservedProp = /* @__PURE__ */ makeMap(
   // the leading comma is intentional so empty string "" is also included
   ",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"
@@ -89,11 +89,11 @@ const looseToNumber = (val2) => {
   return isNaN(n2) ? val2 : n2;
 };
 function normalizeStyle$1(value2) {
-  if (isArray(value2)) {
+  if (isArray$1(value2)) {
     const res = {};
     for (let i2 = 0; i2 < value2.length; i2++) {
       const item = value2[i2];
-      const normalized = isString(item) ? parseStringStyle(item) : normalizeStyle$1(item);
+      const normalized = isString$1(item) ? parseStringStyle(item) : normalizeStyle$1(item);
       if (normalized) {
         for (const key in normalized) {
           res[key] = normalized[key];
@@ -101,7 +101,7 @@ function normalizeStyle$1(value2) {
       }
     }
     return res;
-  } else if (isString(value2) || isObject$1(value2)) {
+  } else if (isString$1(value2) || isObject$2(value2)) {
     return value2;
   }
 }
@@ -120,16 +120,16 @@ function parseStringStyle(cssText) {
 }
 function normalizeClass$1(value2) {
   let res = "";
-  if (isString(value2)) {
+  if (isString$1(value2)) {
     res = value2;
-  } else if (isArray(value2)) {
+  } else if (isArray$1(value2)) {
     for (let i2 = 0; i2 < value2.length; i2++) {
       const normalized = normalizeClass$1(value2[i2]);
       if (normalized) {
         res += normalized + " ";
       }
     }
-  } else if (isObject$1(value2)) {
+  } else if (isObject$2(value2)) {
     for (const name in value2) {
       if (value2[name]) {
         res += name + " ";
@@ -139,7 +139,7 @@ function normalizeClass$1(value2) {
   return res.trim();
 }
 const toDisplayString = (val2) => {
-  return isString(val2) ? val2 : val2 == null ? "" : isArray(val2) || isObject$1(val2) && (val2.toString === objectToString || !isFunction(val2.toString)) ? JSON.stringify(val2, replacer, 2) : String(val2);
+  return isString$1(val2) ? val2 : val2 == null ? "" : isArray$1(val2) || isObject$2(val2) && (val2.toString === objectToString || !isFunction(val2.toString)) ? JSON.stringify(val2, replacer, 2) : String(val2);
 };
 const replacer = (_key, val2) => {
   if (val2 && val2.__v_isRef) {
@@ -160,7 +160,7 @@ const replacer = (_key, val2) => {
     };
   } else if (isSymbol(val2)) {
     return stringifySymbol(val2);
-  } else if (isObject$1(val2) && !isArray(val2) && !isPlainObject$1(val2)) {
+  } else if (isObject$2(val2) && !isArray$1(val2) && !isPlainObject$1(val2)) {
     return String(val2);
   }
   return val2;
@@ -270,7 +270,7 @@ function once(fn, ctx = null) {
   };
 }
 function getValueByDataPath(obj, path) {
-  if (!isString(path)) {
+  if (!isString$1(path)) {
     return;
   }
   path = path.replace(/\[(\d+)\]/g, ".$1");
@@ -340,13 +340,13 @@ function normalizeStyle(value2) {
       styleObject[key] = value22;
     });
     return normalizeStyle$1(styleObject);
-  } else if (isString(value2)) {
+  } else if (isString$1(value2)) {
     return parseStringStyle(value2);
-  } else if (isArray(value2)) {
+  } else if (isArray$1(value2)) {
     const res = {};
     for (let i2 = 0; i2 < value2.length; i2++) {
       const item = value2[i2];
-      const normalized = isString(item) ? parseStringStyle(item) : normalizeStyle(item);
+      const normalized = isString$1(item) ? parseStringStyle(item) : normalizeStyle(item);
       if (normalized) {
         for (const key in normalized) {
           res[key] = normalized[key];
@@ -373,7 +373,7 @@ function normalizeClass(value2) {
         res += key + " ";
       }
     });
-  } else if (isArray(value2)) {
+  } else if (isArray$1(value2)) {
     for (let i2 = 0; i2 < value2.length; i2++) {
       const normalized = normalizeClass(value2[i2]);
       if (normalized) {
@@ -818,7 +818,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
   let deps = [];
   if (type === "clear") {
     deps = [...depsMap.values()];
-  } else if (key === "length" && isArray(target)) {
+  } else if (key === "length" && isArray$1(target)) {
     const newLength = Number(newValue);
     depsMap.forEach((dep, key2) => {
       if (key2 === "length" || !isSymbol(key2) && key2 >= newLength) {
@@ -831,7 +831,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
     }
     switch (type) {
       case "add":
-        if (!isArray(target)) {
+        if (!isArray$1(target)) {
           deps.push(depsMap.get(ITERATE_KEY));
           if (isMap(target)) {
             deps.push(depsMap.get(MAP_KEY_ITERATE_KEY));
@@ -841,7 +841,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
         }
         break;
       case "delete":
-        if (!isArray(target)) {
+        if (!isArray$1(target)) {
           deps.push(depsMap.get(ITERATE_KEY));
           if (isMap(target)) {
             deps.push(depsMap.get(MAP_KEY_ITERATE_KEY));
@@ -933,9 +933,9 @@ class BaseReactiveHandler {
       }
       return;
     }
-    const targetIsArray = isArray(target);
+    const targetIsArray = isArray$1(target);
     if (!isReadonly2) {
-      if (targetIsArray && hasOwn(arrayInstrumentations, key)) {
+      if (targetIsArray && hasOwn$1(arrayInstrumentations, key)) {
         return Reflect.get(arrayInstrumentations, key, receiver);
       }
       if (key === "hasOwnProperty") {
@@ -955,7 +955,7 @@ class BaseReactiveHandler {
     if (isRef(res)) {
       return targetIsArray && isIntegerKey(key) ? res : res.value;
     }
-    if (isObject$1(res)) {
+    if (isObject$2(res)) {
       return isReadonly2 ? readonly(res) : reactive(res);
     }
     return res;
@@ -973,7 +973,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
         oldValue = toRaw(oldValue);
         value2 = toRaw(value2);
       }
-      if (!isArray(target) && isRef(oldValue) && !isRef(value2)) {
+      if (!isArray$1(target) && isRef(oldValue) && !isRef(value2)) {
         if (isOldValueReadonly) {
           return false;
         } else {
@@ -982,7 +982,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
         }
       }
     }
-    const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
+    const hadKey = isArray$1(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn$1(target, key);
     const result = Reflect.set(target, key, value2, receiver);
     if (target === toRaw(receiver)) {
       if (!hadKey) {
@@ -994,7 +994,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
     return result;
   }
   deleteProperty(target, key) {
-    const hadKey = hasOwn(target, key);
+    const hadKey = hasOwn$1(target, key);
     const oldValue = target[key];
     const result = Reflect.deleteProperty(target, key);
     if (result && hadKey) {
@@ -1013,7 +1013,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
     track(
       target,
       "iterate",
-      isArray(target) ? "length" : ITERATE_KEY
+      isArray$1(target) ? "length" : ITERATE_KEY
     );
     return Reflect.ownKeys(target);
   }
@@ -1049,7 +1049,7 @@ const shallowReactiveHandlers = /* @__PURE__ */ new MutableReactiveHandler(
 const shallowReadonlyHandlers = /* @__PURE__ */ new ReadonlyReactiveHandler(true);
 const toShallow = (value2) => value2;
 const getProto = (v) => Reflect.getPrototypeOf(v);
-function get(target, key, isReadonly2 = false, isShallow2 = false) {
+function get$1(target, key, isReadonly2 = false, isShallow2 = false) {
   target = target["__v_raw"];
   const rawTarget = toRaw(target);
   const rawKey = toRaw(key);
@@ -1201,7 +1201,7 @@ function createReadonlyMethod(type) {
 function createInstrumentations() {
   const mutableInstrumentations2 = {
     get(key) {
-      return get(this, key);
+      return get$1(this, key);
     },
     get size() {
       return size(this);
@@ -1215,7 +1215,7 @@ function createInstrumentations() {
   };
   const shallowInstrumentations2 = {
     get(key) {
-      return get(this, key, false, true);
+      return get$1(this, key, false, true);
     },
     get size() {
       return size(this);
@@ -1229,7 +1229,7 @@ function createInstrumentations() {
   };
   const readonlyInstrumentations2 = {
     get(key) {
-      return get(this, key, true);
+      return get$1(this, key, true);
     },
     get size() {
       return size(this, true);
@@ -1245,7 +1245,7 @@ function createInstrumentations() {
   };
   const shallowReadonlyInstrumentations2 = {
     get(key) {
-      return get(this, key, true, true);
+      return get$1(this, key, true, true);
     },
     get size() {
       return size(this, true);
@@ -1299,7 +1299,7 @@ function createInstrumentationGetter(isReadonly2, shallow) {
       return target;
     }
     return Reflect.get(
-      hasOwn(instrumentations, key) && key in target ? instrumentations : target,
+      hasOwn$1(instrumentations, key) && key in target ? instrumentations : target,
       key,
       receiver
     );
@@ -1387,7 +1387,7 @@ function shallowReadonly(target) {
   );
 }
 function createReactiveObject(target, isReadonly2, baseHandlers, collectionHandlers, proxyMap) {
-  if (!isObject$1(target)) {
+  if (!isObject$2(target)) {
     {
       warn$2(`value cannot be made reactive: ${String(target)}`);
     }
@@ -1436,8 +1436,8 @@ function markRaw(value2) {
   }
   return value2;
 }
-const toReactive = (value2) => isObject$1(value2) ? reactive(value2) : value2;
-const toReadonly = (value2) => isObject$1(value2) ? readonly(value2) : value2;
+const toReactive = (value2) => isObject$2(value2) ? reactive(value2) : value2;
+const toReadonly = (value2) => isObject$2(value2) ? readonly(value2) : value2;
 const COMPUTED_SIDE_EFFECT_WARN = `Computed is still dirty after getter evaluation, likely because a computed is mutating its own dependency in its getter. State mutations in computed getters should be avoided.  Check the docs for more details: https://vuejs.org/guide/essentials/computed.html#getters-should-be-side-effect-free`;
 class ComputedRefImpl {
   constructor(getter, _setter, isReadonly2, isSSR) {
@@ -1683,7 +1683,7 @@ function formatProps(props) {
   return res;
 }
 function formatProp(key, value2, raw) {
-  if (isString(value2)) {
+  if (isString$1(value2)) {
     value2 = JSON.stringify(value2);
     return raw ? value2 : [`${key}=${value2}`];
   } else if (typeof value2 === "number" || typeof value2 === "boolean" || value2 == null) {
@@ -1857,7 +1857,7 @@ function invalidateJob(job) {
   }
 }
 function queuePostFlushCb(cb) {
-  if (!isArray(cb)) {
+  if (!isArray$1(cb)) {
     if (!activePostFlushCbs || !activePostFlushCbs.includes(
       cb,
       cb.allowRecurse ? postFlushIndex + 1 : postFlushIndex
@@ -2108,7 +2108,7 @@ function emit(instance, event, ...rawArgs) {
     const modifiersKey = `${modelArg === "modelValue" ? "model" : modelArg}Modifiers`;
     const { number, trim } = props[modifiersKey] || EMPTY_OBJ;
     if (trim) {
-      args = rawArgs.map((a) => isString(a) ? a.trim() : a);
+      args = rawArgs.map((a) => isString$1(a) ? a.trim() : a);
     }
     if (number) {
       args = rawArgs.map(looseToNumber);
@@ -2188,17 +2188,17 @@ function normalizeEmitsOptions(comp, appContext, asMixin = false) {
     }
   }
   if (!raw && !hasExtends) {
-    if (isObject$1(comp)) {
+    if (isObject$2(comp)) {
       cache.set(comp, null);
     }
     return null;
   }
-  if (isArray(raw)) {
+  if (isArray$1(raw)) {
     raw.forEach((key) => normalized[key] = null);
   } else {
     extend(normalized, raw);
   }
-  if (isObject$1(comp)) {
+  if (isObject$2(comp)) {
     cache.set(comp, normalized);
   }
   return normalized;
@@ -2208,7 +2208,7 @@ function isEmitListener(options, key) {
     return false;
   }
   key = key.slice(2).replace(/Once$/, "");
-  return hasOwn(options, key[0].toLowerCase() + key.slice(1)) || hasOwn(options, hyphenate(key)) || hasOwn(options, key);
+  return hasOwn$1(options, key[0].toLowerCase() + key.slice(1)) || hasOwn$1(options, hyphenate(key)) || hasOwn$1(options, key);
 }
 let currentRenderingInstance = null;
 function setCurrentRenderingInstance(instance) {
@@ -2325,7 +2325,7 @@ function doWatch(source, cb, {
   } else if (isReactive(source)) {
     getter = () => reactiveGetter(source);
     forceTrigger = true;
-  } else if (isArray(source)) {
+  } else if (isArray$1(source)) {
     isMultiSource = true;
     forceTrigger = source.some((s2) => isReactive(s2) || isShallow(s2));
     getter = () => source.map((s2) => {
@@ -2435,7 +2435,7 @@ function doWatch(source, cb, {
 }
 function instanceWatch(source, value2, options) {
   const publicThis = this.proxy;
-  const getter = isString(source) ? source.includes(".") ? createPathGetter(publicThis, source) : () => publicThis[source] : source.bind(publicThis, publicThis);
+  const getter = isString$1(source) ? source.includes(".") ? createPathGetter(publicThis, source) : () => publicThis[source] : source.bind(publicThis, publicThis);
   let cb;
   if (isFunction(value2)) {
     cb = value2;
@@ -2459,7 +2459,7 @@ function createPathGetter(ctx, path) {
   };
 }
 function traverse(value2, depth, currentDepth = 0, seen) {
-  if (!isObject$1(value2) || value2["__v_skip"]) {
+  if (!isObject$2(value2) || value2["__v_skip"]) {
     return value2;
   }
   if (depth && depth > 0) {
@@ -2475,7 +2475,7 @@ function traverse(value2, depth, currentDepth = 0, seen) {
   seen.add(value2);
   if (isRef(value2)) {
     traverse(value2.value, depth, currentDepth, seen);
-  } else if (isArray(value2)) {
+  } else if (isArray$1(value2)) {
     for (let i2 = 0; i2 < value2.length; i2++) {
       traverse(value2[i2], depth, currentDepth, seen);
     }
@@ -2522,7 +2522,7 @@ function createAppAPI(render, hydrate) {
     if (!isFunction(rootComponent)) {
       rootComponent = extend({}, rootComponent);
     }
-    if (rootProps != null && !isObject$1(rootProps)) {
+    if (rootProps != null && !isObject$2(rootProps)) {
       warn$1(`root props passed to app.mount() must be an object.`);
       rootProps = null;
     }
@@ -2743,21 +2743,21 @@ function injectHook(type, hook, target = currentInstance, prepend = false) {
     );
   }
 }
-const createHook = (lifecycle) => (hook, target = currentInstance) => (
+const createHook$1 = (lifecycle) => (hook, target = currentInstance) => (
   // post-create lifecycle registrations are noops during SSR (except for serverPrefetch)
   (!isInSSRComponentSetup || lifecycle === "sp") && injectHook(lifecycle, (...args) => hook(...args), target)
 );
-const onBeforeMount = createHook("bm");
-const onMounted = createHook("m");
-const onBeforeUpdate = createHook("bu");
-const onUpdated = createHook("u");
-const onBeforeUnmount = createHook("bum");
-const onUnmounted = createHook("um");
-const onServerPrefetch = createHook("sp");
-const onRenderTriggered = createHook(
+const onBeforeMount = createHook$1("bm");
+const onMounted = createHook$1("m");
+const onBeforeUpdate = createHook$1("bu");
+const onUpdated = createHook$1("u");
+const onBeforeUnmount = createHook$1("bum");
+const onUnmounted = createHook$1("um");
+const onServerPrefetch = createHook$1("sp");
+const onRenderTriggered = createHook$1(
   "rtg"
 );
-const onRenderTracked = createHook(
+const onRenderTracked = createHook$1(
   "rtc"
 );
 function onErrorCaptured(hook, target = currentInstance) {
@@ -2796,7 +2796,7 @@ const publicPropertiesMap = (
   })
 );
 const isReservedPrefix = (key) => key === "_" || key === "$";
-const hasSetupBinding = (state, key) => state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn(state, key);
+const hasSetupBinding = (state, key) => state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn$1(state, key);
 const PublicInstanceProxyHandlers = {
   get({ _: instance }, key) {
     const { ctx, setupState, data: data2, props, accessCache, type, appContext } = instance;
@@ -2820,17 +2820,17 @@ const PublicInstanceProxyHandlers = {
       } else if (hasSetupBinding(setupState, key)) {
         accessCache[key] = 1;
         return setupState[key];
-      } else if (data2 !== EMPTY_OBJ && hasOwn(data2, key)) {
+      } else if (data2 !== EMPTY_OBJ && hasOwn$1(data2, key)) {
         accessCache[key] = 2;
         return data2[key];
       } else if (
         // only cache other properties when instance has declared (thus stable)
         // props
-        (normalizedProps = instance.propsOptions[0]) && hasOwn(normalizedProps, key)
+        (normalizedProps = instance.propsOptions[0]) && hasOwn$1(normalizedProps, key)
       ) {
         accessCache[key] = 3;
         return props[key];
-      } else if (ctx !== EMPTY_OBJ && hasOwn(ctx, key)) {
+      } else if (ctx !== EMPTY_OBJ && hasOwn$1(ctx, key)) {
         accessCache[key] = 4;
         return ctx[key];
       } else if (shouldCacheAccess) {
@@ -2851,20 +2851,20 @@ const PublicInstanceProxyHandlers = {
       (cssModule = type.__cssModules) && (cssModule = cssModule[key])
     ) {
       return cssModule;
-    } else if (ctx !== EMPTY_OBJ && hasOwn(ctx, key)) {
+    } else if (ctx !== EMPTY_OBJ && hasOwn$1(ctx, key)) {
       accessCache[key] = 4;
       return ctx[key];
     } else if (
       // global properties
-      globalProperties = appContext.config.globalProperties, hasOwn(globalProperties, key)
+      globalProperties = appContext.config.globalProperties, hasOwn$1(globalProperties, key)
     ) {
       {
         return globalProperties[key];
       }
-    } else if (currentRenderingInstance && (!isString(key) || // #1091 avoid internal isRef/isVNode checks on component instance leading
+    } else if (currentRenderingInstance && (!isString$1(key) || // #1091 avoid internal isRef/isVNode checks on component instance leading
     // to infinite warning loop
     key.indexOf("__v") !== 0)) {
-      if (data2 !== EMPTY_OBJ && isReservedPrefix(key[0]) && hasOwn(data2, key)) {
+      if (data2 !== EMPTY_OBJ && isReservedPrefix(key[0]) && hasOwn$1(data2, key)) {
         warn$1(
           `Property ${JSON.stringify(
             key
@@ -2882,13 +2882,13 @@ const PublicInstanceProxyHandlers = {
     if (hasSetupBinding(setupState, key)) {
       setupState[key] = value2;
       return true;
-    } else if (setupState.__isScriptSetup && hasOwn(setupState, key)) {
+    } else if (setupState.__isScriptSetup && hasOwn$1(setupState, key)) {
       warn$1(`Cannot mutate <script setup> binding "${key}" from Options API.`);
       return false;
-    } else if (data2 !== EMPTY_OBJ && hasOwn(data2, key)) {
+    } else if (data2 !== EMPTY_OBJ && hasOwn$1(data2, key)) {
       data2[key] = value2;
       return true;
-    } else if (hasOwn(instance.props, key)) {
+    } else if (hasOwn$1(instance.props, key)) {
       warn$1(`Attempting to mutate prop "${key}". Props are readonly.`);
       return false;
     }
@@ -2914,12 +2914,12 @@ const PublicInstanceProxyHandlers = {
     _: { data: data2, setupState, accessCache, ctx, appContext, propsOptions }
   }, key) {
     let normalizedProps;
-    return !!accessCache[key] || data2 !== EMPTY_OBJ && hasOwn(data2, key) || hasSetupBinding(setupState, key) || (normalizedProps = propsOptions[0]) && hasOwn(normalizedProps, key) || hasOwn(ctx, key) || hasOwn(publicPropertiesMap, key) || hasOwn(appContext.config.globalProperties, key);
+    return !!accessCache[key] || data2 !== EMPTY_OBJ && hasOwn$1(data2, key) || hasSetupBinding(setupState, key) || (normalizedProps = propsOptions[0]) && hasOwn$1(normalizedProps, key) || hasOwn$1(ctx, key) || hasOwn$1(publicPropertiesMap, key) || hasOwn$1(appContext.config.globalProperties, key);
   },
   defineProperty(target, key, descriptor) {
     if (descriptor.get != null) {
       target._.accessCache[key] = 0;
-    } else if (hasOwn(descriptor, "value")) {
+    } else if (hasOwn$1(descriptor, "value")) {
       this.set(target, key, descriptor.value, null);
     }
     return Reflect.defineProperty(target, key, descriptor);
@@ -2990,7 +2990,7 @@ function exposeSetupStateOnRenderContext(instance) {
   });
 }
 function normalizePropsOrEmits(props) {
-  return isArray(props) ? props.reduce(
+  return isArray$1(props) ? props.reduce(
     (normalized, p2) => (normalized[p2] = null, normalized),
     {}
   ) : props;
@@ -3098,7 +3098,7 @@ function applyOptions$1(instance) {
         `data() returned a Promise - note data() cannot be async; If you intend to perform data fetching before component renders, use async setup() + <Suspense>.`
       );
     }
-    if (!isObject$1(data2)) {
+    if (!isObject$2(data2)) {
       warn$1(`data() should return an object.`);
     } else {
       instance.data = reactive(data2);
@@ -3166,11 +3166,11 @@ function applyOptions$1(instance) {
       callHook$1(created, instance, "c");
     }
   }
-  function registerLifecycleHook(register2, hook) {
-    if (isArray(hook)) {
-      hook.forEach((_hook) => register2(_hook.bind(publicThis)));
+  function registerLifecycleHook(register3, hook) {
+    if (isArray$1(hook)) {
+      hook.forEach((_hook) => register3(_hook.bind(publicThis)));
     } else if (hook) {
-      register2(hook.bind(publicThis));
+      register3(hook.bind(publicThis));
     }
   }
   registerLifecycleHook(onBeforeMount, beforeMount);
@@ -3185,7 +3185,7 @@ function applyOptions$1(instance) {
   registerLifecycleHook(onBeforeUnmount, beforeUnmount);
   registerLifecycleHook(onUnmounted, unmounted);
   registerLifecycleHook(onServerPrefetch, serverPrefetch);
-  if (isArray(expose)) {
+  if (isArray$1(expose)) {
     if (expose.length) {
       const exposed = instance.exposed || (instance.exposed = {});
       expose.forEach((key) => {
@@ -3213,13 +3213,13 @@ function applyOptions$1(instance) {
   }
 }
 function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) {
-  if (isArray(injectOptions)) {
+  if (isArray$1(injectOptions)) {
     injectOptions = normalizeInject(injectOptions);
   }
   for (const key in injectOptions) {
     const opt = injectOptions[key];
     let injected;
-    if (isObject$1(opt)) {
+    if (isObject$2(opt)) {
       if ("default" in opt) {
         injected = inject(
           opt.from || key,
@@ -3249,14 +3249,14 @@ function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) 
 }
 function callHook$1(hook, instance, type) {
   callWithAsyncErrorHandling(
-    isArray(hook) ? hook.map((h2) => h2.bind(instance.proxy)) : hook.bind(instance.proxy),
+    isArray$1(hook) ? hook.map((h2) => h2.bind(instance.proxy)) : hook.bind(instance.proxy),
     instance,
     type
   );
 }
 function createWatcher(raw, ctx, publicThis, key) {
   const getter = key.includes(".") ? createPathGetter(publicThis, key) : () => publicThis[key];
-  if (isString(raw)) {
+  if (isString$1(raw)) {
     const handler = ctx[raw];
     if (isFunction(handler)) {
       watch(getter, handler);
@@ -3265,8 +3265,8 @@ function createWatcher(raw, ctx, publicThis, key) {
     }
   } else if (isFunction(raw)) {
     watch(getter, raw.bind(publicThis));
-  } else if (isObject$1(raw)) {
-    if (isArray(raw)) {
+  } else if (isObject$2(raw)) {
+    if (isArray$1(raw)) {
       raw.forEach((r2) => createWatcher(r2, ctx, publicThis, key));
     } else {
       const handler = isFunction(raw.handler) ? raw.handler.bind(publicThis) : ctx[raw.handler];
@@ -3305,7 +3305,7 @@ function resolveMergedOptions(instance) {
     }
     mergeOptions(resolved, base, optionMergeStrategies);
   }
-  if (isObject$1(base)) {
+  if (isObject$2(base)) {
     cache.set(base, resolved);
   }
   return resolved;
@@ -3381,7 +3381,7 @@ function mergeInject(to, from) {
   return mergeObjectOptions(normalizeInject(to), normalizeInject(from));
 }
 function normalizeInject(raw) {
-  if (isArray(raw)) {
+  if (isArray$1(raw)) {
     const res = {};
     for (let i2 = 0; i2 < raw.length; i2++) {
       res[raw[i2]] = raw[i2];
@@ -3398,7 +3398,7 @@ function mergeObjectOptions(to, from) {
 }
 function mergeEmitsOrPropsOptions(to, from) {
   if (to) {
-    if (isArray(to) && isArray(from)) {
+    if (isArray$1(to) && isArray$1(from)) {
       return [.../* @__PURE__ */ new Set([...to, ...from])];
     }
     return extend(
@@ -3471,7 +3471,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
         const value2 = rawProps[key];
         if (options) {
-          if (hasOwn(attrs, key)) {
+          if (hasOwn$1(attrs, key)) {
             if (value2 !== attrs[key]) {
               attrs[key] = value2;
               hasAttrsChanged = true;
@@ -3502,9 +3502,9 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     let kebabKey;
     for (const key in rawCurrentProps) {
       if (!rawProps || // for camelCase
-      !hasOwn(rawProps, key) && // it's possible the original props was passed in as kebab-case
+      !hasOwn$1(rawProps, key) && // it's possible the original props was passed in as kebab-case
       // and converted to camelCase (#955)
-      ((kebabKey = hyphenate(key)) === key || !hasOwn(rawProps, kebabKey))) {
+      ((kebabKey = hyphenate(key)) === key || !hasOwn$1(rawProps, kebabKey))) {
         if (options) {
           if (rawPrevProps && // for camelCase
           (rawPrevProps[key] !== void 0 || // for kebab-case
@@ -3525,7 +3525,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     }
     if (attrs !== rawCurrentProps) {
       for (const key in attrs) {
-        if (!rawProps || !hasOwn(rawProps, key) && true) {
+        if (!rawProps || !hasOwn$1(rawProps, key) && true) {
           delete attrs[key];
           hasAttrsChanged = true;
         }
@@ -3550,7 +3550,7 @@ function setFullProps(instance, rawProps, props, attrs) {
       }
       const value2 = rawProps[key];
       let camelKey;
-      if (options && hasOwn(options, camelKey = camelize(key))) {
+      if (options && hasOwn$1(options, camelKey = camelize(key))) {
         if (!needCastKeys || !needCastKeys.includes(camelKey)) {
           props[camelKey] = value2;
         } else {
@@ -3575,7 +3575,7 @@ function setFullProps(instance, rawProps, props, attrs) {
         key,
         castValues[key],
         instance,
-        !hasOwn(castValues, key)
+        !hasOwn$1(castValues, key)
       );
     }
   }
@@ -3584,7 +3584,7 @@ function setFullProps(instance, rawProps, props, attrs) {
 function resolvePropValue$1(options, props, key, value2, instance, isAbsent) {
   const opt = options[key];
   if (opt != null) {
-    const hasDefault = hasOwn(opt, "default");
+    const hasDefault = hasOwn$1(opt, "default");
     if (hasDefault && value2 === void 0) {
       const defaultValue = opt.default;
       if (opt.type !== Function && !opt.skipFactory && isFunction(defaultValue)) {
@@ -3648,14 +3648,14 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
     }
   }
   if (!raw && !hasExtends) {
-    if (isObject$1(comp)) {
+    if (isObject$2(comp)) {
       cache.set(comp, EMPTY_ARR);
     }
     return EMPTY_ARR;
   }
-  if (isArray(raw)) {
+  if (isArray$1(raw)) {
     for (let i2 = 0; i2 < raw.length; i2++) {
-      if (!isString(raw[i2])) {
+      if (!isString$1(raw[i2])) {
         warn$1(`props must be strings when using array syntax.`, raw[i2]);
       }
       const normalizedKey = camelize(raw[i2]);
@@ -3664,14 +3664,14 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
       }
     }
   } else if (raw) {
-    if (!isObject$1(raw)) {
+    if (!isObject$2(raw)) {
       warn$1(`invalid props options`, raw);
     }
     for (const key in raw) {
       const normalizedKey = camelize(key);
       if (validatePropName(normalizedKey)) {
         const opt = raw[key];
-        const prop = normalized[normalizedKey] = isArray(opt) || isFunction(opt) ? { type: opt } : extend({}, opt);
+        const prop = normalized[normalizedKey] = isArray$1(opt) || isFunction(opt) ? { type: opt } : extend({}, opt);
         if (prop) {
           const booleanIndex = getTypeIndex(Boolean, prop.type);
           const stringIndex = getTypeIndex(String, prop.type);
@@ -3683,7 +3683,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
             1
             /* shouldCastTrue */
           ] = stringIndex < 0 || booleanIndex < stringIndex;
-          if (booleanIndex > -1 || hasOwn(prop, "default")) {
+          if (booleanIndex > -1 || hasOwn$1(prop, "default")) {
             needCastKeys.push(normalizedKey);
           }
         }
@@ -3691,7 +3691,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
     }
   }
   const res = [normalized, needCastKeys];
-  if (isObject$1(comp)) {
+  if (isObject$2(comp)) {
     cache.set(comp, res);
   }
   return res;
@@ -3720,7 +3720,7 @@ function isSameType(a, b) {
   return getType$2(a) === getType$2(b);
 }
 function getTypeIndex(type, expectedTypes) {
-  if (isArray(expectedTypes)) {
+  if (isArray$1(expectedTypes)) {
     return expectedTypes.findIndex((t2) => isSameType(t2, type));
   } else if (isFunction(expectedTypes)) {
     return isSameType(expectedTypes, type) ? 0 : -1;
@@ -3739,7 +3739,7 @@ function validateProps(rawProps, props, instance) {
       resolvedValues[key],
       opt,
       shallowReadonly(resolvedValues),
-      !hasOwn(rawProps, key) && !hasOwn(rawProps, hyphenate(key))
+      !hasOwn$1(rawProps, key) && !hasOwn$1(rawProps, hyphenate(key))
     );
   }
 }
@@ -3754,7 +3754,7 @@ function validateProp$1(name, value2, prop, props, isAbsent) {
   }
   if (type != null && type !== true && !skipCheck) {
     let isValid = false;
-    const types = isArray(type) ? type : [type];
+    const types = isArray$1(type) ? type : [type];
     const expectedTypes = [];
     for (let i2 = 0; i2 < types.length && !isValid; i2++) {
       const { valid, expectedType } = assertType$1(value2, types[i2]);
@@ -3783,9 +3783,9 @@ function assertType$1(value2, type) {
       valid = value2 instanceof type;
     }
   } else if (expectedType === "Object") {
-    valid = isObject$1(value2);
+    valid = isObject$2(value2);
   } else if (expectedType === "Array") {
-    valid = isArray(value2);
+    valid = isArray$1(value2);
   } else if (expectedType === "null") {
     valid = value2 === null;
   } else {
@@ -3805,7 +3805,7 @@ function getInvalidTypeMessage$1(name, value2, expectedTypes) {
   const receivedType = toRawType(value2);
   const expectedValue = styleValue$1(value2, expectedType);
   const receivedValue = styleValue$1(value2, receivedType);
-  if (expectedTypes.length === 1 && isExplicable$1(expectedType) && !isBoolean$1(expectedType, receivedType)) {
+  if (expectedTypes.length === 1 && isExplicable$1(expectedType) && !isBoolean$2(expectedType, receivedType)) {
     message += ` with value ${expectedValue}`;
   }
   message += `, got ${receivedType} `;
@@ -3827,7 +3827,7 @@ function isExplicable$1(type) {
   const explicitTypes = ["string", "number", "boolean"];
   return explicitTypes.some((elem2) => type.toLowerCase() === elem2);
 }
-function isBoolean$1(...args) {
+function isBoolean$2(...args) {
   return args.some((elem2) => elem2.toLowerCase() === "boolean");
 }
 let supported;
@@ -3967,7 +3967,8 @@ function createComponentInstance(vnode, parent2, suspense) {
     $uniElements: /* @__PURE__ */ new Map(),
     $templateUniElementRefs: [],
     $templateUniElementStyles: {},
-    $eS: {}
+    $eS: {},
+    $eA: {}
   };
   {
     instance.ctx = createDevRenderContext(instance);
@@ -4092,7 +4093,7 @@ function handleSetupResult(instance, setupResult, isSSR) {
     {
       instance.render = setupResult;
     }
-  } else if (isObject$1(setupResult)) {
+  } else if (isObject$2(setupResult)) {
     if (isVNode(setupResult)) {
       warn$1(
         `setup() should not return VNodes directly - return a render function instead.`
@@ -4175,7 +4176,7 @@ function createSetupContext(instance) {
       if (exposed != null) {
         let exposedType = typeof exposed;
         if (exposedType === "object") {
-          if (isArray(exposed)) {
+          if (isArray$1(exposed)) {
             exposedType = "array";
           } else if (isRef(exposed)) {
             exposedType = "ref";
@@ -4426,7 +4427,7 @@ function clone(src, seen) {
     if (typeof copy !== "undefined") {
       return copy;
     }
-    if (isArray(src)) {
+    if (isArray$1(src)) {
       const len2 = src.length;
       copy = new Array(len2);
       seen.set(src, copy);
@@ -4437,7 +4438,7 @@ function clone(src, seen) {
       copy = {};
       seen.set(src, copy);
       for (const name in src) {
-        if (hasOwn(src, name)) {
+        if (hasOwn$1(src, name)) {
           copy[name] = clone(src[name], seen);
         }
       }
@@ -4465,6 +4466,7 @@ function patch(instance, data2, oldData) {
   }
   data2 = deepCopy(data2);
   data2.$eS = instance.$eS || {};
+  data2.$eA = instance.$eA || {};
   const ctx = instance.ctx;
   const mpType = ctx.mpType;
   if (mpType === "page" || mpType === "component") {
@@ -4564,7 +4566,7 @@ function setRef$1(instance, isUnmount = false) {
   if ($templateUniElementRefs && $templateUniElementRefs.length) {
     nextTick(instance, () => {
       $templateUniElementRefs.forEach((templateRef) => {
-        if (isArray(templateRef.v)) {
+        if (isArray$1(templateRef.v)) {
           templateRef.v.forEach((v) => {
             setTemplateRef(templateRef, v, setupState);
           });
@@ -4581,7 +4583,7 @@ function setRef$1(instance, isUnmount = false) {
   }
 }
 function toSkip(value2) {
-  if (isObject$1(value2)) {
+  if (isObject$2(value2)) {
     markRaw(value2);
   }
   return value2;
@@ -4603,14 +4605,14 @@ function setTemplateRef({ r: r2, f: f2 }, refValue, setupState) {
   if (isFunction(r2)) {
     r2(refValue, {});
   } else {
-    const _isString = isString(r2);
+    const _isString = isString$1(r2);
     const _isRef = isRef(r2);
     if (_isString || _isRef) {
       if (f2) {
         if (!_isRef) {
           return;
         }
-        if (!isArray(r2.value)) {
+        if (!isArray$1(r2.value)) {
           r2.value = [];
         }
         const existing = r2.value;
@@ -4624,7 +4626,7 @@ function setTemplateRef({ r: r2, f: f2 }, refValue, setupState) {
           }
         }
       } else if (_isString) {
-        if (hasOwn(setupState, r2)) {
+        if (hasOwn$1(setupState, r2)) {
           setupState[r2] = refValue;
         }
       } else if (isRef(r2)) {
@@ -4789,7 +4791,7 @@ function componentUpdateScopedSlotsFn() {
   const diffData = /* @__PURE__ */ Object.create(null);
   scopedSlotsData.forEach(({ path, index: index2, data: data2 }) => {
     const oldScopedSlotData = getValueByDataPath(oldData, path);
-    const diffPath = isString(index2) ? `${path}.${index2}` : `${path}[${index2}]`;
+    const diffPath = isString$1(index2) ? `${path}.${index2}` : `${path}[${index2}]`;
     if (typeof oldScopedSlotData === "undefined" || typeof oldScopedSlotData[index2] === "undefined") {
       diffData[diffPath] = data2;
     } else {
@@ -4987,7 +4989,7 @@ function initHooks$1(options, instance, publicThis) {
   Object.keys(options).forEach((name) => {
     if (isUniLifecycleHook(name, options[name], false)) {
       const hooks = options[name];
-      if (isArray(hooks)) {
+      if (isArray$1(hooks)) {
         hooks.forEach((hook) => injectLifecycleHook(name, hook, publicThis, instance));
       } else {
         injectLifecycleHook(name, hooks, publicThis, instance);
@@ -5173,7 +5175,7 @@ class UniCSSStyleDeclaration {
       get: (target, prop) => {
         if (prop in target) {
           const value2 = target[prop];
-          return typeof value2 === "function" ? value2.bind(target) : value2;
+          return isFunction(value2) ? value2.bind(target) : value2;
         }
         return target.getPropertyValue(prop);
       },
@@ -5218,6 +5220,160 @@ function hyphenateCssProperty(str) {
     return "-webkit-" + hyphenate(str.slice(6));
   }
   return hyphenate(str);
+}
+class UniAnimation {
+  constructor(id, scope, keyframes, options = {}) {
+    var _a;
+    this._playState = "";
+    this.parsedKeyframes = [];
+    this.options = {};
+    this.onfinish = null;
+    this.oncancel = null;
+    this.id = id;
+    this.scope = scope;
+    this.options = typeof options === "number" ? { duration: options } : options;
+    if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.iterations) === Infinity) {
+      this.options.iterations = -1;
+    }
+    this.parsedKeyframes = coverAnimateToStyle(keyframes, options);
+    this.onfinish = () => {
+    };
+    this.oncancel = () => {
+    };
+  }
+  get playState() {
+    return this._playState;
+  }
+  get currentTime() {
+    throw new Error("currentTime not implemented.");
+  }
+  cancel() {
+    toRaw(this.scope).setData({
+      ["$eA." + this.id]: JSON.stringify({
+        id: this.id,
+        playState: "cancel",
+        keyframes: this.parsedKeyframes,
+        options: this.options
+      })
+    });
+  }
+  finish() {
+    throw new Error("finish not implemented.");
+  }
+  pause() {
+    throw new Error("pause not implemented.");
+  }
+  play() {
+    this.scope.setData({
+      ["$eA." + this.id]: JSON.stringify({
+        id: this.id,
+        playState: "running",
+        keyframes: this.parsedKeyframes,
+        options: this.options
+      })
+    });
+  }
+}
+function handleDirection(keyframes, direction) {
+  if (direction === "reverse") {
+    keyframes.reverse();
+  } else if (direction === "alternate") {
+    keyframes = [...keyframes, ...keyframes.slice().reverse().slice(1)];
+  } else if (direction === "alternate-reverse") {
+    keyframes = keyframes.reverse().concat(keyframes.slice(1, -1).reverse());
+  }
+  return JSON.parse(JSON.stringify(keyframes));
+}
+function normalizeKeyframes(keyframes, direction = "normal") {
+  if (keyframes.length === 0) {
+    return [];
+  }
+  keyframes.forEach((kf) => {
+    Object.keys(kf).forEach((key) => {
+      const newKey = hyphenate(key);
+      if (key !== newKey) {
+        kf[newKey] = kf[key];
+        delete kf[key];
+      }
+    });
+  });
+  keyframes = handleDirection(keyframes, direction);
+  const existingOffsets = keyframes.map((kf, index2) => ({
+    index: index2,
+    offset: kf.offset
+  })).filter((item) => item.offset !== void 0);
+  if (existingOffsets.length === 0) {
+    for (let i2 = 0; i2 < keyframes.length; i2++) {
+      keyframes[i2].offset = i2 / (keyframes.length - 1);
+    }
+    return keyframes;
+  }
+  if (existingOffsets[0].index > 0) {
+    const firstOffset = existingOffsets[0].offset / existingOffsets[0].index;
+    for (let i2 = 0; i2 < existingOffsets[0].index; i2++) {
+      keyframes[i2].offset = firstOffset * i2;
+    }
+  }
+  for (let i2 = 0; i2 < existingOffsets.length - 1; i2++) {
+    const startOffset = existingOffsets[i2].offset;
+    const endOffset = existingOffsets[i2 + 1].offset;
+    const diffFrames = existingOffsets[i2 + 1].index - existingOffsets[i2].index;
+    if (diffFrames !== 1) {
+      const step = (endOffset - startOffset) / diffFrames;
+      for (let j2 = 1; j2 <= diffFrames; j2++) {
+        keyframes[existingOffsets[i2].index + j2].offset = startOffset + j2 * step;
+      }
+    }
+  }
+  if (existingOffsets[existingOffsets.length - 1].index < keyframes.length - 1) {
+    const lastOffset = existingOffsets[existingOffsets.length - 1].offset;
+    const numFrames = keyframes.length - existingOffsets[existingOffsets.length - 1].index;
+    const step = (1 - lastOffset) / (numFrames - 1);
+    for (let i2 = 0; i2 < numFrames; i2++) {
+      keyframes[existingOffsets[existingOffsets.length - 1].index + i2].offset = lastOffset + i2 * step;
+    }
+  }
+  return keyframes.map((kf) => {
+    kf.offset = Number(kf.offset.toFixed(5));
+    return kf;
+  });
+}
+function coverAnimateToStyle(keyframes, options) {
+  let duration = (options === null || options === void 0 ? void 0 : options.duration) || 0;
+  const direction = (options === null || options === void 0 ? void 0 : options.direction) || "normal";
+  if (!Array.isArray(keyframes)) {
+    const propertyNames = Object.keys(keyframes);
+    const arrayLength = keyframes[propertyNames[0]].length;
+    const frames2 = Array.from({ length: arrayLength }, (_, i2) => {
+      const frame = {};
+      propertyNames.forEach((prop) => {
+        frame[prop] = keyframes[prop][i2];
+      });
+      return frame;
+    });
+    return coverAnimateToStyle(frames2, options);
+  }
+  const frames = normalizeKeyframes(keyframes, direction);
+  if (direction === "alternate") {
+    duration = duration * 2;
+  }
+  return frames.map((frame, index2) => {
+    var _a;
+    const currentOffset = frame.offset;
+    let stepDuration;
+    const prevOffset = ((_a = frames[index2 - 1]) === null || _a === void 0 ? void 0 : _a.offset) || 0;
+    const currentDuration = Math.round(duration * (currentOffset - prevOffset));
+    const currentOffsetStartTime = Math.round(duration * prevOffset);
+    stepDuration = currentDuration;
+    const result = frame;
+    return Object.assign({}, result, {
+      // ...result,
+      offset: void 0,
+      transition: `all ${stepDuration}ms linear`,
+      _duration: stepDuration,
+      _startTime: currentOffsetStartTime
+    });
+  });
 }
 class UniElement {
   constructor(id = "", name = "") {
@@ -5328,6 +5484,22 @@ class UniElement {
   setAttribute(name, value2) {
     console.warn(`Miniprogram does not support UniElement.setAttribute(${name}, value)`);
   }
+  animate(keyframes, options) {
+    if (!this.id) {
+      throw new Error("animate is only supported on elements with id");
+    }
+    const root = this.$vm.$root;
+    const scope = root && root.$scope;
+    if (!scope) {
+      throw new Error(`animate is only supported on elements in page`);
+    }
+    if (!keyframes) {
+      throw new Error("animate keyframes is required");
+    }
+    const animation = new UniAnimation(this.id, scope, keyframes, options);
+    animation.play();
+    return animation;
+  }
   $destroy() {
     if (this.style) {
       this.style.$destroy();
@@ -5336,14 +5508,14 @@ class UniElement {
   }
 }
 function stringifyStyle(value2) {
-  if (isString(value2)) {
+  if (isString$1(value2)) {
     return value2;
   }
   return stringify(normalizeStyle(value2));
 }
 function stringify(styles) {
   let ret = "";
-  if (!styles || isString(styles)) {
+  if (!styles || isString$1(styles)) {
     return ret;
   }
   for (const key in styles) {
@@ -5464,7 +5636,7 @@ function initMiniProgramNode(uniElement, ins) {
 function vOn(value2, key) {
   const instance = getCurrentInstance();
   const ctx = instance.ctx;
-  const extraKey = typeof key !== "undefined" && (ctx.$mpPlatform === "mp-weixin" || ctx.$mpPlatform === "mp-qq" || ctx.$mpPlatform === "mp-xhs") && (isString(key) || typeof key === "number") ? "_" + key : "";
+  const extraKey = typeof key !== "undefined" && (ctx.$mpPlatform === "mp-weixin" || ctx.$mpPlatform === "mp-qq" || ctx.$mpPlatform === "mp-xhs") && (isString$1(key) || typeof key === "number") ? "_" + key : "";
   const name = "e" + instance.$ei++ + extraKey;
   const mpInstance = ctx.$scope;
   if (!value2) {
@@ -5499,7 +5671,7 @@ function createInvoker(initialValue, instance) {
       setTimeout(invoke);
     } else {
       const res = invoke();
-      if (e2.type === "input" && (isArray(res) || isPromise$1(res))) {
+      if (e2.type === "input" && (isArray$1(res) || isPromise$1(res))) {
         return;
       }
       return res;
@@ -5568,14 +5740,14 @@ function patchMPEvent(event, instance) {
     event.preventDefault = NOOP;
     event.stopPropagation = NOOP;
     event.stopImmediatePropagation = NOOP;
-    if (!hasOwn(event, "detail")) {
+    if (!hasOwn$1(event, "detail")) {
       event.detail = {};
     }
-    if (hasOwn(event, "markerId")) {
+    if (hasOwn$1(event, "markerId")) {
       event.detail = typeof event.detail === "object" ? event.detail : {};
       event.detail.markerId = event.markerId;
     }
-    if (isPlainObject$1(event.detail) && hasOwn(event.detail, "checked") && !hasOwn(event.detail, "value")) {
+    if (isPlainObject$1(event.detail) && hasOwn$1(event.detail, "checked") && !hasOwn$1(event.detail, "value")) {
       event.detail.value = event.detail.checked;
     }
     if (isPlainObject$1(event.detail)) {
@@ -5587,7 +5759,7 @@ function patchMPEvent(event, instance) {
   }
 }
 function patchStopImmediatePropagation(e2, value2) {
-  if (isArray(value2)) {
+  if (isArray$1(value2)) {
     const originalStop = e2.stopImmediatePropagation;
     e2.stopImmediatePropagation = () => {
       originalStop && originalStop.call(e2);
@@ -5600,7 +5772,7 @@ function patchStopImmediatePropagation(e2, value2) {
 }
 function vFor(source, renderItem) {
   let ret;
-  if (isArray(source) || isString(source)) {
+  if (isArray$1(source) || isString$1(source)) {
     ret = new Array(source.length);
     for (let i2 = 0, l = source.length; i2 < l; i2++) {
       ret[i2] = renderItem(source[i2], i2, i2);
@@ -5614,7 +5786,7 @@ function vFor(source, renderItem) {
     for (let i2 = 0; i2 < source; i2++) {
       ret[i2] = renderItem(i2 + 1, i2, i2);
     }
-  } else if (isObject$1(source)) {
+  } else if (isObject$2(source)) {
     if (source[Symbol.iterator]) {
       ret = Array.from(source, (item, i2) => renderItem(item, i2, i2));
     } else {
@@ -5639,7 +5811,7 @@ function setUniElementId(id, options, ref2, refOpts) {
   if (ins) {
     let tagName;
     let tagType;
-    if (isString(options)) {
+    if (isString$1(options)) {
       tagName = options;
     } else {
       tagName = options.name;
@@ -5709,6 +5881,21 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
     });
   }
 }
+function hasIdProp(_ctx) {
+  return _ctx.$.propsOptions && _ctx.$.propsOptions[0] && "id" in _ctx.$.propsOptions[0];
+}
+function hasVirtualHostId(_ctx) {
+  return _ctx.virtualHostId !== "";
+}
+function genIdWithVirtualHost(_ctx, idBinding) {
+  if (!hasVirtualHostId(_ctx) || hasIdProp(_ctx)) {
+    return idBinding;
+  }
+  return _ctx.virtualHostId;
+}
+function genUniElementId(_ctx, idBinding, genId) {
+  return genIdWithVirtualHost(_ctx, idBinding) || genId || "";
+}
 const o = (value2, key) => vOn(value2, key);
 const f = (source, renderItem) => vFor(source, renderItem);
 const e = (target, ...sources) => extend(target, ...sources);
@@ -5717,13 +5904,11 @@ const t = (val2) => toDisplayString(val2);
 const p = (props) => renderProps(props);
 const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 const sei = setUniElementId;
+const gei = genUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
   return createVueApp(rootComponent, rootProps).use(plugin);
 }
-<<<<<<< HEAD
-const createSSRApp = createApp$1;
-=======
 function getLocaleLanguage$1() {
   let localeLanguage = "";
   {
@@ -5733,7 +5918,6 @@ function getLocaleLanguage$1() {
   }
   return localeLanguage;
 }
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 function validateProtocolFail(name, msg) {
   console.warn(`${name}: ${msg}`);
 }
@@ -5742,8 +5926,8 @@ function validateProtocol(name, data2, protocol, onFail) {
     onFail = validateProtocolFail;
   }
   for (const key in protocol) {
-    const errMsg = validateProp(key, data2[key], protocol[key], !hasOwn(data2, key));
-    if (isString(errMsg)) {
+    const errMsg = validateProp(key, data2[key], protocol[key], !hasOwn$1(data2, key));
+    if (isString$1(errMsg)) {
       onFail(name, errMsg);
     }
   }
@@ -5752,7 +5936,7 @@ function validateProtocols(name, args, protocol, onFail) {
   if (!protocol) {
     return;
   }
-  if (!isArray(protocol)) {
+  if (!isArray$1(protocol)) {
     return validateProtocol(name, args[0] || /* @__PURE__ */ Object.create(null), protocol, onFail);
   }
   const len2 = protocol.length;
@@ -5779,7 +5963,7 @@ function validateProp(name, value2, prop, isAbsent) {
   }
   if (type != null) {
     let isValid = false;
-    const types = isArray(type) ? type : [type];
+    const types = isArray$1(type) ? type : [type];
     const expectedTypes = [];
     for (let i2 = 0; i2 < types.length && !isValid; i2++) {
       const { valid, expectedType } = assertType(value2, types[i2]);
@@ -5805,9 +5989,9 @@ function assertType(value2, type) {
       valid = value2 instanceof type;
     }
   } else if (expectedType === "Object") {
-    valid = isObject$1(value2);
+    valid = isObject$2(value2);
   } else if (expectedType === "Array") {
-    valid = isArray(value2);
+    valid = isArray$1(value2);
   } else {
     {
       valid = value2 instanceof type;
@@ -5824,7 +6008,7 @@ function getInvalidTypeMessage(name, value2, expectedTypes) {
   const receivedType = toRawType(value2);
   const expectedValue = styleValue(value2, expectedType);
   const receivedValue = styleValue(value2, receivedType);
-  if (expectedTypes.length === 1 && isExplicable(expectedType) && !isBoolean(expectedType, receivedType)) {
+  if (expectedTypes.length === 1 && isExplicable(expectedType) && !isBoolean$1(expectedType, receivedType)) {
     message += ` with value ${expectedValue}`;
   }
   message += `, got ${receivedType} `;
@@ -5850,7 +6034,7 @@ function isExplicable(type) {
   const explicitTypes = ["string", "number", "boolean"];
   return explicitTypes.some((elem2) => type.toLowerCase() === elem2);
 }
-function isBoolean(...args) {
+function isBoolean$1(...args) {
   return args.some((elem2) => elem2.toLowerCase() === "boolean");
 }
 function tryCatch(fn) {
@@ -5969,7 +6153,7 @@ function queue(hooks, data2, params) {
 function wrapperOptions(interceptors2, options = {}) {
   [HOOK_SUCCESS, HOOK_FAIL, HOOK_COMPLETE].forEach((name) => {
     const hooks = interceptors2[name];
-    if (!isArray(hooks)) {
+    if (!isArray$1(hooks)) {
       return;
     }
     const oldCallback = options[name];
@@ -5983,11 +6167,11 @@ function wrapperOptions(interceptors2, options = {}) {
 }
 function wrapperReturnValue(method, returnValue2) {
   const returnValueHooks = [];
-  if (isArray(globalInterceptors.returnValue)) {
+  if (isArray$1(globalInterceptors.returnValue)) {
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
   const interceptor = scopedInterceptors[method];
-  if (interceptor && isArray(interceptor.returnValue)) {
+  if (interceptor && isArray$1(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
   returnValueHooks.forEach((hook) => {
@@ -6015,7 +6199,7 @@ function getApiInterceptorHooks(method) {
 function invokeApi(method, api, options, params) {
   const interceptor = getApiInterceptorHooks(method);
   if (interceptor && Object.keys(interceptor).length) {
-    if (isArray(interceptor.invoke)) {
+    if (isArray$1(interceptor.invoke)) {
       const res = queue(interceptor.invoke, options);
       return res.then((options2) => {
         return api(wrapperOptions(getApiInterceptorHooks(method), options2), ...params);
@@ -6088,7 +6272,7 @@ function beforeInvokeApi(name, args, protocol, options) {
   }
 }
 function parseErrMsg(errMsg) {
-  if (!errMsg || isString(errMsg)) {
+  if (!errMsg || isString$1(errMsg)) {
     return errMsg;
   }
   if (errMsg.stack) {
@@ -6275,13 +6459,13 @@ function removeInterceptorHook(interceptors2, interceptor) {
   Object.keys(interceptor).forEach((name) => {
     const hooks = interceptors2[name];
     const hook = interceptor[name];
-    if (isArray(hooks) && isFunction(hook)) {
+    if (isArray$1(hooks) && isFunction(hook)) {
       remove(hooks, hook);
     }
   });
 }
 function mergeHook(parentVal, childVal) {
-  const res = childVal ? parentVal ? parentVal.concat(childVal) : isArray(childVal) ? childVal : [childVal] : parentVal;
+  const res = childVal ? parentVal ? parentVal.concat(childVal) : isArray$1(childVal) ? childVal : [childVal] : parentVal;
   return res ? dedupeHooks(res) : res;
 }
 function dedupeHooks(hooks) {
@@ -6294,14 +6478,14 @@ function dedupeHooks(hooks) {
   return res;
 }
 const addInterceptor = defineSyncApi(API_ADD_INTERCEPTOR, (method, interceptor) => {
-  if (isString(method) && isPlainObject$1(interceptor)) {
+  if (isString$1(method) && isPlainObject$1(interceptor)) {
     mergeInterceptorHook(scopedInterceptors[method] || (scopedInterceptors[method] = {}), interceptor);
   } else if (isPlainObject$1(method)) {
     mergeInterceptorHook(globalInterceptors, method);
   }
 }, AddInterceptorProtocol);
 const removeInterceptor = defineSyncApi(API_REMOVE_INTERCEPTOR, (method, interceptor) => {
-  if (isString(method)) {
+  if (isString$1(method)) {
     if (isPlainObject$1(interceptor)) {
       removeInterceptorHook(scopedInterceptors[method], interceptor);
     } else {
@@ -6381,9 +6565,11 @@ const $once = defineSyncApi(API_ONCE, (name, callback) => {
   }
 }, OnceProtocol);
 const $off = defineSyncApi(API_OFF, (name, callback) => {
-  if (!isArray(name))
+  if (!isArray$1(name))
     name = name ? [name] : [];
-  name.forEach((n2) => eventBus.off(n2, callback));
+  name.forEach((n2) => {
+    eventBus.off(n2, callback);
+  });
 }, OffProtocol);
 const $emit = defineSyncApi(API_EMIT, (name, ...args) => {
   eventBus.emit(name, ...args);
@@ -6573,14 +6759,14 @@ function initWrapper(protocols2) {
         argsOption = argsOption(fromArgs, toArgs) || {};
       }
       for (const key in fromArgs) {
-        if (hasOwn(argsOption, key)) {
+        if (hasOwn$1(argsOption, key)) {
           let keyOption = argsOption[key];
           if (isFunction(keyOption)) {
             keyOption = keyOption(fromArgs[key], fromArgs, toArgs);
           }
           if (!keyOption) {
             console.warn(`微信小程序 ${methodName} 暂不支持 ${key}`);
-          } else if (isString(keyOption)) {
+          } else if (isString$1(keyOption)) {
             toArgs[keyOption] = fromArgs[key];
           } else if (isPlainObject$1(keyOption)) {
             toArgs[keyOption.name ? keyOption.name : key] = keyOption.value;
@@ -6591,7 +6777,7 @@ function initWrapper(protocols2) {
             toArgs[key] = processCallback(methodName, callback, returnValue2);
           }
         } else {
-          if (!keepFromArgs && !hasOwn(toArgs, key)) {
+          if (!keepFromArgs && !hasOwn$1(toArgs, key)) {
             toArgs[key] = fromArgs[key];
           }
         }
@@ -6613,7 +6799,10 @@ function initWrapper(protocols2) {
     return processArgs(methodName, res, returnValue2, {}, realKeepReturnValue);
   }
   return function wrapper(methodName, method) {
-    const hasProtocol = hasOwn(protocols2, methodName);
+    const hasProtocol = hasOwn$1(protocols2, methodName);
+    if (!hasProtocol && typeof wx[methodName] !== "function") {
+      return method;
+    }
     const needWrapper = hasProtocol || isFunction(protocols2.returnValue) || isContextApi(methodName) || isTaskApi(methodName);
     const hasMethod = hasProtocol || isFunction(method);
     if (!hasProtocol && !method) {
@@ -6653,7 +6842,7 @@ const getLocale = () => {
   if (app && app.$vm) {
     return app.$vm.$locale;
   }
-  return normalizeLocale(wx.getAppBaseInfo().language) || LOCALE_EN;
+  return getLocaleLanguage$1();
 };
 const setLocale = (locale) => {
   const app = isFunction(getApp) && getApp();
@@ -6735,9 +6924,9 @@ function populateParameters(fromRes, toRes) {
     appVersion: "1.0.0",
     appVersionCode: "100",
     appLanguage: getAppLanguage(hostLanguage),
-    uniCompileVersion: "4.45",
-    uniCompilerVersion: "4.45",
-    uniRuntimeVersion: "4.45",
+    uniCompileVersion: "4.57",
+    uniCompilerVersion: "4.57",
+    uniRuntimeVersion: "4.57",
     uniPlatform: "mp-weixin",
     deviceBrand,
     deviceModel: model,
@@ -6765,8 +6954,8 @@ function populateParameters(fromRes, toRes) {
   };
   {
     try {
-      parameters.uniCompilerVersionCode = parseFloat("4.45");
-      parameters.uniRuntimeVersionCode = parseFloat("4.45");
+      parameters.uniCompilerVersionCode = parseFloat("4.57");
+      parameters.uniRuntimeVersionCode = parseFloat("4.57");
     } catch (error) {
     }
   }
@@ -6830,7 +7019,7 @@ const previewImage = {
       return;
     }
     const urls = fromArgs.urls;
-    if (!isArray(urls)) {
+    if (!isArray$1(urls)) {
       return;
     }
     const len2 = urls.length;
@@ -6893,14 +7082,14 @@ const getAppBaseInfo = {
       appLanguage: getAppLanguage(hostLanguage),
       isUniAppX: true,
       uniPlatform: "mp-weixin",
-      uniCompileVersion: "4.45",
-      uniCompilerVersion: "4.45",
-      uniRuntimeVersion: "4.45"
+      uniCompileVersion: "4.57",
+      uniCompilerVersion: "4.57",
+      uniRuntimeVersion: "4.57"
     };
     {
       try {
-        parameters.uniCompilerVersionCode = parseFloat("4.45");
-        parameters.uniRuntimeVersionCode = parseFloat("4.45");
+        parameters.uniCompilerVersionCode = parseFloat("4.57");
+        parameters.uniRuntimeVersionCode = parseFloat("4.57");
       } catch (error) {
       }
     }
@@ -7001,13 +7190,13 @@ function initUni(api, protocols2, platform = wx) {
   const wrapper = initWrapper(protocols2);
   const UniProxyHandlers = {
     get(target, key) {
-      if (hasOwn(target, key)) {
+      if (hasOwn$1(target, key)) {
         return target[key];
       }
-      if (hasOwn(api, key)) {
+      if (hasOwn$1(api, key)) {
         return promisify(key, api[key]);
       }
-      if (hasOwn(baseApis, key)) {
+      if (hasOwn$1(baseApis, key)) {
         return promisify(key, baseApis[key]);
       }
       return promisify(key, wrapper(key, platform[key]));
@@ -7085,11 +7274,23 @@ function createSelectorQuery() {
   const query = wx$2.createSelectorQuery();
   const oldIn = query.in;
   query.in = function newIn(component) {
+    if (component.$scope) {
+      return oldIn.call(this, component.$scope);
+    }
     return oldIn.call(this, initComponentMocks(component));
   };
   return query;
 }
 const wx$2 = initWx();
+if (!wx$2.canIUse("getAppBaseInfo")) {
+  wx$2.getAppBaseInfo = wx$2.getSystemInfoSync;
+}
+if (!wx$2.canIUse("getWindowInfo")) {
+  wx$2.getWindowInfo = wx$2.getSystemInfoSync;
+}
+if (!wx$2.canIUse("getDeviceInfo")) {
+  wx$2.getDeviceInfo = wx$2.getSystemInfoSync;
+}
 let baseInfo = wx$2.getAppBaseInfo && wx$2.getAppBaseInfo();
 if (!baseInfo) {
   baseInfo = wx$2.getSystemInfoSync();
@@ -7111,7 +7312,7 @@ const offHostThemeChange = (callbackId) => {
   }
   if (callbackId > -1) {
     const arr = THEME_CALLBACK.splice(callbackId, 1)[0];
-    isArray(arr) && wx$2.offThemeChange && wx$2.offThemeChange(arr[1]);
+    isArray$1(arr) && wx$2.offThemeChange && wx$2.offThemeChange(arr[1]);
   }
 };
 var shims = /* @__PURE__ */ Object.freeze({
@@ -7125,6 +7326,9 @@ var shims = /* @__PURE__ */ Object.freeze({
 function returnValue(method, res) {
   return parseXReturnValue(method, res);
 }
+const chooseFile = {
+  name: "chooseMessageFile"
+};
 const compressImage = {
   args(fromArgs, toArgs) {
     if (fromArgs.compressedHeight && !toArgs.compressHeight) {
@@ -7137,6 +7341,7 @@ const compressImage = {
 };
 var protocols = /* @__PURE__ */ Object.freeze({
   __proto__: null,
+  chooseFile,
   compressImage,
   getAppAuthorizeSetting,
   getAppBaseInfo,
@@ -7155,84 +7360,48 @@ var protocols = /* @__PURE__ */ Object.freeze({
 });
 const wx$1 = initWx();
 var index = initUni(shims, protocols, wx$1);
-const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
-let sendConsole = null;
-const messageQueue = [];
-function sendConsoleMessages(messages) {
-  if (sendConsole == null) {
-    messageQueue.push(...messages);
-    return;
-  }
-  sendConsole(JSON.stringify({
-    type: "console",
-    data: messages
-  }));
-}
-function setSendConsole(value2) {
-  sendConsole = value2;
-  if (value2 != null && messageQueue.length > 0) {
-    const messages = messageQueue.slice();
-    messageQueue.length = 0;
-    sendConsoleMessages(messages);
-  }
-}
-const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
-  methods[type] = console[type].bind(console);
-  return methods;
-}, {});
-const atFileRegex = /^at\s+[\w/./-]+:\d+$/;
-function rewriteConsole() {
-  function wrapConsole(type) {
-    return function(...args) {
-      const originalArgs = [...args];
-      if (originalArgs.length) {
-        const maybeAtFile = originalArgs[originalArgs.length - 1];
-        if (typeof maybeAtFile === "string" && atFileRegex.test(maybeAtFile)) {
-          originalArgs.pop();
-        }
-      }
-      {
-        originalConsole[type](...originalArgs);
-      }
-      sendConsoleMessages([formatMessage(type, args)]);
-    };
-  }
-  if (isConsoleWritable()) {
-    CONSOLE_TYPES.forEach((type) => {
-      console[type] = wrapConsole(type);
+function initRuntimeSocket(hosts, port, id) {
+  if (hosts == "" || port == "" || id == "")
+    return Promise.resolve(null);
+  return hosts.split(",").reduce((promise, host2) => {
+    return promise.then((socket) => {
+      if (socket != null)
+        return Promise.resolve(socket);
+      return tryConnectSocket(host2, port, id);
     });
-    return function restoreConsole() {
-      CONSOLE_TYPES.forEach((type) => {
-        console[type] = originalConsole[type];
-      });
-    };
-  } else {
-    const oldLog = index.__f__;
-    if (oldLog) {
-      index.__f__ = function(...args) {
-        const [type, filename, ...rest] = args;
-        oldLog(type, "", ...rest);
-        sendConsoleMessages([formatMessage(type, [...rest, filename])]);
-      };
-      return function restoreConsole() {
-        index.__f__ = oldLog;
-      };
-    }
-  }
-  return function restoreConsole() {
-  };
+  }, Promise.resolve(null));
 }
-function isConsoleWritable() {
-  const value2 = console.log;
-  const sym = Symbol();
-  try {
-    console.log = sym;
-  } catch (ex) {
-    return false;
-  }
-  const isWritable = console.log === sym;
-  console.log = value2;
-  return isWritable;
+const SOCKET_TIMEOUT = 500;
+function tryConnectSocket(host2, port, id) {
+  return new Promise((resolve2, reject) => {
+    const socket = index.connectSocket({
+      url: `ws://${host2}:${port}/${id}`,
+      multiple: true,
+      // 支付宝小程序 是否开启多实例
+      fail() {
+        resolve2(null);
+      }
+    });
+    const timer = setTimeout(() => {
+      socket.close({
+        code: 1006,
+        reason: "connect timeout"
+      });
+      resolve2(null);
+    }, SOCKET_TIMEOUT);
+    socket.onOpen((e2) => {
+      clearTimeout(timer);
+      resolve2(socket);
+    });
+    socket.onClose((e2) => {
+      clearTimeout(timer);
+      resolve2(null);
+    });
+    socket.onError((e2) => {
+      clearTimeout(timer);
+      resolve2(null);
+    });
+  });
 }
 function formatMessage(type, args) {
   try {
@@ -7241,7 +7410,6 @@ function formatMessage(type, args) {
       args: formatArgs(args)
     };
   } catch (e2) {
-    originalConsole.error(e2);
   }
   return {
     type,
@@ -7258,7 +7426,67 @@ function formatArg(arg, depth = 0) {
       value: "[Maximum depth reached]"
     };
   }
-  return ARG_FORMATTERS[typeof arg](arg, depth);
+  const type = typeof arg;
+  switch (type) {
+    case "string":
+      return formatString(arg);
+    case "number":
+      return formatNumber(arg);
+    case "boolean":
+      return formatBoolean(arg);
+    case "object":
+      return formatObject(arg, depth);
+    case "undefined":
+      return formatUndefined();
+    case "function":
+      return formatFunction(arg);
+    case "symbol": {
+      return formatSymbol(arg);
+    }
+    case "bigint":
+      return formatBigInt(arg);
+  }
+}
+function formatFunction(value2) {
+  return {
+    type: "function",
+    value: `function ${value2.name}() {}`
+  };
+}
+function formatUndefined() {
+  return {
+    type: "undefined"
+  };
+}
+function formatBoolean(value2) {
+  return {
+    type: "boolean",
+    value: String(value2)
+  };
+}
+function formatNumber(value2) {
+  return {
+    type: "number",
+    value: String(value2)
+  };
+}
+function formatBigInt(value2) {
+  return {
+    type: "bigint",
+    value: String(value2)
+  };
+}
+function formatString(value2) {
+  return {
+    type: "string",
+    value: value2
+  };
+}
+function formatSymbol(value2) {
+  return {
+    type: "symbol",
+    value: value2.description
+  };
 }
 function formatObject(value2, depth) {
   if (value2 === null) {
@@ -7266,17 +7494,19 @@ function formatObject(value2, depth) {
       type: "null"
     };
   }
-  if (isComponentPublicInstance(value2)) {
-    return formatComponentPublicInstance(value2, depth);
-  }
-  if (isComponentInternalInstance(value2)) {
-    return formatComponentInternalInstance(value2, depth);
-  }
-  if (isUniElement(value2)) {
-    return formatUniElement(value2, depth);
-  }
-  if (isCSSStyleDeclaration(value2)) {
-    return formatCSSStyleDeclaration(value2, depth);
+  {
+    if (isComponentPublicInstance(value2)) {
+      return formatComponentPublicInstance(value2, depth);
+    }
+    if (isComponentInternalInstance(value2)) {
+      return formatComponentInternalInstance(value2, depth);
+    }
+    if (isUniElement(value2)) {
+      return formatUniElement(value2, depth);
+    }
+    if (isCSSStyleDeclaration(value2)) {
+      return formatCSSStyleDeclaration(value2, depth);
+    }
   }
   if (Array.isArray(value2)) {
     return {
@@ -7342,10 +7572,20 @@ function formatObject(value2, depth) {
       className: value2.name || "Error"
     };
   }
+  let className = void 0;
+  {
+    const constructor = value2.constructor;
+    if (constructor) {
+      if (constructor.get$UTSMetadata$) {
+        className = constructor.get$UTSMetadata$().name;
+      }
+    }
+  }
   return {
     type: "object",
+    className,
     value: {
-      properties: Object.entries(value2).map(([name, value22]) => formatObjectProperty(name, value22, depth + 1))
+      properties: Object.entries(value2).map((entry) => formatObjectProperty(entry[0], entry[1], depth + 1))
     }
   };
 }
@@ -7406,14 +7646,14 @@ function formatCSSStyleDeclaration(style, depth) {
   };
 }
 function formatObjectProperty(name, value2, depth) {
-  return Object.assign(formatArg(value2, depth), {
-    name
-  });
+  const result = formatArg(value2, depth);
+  result.name = name;
+  return result;
 }
 function formatArrayElement(value2, index2, depth) {
-  return Object.assign(formatArg(value2, depth), {
-    name: `${index2}`
-  });
+  const result = formatArg(value2, depth);
+  result.name = `${index2}`;
+  return result;
 }
 function formatSetEntry(value2, depth) {
   return {
@@ -7426,97 +7666,94 @@ function formatMapEntry(value2, depth) {
     value: formatArg(value2[1], depth)
   };
 }
-const ARG_FORMATTERS = {
-  function(value2) {
-    return {
-      type: "function",
-      value: `function ${value2.name}() {}`
-    };
-  },
-  undefined() {
-    return {
-      type: "undefined"
-    };
-  },
-  object(value2, depth) {
-    return formatObject(value2, depth);
-  },
-  boolean(value2) {
-    return {
-      type: "boolean",
-      value: String(value2)
-    };
-  },
-  number(value2) {
-    return {
-      type: "number",
-      value: String(value2)
-    };
-  },
-  bigint(value2) {
-    return {
-      type: "bigint",
-      value: String(value2)
-    };
-  },
-  string(value2) {
-    return {
-      type: "string",
-      value: value2
-    };
-  },
-  symbol(value2) {
-    return {
-      type: "symbol",
-      value: value2.description
+const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
+let sendConsole = null;
+const messageQueue = [];
+const messageExtra = {};
+function sendConsoleMessages(messages) {
+  if (sendConsole == null) {
+    messageQueue.push(...messages);
+    return;
+  }
+  sendConsole(JSON.stringify(Object.assign({
+    type: "console",
+    data: messages
+  }, messageExtra)));
+}
+function setSendConsole(value2, extra = {}) {
+  sendConsole = value2;
+  Object.assign(messageExtra, extra);
+  if (value2 != null && messageQueue.length > 0) {
+    const messages = messageQueue.slice();
+    messageQueue.length = 0;
+    sendConsoleMessages(messages);
+  }
+}
+const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
+  methods[type] = console[type].bind(console);
+  return methods;
+}, {});
+const atFileRegex = /^\s*at\s+[\w/./-]+:\d+$/;
+function rewriteConsole() {
+  function wrapConsole(type) {
+    return function(...args) {
+      const originalArgs = [...args];
+      if (originalArgs.length) {
+        const maybeAtFile = originalArgs[originalArgs.length - 1];
+        if (typeof maybeAtFile === "string" && atFileRegex.test(maybeAtFile)) {
+          originalArgs.pop();
+        }
+      }
+      {
+        originalConsole[type](...originalArgs);
+      }
+      sendConsoleMessages([formatMessage(type, args)]);
     };
   }
-};
-function initRuntimeSocket(hosts, port, id) {
-  if (!hosts || !port || !id)
-    return Promise.resolve(null);
-  return hosts.split(",").reduce((promise, host2) => {
-    return promise.then((socket) => {
-      if (socket)
-        return socket;
-      return tryConnectSocket(host2, port, id);
+  if (isConsoleWritable()) {
+    CONSOLE_TYPES.forEach((type) => {
+      console[type] = wrapConsole(type);
     });
-  }, Promise.resolve(null));
-}
-const SOCKET_TIMEOUT = 500;
-function tryConnectSocket(host2, port, id) {
-  return new Promise((resolve2, reject) => {
-    const socket = index.connectSocket({
-      url: `ws://${host2}:${port}/${id}`,
-      // 支付宝小程序 是否开启多实例
-      multiple: true,
-      fail() {
-        resolve2(null);
-      }
-    });
-    const timer = setTimeout(() => {
-      socket.close({
-        code: 1006,
-        reason: "connect timeout"
+    return function restoreConsole() {
+      CONSOLE_TYPES.forEach((type) => {
+        console[type] = originalConsole[type];
       });
-      resolve2(null);
-    }, SOCKET_TIMEOUT);
-    socket.onOpen((e2) => {
-      clearTimeout(timer);
-      resolve2(socket);
-    });
-    socket.onClose((e2) => {
-      clearTimeout(timer);
-      resolve2(null);
-    });
-    socket.onError((e2) => {
-      clearTimeout(timer);
-      resolve2(null);
-    });
-  });
+    };
+  } else {
+    {
+      if (typeof index !== "undefined" && index.__f__) {
+        const oldLog = index.__f__;
+        if (oldLog) {
+          index.__f__ = function(...args) {
+            const [type, filename, ...rest] = args;
+            oldLog(type, "", ...rest);
+            sendConsoleMessages([formatMessage(type, [...rest, filename])]);
+          };
+          return function restoreConsole() {
+            index.__f__ = oldLog;
+          };
+        }
+      }
+    }
+  }
+  return function restoreConsole() {
+  };
+}
+function isConsoleWritable() {
+  const value2 = console.log;
+  const sym = Symbol();
+  try {
+    console.log = sym;
+  } catch (ex) {
+    return false;
+  }
+  const isWritable = console.log === sym;
+  console.log = value2;
+  return isWritable;
 }
 let sendError = null;
 const errorQueue = /* @__PURE__ */ new Set();
+const errorExtra = {};
 function sendErrorMessages(errors) {
   if (sendError == null) {
     errors.forEach((error) => {
@@ -7524,30 +7761,38 @@ function sendErrorMessages(errors) {
     });
     return;
   }
-  sendError(JSON.stringify({
-    type: "error",
-    data: errors.map((err) => {
-      const isPromiseRejection = err && "promise" in err && "reason" in err;
-      const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
-      if (isPromiseRejection) {
-        err = err.reason;
+  const data2 = errors.map((err) => {
+    const isPromiseRejection = err && "promise" in err && "reason" in err;
+    const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
+    if (isPromiseRejection) {
+      err = err.reason;
+    }
+    if (err instanceof Error && err.stack) {
+      if (err.message && !err.stack.includes(err.message)) {
+        return `${prefix}${err.message}
+${err.stack}`;
       }
-      if (err instanceof Error && err.stack) {
-        return prefix + err.stack;
+      return `${prefix}${err.stack}`;
+    }
+    if (typeof err === "object" && err !== null) {
+      try {
+        return prefix + JSON.stringify(err);
+      } catch (err2) {
+        return prefix + String(err2);
       }
-      if (typeof err === "object" && err !== null) {
-        try {
-          return prefix + JSON.stringify(err);
-        } catch (err2) {
-          return prefix + String(err2);
-        }
-      }
-      return prefix + String(err);
-    })
-  }));
+    }
+    return prefix + String(err);
+  }).filter(Boolean);
+  if (data2.length > 0) {
+    sendError(JSON.stringify(Object.assign({
+      type: "error",
+      data: data2
+    }, errorExtra)));
+  }
 }
-function setSendError(value2) {
+function setSendError(value2, extra = {}) {
   sendError = value2;
+  Object.assign(errorExtra, extra);
   if (value2 != null && errorQueue.size > 0) {
     const errors = Array.from(errorQueue);
     errorQueue.clear();
@@ -7584,13 +7829,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "100.78.196.19,127.0.0.1";
+  const hosts = "172.20.10.6,127.0.0.1";
   const port = "8090";
-<<<<<<< HEAD
-  const id = "mp-weixin_SuiI8T";
-=======
-  const id = "mp-weixin_9MHdSn";
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
+  const id = "mp-weixin__OV0H3";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -7773,7 +8014,7 @@ function isInstanceOf(value2, type) {
     return value2 && value2[Symbol.iterator];
   }
   const isNativeInstanceofType = value2 instanceof type;
-  if (isNativeInstanceofType || typeof value2 !== "object") {
+  if (isNativeInstanceofType || typeof value2 !== "object" || value2 === null) {
     return isNativeInstanceofType;
   }
   const proto = Object.getPrototypeOf(value2).constructor;
@@ -7797,6 +8038,7 @@ function normalizeGenericValue(value2, genericType, isJSONParse = false) {
 class UTSType {
   static get$UTSMetadata$(...args) {
     return {
+      name: "",
       kind: UTS_CLASS_METADATA_KIND.TYPE,
       interfaces: [],
       fields: {}
@@ -7871,14 +8113,15 @@ class UTSType {
         }
       }
       if (isUTSType(type)) {
-        obj[key] = new type(options[realKey], void 0, isJSONParse);
+        obj[key] = isJSONParse ? (
+          // @ts-ignore
+          new type(options[realKey], void 0, isJSONParse)
+        ) : options[realKey];
       } else if (type === Array) {
         if (!Array.isArray(options[realKey])) {
           throw new UTSError(`Failed to contruct type, property ${key} is not an array`);
         }
-        obj[key] = options[realKey].map((item) => {
-          return item == null ? null : item;
-        });
+        obj[key] = options[realKey];
       } else {
         obj[key] = options[realKey];
       }
@@ -8173,18 +8416,19 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
     }
     return keyPathArr;
   }
-  _getValue(keyPath) {
+  _getValue(keyPath, defaultValue) {
     const keyPathArr = this._resolveKeyPath(keyPath);
+    const realDefaultValue = defaultValue === void 0 ? null : defaultValue;
     if (keyPathArr.length === 0) {
-      return null;
+      return realDefaultValue;
     }
     let value2 = this;
     for (let i2 = 0; i2 < keyPathArr.length; i2++) {
       const key = keyPathArr[i2];
       if (value2 instanceof Object) {
-        value2 = value2[key];
+        value2 = key in value2 ? value2[key] : realDefaultValue;
       } else {
-        return null;
+        return realDefaultValue;
       }
     }
     return value2;
@@ -8195,43 +8439,43 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
   set(key, value2) {
     this[key] = value2;
   }
-  getAny(key) {
-    return this._getValue(key);
+  getAny(key, defaultValue) {
+    return this._getValue(key, defaultValue);
   }
-  getString(key) {
-    const value2 = this._getValue(key);
+  getString(key, defaultValue) {
+    const value2 = this._getValue(key, defaultValue);
     if (typeof value2 === "string") {
       return value2;
     } else {
       return null;
     }
   }
-  getNumber(key) {
-    const value2 = this._getValue(key);
+  getNumber(key, defaultValue) {
+    const value2 = this._getValue(key, defaultValue);
     if (typeof value2 === "number") {
       return value2;
     } else {
       return null;
     }
   }
-  getBoolean(key) {
-    const boolean = this._getValue(key);
+  getBoolean(key, defaultValue) {
+    const boolean = this._getValue(key, defaultValue);
     if (typeof boolean === "boolean") {
       return boolean;
     } else {
       return null;
     }
   }
-  getJSON(key) {
-    let value2 = this._getValue(key);
+  getJSON(key, defaultValue) {
+    let value2 = this._getValue(key, defaultValue);
     if (value2 instanceof Object) {
-      return new UTSJSONObject2(value2);
+      return value2;
     } else {
       return null;
     }
   }
-  getArray(key) {
-    let value2 = this._getValue(key);
+  getArray(key, defaultValue) {
+    let value2 = this._getValue(key, defaultValue);
     if (value2 instanceof Array) {
       return value2;
     } else {
@@ -8297,7 +8541,7 @@ function initVueIds(vueIds, mpInstance) {
 const EXTRAS = ["externalClasses"];
 function initExtraOptions(miniProgramComponentOptions, vueOptions) {
   EXTRAS.forEach((name) => {
-    if (hasOwn(vueOptions, name)) {
+    if (hasOwn$1(vueOptions, name)) {
       miniProgramComponentOptions[name] = vueOptions[name];
     }
   });
@@ -8316,7 +8560,7 @@ function initWorkletMethods(mpMethods, vueMethods) {
   }
 }
 function initWxsCallMethods(methods, wxsCallMethods) {
-  if (!isArray(wxsCallMethods)) {
+  if (!isArray$1(wxsCallMethods)) {
     return;
   }
   wxsCallMethods.forEach((callMethod) => {
@@ -8352,7 +8596,7 @@ function initRefs(instance, mpInstance) {
         const { $templateUniElementRefs } = instance;
         if ($templateUniElementRefs && $templateUniElementRefs.length) {
           $templateUniElementRefs.forEach((templateRef) => {
-            if (isString(templateRef.r)) {
+            if (isString$1(templateRef.r)) {
               $refs[templateRef.r] = templateRef.v;
             }
           });
@@ -8377,6 +8621,15 @@ function findVmByVueId(instance, vuePid) {
       return parentVm;
     }
   }
+}
+function getLocaleLanguage() {
+  let localeLanguage = "";
+  {
+    const appBaseInfo = wx.getAppBaseInfo();
+    const language = appBaseInfo && appBaseInfo.language ? appBaseInfo.language : LOCALE_EN;
+    localeLanguage = normalizeLocale(language) || LOCALE_EN;
+  }
+  return localeLanguage;
 }
 const MP_METHODS = [
   "createSelectorQuery",
@@ -8418,7 +8671,7 @@ function initBaseInstance(instance, options) {
     ctx._self = {};
   }
   instance.slots = {};
-  if (isArray(options.slots) && options.slots.length) {
+  if (isArray$1(options.slots) && options.slots.length) {
     options.slots.forEach((name) => {
       instance.slots[name] = true;
     });
@@ -8458,7 +8711,7 @@ function initComponentInstance(instance, options) {
 function initMocks(instance, mpInstance, mocks2) {
   const ctx = instance.ctx;
   mocks2.forEach((mock) => {
-    if (hasOwn(mpInstance, mock)) {
+    if (hasOwn$1(mpInstance, mock)) {
       instance[mock] = ctx[mock] = mpInstance[mock];
     }
   });
@@ -8514,7 +8767,7 @@ function findHooks(vueOptions, hooks = /* @__PURE__ */ new Set()) {
   return hooks;
 }
 function initHook(mpOptions, hook, excludes) {
-  if (excludes.indexOf(hook) === -1 && !hasOwn(mpOptions, hook)) {
+  if (excludes.indexOf(hook) === -1 && !hasOwn$1(mpOptions, hook)) {
     mpOptions[hook] = function(args) {
       return this.$vm && this.$vm.$callHook(hook, args);
     };
@@ -8543,11 +8796,11 @@ const findMixinRuntimeHooks = /* @__PURE__ */ once(() => {
   const app = isFunction(getApp) && getApp({ allowDefault: true });
   if (app && app.$vm && app.$vm.$) {
     const mixins = app.$vm.$.appContext.mixins;
-    if (isArray(mixins)) {
+    if (isArray$1(mixins)) {
       const hooks = Object.keys(MINI_PROGRAM_PAGE_RUNTIME_HOOKS);
       mixins.forEach((mixin) => {
         hooks.forEach((hook) => {
-          if (hasOwn(mixin, hook) && !runtimeHooks.includes(hook)) {
+          if (hasOwn$1(mixin, hook) && !runtimeHooks.includes(hook)) {
             runtimeHooks.push(hook);
           }
         });
@@ -8625,13 +8878,13 @@ function initCreateSubpackageApp(parseAppOptions) {
     const globalData = app.globalData;
     if (globalData) {
       Object.keys(appOptions.globalData).forEach((name) => {
-        if (!hasOwn(globalData, name)) {
+        if (!hasOwn$1(globalData, name)) {
           globalData[name] = appOptions.globalData[name];
         }
       });
     }
     Object.keys(appOptions).forEach((name) => {
-      if (!hasOwn(app, name)) {
+      if (!hasOwn$1(app, name)) {
         app[name] = appOptions[name];
       }
     });
@@ -8655,9 +8908,7 @@ function initAppLifecycle(appOptions, vm) {
   }
 }
 function initLocale(appVm) {
-  const locale = ref(
-    normalizeLocale(wx.getAppBaseInfo().language) || LOCALE_EN
-  );
+  const locale = ref(getLocaleLanguage());
   Object.defineProperty(appVm, "$locale", {
     get() {
       return locale.value;
@@ -8760,7 +9011,7 @@ function initProps(mpComponentOptions) {
 }
 const PROP_TYPES = [String, Number, Boolean, Object, Array, null];
 function parsePropType(type, defaultValue) {
-  if (isArray(type) && type.length === 1) {
+  if (isArray$1(type) && type.length === 1) {
     return type[0];
   }
   return type;
@@ -8770,7 +9021,7 @@ function normalizePropType(type, defaultValue) {
   return PROP_TYPES.indexOf(res) !== -1 ? res : null;
 }
 function initPageProps({ properties }, rawProps) {
-  if (isArray(rawProps)) {
+  if (isArray$1(rawProps)) {
     rawProps.forEach((key) => {
       properties[key] = {
         type: String,
@@ -8815,7 +9066,7 @@ function findPagePropsData(properties) {
 }
 function initFormField(vm) {
   const vueOptions = vm.$options;
-  if (isArray(vueOptions.behaviors) && vueOptions.behaviors.includes("uni://form-field")) {
+  if (isArray$1(vueOptions.behaviors) && vueOptions.behaviors.includes("uni://form-field")) {
     vm.$watch("modelValue", () => {
       vm.$scope && vm.$scope.setData({
         name: vm.name,
@@ -8891,11 +9142,11 @@ function initBehaviors(vueOptions) {
     vueOptions.props = vueProps = [];
   }
   const behaviors = [];
-  if (isArray(vueBehaviors)) {
+  if (isArray$1(vueBehaviors)) {
     vueBehaviors.forEach((behavior) => {
       behaviors.push(behavior.replace("uni://", "wx://"));
       if (behavior === "uni://form-field") {
-        if (isArray(vueProps)) {
+        if (isArray$1(vueProps)) {
           vueProps.push("name");
           vueProps.push("modelValue");
         } else {
@@ -8917,7 +9168,7 @@ function applyOptions(componentOptions, vueOptions) {
   componentOptions.data = initData();
   componentOptions.behaviors = initBehaviors(vueOptions);
 }
-function parseComponent(vueOptions, { parse, mocks: mocks2, isPage: isPage2, isPageInProject, initRelation: initRelation2, handleLink: handleLink2, initLifetimes: initLifetimes2 }) {
+function parseComponent(vueOptions, { parse: parse2, mocks: mocks2, isPage: isPage2, isPageInProject, initRelation: initRelation2, handleLink: handleLink2, initLifetimes: initLifetimes2 }) {
   vueOptions = vueOptions.default || vueOptions;
   const options = {
     multipleSlots: true,
@@ -8928,9 +9179,9 @@ function parseComponent(vueOptions, { parse, mocks: mocks2, isPage: isPage2, isP
   if (!isPageInProject) {
     options.virtualHost = true;
   }
-  if (isArray(vueOptions.mixins)) {
+  if (isArray$1(vueOptions.mixins)) {
     vueOptions.mixins.forEach((item) => {
-      if (isObject$1(item.options)) {
+      if (isObject$2(item.options)) {
         extend(options, item.options);
       }
     });
@@ -8966,8 +9217,8 @@ function parseComponent(vueOptions, { parse, mocks: mocks2, isPage: isPage2, isP
   {
     initWorkletMethods(mpComponentOptions.methods, vueOptions.methods);
   }
-  if (parse) {
-    parse(mpComponentOptions, { handleLink: handleLink2 });
+  if (parse2) {
+    parse2(mpComponentOptions, { handleLink: handleLink2 });
   }
   return mpComponentOptions;
 }
@@ -9001,7 +9252,7 @@ function $destroyComponent(instance) {
   return $destroyComponentFn(instance);
 }
 function parsePage(vueOptions, parseOptions2) {
-  const { parse, mocks: mocks2, isPage: isPage2, initRelation: initRelation2, handleLink: handleLink2, initLifetimes: initLifetimes2 } = parseOptions2;
+  const { parse: parse2, mocks: mocks2, isPage: isPage2, initRelation: initRelation2, handleLink: handleLink2, initLifetimes: initLifetimes2 } = parseOptions2;
   const miniProgramPageOptions = parseComponent(vueOptions, {
     mocks: mocks2,
     isPage: isPage2,
@@ -9027,7 +9278,7 @@ function parsePage(vueOptions, parseOptions2) {
   }
   initRuntimeHooks(methods, vueOptions.__runtimeHooks);
   initMixinRuntimeHooks(methods);
-  parse && parse(miniProgramPageOptions, { handleLink: handleLink2 });
+  parse2 && parse2(miniProgramPageOptions, { handleLink: handleLink2 });
   return miniProgramPageOptions;
 }
 function initCreatePage(parseOptions2) {
@@ -9180,12 +9431,17 @@ new Set(
  * @license MIT
  */
 var storeKey = "store";
+function useStore(key) {
+  if (key === void 0)
+    key = null;
+  return inject(key !== null ? key : storeKey);
+}
 function forEachValue(obj, fn) {
   Object.keys(obj).forEach(function(key) {
     return fn(obj[key], key);
   });
 }
-function isObject(obj) {
+function isObject$1(obj) {
   return obj !== null && typeof obj === "object";
 }
 function isPromise(val2) {
@@ -9437,7 +9693,7 @@ function getNestedState(state, path) {
   }, state);
 }
 function unifyObjectStyle(type, payload, options) {
-  if (isObject(type) && type.type) {
+  if (isObject$1(type) && type.type) {
     options = payload;
     payload = type;
     type = type.type;
@@ -9519,7 +9775,7 @@ ModuleCollection.prototype.getNamespace = function getNamespace(path) {
 ModuleCollection.prototype.update = function update$1(rawRootModule) {
   update2([], this.root, rawRootModule);
 };
-ModuleCollection.prototype.register = function register(path, rawModule, runtime) {
+ModuleCollection.prototype.register = function register2(path, rawModule, runtime) {
   var this$1$1 = this;
   if (runtime === void 0)
     runtime = true;
@@ -9955,7 +10211,7 @@ function normalizeMap(map) {
   });
 }
 function isValidMap(map) {
-  return Array.isArray(map) || isObject(map);
+  return Array.isArray(map) || isObject$1(map);
 }
 function normalizeNamespace(fn) {
   return function(namespace, map) {
@@ -9975,16 +10231,10 @@ function getModuleByNamespace(store, helper, namespace) {
   }
   return module2;
 }
-<<<<<<< HEAD
 const createHook = (lifecycle) => (hook, target = getCurrentInstance()) => {
   !isInSSRComponentSetup && injectHook(lifecycle, hook, target);
 };
-const onShow = /* @__PURE__ */ createHook(ON_SHOW);
-const onHide = /* @__PURE__ */ createHook(ON_HIDE);
-const onLaunch = /* @__PURE__ */ createHook(ON_LAUNCH);
 const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
-=======
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 function __awaiter(thisArg, _arguments, P, generator) {
   function adopt(value2) {
     return value2 instanceof P ? value2 : new P(function(resolve2) {
@@ -10016,6 +10266,1327 @@ typeof SuppressedError === "function" ? SuppressedError : function(error, suppre
   var e2 = new Error(message);
   return e2.name = "SuppressedError", e2.error = error, e2.suppressed = suppressed, e2;
 };
+function isArray(value2) {
+  return !Array.isArray ? getTag(value2) === "[object Array]" : Array.isArray(value2);
+}
+const INFINITY = 1 / 0;
+function baseToString(value2) {
+  if (typeof value2 == "string") {
+    return value2;
+  }
+  let result = value2 + "";
+  return result == "0" && 1 / value2 == -INFINITY ? "-0" : result;
+}
+function toString(value2) {
+  return value2 == null ? "" : baseToString(value2);
+}
+function isString(value2) {
+  return typeof value2 === "string";
+}
+function isNumber(value2) {
+  return typeof value2 === "number";
+}
+function isBoolean(value2) {
+  return value2 === true || value2 === false || isObjectLike(value2) && getTag(value2) == "[object Boolean]";
+}
+function isObject(value2) {
+  return typeof value2 === "object";
+}
+function isObjectLike(value2) {
+  return isObject(value2) && value2 !== null;
+}
+function isDefined(value2) {
+  return value2 !== void 0 && value2 !== null;
+}
+function isBlank(value2) {
+  return !value2.trim().length;
+}
+function getTag(value2) {
+  return value2 == null ? value2 === void 0 ? "[object Undefined]" : "[object Null]" : Object.prototype.toString.call(value2);
+}
+const EXTENDED_SEARCH_UNAVAILABLE = "Extended search is not available";
+const INCORRECT_INDEX_TYPE = "Incorrect 'index' type";
+const LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY = (key) => `Invalid value for key ${key}`;
+const PATTERN_LENGTH_TOO_LARGE = (max) => `Pattern length exceeds max of ${max}.`;
+const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
+const INVALID_KEY_WEIGHT_VALUE = (key) => `Property 'weight' in key '${key}' must be a positive integer`;
+const hasOwn = Object.prototype.hasOwnProperty;
+class KeyStore {
+  constructor(keys) {
+    this._keys = [];
+    this._keyMap = {};
+    let totalWeight = 0;
+    keys.forEach((key) => {
+      let obj = createKey(key);
+      this._keys.push(obj);
+      this._keyMap[obj.id] = obj;
+      totalWeight += obj.weight;
+    });
+    this._keys.forEach((key) => {
+      key.weight /= totalWeight;
+    });
+  }
+  get(keyId) {
+    return this._keyMap[keyId];
+  }
+  keys() {
+    return this._keys;
+  }
+  toJSON() {
+    return JSON.stringify(this._keys);
+  }
+}
+function createKey(key) {
+  let path = null;
+  let id = null;
+  let src = null;
+  let weight = 1;
+  let getFn = null;
+  if (isString(key) || isArray(key)) {
+    src = key;
+    path = createKeyPath(key);
+    id = createKeyId(key);
+  } else {
+    if (!hasOwn.call(key, "name")) {
+      throw new Error(MISSING_KEY_PROPERTY("name"));
+    }
+    const name = key.name;
+    src = name;
+    if (hasOwn.call(key, "weight")) {
+      weight = key.weight;
+      if (weight <= 0) {
+        throw new Error(INVALID_KEY_WEIGHT_VALUE(name));
+      }
+    }
+    path = createKeyPath(name);
+    id = createKeyId(name);
+    getFn = key.getFn;
+  }
+  return { path, id, weight, src, getFn };
+}
+function createKeyPath(key) {
+  return isArray(key) ? key : key.split(".");
+}
+function createKeyId(key) {
+  return isArray(key) ? key.join(".") : key;
+}
+function get(obj, path) {
+  let list = [];
+  let arr = false;
+  const deepGet = (obj2, path2, index2) => {
+    if (!isDefined(obj2)) {
+      return;
+    }
+    if (!path2[index2]) {
+      list.push(obj2);
+    } else {
+      let key = path2[index2];
+      const value2 = obj2[key];
+      if (!isDefined(value2)) {
+        return;
+      }
+      if (index2 === path2.length - 1 && (isString(value2) || isNumber(value2) || isBoolean(value2))) {
+        list.push(toString(value2));
+      } else if (isArray(value2)) {
+        arr = true;
+        for (let i2 = 0, len2 = value2.length; i2 < len2; i2 += 1) {
+          deepGet(value2[i2], path2, index2 + 1);
+        }
+      } else if (path2.length) {
+        deepGet(value2, path2, index2 + 1);
+      }
+    }
+  };
+  deepGet(obj, isString(path) ? path.split(".") : path, 0);
+  return arr ? list : list[0];
+}
+const MatchOptions = {
+  // Whether the matches should be included in the result set. When `true`, each record in the result
+  // set will include the indices of the matched characters.
+  // These can consequently be used for highlighting purposes.
+  includeMatches: false,
+  // When `true`, the matching function will continue to the end of a search pattern even if
+  // a perfect match has already been located in the string.
+  findAllMatches: false,
+  // Minimum number of characters that must be matched before a result is considered a match
+  minMatchCharLength: 1
+};
+const BasicOptions = {
+  // When `true`, the algorithm continues searching to the end of the input even if a perfect
+  // match is found before the end of the same input.
+  isCaseSensitive: false,
+  // When `true`, the algorithm will ignore diacritics (accents) in comparisons
+  ignoreDiacritics: false,
+  // When true, the matching function will continue to the end of a search pattern even if
+  includeScore: false,
+  // List of properties that will be searched. This also supports nested properties.
+  keys: [],
+  // Whether to sort the result list, by score
+  shouldSort: true,
+  // Default sort function: sort by ascending score, ascending index
+  sortFn: (a, b) => a.score === b.score ? a.idx < b.idx ? -1 : 1 : a.score < b.score ? -1 : 1
+};
+const FuzzyOptions = {
+  // Approximately where in the text is the pattern expected to be found?
+  location: 0,
+  // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+  // (of both letters and location), a threshold of '1.0' would match anything.
+  threshold: 0.6,
+  // Determines how close the match must be to the fuzzy location (specified above).
+  // An exact letter match which is 'distance' characters away from the fuzzy location
+  // would score as a complete mismatch. A distance of '0' requires the match be at
+  // the exact location specified, a threshold of '1000' would require a perfect match
+  // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+  distance: 100
+};
+const AdvancedOptions = {
+  // When `true`, it enables the use of unix-like search commands
+  useExtendedSearch: false,
+  // The get function to use when fetching an object's properties.
+  // The default will search nested paths *ie foo.bar.baz*
+  getFn: get,
+  // When `true`, search will ignore `location` and `distance`, so it won't matter
+  // where in the string the pattern appears.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
+  ignoreLocation: false,
+  // When `true`, the calculation for the relevance score (used for sorting) will
+  // ignore the field-length norm.
+  // More info: https://fusejs.io/concepts/scoring-theory.html#field-length-norm
+  ignoreFieldNorm: false,
+  // The weight to determine how much field length norm effects scoring.
+  fieldNormWeight: 1
+};
+var Config = {
+  ...BasicOptions,
+  ...MatchOptions,
+  ...FuzzyOptions,
+  ...AdvancedOptions
+};
+const SPACE = /[^ ]+/g;
+function norm(weight = 1, mantissa = 3) {
+  const cache = /* @__PURE__ */ new Map();
+  const m = Math.pow(10, mantissa);
+  return {
+    get(value2) {
+      const numTokens = value2.match(SPACE).length;
+      if (cache.has(numTokens)) {
+        return cache.get(numTokens);
+      }
+      const norm2 = 1 / Math.pow(numTokens, 0.5 * weight);
+      const n2 = parseFloat(Math.round(norm2 * m) / m);
+      cache.set(numTokens, n2);
+      return n2;
+    },
+    clear() {
+      cache.clear();
+    }
+  };
+}
+class FuseIndex {
+  constructor({
+    getFn = Config.getFn,
+    fieldNormWeight = Config.fieldNormWeight
+  } = {}) {
+    this.norm = norm(fieldNormWeight, 3);
+    this.getFn = getFn;
+    this.isCreated = false;
+    this.setIndexRecords();
+  }
+  setSources(docs = []) {
+    this.docs = docs;
+  }
+  setIndexRecords(records = []) {
+    this.records = records;
+  }
+  setKeys(keys = []) {
+    this.keys = keys;
+    this._keysMap = {};
+    keys.forEach((key, idx) => {
+      this._keysMap[key.id] = idx;
+    });
+  }
+  create() {
+    if (this.isCreated || !this.docs.length) {
+      return;
+    }
+    this.isCreated = true;
+    if (isString(this.docs[0])) {
+      this.docs.forEach((doc, docIndex) => {
+        this._addString(doc, docIndex);
+      });
+    } else {
+      this.docs.forEach((doc, docIndex) => {
+        this._addObject(doc, docIndex);
+      });
+    }
+    this.norm.clear();
+  }
+  // Adds a doc to the end of the index
+  add(doc) {
+    const idx = this.size();
+    if (isString(doc)) {
+      this._addString(doc, idx);
+    } else {
+      this._addObject(doc, idx);
+    }
+  }
+  // Removes the doc at the specified index of the index
+  removeAt(idx) {
+    this.records.splice(idx, 1);
+    for (let i2 = idx, len2 = this.size(); i2 < len2; i2 += 1) {
+      this.records[i2].i -= 1;
+    }
+  }
+  getValueForItemAtKeyId(item, keyId) {
+    return item[this._keysMap[keyId]];
+  }
+  size() {
+    return this.records.length;
+  }
+  _addString(doc, docIndex) {
+    if (!isDefined(doc) || isBlank(doc)) {
+      return;
+    }
+    let record = {
+      v: doc,
+      i: docIndex,
+      n: this.norm.get(doc)
+    };
+    this.records.push(record);
+  }
+  _addObject(doc, docIndex) {
+    let record = { i: docIndex, $: {} };
+    this.keys.forEach((key, keyIndex) => {
+      let value2 = key.getFn ? key.getFn(doc) : this.getFn(doc, key.path);
+      if (!isDefined(value2)) {
+        return;
+      }
+      if (isArray(value2)) {
+        let subRecords = [];
+        const stack2 = [{ nestedArrIndex: -1, value: value2 }];
+        while (stack2.length) {
+          const { nestedArrIndex, value: value3 } = stack2.pop();
+          if (!isDefined(value3)) {
+            continue;
+          }
+          if (isString(value3) && !isBlank(value3)) {
+            let subRecord = {
+              v: value3,
+              i: nestedArrIndex,
+              n: this.norm.get(value3)
+            };
+            subRecords.push(subRecord);
+          } else if (isArray(value3)) {
+            value3.forEach((item, k) => {
+              stack2.push({
+                nestedArrIndex: k,
+                value: item
+              });
+            });
+          } else
+            ;
+        }
+        record.$[keyIndex] = subRecords;
+      } else if (isString(value2) && !isBlank(value2)) {
+        let subRecord = {
+          v: value2,
+          n: this.norm.get(value2)
+        };
+        record.$[keyIndex] = subRecord;
+      }
+    });
+    this.records.push(record);
+  }
+  toJSON() {
+    return {
+      keys: this.keys,
+      records: this.records
+    };
+  }
+}
+function createIndex(keys, docs, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+  const myIndex = new FuseIndex({ getFn, fieldNormWeight });
+  myIndex.setKeys(keys.map(createKey));
+  myIndex.setSources(docs);
+  myIndex.create();
+  return myIndex;
+}
+function parseIndex(data2, { getFn = Config.getFn, fieldNormWeight = Config.fieldNormWeight } = {}) {
+  const { keys, records } = data2;
+  const myIndex = new FuseIndex({ getFn, fieldNormWeight });
+  myIndex.setKeys(keys);
+  myIndex.setIndexRecords(records);
+  return myIndex;
+}
+function computeScore$1(pattern, {
+  errors = 0,
+  currentLocation = 0,
+  expectedLocation = 0,
+  distance = Config.distance,
+  ignoreLocation = Config.ignoreLocation
+} = {}) {
+  const accuracy = errors / pattern.length;
+  if (ignoreLocation) {
+    return accuracy;
+  }
+  const proximity = Math.abs(expectedLocation - currentLocation);
+  if (!distance) {
+    return proximity ? 1 : accuracy;
+  }
+  return accuracy + proximity / distance;
+}
+function convertMaskToIndices(matchmask = [], minMatchCharLength = Config.minMatchCharLength) {
+  let indices = [];
+  let start = -1;
+  let end = -1;
+  let i2 = 0;
+  for (let len2 = matchmask.length; i2 < len2; i2 += 1) {
+    let match = matchmask[i2];
+    if (match && start === -1) {
+      start = i2;
+    } else if (!match && start !== -1) {
+      end = i2 - 1;
+      if (end - start + 1 >= minMatchCharLength) {
+        indices.push([start, end]);
+      }
+      start = -1;
+    }
+  }
+  if (matchmask[i2 - 1] && i2 - start >= minMatchCharLength) {
+    indices.push([start, i2 - 1]);
+  }
+  return indices;
+}
+const MAX_BITS = 32;
+function search(text, pattern, patternAlphabet, {
+  location = Config.location,
+  distance = Config.distance,
+  threshold = Config.threshold,
+  findAllMatches = Config.findAllMatches,
+  minMatchCharLength = Config.minMatchCharLength,
+  includeMatches = Config.includeMatches,
+  ignoreLocation = Config.ignoreLocation
+} = {}) {
+  if (pattern.length > MAX_BITS) {
+    throw new Error(PATTERN_LENGTH_TOO_LARGE(MAX_BITS));
+  }
+  const patternLen = pattern.length;
+  const textLen = text.length;
+  const expectedLocation = Math.max(0, Math.min(location, textLen));
+  let currentThreshold = threshold;
+  let bestLocation = expectedLocation;
+  const computeMatches = minMatchCharLength > 1 || includeMatches;
+  const matchMask = computeMatches ? Array(textLen) : [];
+  let index2;
+  while ((index2 = text.indexOf(pattern, bestLocation)) > -1) {
+    let score = computeScore$1(pattern, {
+      currentLocation: index2,
+      expectedLocation,
+      distance,
+      ignoreLocation
+    });
+    currentThreshold = Math.min(score, currentThreshold);
+    bestLocation = index2 + patternLen;
+    if (computeMatches) {
+      let i2 = 0;
+      while (i2 < patternLen) {
+        matchMask[index2 + i2] = 1;
+        i2 += 1;
+      }
+    }
+  }
+  bestLocation = -1;
+  let lastBitArr = [];
+  let finalScore = 1;
+  let binMax = patternLen + textLen;
+  const mask = 1 << patternLen - 1;
+  for (let i2 = 0; i2 < patternLen; i2 += 1) {
+    let binMin = 0;
+    let binMid = binMax;
+    while (binMin < binMid) {
+      const score2 = computeScore$1(pattern, {
+        errors: i2,
+        currentLocation: expectedLocation + binMid,
+        expectedLocation,
+        distance,
+        ignoreLocation
+      });
+      if (score2 <= currentThreshold) {
+        binMin = binMid;
+      } else {
+        binMax = binMid;
+      }
+      binMid = Math.floor((binMax - binMin) / 2 + binMin);
+    }
+    binMax = binMid;
+    let start = Math.max(1, expectedLocation - binMid + 1);
+    let finish = findAllMatches ? textLen : Math.min(expectedLocation + binMid, textLen) + patternLen;
+    let bitArr = Array(finish + 2);
+    bitArr[finish + 1] = (1 << i2) - 1;
+    for (let j = finish; j >= start; j -= 1) {
+      let currentLocation = j - 1;
+      let charMatch = patternAlphabet[text.charAt(currentLocation)];
+      if (computeMatches) {
+        matchMask[currentLocation] = +!!charMatch;
+      }
+      bitArr[j] = (bitArr[j + 1] << 1 | 1) & charMatch;
+      if (i2) {
+        bitArr[j] |= (lastBitArr[j + 1] | lastBitArr[j]) << 1 | 1 | lastBitArr[j + 1];
+      }
+      if (bitArr[j] & mask) {
+        finalScore = computeScore$1(pattern, {
+          errors: i2,
+          currentLocation,
+          expectedLocation,
+          distance,
+          ignoreLocation
+        });
+        if (finalScore <= currentThreshold) {
+          currentThreshold = finalScore;
+          bestLocation = currentLocation;
+          if (bestLocation <= expectedLocation) {
+            break;
+          }
+          start = Math.max(1, 2 * expectedLocation - bestLocation);
+        }
+      }
+    }
+    const score = computeScore$1(pattern, {
+      errors: i2 + 1,
+      currentLocation: expectedLocation,
+      expectedLocation,
+      distance,
+      ignoreLocation
+    });
+    if (score > currentThreshold) {
+      break;
+    }
+    lastBitArr = bitArr;
+  }
+  const result = {
+    isMatch: bestLocation >= 0,
+    // Count exact matches (those with a score of 0) to be "almost" exact
+    score: Math.max(1e-3, finalScore)
+  };
+  if (computeMatches) {
+    const indices = convertMaskToIndices(matchMask, minMatchCharLength);
+    if (!indices.length) {
+      result.isMatch = false;
+    } else if (includeMatches) {
+      result.indices = indices;
+    }
+  }
+  return result;
+}
+function createPatternAlphabet(pattern) {
+  let mask = {};
+  for (let i2 = 0, len2 = pattern.length; i2 < len2; i2 += 1) {
+    const char = pattern.charAt(i2);
+    mask[char] = (mask[char] || 0) | 1 << len2 - i2 - 1;
+  }
+  return mask;
+}
+const stripDiacritics = String.prototype.normalize ? (str) => str.normalize("NFD").replace(/[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u07FD\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u08D3-\u08E1\u08E3-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u09FE\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0AFA-\u0AFF\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C00-\u0C04\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C81-\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D00-\u0D03\u0D3B\u0D3C\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B4-\u17D3\u17DD\u180B-\u180D\u1885\u1886\u18A9\u1920-\u192B\u1930-\u193B\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1AB0-\u1ABE\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAD\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2-\u1CF4\u1CF7-\u1CF9\u1DC0-\u1DF9\u1DFB-\u1DFF\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA674-\uA67D\uA69E\uA69F\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C5\uA8E0-\uA8F1\uA8FF\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uA9E5\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAEB-\uAAEF\uAAF5\uAAF6\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE2F]/g, "") : (str) => str;
+class BitapSearch {
+  constructor(pattern, {
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    ignoreLocation = Config.ignoreLocation
+  } = {}) {
+    this.options = {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive,
+      ignoreDiacritics,
+      ignoreLocation
+    };
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
+    this.chunks = [];
+    if (!this.pattern.length) {
+      return;
+    }
+    const addChunk = (pattern2, startIndex) => {
+      this.chunks.push({
+        pattern: pattern2,
+        alphabet: createPatternAlphabet(pattern2),
+        startIndex
+      });
+    };
+    const len2 = this.pattern.length;
+    if (len2 > MAX_BITS) {
+      let i2 = 0;
+      const remainder = len2 % MAX_BITS;
+      const end = len2 - remainder;
+      while (i2 < end) {
+        addChunk(this.pattern.substr(i2, MAX_BITS), i2);
+        i2 += MAX_BITS;
+      }
+      if (remainder) {
+        const startIndex = len2 - MAX_BITS;
+        addChunk(this.pattern.substr(startIndex), startIndex);
+      }
+    } else {
+      addChunk(this.pattern, 0);
+    }
+  }
+  searchIn(text) {
+    const { isCaseSensitive, ignoreDiacritics, includeMatches } = this.options;
+    text = isCaseSensitive ? text : text.toLowerCase();
+    text = ignoreDiacritics ? stripDiacritics(text) : text;
+    if (this.pattern === text) {
+      let result2 = {
+        isMatch: true,
+        score: 0
+      };
+      if (includeMatches) {
+        result2.indices = [[0, text.length - 1]];
+      }
+      return result2;
+    }
+    const {
+      location,
+      distance,
+      threshold,
+      findAllMatches,
+      minMatchCharLength,
+      ignoreLocation
+    } = this.options;
+    let allIndices = [];
+    let totalScore = 0;
+    let hasMatches = false;
+    this.chunks.forEach(({ pattern, alphabet, startIndex }) => {
+      const { isMatch, score, indices } = search(text, pattern, alphabet, {
+        location: location + startIndex,
+        distance,
+        threshold,
+        findAllMatches,
+        minMatchCharLength,
+        includeMatches,
+        ignoreLocation
+      });
+      if (isMatch) {
+        hasMatches = true;
+      }
+      totalScore += score;
+      if (isMatch && indices) {
+        allIndices = [...allIndices, ...indices];
+      }
+    });
+    let result = {
+      isMatch: hasMatches,
+      score: hasMatches ? totalScore / this.chunks.length : 1
+    };
+    if (hasMatches && includeMatches) {
+      result.indices = allIndices;
+    }
+    return result;
+  }
+}
+class BaseMatch {
+  constructor(pattern) {
+    this.pattern = pattern;
+  }
+  static isMultiMatch(pattern) {
+    return getMatch(pattern, this.multiRegex);
+  }
+  static isSingleMatch(pattern) {
+    return getMatch(pattern, this.singleRegex);
+  }
+  search() {
+  }
+}
+function getMatch(pattern, exp) {
+  const matches = pattern.match(exp);
+  return matches ? matches[1] : null;
+}
+class ExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "exact";
+  }
+  static get multiRegex() {
+    return /^="(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^=(.*)$/;
+  }
+  search(text) {
+    const isMatch = text === this.pattern;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
+    };
+  }
+}
+class InverseExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "inverse-exact";
+  }
+  static get multiRegex() {
+    return /^!"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^!(.*)$/;
+  }
+  search(text) {
+    const index2 = text.indexOf(this.pattern);
+    const isMatch = index2 === -1;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+class PrefixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "prefix-exact";
+  }
+  static get multiRegex() {
+    return /^\^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^\^(.*)$/;
+  }
+  search(text) {
+    const isMatch = text.startsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, this.pattern.length - 1]
+    };
+  }
+}
+class InversePrefixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "inverse-prefix-exact";
+  }
+  static get multiRegex() {
+    return /^!\^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^!\^(.*)$/;
+  }
+  search(text) {
+    const isMatch = !text.startsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+class SuffixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "suffix-exact";
+  }
+  static get multiRegex() {
+    return /^"(.*)"\$$/;
+  }
+  static get singleRegex() {
+    return /^(.*)\$$/;
+  }
+  search(text) {
+    const isMatch = text.endsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [text.length - this.pattern.length, text.length - 1]
+    };
+  }
+}
+class InverseSuffixExactMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "inverse-suffix-exact";
+  }
+  static get multiRegex() {
+    return /^!"(.*)"\$$/;
+  }
+  static get singleRegex() {
+    return /^!(.*)\$$/;
+  }
+  search(text) {
+    const isMatch = !text.endsWith(this.pattern);
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices: [0, text.length - 1]
+    };
+  }
+}
+class FuzzyMatch extends BaseMatch {
+  constructor(pattern, {
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance,
+    includeMatches = Config.includeMatches,
+    findAllMatches = Config.findAllMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    ignoreLocation = Config.ignoreLocation
+  } = {}) {
+    super(pattern);
+    this._bitapSearch = new BitapSearch(pattern, {
+      location,
+      threshold,
+      distance,
+      includeMatches,
+      findAllMatches,
+      minMatchCharLength,
+      isCaseSensitive,
+      ignoreDiacritics,
+      ignoreLocation
+    });
+  }
+  static get type() {
+    return "fuzzy";
+  }
+  static get multiRegex() {
+    return /^"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^(.*)$/;
+  }
+  search(text) {
+    return this._bitapSearch.searchIn(text);
+  }
+}
+class IncludeMatch extends BaseMatch {
+  constructor(pattern) {
+    super(pattern);
+  }
+  static get type() {
+    return "include";
+  }
+  static get multiRegex() {
+    return /^'"(.*)"$/;
+  }
+  static get singleRegex() {
+    return /^'(.*)$/;
+  }
+  search(text) {
+    let location = 0;
+    let index2;
+    const indices = [];
+    const patternLen = this.pattern.length;
+    while ((index2 = text.indexOf(this.pattern, location)) > -1) {
+      location = index2 + patternLen;
+      indices.push([index2, location - 1]);
+    }
+    const isMatch = !!indices.length;
+    return {
+      isMatch,
+      score: isMatch ? 0 : 1,
+      indices
+    };
+  }
+}
+const searchers = [
+  ExactMatch,
+  IncludeMatch,
+  PrefixExactMatch,
+  InversePrefixExactMatch,
+  InverseSuffixExactMatch,
+  SuffixExactMatch,
+  InverseExactMatch,
+  FuzzyMatch
+];
+const searchersLen = searchers.length;
+const SPACE_RE = / +(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/;
+const OR_TOKEN = "|";
+function parseQuery(pattern, options = {}) {
+  return pattern.split(OR_TOKEN).map((item) => {
+    let query = item.trim().split(SPACE_RE).filter((item2) => item2 && !!item2.trim());
+    let results = [];
+    for (let i2 = 0, len2 = query.length; i2 < len2; i2 += 1) {
+      const queryItem = query[i2];
+      let found = false;
+      let idx = -1;
+      while (!found && ++idx < searchersLen) {
+        const searcher = searchers[idx];
+        let token = searcher.isMultiMatch(queryItem);
+        if (token) {
+          results.push(new searcher(token, options));
+          found = true;
+        }
+      }
+      if (found) {
+        continue;
+      }
+      idx = -1;
+      while (++idx < searchersLen) {
+        const searcher = searchers[idx];
+        let token = searcher.isSingleMatch(queryItem);
+        if (token) {
+          results.push(new searcher(token, options));
+          break;
+        }
+      }
+    }
+    return results;
+  });
+}
+const MultiMatchSet = /* @__PURE__ */ new Set([FuzzyMatch.type, IncludeMatch.type]);
+class ExtendedSearch {
+  constructor(pattern, {
+    isCaseSensitive = Config.isCaseSensitive,
+    ignoreDiacritics = Config.ignoreDiacritics,
+    includeMatches = Config.includeMatches,
+    minMatchCharLength = Config.minMatchCharLength,
+    ignoreLocation = Config.ignoreLocation,
+    findAllMatches = Config.findAllMatches,
+    location = Config.location,
+    threshold = Config.threshold,
+    distance = Config.distance
+  } = {}) {
+    this.query = null;
+    this.options = {
+      isCaseSensitive,
+      ignoreDiacritics,
+      includeMatches,
+      minMatchCharLength,
+      findAllMatches,
+      ignoreLocation,
+      location,
+      threshold,
+      distance
+    };
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
+    this.query = parseQuery(this.pattern, this.options);
+  }
+  static condition(_, options) {
+    return options.useExtendedSearch;
+  }
+  searchIn(text) {
+    const query = this.query;
+    if (!query) {
+      return {
+        isMatch: false,
+        score: 1
+      };
+    }
+    const { includeMatches, isCaseSensitive, ignoreDiacritics } = this.options;
+    text = isCaseSensitive ? text : text.toLowerCase();
+    text = ignoreDiacritics ? stripDiacritics(text) : text;
+    let numMatches = 0;
+    let allIndices = [];
+    let totalScore = 0;
+    for (let i2 = 0, qLen = query.length; i2 < qLen; i2 += 1) {
+      const searchers2 = query[i2];
+      allIndices.length = 0;
+      numMatches = 0;
+      for (let j = 0, pLen = searchers2.length; j < pLen; j += 1) {
+        const searcher = searchers2[j];
+        const { isMatch, indices, score } = searcher.search(text);
+        if (isMatch) {
+          numMatches += 1;
+          totalScore += score;
+          if (includeMatches) {
+            const type = searcher.constructor.type;
+            if (MultiMatchSet.has(type)) {
+              allIndices = [...allIndices, ...indices];
+            } else {
+              allIndices.push(indices);
+            }
+          }
+        } else {
+          totalScore = 0;
+          numMatches = 0;
+          allIndices.length = 0;
+          break;
+        }
+      }
+      if (numMatches) {
+        let result = {
+          isMatch: true,
+          score: totalScore / numMatches
+        };
+        if (includeMatches) {
+          result.indices = allIndices;
+        }
+        return result;
+      }
+    }
+    return {
+      isMatch: false,
+      score: 1
+    };
+  }
+}
+const registeredSearchers = [];
+function register(...args) {
+  registeredSearchers.push(...args);
+}
+function createSearcher(pattern, options) {
+  for (let i2 = 0, len2 = registeredSearchers.length; i2 < len2; i2 += 1) {
+    let searcherClass = registeredSearchers[i2];
+    if (searcherClass.condition(pattern, options)) {
+      return new searcherClass(pattern, options);
+    }
+  }
+  return new BitapSearch(pattern, options);
+}
+const LogicalOperator = {
+  AND: "$and",
+  OR: "$or"
+};
+const KeyType = {
+  PATH: "$path",
+  PATTERN: "$val"
+};
+const isExpression = (query) => !!(query[LogicalOperator.AND] || query[LogicalOperator.OR]);
+const isPath = (query) => !!query[KeyType.PATH];
+const isLeaf = (query) => !isArray(query) && isObject(query) && !isExpression(query);
+const convertToExplicit = (query) => ({
+  [LogicalOperator.AND]: Object.keys(query).map((key) => ({
+    [key]: query[key]
+  }))
+});
+function parse(query, options, { auto = true } = {}) {
+  const next = (query2) => {
+    let keys = Object.keys(query2);
+    const isQueryPath = isPath(query2);
+    if (!isQueryPath && keys.length > 1 && !isExpression(query2)) {
+      return next(convertToExplicit(query2));
+    }
+    if (isLeaf(query2)) {
+      const key = isQueryPath ? query2[KeyType.PATH] : keys[0];
+      const pattern = isQueryPath ? query2[KeyType.PATTERN] : query2[key];
+      if (!isString(pattern)) {
+        throw new Error(LOGICAL_SEARCH_INVALID_QUERY_FOR_KEY(key));
+      }
+      const obj = {
+        keyId: createKeyId(key),
+        pattern
+      };
+      if (auto) {
+        obj.searcher = createSearcher(pattern, options);
+      }
+      return obj;
+    }
+    let node = {
+      children: [],
+      operator: keys[0]
+    };
+    keys.forEach((key) => {
+      const value2 = query2[key];
+      if (isArray(value2)) {
+        value2.forEach((item) => {
+          node.children.push(next(item));
+        });
+      }
+    });
+    return node;
+  };
+  if (!isExpression(query)) {
+    query = convertToExplicit(query);
+  }
+  return next(query);
+}
+function computeScore(results, { ignoreFieldNorm = Config.ignoreFieldNorm }) {
+  results.forEach((result) => {
+    let totalScore = 1;
+    result.matches.forEach(({ key, norm: norm2, score }) => {
+      const weight = key ? key.weight : null;
+      totalScore *= Math.pow(
+        score === 0 && weight ? Number.EPSILON : score,
+        (weight || 1) * (ignoreFieldNorm ? 1 : norm2)
+      );
+    });
+    result.score = totalScore;
+  });
+}
+function transformMatches(result, data2) {
+  const matches = result.matches;
+  data2.matches = [];
+  if (!isDefined(matches)) {
+    return;
+  }
+  matches.forEach((match) => {
+    if (!isDefined(match.indices) || !match.indices.length) {
+      return;
+    }
+    const { indices, value: value2 } = match;
+    let obj = {
+      indices,
+      value: value2
+    };
+    if (match.key) {
+      obj.key = match.key.src;
+    }
+    if (match.idx > -1) {
+      obj.refIndex = match.idx;
+    }
+    data2.matches.push(obj);
+  });
+}
+function transformScore(result, data2) {
+  data2.score = result.score;
+}
+function format(results, docs, {
+  includeMatches = Config.includeMatches,
+  includeScore = Config.includeScore
+} = {}) {
+  const transformers = [];
+  if (includeMatches)
+    transformers.push(transformMatches);
+  if (includeScore)
+    transformers.push(transformScore);
+  return results.map((result) => {
+    const { idx } = result;
+    const data2 = {
+      item: docs[idx],
+      refIndex: idx
+    };
+    if (transformers.length) {
+      transformers.forEach((transformer) => {
+        transformer(result, data2);
+      });
+    }
+    return data2;
+  });
+}
+class Fuse {
+  constructor(docs, options = {}, index2) {
+    this.options = { ...Config, ...options };
+    if (this.options.useExtendedSearch && false) {
+      throw new Error(EXTENDED_SEARCH_UNAVAILABLE);
+    }
+    this._keyStore = new KeyStore(this.options.keys);
+    this.setCollection(docs, index2);
+  }
+  setCollection(docs, index2) {
+    this._docs = docs;
+    if (index2 && !(index2 instanceof FuseIndex)) {
+      throw new Error(INCORRECT_INDEX_TYPE);
+    }
+    this._myIndex = index2 || createIndex(this.options.keys, this._docs, {
+      getFn: this.options.getFn,
+      fieldNormWeight: this.options.fieldNormWeight
+    });
+  }
+  add(doc) {
+    if (!isDefined(doc)) {
+      return;
+    }
+    this._docs.push(doc);
+    this._myIndex.add(doc);
+  }
+  remove(predicate = () => false) {
+    const results = [];
+    for (let i2 = 0, len2 = this._docs.length; i2 < len2; i2 += 1) {
+      const doc = this._docs[i2];
+      if (predicate(doc, i2)) {
+        this.removeAt(i2);
+        i2 -= 1;
+        len2 -= 1;
+        results.push(doc);
+      }
+    }
+    return results;
+  }
+  removeAt(idx) {
+    this._docs.splice(idx, 1);
+    this._myIndex.removeAt(idx);
+  }
+  getIndex() {
+    return this._myIndex;
+  }
+  search(query, { limit = -1 } = {}) {
+    const {
+      includeMatches,
+      includeScore,
+      shouldSort,
+      sortFn,
+      ignoreFieldNorm
+    } = this.options;
+    let results = isString(query) ? isString(this._docs[0]) ? this._searchStringList(query) : this._searchObjectList(query) : this._searchLogical(query);
+    computeScore(results, { ignoreFieldNorm });
+    if (shouldSort) {
+      results.sort(sortFn);
+    }
+    if (isNumber(limit) && limit > -1) {
+      results = results.slice(0, limit);
+    }
+    return format(results, this._docs, {
+      includeMatches,
+      includeScore
+    });
+  }
+  _searchStringList(query) {
+    const searcher = createSearcher(query, this.options);
+    const { records } = this._myIndex;
+    const results = [];
+    records.forEach(({ v: text, i: idx, n: norm2 }) => {
+      if (!isDefined(text)) {
+        return;
+      }
+      const { isMatch, score, indices } = searcher.searchIn(text);
+      if (isMatch) {
+        results.push({
+          item: text,
+          idx,
+          matches: [{ score, value: text, norm: norm2, indices }]
+        });
+      }
+    });
+    return results;
+  }
+  _searchLogical(query) {
+    const expression = parse(query, this.options);
+    const evaluate = (node, item, idx) => {
+      if (!node.children) {
+        const { keyId, searcher } = node;
+        const matches = this._findMatches({
+          key: this._keyStore.get(keyId),
+          value: this._myIndex.getValueForItemAtKeyId(item, keyId),
+          searcher
+        });
+        if (matches && matches.length) {
+          return [
+            {
+              idx,
+              item,
+              matches
+            }
+          ];
+        }
+        return [];
+      }
+      const res = [];
+      for (let i2 = 0, len2 = node.children.length; i2 < len2; i2 += 1) {
+        const child = node.children[i2];
+        const result = evaluate(child, item, idx);
+        if (result.length) {
+          res.push(...result);
+        } else if (node.operator === LogicalOperator.AND) {
+          return [];
+        }
+      }
+      return res;
+    };
+    const records = this._myIndex.records;
+    const resultMap = {};
+    const results = [];
+    records.forEach(({ $: item, i: idx }) => {
+      if (isDefined(item)) {
+        let expResults = evaluate(expression, item, idx);
+        if (expResults.length) {
+          if (!resultMap[idx]) {
+            resultMap[idx] = { idx, item, matches: [] };
+            results.push(resultMap[idx]);
+          }
+          expResults.forEach(({ matches }) => {
+            resultMap[idx].matches.push(...matches);
+          });
+        }
+      }
+    });
+    return results;
+  }
+  _searchObjectList(query) {
+    const searcher = createSearcher(query, this.options);
+    const { keys, records } = this._myIndex;
+    const results = [];
+    records.forEach(({ $: item, i: idx }) => {
+      if (!isDefined(item)) {
+        return;
+      }
+      let matches = [];
+      keys.forEach((key, keyIndex) => {
+        matches.push(
+          ...this._findMatches({
+            key,
+            value: item[keyIndex],
+            searcher
+          })
+        );
+      });
+      if (matches.length) {
+        results.push({
+          idx,
+          item,
+          matches
+        });
+      }
+    });
+    return results;
+  }
+  _findMatches({ key, value: value2, searcher }) {
+    if (!isDefined(value2)) {
+      return [];
+    }
+    let matches = [];
+    if (isArray(value2)) {
+      value2.forEach(({ v: text, i: idx, n: norm2 }) => {
+        if (!isDefined(text)) {
+          return;
+        }
+        const { isMatch, score, indices } = searcher.searchIn(text);
+        if (isMatch) {
+          matches.push({
+            score,
+            key,
+            value: text,
+            idx,
+            norm: norm2,
+            indices
+          });
+        }
+      });
+    } else {
+      const { v: text, n: norm2 } = value2;
+      const { isMatch, score, indices } = searcher.searchIn(text);
+      if (isMatch) {
+        matches.push({ score, key, value: text, norm: norm2, indices });
+      }
+    }
+    return matches;
+  }
+}
+Fuse.version = "7.1.0";
+Fuse.createIndex = createIndex;
+Fuse.parseIndex = parseIndex;
+Fuse.config = Config;
+{
+  Fuse.parseQuery = parse;
+}
+{
+  register(ExtendedSearch);
+}
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -14101,23 +15672,17 @@ var miniprogram_dist = {};
   }]));
 })(miniprogram_dist);
 const lottie = /* @__PURE__ */ getDefaultExportFromCjs(miniprogram_dist);
+exports.Fuse = Fuse;
 exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
-<<<<<<< HEAD
 exports.computed = computed;
-exports.createSSRApp = createSSRApp;
-=======
 exports.createApp = createApp$1;
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 exports.createStore = createStore;
 exports.defineComponent = defineComponent;
 exports.e = e;
 exports.f = f;
-<<<<<<< HEAD
-=======
 exports.gei = gei;
 exports.getCurrentInstance = getCurrentInstance;
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 exports.index = index;
 exports.inject = inject;
 exports.isRef = isRef;
@@ -14128,18 +15693,15 @@ exports.mapMutations = mapMutations;
 exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
-<<<<<<< HEAD
-exports.onHide = onHide;
-exports.onLaunch = onLaunch;
 exports.onLoad = onLoad;
-exports.onShow = onShow;
-=======
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
+exports.onMounted = onMounted;
 exports.p = p;
+exports.reactive = reactive;
 exports.ref = ref;
 exports.resolveComponent = resolveComponent;
 exports.sei = sei;
 exports.sr = sr;
 exports.t = t;
 exports.unref = unref;
+exports.useStore = useStore;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

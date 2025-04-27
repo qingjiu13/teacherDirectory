@@ -3,39 +3,39 @@ const common_vendor = require("../../../../common/vendor.js");
 const uni_modules_cLottie_components_cLottie_js_uuid = require("./js/uuid.js");
 const _sfc_main = common_vendor.defineComponent({
   props: {
-    canvasId: {
+    canvasId: new UTSJSONObject({
       type: String
-    },
-    width: {
+    }),
+    width: new UTSJSONObject({
       type: String,
       default: "750rpx"
-    },
-    height: {
+    }),
+    height: new UTSJSONObject({
       type: String,
       default: "750rpx"
-    },
-    src: {
+    }),
+    src: new UTSJSONObject({
       type: String
-    },
-    data: {
+    }),
+    data: new UTSJSONObject({
       type: String
-    },
-    autoPlay: {
+    }),
+    autoPlay: new UTSJSONObject({
       type: Boolean,
       default: true
-    },
-    loop: {
+    }),
+    loop: new UTSJSONObject({
       type: Boolean,
       default: true
-    },
-    renderer: {
+    }),
+    renderer: new UTSJSONObject({
       type: String,
       default: "canvas"
-    },
-    isOnChange: {
+    }),
+    isOnChange: new UTSJSONObject({
       type: Boolean,
       default: false
-    }
+    })
   },
   emits: ["Complete", "LoopComplete", "EnterFrame", "SegmentStart", "dataReady", "dataFailed"],
   data() {
@@ -43,7 +43,7 @@ const _sfc_main = common_vendor.defineComponent({
       fun: new UTSJSONObject({})
     };
   },
-  computed: {
+  computed: new UTSJSONObject({
     myCanvasId() {
       if (!this.canvasId) {
         return "c" + uni_modules_cLottie_components_cLottie_js_uuid.uuid(18);
@@ -64,13 +64,13 @@ const _sfc_main = common_vendor.defineComponent({
         isOnChange: this.isOnChange
       });
     }
-  },
+  }),
   watch: {
     lottieData() {
       this.render();
     }
   },
-  methods: {
+  methods: new UTSJSONObject({
     call(name = null, args = null) {
       this.fun = new UTSJSONObject({ name, args });
       this.callPlayer(this.fun);
@@ -78,10 +78,10 @@ const _sfc_main = common_vendor.defineComponent({
     getContext() {
       return new Promise((resolve) => {
         const pixelRatio = common_vendor.index.getSystemInfoSync().pixelRatio;
-        common_vendor.index.createSelectorQuery().in(this).select(`#${this.myCanvasId}`).fields({
+        common_vendor.index.createSelectorQuery().in(this).select(`#${this.myCanvasId}`).fields(new UTSJSONObject({
           node: true,
           size: true
-        }).exec((res) => {
+        })).exec((res) => {
           const _a = res[0], width = _a.width, height = _a.height;
           const canvas = res[0].node;
           resolve({
@@ -148,7 +148,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.player[name](args);
       }
     }
-  },
+  }),
   mounted() {
     this.render();
   },
@@ -159,7 +159,7 @@ const _sfc_main = common_vendor.defineComponent({
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_vendor.sei($options.myCanvasId, "canvas"),
-    b: common_vendor.sei(_ctx.virtualHostId, "view"),
+    b: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     c: $props.width,
     d: $props.height
   };

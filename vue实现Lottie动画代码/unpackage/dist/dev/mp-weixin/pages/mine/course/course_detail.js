@@ -201,7 +201,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }) : new UTSJSONObject({}), new UTSJSONObject({
         s: common_vendor.o(startLearning),
         t: common_vendor.o(goBack),
-        v: common_vendor.sei(_ctx.virtualHostId, "view")
+        v: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
       }));
       return __returned__;
     };

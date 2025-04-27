@@ -310,7 +310,7 @@ export default {
       this.formData.targetSchool = school;
       
       // 更新专业列表的依赖值
-      GraduateStore.actions.updateSelectedSchool({
+      GraduateStore.actions.selectSchool({
         commit: (mutation, payload) => {
           GraduateStore.mutations[mutation](this.graduateStore, payload);
         }

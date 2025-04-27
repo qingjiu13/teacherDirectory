@@ -3,7 +3,7 @@ const common_vendor = require("../../../common/vendor.js");
 const router_Router = require("../../../router/Router.js");
 require("../../../store/index.js");
 const TabBar = () => "../../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent({
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   components: {
     TabBar
   },
@@ -17,22 +17,9 @@ const _sfc_main = common_vendor.defineComponent({
       // 显示调试信息
     };
   },
-<<<<<<< HEAD
-  computed: {
-    // 直接从store获取状态
-    profile() {
-      var _a;
-      try {
-        return ((_a = store_index.store === null || store_index.store === void 0 ? void 0 : store_index.store.getters) === null || _a === void 0 ? void 0 : _a["user/baseInfo/profile"]) || new UTSJSONObject({});
-      } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:112", "获取profile失败", e);
-        return new UTSJSONObject({});
-      }
-=======
   computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
     storeId: (state = null) => {
       return state.id;
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     },
     storeAvatar: (state = null) => {
       return state.avatar;
@@ -55,11 +42,7 @@ const _sfc_main = common_vendor.defineComponent({
     storeUserInfo: (state = null) => {
       return state.userInfo;
     }
-<<<<<<< HEAD
-  },
-=======
   })))),
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:119", "mine_common.vue onLoad开始执行");
@@ -98,7 +81,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
     });
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 从store初始化数据
      */
@@ -253,9 +236,45 @@ const _sfc_main = common_vendor.defineComponent({
      */
     navigateTo(url = null) {
       router_Router.Navigator.navigateTo(url);
+    },
+    /**
+     * @description 跳转到订单列表页面
+     */
+    toOrderCommon() {
+      router_Router.Navigator.toOrderCommon();
+    },
+    /**
+     * @description 跳转到课程列表页面
+     */
+    toCourse() {
+      router_Router.Navigator.toCourse();
+    },
+    /**
+     * @description 跳转到资质认证页面
+     */
+    toQualification() {
+      router_Router.Navigator.toQualification();
+    },
+    /**
+     * @description 跳转到钱包页面
+     */
+    toWallet() {
+      router_Router.Navigator.toWallet();
+    },
+    /**
+     * @description 跳转到设置页面
+     */
+    toSettings() {
+      router_Router.Navigator.toSettings();
+    },
+    /**
+     * @description 跳转到关注公众号页面
+     */
+    toSubscribe() {
+      router_Router.Navigator.toSubscribe();
     }
-  }
-});
+  })
+}));
 if (!Array) {
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
   _component_TabBar();
@@ -271,22 +290,22 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, _ctx.storeUserInfo.role === "老师" ? {
     g: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SERVICE))
   } : {}, {
-    h: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.ORDER)),
-    i: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.COURSE)),
+    h: common_vendor.o((...args) => $options.toOrderCommon && $options.toOrderCommon(...args)),
+    i: common_vendor.o((...args) => $options.toCourse && $options.toCourse(...args)),
     j: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    k: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.QUALIFICATION))
+    k: common_vendor.o((...args) => $options.toQualification && $options.toQualification(...args))
   } : {}, {
     l: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    m: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.WALLET))
+    m: common_vendor.o((...args) => $options.toWallet && $options.toWallet(...args))
   } : {}, {
-    n: common_vendor.o(($event) => $options.navigateTo("/pages/subscribe/subscribe")),
-    o: common_vendor.o(($event) => $options.navigateTo($data.MineRoutes.SETTINGS)),
+    n: common_vendor.o((...args) => $options.toSubscribe && $options.toSubscribe(...args)),
+    o: common_vendor.o((...args) => $options.toSettings && $options.toSettings(...args)),
     p: common_vendor.p({
       pageName: "mine"
     }),
-    q: common_vendor.sei(_ctx.virtualHostId, "view")
+    q: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

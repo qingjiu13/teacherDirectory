@@ -64,6 +64,22 @@
 }
 .course-container .course-list .course-card .card-header .course-info .course-name {
   margin-bottom: 8rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+.course-container .course-list .course-card .card-header .course-info .external-info {
+  display: flex;
+  align-items: center;
+  margin: 8rpx 0;
+}
+.course-container .course-list .course-card .card-header .course-info .external-info .progress-text {
+  margin-left: 15rpx;
+  font-size: 24rpx;
+  color: #1890ff;
+}
+.course-container .course-list .course-card .card-header .course-info .teacher {
+  font-size: 22rpx;
+  color: #666;
 }
 .course-container .course-list .course-card .card-header .course-status {
   font-size: 24rpx;
