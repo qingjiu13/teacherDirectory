@@ -48,11 +48,6 @@
                 <view v-if="isLoadingMore" class="loading-more">
                     <text class="loading-text">加载中...</text>
                 </view>
-                
-                <!-- 全部加载完毕提示 -->
-                <view v-if="!isLoadingMore && hasMoreItems === false && pagedChoiceList.length > 0" class="loading-more">
-                    <text class="loading-text">没有更多数据了</text>
-                </view>
             </scroll-view>
         </view>
     </view>
@@ -73,7 +68,6 @@
                 displayContent: this.defaultText, // 使用传入的默认文本
                 searchKeyword: '', // 搜索关键词
                 searchTimer: null, // 防抖定时器
-                filteredList: [], // 过滤后的列表
                 isFocused: false, // 是否处于聚焦状态
                 lastSelectedValue: null, // 上次选中的值，用于检测变化
                 
@@ -154,47 +148,18 @@
         },
         computed: {
             /**
-             * @description 根据搜索关键词过滤选项列表
-             * @returns {Array} 过滤后的选项列表
-             */
-            filteredChoiceList() {
-                // 如果是联动模式下的子级组件，但父级未选择，则返回空列表
-                if (this.isLinkage && this.componentType === 'graduateMajor' && !this.parentValue) {
-                    return [];
-                }
-                
-                if (!this.searchKeyword || this.mode === 'select') {
-                    return this.choiceList;
-                }
-                
-                const keyword = this.searchKeyword.toLowerCase();
-                
-                // 根据关键词过滤选项
-                return this.choiceList.filter(item => {
-                    if (typeof item === 'string') {
-                        // 字符串类型选项
-                        return item.toLowerCase().includes(keyword);
-                    } else if (item && item.choiceItemContent) {
-                        // 对象类型选项
-                        return item.choiceItemContent.toLowerCase().includes(keyword);
-                    }
-                    return false; // 对于其他类型的项，排除
-                });
-            },
-            
-            /**
              * @description 获取当前页的选项列表
              * @returns {Array} 分页后的选项列表
              */
             pagedChoiceList() {
                 if (!this.enablePagination) {
-                    return this.filteredChoiceList;
+                    return this.choiceList;
                 }
                 
                 const startIndex = 0;
                 const endIndex = this.currentPage * this.pageSize;
                 
-                return this.filteredChoiceList.slice(startIndex, endIndex);
+                return this.choiceList.slice(startIndex, endIndex);
             }
         },
         watch: {
@@ -252,13 +217,6 @@
             // 监听搜索关键词变化，重置分页
             searchKeyword() {
                 this.resetPagination();
-            },
-            // 监听过滤后的列表变化，更新是否还有更多数据的状态
-            filteredChoiceList: {
-                handler(newVal) {
-                    this.hasMoreItems = newVal.length > this.currentPage * this.pageSize;
-                },
-                deep: true
             }
         },
         methods: {
@@ -268,7 +226,7 @@
             resetPagination() {
                 this.currentPage = 1;
                 this.isLoadingMore = false;
-                this.hasMoreItems = this.filteredChoiceList.length > this.pageSize;
+                this.hasMoreItems = this.choiceList.length > this.pageSize;
             },
             
             /**
@@ -285,7 +243,7 @@
                     this.isLoadingMore = false;
                     
                     // 更新是否还有更多数据的状态
-                    this.hasMoreItems = this.filteredChoiceList.length > this.currentPage * this.pageSize;
+                    this.hasMoreItems = this.choiceList.length > this.currentPage * this.pageSize;
                 }, 300);
             },
             
@@ -361,9 +319,8 @@
                     }
                 }
                 
-                // 对于普通模式或未找到匹配项，查找在过滤列表中的位置
-                const filteredIndex = _this.filteredChoiceList.findIndex(item => item === selectedItem);
-                _this.$emit("onChoiceClick", filteredIndex, selectedItem);
+                // 对于普通模式或未找到匹配项，使用当前位置
+                _this.$emit("onChoiceClick", position, selectedItem);
             },
             
             /**
@@ -424,6 +381,8 @@
                 
                 // 设置防抖定时器
                 _this.searchTimer = setTimeout(() => {
+                    console.log('发送搜索请求:', _this.searchKeyword);
+                    
                     // 触发搜索输入事件
                     _this.$emit('search-input', _this.searchKeyword);
                     

@@ -2,15 +2,25 @@
   <view class="form-container">
     <!-- 表单内容 -->
     <view class="form-card">
+      <view class="form-notice">
+        <text class="notice-text">以下信息为选填项，您可以选择填写您想提供的信息</text>
+      </view>
+
       <!-- Nickname -->
       <view class="form-row">
-        <text class="form-label">昵称</text>
+        <view class="label-container">
+          <text class="form-label">昵称</text>
+          <text class="optional-tag">(选填)</text>
+        </view>
         <input class="form-input" type="text" v-model="formData.nickname" placeholder="请输入昵称" />
       </view>
       
       <!-- Gender -->
       <view class="form-row">
-        <text class="form-label">性别</text>
+        <view class="label-container">
+          <text class="form-label">性别</text>
+          <text class="optional-tag">(选填)</text>
+        </view>
         <view class="radio-group">
           <view class="radio-item-row">
             <view class="radio-option" @click="formData.gender = '男'">
@@ -24,19 +34,25 @@
           </view>
         </view>
       </view>
-
       
       <!-- Phone Number -->
       <view class="form-row">
-        <text class="form-label">手机号</text>
+        <view class="label-container">
+          <text class="form-label">手机号</text>
+          <text class="optional-tag">(选填)</text>
+        </view>
         <input class="form-input" type="text" v-model="formData.phone" placeholder="请输入手机号" />
       </view>
       
-      <!-- School -->
+      <!-- School - 使用单输入筛选框 -->
       <view class="form-row">
-        <text class="form-label">就读学校</text>
+        <view class="label-container">
+          <text class="form-label">就读学校</text>
+          <text class="optional-tag">(选填)</text>
+        </view>
         <ChoiceSelected
           class="form-select"
+          componentType="undergraduate"
           :choiceIndex="formData.schoolIndex"
           :choiceList="schoolList"
           defaultText="请选择学校"
@@ -48,11 +64,15 @@
         />
       </view>
       
-      <!-- Major -->
+      <!-- Major - 使用单输入筛选框 -->
       <view class="form-row">
-        <text class="form-label">就读专业</text>
+        <view class="label-container">
+          <text class="form-label">就读专业</text>
+          <text class="optional-tag">(选填)</text>
+        </view>
         <ChoiceSelected
           class="form-select"
+          componentType="undergraduate"
           :choiceIndex="formData.majorIndex"
           :choiceList="majorList"
           defaultText="请选择专业"
@@ -64,10 +84,12 @@
         />
       </view>
 
-
       <!-- Grade -->
       <view class="form-row">
-        <text class="form-label">年级</text>
+        <view class="label-container">
+          <text class="form-label">年级</text>
+          <text class="optional-tag">(选填)</text>
+        </view>
         <ChoiceSelected
           class="form-select"
           :choiceIndex="formData.gradeIndex"
@@ -78,11 +100,14 @@
         />
       </view>
       
-      <!-- 学生特有字段：目标学校和目标专业 -->
+      <!-- 学生特有字段：目标学校和目标专业 - 使用联合输入筛选框 -->
       <block v-if="userRole === '学生'">
           <!-- Target School - 仅学生显示 -->
           <view class="form-row">
-            <text class="form-label">目标学校</text>
+            <view class="label-container">
+              <text class="form-label">目标学校</text>
+              <text class="optional-tag">(选填)</text>
+            </view>
             <ChoiceSelected
               class="form-select"
               componentType="graduateSchool"
@@ -100,9 +125,12 @@
             />
           </view>
           
-          <!-- Target Major - 仅学生显示 -->
+          <!-- Target Major - 仅学生显示 - 级联选择框 -->
           <view class="form-row">
-            <text class="form-label">目标专业</text>
+            <view class="label-container">
+              <text class="form-label">目标专业</text>
+              <text class="optional-tag">(选填)</text>
+            </view>
             <ChoiceSelected
               class="form-select"
               componentType="graduateMajor"
@@ -121,9 +149,7 @@
               ref="targetMajorDropdown"
             />
           </view>
-</block>
-      
-
+      </block>
       
       <!-- 按钮区域 -->
       <view class="button-container">
@@ -156,6 +182,7 @@ import ChoiceSelected from '../../components/combobox/combobox'
 import store from '../../store'
 import { Navigator } from '../../router/Router';
 import GraduateStore from '../../components/combobox/graduate_school_major.js';
+import UndergraduateStore from '../../components/combobox/undergraduate_school.js';
 
 export default {
   components: {
@@ -163,6 +190,7 @@ export default {
   },
   onLoad() {
     this.loadUniversityData();
+    this.initSchoolSearch();
   },
   data() {
     return {
@@ -176,14 +204,13 @@ export default {
         targetMajorIndex: -1,   // 目标专业索引
         gradeIndex: -1,
         targetSchool: '',
-        targetMajor: '', // 添加目标专业字段
+        targetMajor: '', // 目标专业值
       },
       schoolList: [], // 普通学校列表
       majorList: [], // 普通专业列表
       targetSchoolList: [], // 目标学校列表（考研）
       targetMajorList: [], // 目标专业列表（考研）
       // 存储原始完整的学校和专业列表，用于搜索恢复
-      originalSchoolList: [],
       originalMajorList: [
         '计算机科学',
         '电子工程',
@@ -195,12 +222,9 @@ export default {
       userRole: '学生',  // 默认值为学生
       showAgreementModal: false, // 控制协议浮窗显示
       pendingUserInfo: null, // 暂存待提交的用户信息
-      graduateStore: {
-        schools: {},
-        schoolKeyword: '',
-        selectedSchool: '',
-        majorKeyword: ''
-      }
+      // 分离筛选器状态
+      graduateStore: null, // 研究生数据状态
+      undergraduateStore: null, // 本科生数据状态
     };
   },
   computed: {
@@ -220,6 +244,7 @@ export default {
      * @returns {Array} 过滤后的目标学校列表
      */
     filteredTargetSchoolList() {
+      if (!this.graduateStore) return [];
       return GraduateStore.getters.filteredSchoolList(this.graduateStore);
     },
     
@@ -228,16 +253,58 @@ export default {
      * @returns {Array} 过滤后的目标专业列表
      */
     filteredTargetMajorList() {
+      if (!this.graduateStore) return [];
       return GraduateStore.getters.filteredMajorList(this.graduateStore);
+    },
+
+    /**
+     * @description 获取过滤后的本科学校列表
+     * @returns {Array} 过滤后的本科学校列表
+     */
+    filteredSchoolList() {
+      if (!this.undergraduateStore) return [];
+      return UndergraduateStore.getters.filteredSchools(this.undergraduateStore);
     }
   },
   methods: {
-    handleSchoolSelect(index) {
+    /**
+     * @description 初始化学校搜索引擎
+     */
+    initSchoolSearch() {
+      // 初始化本科生数据状态
+      this.undergraduateStore = JSON.parse(JSON.stringify(UndergraduateStore.state));
+      
+      // 初始化搜索引擎
+      UndergraduateStore.actions.initSearch({
+        commit: (mutation, payload) => {
+          UndergraduateStore.mutations[mutation](this.undergraduateStore, payload);
+        }
+      });
+    },
+
+    /**
+     * @description 处理学校选择
+     * @param {Number} index - 选择的索引
+     * @param {String} school - 选择的学校名称
+     */
+    handleSchoolSelect(index, school) {
       this.formData.schoolIndex = index;
     },
-    handleMajorSelect(index) {
+
+    /**
+     * @description 处理专业选择
+     * @param {Number} index - 选择的索引
+     * @param {String} major - 选择的专业名称
+     */
+    handleMajorSelect(index, major) {
       this.formData.majorIndex = index;
     },
+
+    /**
+     * @description 处理目标学校选择 - 级联选择的父项
+     * @param {Number} index - 选择的索引
+     * @param {String} school - 选择的学校名称
+     */
     handleTargetSchoolSelect(index, school) {
       this.formData.targetSchoolIndex = index;
       this.formData.targetSchool = school;
@@ -252,38 +319,39 @@ export default {
       // 重置专业选择
       this.resetMajorSelection();
     },
+
+    /**
+     * @description 处理目标专业选择 - 级联选择的子项
+     * @param {Number} index - 选择的索引
+     * @param {String} major - 选择的专业名称
+     */
     handleTargetMajorSelect(index, major) {
       this.formData.targetMajorIndex = index;
       this.formData.targetMajor = major;
     },
+
+    /**
+     * @description 处理年级选择
+     * @param {Number} index - 选择的索引
+     */
     handleGradeSelect(index) {
       this.formData.gradeIndex = index;
     },
     
     /**
-     * @description 处理学校搜索输入
+     * @description 处理学校搜索输入 - 使用本科学校搜索引擎
      * @param {String} keyword - 搜索关键词
      */
     handleSchoolSearch(keyword) {
-      // 创建一个临时的state对象，用于复用GraduateStore的筛选逻辑
-      const tempState = {
-        schools: {},
-        schoolKeyword: keyword,
-        selectedSchool: '',
-        majorKeyword: ''
-      };
+      // 更新学校搜索关键词
+      UndergraduateStore.actions.updateFilterKeyword({
+        commit: (mutation, payload) => {
+          UndergraduateStore.mutations[mutation](this.undergraduateStore, payload);
+        }
+      }, keyword);
       
-      // 将originalSchoolList转换为符合schools结构的对象
-      this.originalSchoolList.forEach(school => {
-        tempState.schools[school] = [];
-      });
-      
-      // 使用GraduateStore的筛选逻辑
-      if (keyword === '') {
-        this.schoolList = [...this.originalSchoolList];
-      } else {
-        this.schoolList = GraduateStore.getters.filteredSchoolList(tempState);
-      }
+      // 直接从计算属性获取结果
+      this.schoolList = this.filteredSchoolList;
     },
     
     /**
@@ -291,46 +359,114 @@ export default {
      * @param {String} keyword - 搜索关键词
      */
     handleMajorSearch(keyword) {
-      // 创建一个临时的state对象，用于复用GraduateStore的筛选逻辑
-      const tempState = {
-        schools: { 'tempSchool': this.originalMajorList },
-        schoolKeyword: '',
-        selectedSchool: 'tempSchool',
-        majorKeyword: keyword
-      };
-      
-      // 使用GraduateStore的筛选逻辑
       if (keyword === '') {
         this.majorList = [...this.originalMajorList];
-      } else {
-        this.majorList = GraduateStore.getters.filteredMajorList(tempState);
+        return;
       }
+      
+      // 简单搜索实现
+      this.majorList = this.originalMajorList.filter(major => 
+        major.toLowerCase().includes(keyword.toLowerCase())
+      );
     },
     
     /**
-     * @description 处理目标学校搜索输入
+     * @description 处理目标学校搜索输入 - 使用研究生学校搜索引擎
      * @param {String} keyword - 搜索关键词
      */
     handleTargetSchoolSearch(keyword) {
+      console.log('处理学校搜索:', keyword);
+      
+      // 特殊处理: 如果关键词为空，显示所有学校（但限制数量）
+      if (!keyword || keyword.trim() === '') {
+        const allSchools = Object.keys(this.graduateStore.schools).slice(0, 50);
+        this.targetSchoolList = allSchools;
+        console.log('关键词为空，显示前50所学校');
+        return;
+      }
+      
+      // 确保搜索引擎已初始化
+      if (!this.graduateStore.schoolFuse) {
+        console.warn('Fuse搜索引擎未初始化，强制重新初始化中...');
+        // 强制重新初始化搜索引擎，确保搜索质量
+        GraduateStore.actions.reinitializeSearch({
+          commit: (mutation, payload) => {
+            GraduateStore.mutations[mutation](this.graduateStore, payload);
+          },
+          state: this.graduateStore
+        });
+      }
+      
       // 更新学校搜索关键词
-      GraduateStore.actions.updateSchoolKeyword({
-        commit: (mutation, payload) => {
-          GraduateStore.mutations[mutation](this.graduateStore, payload);
+      GraduateStore.mutations.setSchoolKeyword(this.graduateStore, keyword);
+      
+      // 手动获取过滤结果并更新列表
+      const filteredSchools = GraduateStore.getters.filteredSchoolList(this.graduateStore);
+      console.log('过滤后的学校列表:', filteredSchools);
+      
+      // 直接更新目标学校列表，不依赖watch
+      this.targetSchoolList = filteredSchools;
+      
+      // 强制刷新组件
+      this.$nextTick(() => {
+        // 记录结果数量
+        console.log(`最终显示学校数量: ${filteredSchools.length}`);
+        
+        // 确保下拉框组件刷新
+        if (this.$refs.targetSchoolDropdown) {
+          this.$refs.targetSchoolDropdown.$forceUpdate();
         }
-      }, keyword);
+      });
     },
     
     /**
-     * @description 处理目标专业搜索输入
+     * @description 处理目标专业搜索输入 - 使用研究生专业搜索引擎
      * @param {String} keyword - 搜索关键词
      */
     handleTargetMajorSearch(keyword) {
+      console.log('处理专业搜索:', keyword);
+      
+      // 确保当前有选中的学校
+      if (!this.graduateStore.selectedSchool) {
+        console.warn('未选择学校，专业搜索无效');
+        return;
+      }
+      
+      // 如果关键词为空，显示所有专业（但限制数量）
+      if (!keyword || keyword.trim() === '') {
+        const allMajors = this.graduateStore.schools[this.graduateStore.selectedSchool] || [];
+        this.targetMajorList = allMajors.slice(0, 20); // 限制初始显示数量
+        console.log('关键词为空，显示前20个专业');
+        return;
+      }
+      
+      // 确保专业搜索引擎已初始化
+      if (!this.graduateStore.majorFuse) {
+        console.warn('专业搜索引擎未初始化，重新初始化中...');
+        // 重新初始化当前学校的专业搜索引擎
+        GraduateStore.mutations.setSelectedSchool(this.graduateStore, this.graduateStore.selectedSchool);
+      }
+      
       // 更新专业搜索关键词
-      GraduateStore.actions.updateMajorKeyword({
-        commit: (mutation, payload) => {
-          GraduateStore.mutations[mutation](this.graduateStore, payload);
+      GraduateStore.mutations.setMajorKeyword(this.graduateStore, keyword);
+      
+      // 手动获取过滤结果并更新列表
+      const filteredMajors = GraduateStore.getters.filteredMajorList(this.graduateStore);
+      console.log('过滤后的专业列表:', filteredMajors);
+      
+      // 直接更新目标专业列表，不依赖watch
+      this.targetMajorList = filteredMajors;
+      
+      // 强制刷新组件
+      this.$nextTick(() => {
+        // 记录结果数量
+        console.log(`最终显示专业数量: ${filteredMajors.length}`);
+        
+        // 确保下拉框组件刷新
+        if (this.$refs.targetMajorDropdown) {
+          this.$refs.targetMajorDropdown.$forceUpdate();
         }
-      }, keyword);
+      });
     },
     
     /**
@@ -346,7 +482,7 @@ export default {
     },
     
     /**
-     * 获取当前用户角色
+     * @description 获取当前用户角色
      * @returns {string} 用户角色
      */
     getUserRole() {
@@ -373,20 +509,17 @@ export default {
     },
 
     /**
-     * 加载大学数据
+     * @description 加载大学数据
      */
     loadUniversityData() {
       try {
         // 初始化考研数据（目标学校和专业）
         this.initGraduateData(); 
         
-        // 普通学校列表（就读学校）- 使用相同的数据源
-        if (!this.originalSchoolList || this.originalSchoolList.length === 0) {
-          this.schoolList = [...this.targetSchoolList];
-          this.originalSchoolList = [...this.targetSchoolList];
-        }
+        // 从本科学校列表加载
+        this.schoolList = UndergraduateStore.state.schools.slice(0, 20); // 初始只显示前20所，后续通过搜索获取更多
         
-        console.log('成功加载学校数据，普通学校:', this.schoolList.length, '所，目标学校:', this.targetSchoolList.length, '所');
+        console.log('成功加载学校数据');
       } catch (error) {
         console.error('加载大学数据失败:', error);
         
@@ -395,7 +528,6 @@ export default {
         
         // 设置普通学校列表（就读学校）
         this.schoolList = defaultSchools;
-        this.originalSchoolList = [...defaultSchools];
         
         // 设置目标学校列表（考研学校）
         this.targetSchoolList = defaultSchools;
@@ -443,11 +575,6 @@ export default {
      * @description 提交表单信息
      */
     submitForm() {
-      // 验证表单内容
-      if (!this.validateForm()) {
-        return;
-      }
-      
       try {
         // 获取当前角色
         const currentRole = this.getUserRole();
@@ -456,15 +583,15 @@ export default {
         
         // 构建用户信息对象
         const userInfo = {
-          name: this.formData.nickname,
-          gender: this.formData.gender,
-          phoneNumber: this.formData.phone,
+          name: this.formData.nickname || '',
+          gender: this.formData.gender || '',
+          phoneNumber: this.formData.phone || '',
           role: roleCode, // 使用角色代码
           userInfo: {
-            school: this.schoolList[this.formData.schoolIndex] || '',
-            major: this.majorList[this.formData.majorIndex] || '',
-            studentGrade: currentRole === '学生' ? this.gradeList[this.formData.gradeIndex] || '' : '',
-            teacherGrade: currentRole === '老师' ? this.gradeList[this.formData.gradeIndex] || '' : '',
+            school: this.formData.schoolIndex >= 0 ? this.schoolList[this.formData.schoolIndex] : '',
+            major: this.formData.majorIndex >= 0 ? this.majorList[this.formData.majorIndex] : '',
+            studentGrade: (currentRole === '学生' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : '',
+            teacherGrade: (currentRole === '老师' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : '',
           }
         };
         
@@ -503,88 +630,58 @@ export default {
         });
       }
     },
+
     /**
-     * 验证表单内容
+     * @description 验证表单内容 - 所有字段均为选填，无需验证
      * @returns {boolean} 验证是否通过
      */
     validateForm() {
-      if (!this.formData.nickname) {
-        uni.showToast({
-          title: '请输入昵称',
-          icon: 'none'
-        });
-        return false;
-      }
-      if (!this.formData.phone) {
-        uni.showToast({
-          title: '请输入手机号',
-          icon: 'none'
-        });
-        return false;
-      }
-      if (this.formData.schoolIndex === -1) {
-        uni.showToast({
-          title: '请选择学校',
-          icon: 'none'
-        });
-        return false;
-      }
-      if (this.formData.majorIndex === -1) {
-        uni.showToast({
-          title: '请选择专业',
-          icon: 'none'
-        });
-        return false;
-      }
-      
-      // 学生角色时验证目标学校和目标专业
-      if (this.userRole === '学生') {
-        if (this.formData.targetSchoolIndex === -1) {
-          uni.showToast({
-            title: '请选择目标学校',
-            icon: 'none'
-          });
-          return false;
-        }
-        if (this.formData.targetMajorIndex === -1) {
-          uni.showToast({
-            title: '请选择目标专业',
-            icon: 'none'
-          });
-          return false;
-        }
-      }
-      
-      if (this.formData.gradeIndex === -1) {
-        uni.showToast({
-          title: '请选择年级',
-          icon: 'none'
-        });
-        return false;
-      }
+      // 所有字段均为选填，直接返回true
       return true;
     },
+
     /**
      * @description 初始化考研数据
      */
     initGraduateData() {
       try {
-        // 从GraduateStore初始化数据
+        // 初始化研究生数据状态 - 使用深拷贝确保数据完整性
         this.graduateStore = JSON.parse(JSON.stringify(GraduateStore.state));
         
-        // 设置目标学校列表 - 仅用于目标学校下拉框
-        const graduateSchools = Object.keys(this.graduateStore.schools);
+        // 确保数据结构完整
+        if (!this.graduateStore.schools) {
+          console.error('研究生学校数据不完整');
+          throw new Error('学校数据结构不完整');
+        }
+        
+        // 使用优化的搜索引擎配置初始化
+        GraduateStore.mutations.initSchoolFuse(this.graduateStore);
+        console.log('Fuse引擎初始化状态:', !!this.graduateStore.schoolFuse);
+        
+        // 验证搜索引擎配置
+        if (this.graduateStore.schoolFuse) {
+          console.log('Fuse配置验证:', {
+            keys: this.graduateStore.schoolFuse._docs[0] ? Object.keys(this.graduateStore.schoolFuse._docs[0]) : '未知',
+            ignoreLocation: this.graduateStore.schoolFuse.options.ignoreLocation,
+            threshold: this.graduateStore.schoolFuse.options.threshold
+          });
+        } else {
+          console.error('Fuse.js搜索引擎初始化失败');
+        }
+        
+        // 设置目标学校列表初始值 - 仅用于目标学校下拉框
+        const graduateSchools = Object.keys(this.graduateStore.schools).slice(0, 50); // 初始只显示前50所
         this.targetSchoolList = graduateSchools;
         
-        console.log('初始化考研数据成功，学校数量:', graduateSchools.length);
-        return graduateSchools;
+        console.log('初始化考研数据成功');
+        return true;
       } catch (error) {
         console.error('初始化考研数据失败:', error);
         
         // 设置默认数据
         const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
         this.targetSchoolList = defaultSchools;
-        return defaultSchools;
+        return false;
       }
     },
     
@@ -593,9 +690,28 @@ export default {
      * @param {String} school - 变更后的学校名称
      */
     handleSchoolChange(school) {
+      console.log('学校变更事件:', school);
+      
       if (!school) {
         // 学校被清空，重置专业选择
         this.resetMajorSelection();
+        return;
+      }
+      
+      // 在选择新学校后，立即更新专业搜索实例
+      GraduateStore.actions.selectSchool({
+        commit: (mutation, payload) => {
+          GraduateStore.mutations[mutation](this.graduateStore, payload);
+        }
+      }, school);
+      
+      // 更新目标专业列表
+      if (this.graduateStore.schools[school]) {
+        this.targetMajorList = this.graduateStore.schools[school].slice(0, 20); // 初始显示前20个专业
+        console.log(`已加载 ${school} 的专业列表，共 ${this.targetMajorList.length} 个`);
+      } else {
+        this.resetMajorSelection();
+        console.warn(`${school} 没有关联的专业数据`);
       }
     },
     
@@ -620,22 +736,38 @@ export default {
       this.userRole = newRole;
       this.formData.gradeIndex = -1; // 重置年级选择
     }
+    
+    // 每次显示页面时强制重新初始化搜索引擎，确保搜索功能正常工作
+    if (this.graduateStore) {
+      // 使用强制重新初始化搜索方法
+      GraduateStore.actions.reinitializeSearch({
+        commit: (mutation, payload) => {
+          GraduateStore.mutations[mutation](this.graduateStore, payload);
+        },
+        state: this.graduateStore
+      });
+      
+      console.log('Fuse引擎强制重新初始化完成，状态:', !!this.graduateStore.schoolFuse);
+      
+      // 验证搜索引擎配置
+      if (this.graduateStore.schoolFuse) {
+        console.log('重新初始化后的Fuse配置:', {
+          threshold: this.graduateStore.schoolFuse.options.threshold,
+          ignoreLocation: this.graduateStore.schoolFuse.options.ignoreLocation,
+          items: this.graduateStore.schoolFuse._docs.length
+        });
+      }
+    }
   },
   watch: {
     // 监听过滤后的学校列表变化
-    filteredTargetSchoolList: {
+    filteredSchoolList: {
       handler(newVal) {
-        this.targetSchoolList = newVal;
+        if (newVal && newVal.length > 0) {
+          this.schoolList = newVal;
+        }
       },
-      immediate: true
-    },
-    
-    // 监听过滤后的专业列表变化
-    filteredTargetMajorList: {
-      handler(newVal) {
-        this.targetMajorList = newVal;
-      },
-      immediate: true
+      immediate: false
     }
   }
 };
@@ -653,16 +785,24 @@ export default {
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
-.role-indicator {
-  padding: 20rpx 0;
+.form-notice {
+  background-color: #f8f8f8;
+  border-radius: 8rpx;
+  padding: 20rpx;
   margin-bottom: 30rpx;
-  border-bottom: 1px solid #f0f0f0;
 }
 
-.role-text {
-  font-size: 30rpx;
-  color: #007AFF;
-  font-weight: bold;
+.notice-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+}
+
+.label-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 15rpx;
 }
 
 .form-row {
@@ -674,7 +814,12 @@ export default {
   font-size: 28rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 15rpx;
+}
+
+.optional-tag {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 10rpx;
 }
 
 .form-input {
