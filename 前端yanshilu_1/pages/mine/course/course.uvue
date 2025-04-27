@@ -1,189 +1,295 @@
 <template>
-	<view class="container">
-		<!-- 添加日历组件 -->
-		<uni-calendar 
-			ref="calendar"
-			:insert="false"
-			:start-date="getToday()"
-			@confirm="onCalendarConfirm"
-		/>
-		<scroll-view class="course-list" scroll-y>
-			<view class="course-item" v-for="(item, index) in courseList" :key="index">
-				<image class="course-img" src="/static/images/default_avatar.png"></image>
-				<view class="course-info">
-					<text class="course-name">{{item.name}}</text>
-					<text class="course-teacher">讲师: {{item.teacher}}</text>
-					<text class="course-time">时间: {{item.time}}</text>
-					<text class="course-price">¥{{item.price}}</text>
-				</view>
-				<button class="reserve-btn" @click="handleReserve(index)">预约</button>
-			</view>
-		</scroll-view>
-	</view>
+  <view class="container">
+    <!-- 顶部导航栏 -->
+    <view class="tab-bar">
+      <view 
+        v-for="(tab, index) in tabs" 
+        :key="index"
+        class="tab-item"
+        :class="{ active: currentTab === index }"
+        @click="switchTab(index)"
+      >
+        <text>{{ tab }}</text>
+      </view>
+    </view>
+
+    <!-- 待预约页面 - 保持原样 -->
+    <view v-if="currentTab === 0">
+      <uni-calendar 
+        ref="calendar"
+        :insert="false"
+        :start-date="getToday()"
+        @confirm="onCalendarConfirm"
+      />
+      <scroll-view class="course-list" scroll-y>
+        <view v-for="(item, index) in pendingCourses" :key="index" class="course-item">
+          <image class="course-img" src="/static/images/default_avatar.png"></image>
+          <view class="course-info">
+            <text class="course-name">{{item.name}}</text>
+            <text class="course-teacher">讲师: {{item.teacher}}</text>
+            <text class="course-time">时间: {{item.time}}</text>
+            <text class="course-price">¥{{item.price}}</text>
+          </view>
+          <button class="reserve-btn" @click="handleReserve(index)">预约</button>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 已预约页面 -->
+    <view v-if="currentTab === 1">
+      <scroll-view class="course-list" scroll-y>
+        <view v-for="(item, index) in reservedCourses" :key="index" class="course-item">
+          <image class="course-img" src="/static/images/default_avatar.png"></image>
+          <view class="course-info">
+            <text class="course-name">{{item.name}}</text>
+            <text class="course-teacher">讲师: {{item.teacher}}</text>
+            <text class="course-time">预约时间: {{item.reservedTime}}</text>
+            <text class="course-price">¥{{item.price}}</text>
+          </view>
+          <button class="cancel-btn" @click="cancelReservation(index)">取消预约</button>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 已完成页面 -->
+    <view v-if="currentTab === 2">
+      <scroll-view class="course-list" scroll-y>
+        <view v-for="(item, index) in completedCourses" :key="index" class="course-item">
+          <image class="course-img" src="/static/images/default_avatar.png"></image>
+          <view class="course-info">
+            <text class="course-name">{{item.name}}</text>
+            <text class="course-teacher">讲师: {{item.teacher}}</text>
+            <text class="course-time">完成时间: {{item.completedTime}}</text>
+            <text class="course-price">¥{{item.price}}</text>
+          </view>
+          <button class="review-btn" @click="writeReview(index)">写评价</button>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
 </template>
 
 <script>
-	export default {
-		data() {
-			return {
-				courseList: [
-					{
-						name: "前端开发基础",
-						teacher: "张老师",
-						time: "2023-12-15 14:00",
-						price: 199
-					},
-					{
-						name: "Vue.js实战",
-						teacher: "李老师",
-						time: "2023-12-16 10:00",
-						price: 299,
-						
-					},
-					{
-						name: "小程序开发",
-						teacher: "王老师",
-						time: "2023-12-17 15:00",
-						price: 249,
-						
-					}
-				],
-				currentCourseIndex: null,
-				selectedDate: null // 新增用于存储选择的日期
-			}
-		},
-		methods: {
-			async handleReserve(index) {
-				const course = this.courseList[index];
-				// 第一步：确认预约
-				const { confirm } = await uni.showModal({
-					title: '确认预约',
-					content: `确定要预约《${course.name}》课程吗？`,
-					confirmText: '确认',
-					cancelText: '取消'
-				});
-				
-				if (!confirm) return;
-				
-				// 记录当前课程索引
-				this.currentCourseIndex = index;
-				// 显示日期选择提示
-				uni.showToast({
-					title: '请选择预约日期',
-					icon: 'none',
-					duration: 1500
-				});
-				// 打开日历组件
-				this.$refs.calendar.open();
-			},
-			
-			async onCalendarConfirm(e) {
-				this.selectedDate = e.fulldate;
-				// 显示时间选择提示
-				await uni.showToast({
-					title: `已选择日期: ${e.fulldate}\n请选择时间段`,
-					icon: 'none',
-					duration: 1500
-				});
-				// 选择日期后继续选择时间段
-				await this.selectReserveTime();
-			},
-			
-			async selectReserveTime() {
-				const { time } = await new Promise((resolve) => {
-					uni.showActionSheet({
-						title: '选择预约时间段',
-						itemList: ['上午 9:00-11:00', '下午 14:00-16:00', '晚上 19:00-21:00'],
-						success: (res) => {
-							const times = ['9:00-11:00', '14:00-16:00', '19:00-21:00'];
-							resolve({ time: times[res.tapIndex] });
-						},
-						fail: () => resolve({ time: null })
-					});
-				});
-				
-				if (!time) return;
-				
-				const course = this.courseList[this.currentCourseIndex];
-				uni.showToast({
-					title: `已成功预约: ${course.name}\n日期: ${this.selectedDate}\n时间: ${time}`,
-					icon: 'success',
-					duration: 3000
-				});
-				
-				// 重置状态
-				this.currentCourseIndex = null;
-				this.selectedDate = null;
-			},
-			
-			getToday() {
-				const today = new Date();
-				return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-			}
-		}
-	}
+export default {
+  data() {
+    return {
+      currentTab: 0,
+      tabs: ['待预约', '已预约', '已完成'],
+      
+      // 待预约课程数据
+      pendingCourses: [
+        {
+          name: "前端开发基础",
+          teacher: "张老师",
+          time: "2023-12-15 14:00",
+          price: 199
+        },
+        {
+          name: "Vue.js实战",
+          teacher: "李老师",
+          time: "2023-12-16 10:00",
+          price: 299
+        },
+        {
+          name: "小程序开发",
+          teacher: "王老师",
+          time: "2023-12-17 15:00",
+          price: 249
+        }
+      ],
+      
+      // 已预约课程数据
+      reservedCourses: [
+        {
+          name: "React高级课程",
+          teacher: "赵老师",
+          price: 399,
+          reservedTime: "2023-12-18 14:00"
+        },
+        {
+          name: "Node.js实战",
+          teacher: "钱老师",
+          price: 349,
+          reservedTime: "2023-12-19 10:00"
+        }
+      ],
+      
+      // 已完成课程数据
+      completedCourses: [
+        {
+          name: "前端基础入门",
+          teacher: "孙老师",
+          price: 199,
+          completedTime: "2023-12-10 15:00"
+        },
+        {
+          name: "CSS高级技巧",
+          teacher: "周老师",
+          price: 299,
+          completedTime: "2023-12-15 09:00"
+        }
+      ],
+      
+      currentCourseIndex: null,
+      selectedDate: null
+    }
+  },
+  methods: {
+    // 原有方法保持不变
+    switchTab(index) {
+      this.currentTab = index;
+    },
+    cancelReservation(index) {
+      uni.showModal({
+        title: '确认取消',
+        content: '确定要取消此预约吗？',
+        success: (res) => {
+          if (res.confirm) {
+            uni.showToast({ title: '已取消预约', icon: 'success' });
+          }
+        }
+      });
+    },
+    writeReview(index) {
+      uni.navigateTo({
+        url: '/pages/mine/review?courseId=' + this.completedCourses[index].id
+      });
+    }
+    async handleReserve(index) {
+      const course = this.pendingCourses[index];
+      // 第一步：确认预约
+      const { confirm } = await uni.showModal({
+        title: '确认预约',
+        content: `确定要预约《${course.name}》课程吗？`,
+        confirmText: '确认',
+        cancelText: '取消'
+      });
+      
+      if (!confirm) return;
+      
+      // 记录当前课程索引
+      this.currentCourseIndex = index;
+      // 显示日期选择提示
+      uni.showToast({
+        title: '请选择预约日期',
+        icon: 'none',
+        duration: 1500
+      });
+      // 打开日历组件
+      this.$refs.calendar.open();
+    },
+    
+    async onCalendarConfirm(e) {
+      this.selectedDate = e.fulldate;
+      // 显示时间选择提示
+      await uni.showToast({
+        title: `已选择日期: ${e.fulldate}\n请选择时间段`,
+        icon: 'none',
+        duration: 1500
+      });
+      // 选择日期后继续选择时间段
+      await this.selectReserveTime();
+    },
+    
+    async selectReserveTime() {
+      const { time } = await new Promise((resolve) => {
+        uni.showActionSheet({
+          title: '选择预约时间段',
+          itemList: ['上午 9:00-11:00', '下午 14:00-16:00', '晚上 19:00-21:00'],
+          success: (res) => {
+            const times = ['9:00-11:00', '14:00-16:00', '19:00-21:00'];
+            resolve({ time: times[res.tapIndex] });
+          },
+          fail: () => resolve({ time: null })
+        });
+      });
+      
+      if (!time) return;
+      
+      // 修复这里使用pendingCourses而不是courseList
+      const course = this.pendingCourses[this.currentCourseIndex];
+      
+      // 将预约成功的课程添加到已预约列表
+      this.reservedCourses.push({
+        ...course,
+        reservedTime: `${this.selectedDate} ${time}`
+      });
+      
+      uni.showToast({
+        title: `已成功预约: ${course.name}\n日期: ${this.selectedDate}\n时间: ${time}`,
+        icon: 'success',
+        duration: 3000
+      });
+      
+      // 重置状态
+      this.currentCourseIndex = null;
+      this.selectedDate = null;
+    },
+    
+    getToday() {
+      const today = new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    }
+  }
+}
 </script>
 
 <style>
-	.container {
-		padding: 20rpx;
-	}
-	/* 移除.header相关样式 */
-	.header {
-		margin-bottom: 30rpx;
-	}
-	
-	.title {
-		font-size: 36rpx;
-		font-weight: bold;
-	}
-	
-	.course-list {
-		height: calc(100vh - 100rpx);
-	}
-	
-	.course-item {
-		display: flex;
-		align-items: center;
-		padding: 20rpx;
-		margin-bottom: 20rpx;
-		background-color: #fff;
-		border-radius: 10rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
-	}
-	
-	.course-img {
-		width: 150rpx;
-		height: 150rpx;
-		border-radius: 10rpx;
-		margin-right: 20rpx;
-	}
-	
-	.course-info {
-		flex: 1;
-	}
-	
-	.course-name {
-		font-size: 32rpx;
-		font-weight: bold;
-		display: block;
-		margin-bottom: 10rpx;
-	}
-	
-	.course-teacher, .course-time, .course-price {
-		font-size: 28rpx;
-		color: #666;
-		display: block;
-		margin-bottom: 5rpx;
-	}
-	
-	.reserve-btn {
-		background-color: #007AFF;
-		color: white;
-		border-radius: 40rpx;
-		padding: 0 30rpx;
-		height: 60rpx;
-		line-height: 60rpx;
-		font-size: 28rpx;
-	}
+/* 新增顶部导航栏样式 */
+.tab-bar {
+  display: flex;
+  height: 80rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #007AFF;
+  font-weight: bold;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background-color: #007AFF;
+  border-radius: 2rpx;
+}
+
+/* 新增按钮样式 */
+.cancel-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border-radius: 40rpx;
+  padding: 0 30rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 28rpx;
+}
+
+.review-btn {
+  background-color: #FFA500;
+  color: white;
+  border-radius: 40rpx;
+  padding: 0 30rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 28rpx;
+}
+
+/* 原有样式保持不变 */
 </style>

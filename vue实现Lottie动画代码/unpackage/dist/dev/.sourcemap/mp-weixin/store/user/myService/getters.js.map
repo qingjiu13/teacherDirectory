@@ -1,1 +1,0 @@
-{"version":3,"file":"getters.js","sources":["store/user/myService/getters.js"],"sourcesContent":["/**\r\n * myService模块的getters\r\n * @module store/user/myService/getters\r\n */\r\n\r\nexport default {\r\n    // 这里放置getters方法\r\n}; "],"names":[],"mappings":";AAKA,MAAe,UAAA;AAAA;AAEf;;"}

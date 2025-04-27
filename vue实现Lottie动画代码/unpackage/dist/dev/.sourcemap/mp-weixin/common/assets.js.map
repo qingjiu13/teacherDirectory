@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-{"version":3,"file":"assets.js","sources":["static/image/tab-bar/default_avatar.png","../../../static/image/login_qianduan_test.png","../../../static/image/default_avatar.png","static/image/arrow/arrow_down.svg"],"sourcesContent":["export default \"__VITE_ASSET__ec221625__\"","export default \"/static/image/login_qianduan_test.png\"","export default \"/static/image/default_avatar.png\"","export default \"__VITE_ASSET__6d4aef10__\""],"names":[],"mappings":";AAAA,MAAe,aAAA;ACAf,MAAe,eAAA;ACAf,MAAe,eAAA;ACAf,MAAe,aAAA;;;;;"}
-=======
-{"version":3,"file":"assets.js","sources":["static/image/tab-bar/default_avatar.png","static/image/login_qianduan_test.png","static/image/arrow/arrow_down.svg"],"sourcesContent":["export default \"__VITE_ASSET__ec221625__\"","export default \"__VITE_ASSET__7483763c__\"","export default \"__VITE_ASSET__6d4aef10__\""],"names":[],"mappings":";AAAA,MAAe,aAAA;ACAf,MAAe,eAAA;ACAf,MAAe,aAAA;;;;"}
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d

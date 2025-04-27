@@ -73,12 +73,6 @@
 			}
 		},
 		{
-			"path": "pages/mine/course/course_detail",
-			"style": {
-				"navigationBarTitleText": "课程详情"
-			}
-		},
-		{
 			"path": "pages/mine/order",
 			"style": {
 				"navigationBarTitleText": "我的订单"

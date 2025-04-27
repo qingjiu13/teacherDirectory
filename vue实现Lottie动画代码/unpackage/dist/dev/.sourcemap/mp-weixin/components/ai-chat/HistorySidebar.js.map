@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-{"version":3,"file":"HistorySidebar.js","sources":["../../../HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniComponent:/RDovZ2l0aHViL3RlYWNoZXJEaXJlY3RvcnkvdnVl5a6e546wTG90dGll5Yqo55S75Luj56CBL2NvbXBvbmVudHMvYWktY2hhdC9IaXN0b3J5U2lkZWJhci52dWU"],"sourcesContent":["import Component from 'D:/github/teacherDirectory/vue实现Lottie动画代码/components/ai-chat/HistorySidebar.vue'\nwx.createComponent(Component)"],"names":["Component"],"mappings":";;AACA,GAAG,gBAAgBA,eAAS,SAAA;"}
-=======
-{"version":3,"file":"HistorySidebar.js","sources":["../../HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniComponent:/RToveWFuc2hpbHXph43mlrDmnaXov4cvdnVl5a6e546wTG90dGll5Yqo55S75Luj56CBL2NvbXBvbmVudHMvYWktY2hhdC9IaXN0b3J5U2lkZWJhci52dWU"],"sourcesContent":["import Component from 'E:/yanshilu重新来过/vue实现Lottie动画代码/components/ai-chat/HistorySidebar.vue'\nwx.createComponent(Component)"],"names":["Component"],"mappings":";;AACA,GAAG,gBAAgBA,eAAS,SAAA;"}
->>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
