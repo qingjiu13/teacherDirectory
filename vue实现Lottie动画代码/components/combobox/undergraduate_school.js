@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js'
-import schoolList from '../../store/data/2886所大学.json'
+import schoolList from '../../static/data/2886所大学.json'
 
 export default {
   state: {
