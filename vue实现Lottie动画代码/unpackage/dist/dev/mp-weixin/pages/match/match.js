@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+<<<<<<< HEAD
 const router_Router = require("../../router/Router.js");
 const store_index = require("../../store/index.js");
 const choiceSelected = () => "../../components/combobox/combobox.js";
@@ -248,6 +249,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     l: common_vendor.sei(_ctx.virtualHostId, "view"),
     m: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
+=======
+const _sfc_main = {};
+function _sfc_render(_ctx, _cache) {
+  return {};
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
 wx.createPage(MiniProgramPage);

@@ -9,7 +9,17 @@
     "postcss": false,
     "minified": true,
     "newFeature": true,
+<<<<<<< HEAD
     "bigPackageSizeSupport": true
+=======
+    "bigPackageSizeSupport": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "ignoreUploadUnusedFiles": true
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
   },
   "compileType": "miniprogram",
   "libVersion": "",

@@ -64,7 +64,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     c: common_vendor.f($props.messages, (msg, index, i0) => {
       return {
         a: common_vendor.o(($event) => _ctx.$emit("retryMessage", index), index),
+<<<<<<< HEAD
         b: "d7429e58-0-" + i0,
+=======
+        b: "ba2591b0-0-" + i0,
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
         c: common_vendor.p({
           type: msg.type,
           content: msg.content,
@@ -77,7 +81,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   }, {
+<<<<<<< HEAD
     d: common_vendor.sei("r0-d7429e58", "scroll-view", "messageScroll"),
+=======
+    d: common_vendor.sei("r0-ba2591b0", "scroll-view", "messageScroll"),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     e: $props.autoScrollId,
     f: common_vendor.o((...args) => $options.onScrollToUpper && $options.onScrollToUpper(...args)),
     g: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),

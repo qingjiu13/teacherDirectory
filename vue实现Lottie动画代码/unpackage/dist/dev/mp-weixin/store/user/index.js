@@ -10,7 +10,7 @@ const user = {
   modules: {
     myService: store_user_myService_index.myService,
     money: store_user_money_index.money,
-    baseInfo: store_user_baseInfo_index.baseInfoModule,
+    baseInfo: store_user_baseInfo_index.baseInfo,
     chat: store_user_chat_index.chat,
     match: store_user_match_index.match,
     aiChat: store_user_aiChat_index.aiChat

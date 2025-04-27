@@ -10,6 +10,7 @@ export default {
      * @param {string} role - 新的用户角色（学生或老师）
      */
     updateRole(state, role) {
+        console.log('updateRole mutation执行, 参数:', role);
         // 更新显示的角色名称
         state.userInfo.role = role === 'teacher' ? '老师' : '学生';
         
@@ -27,6 +28,7 @@ export default {
         
         // 同步更新角色到本地存储
         uni.setStorageSync('userRole', role);
+        console.log('角色更新完成, 新角色:', state.userInfo.role);
     },
     
     /**
@@ -35,6 +37,13 @@ export default {
      * @param {Object} userData - 服务器返回的用户信息
      */
     SET_USER_INFO(state, userData) {
+        console.log('SET_USER_INFO mutation执行, 入参:', userData);
+        console.log('更新前state:', {
+            id: state.id,
+            name: state.name,
+            avatar: state.avatar
+        });
+        
         // 更新基本信息
         state.id = userData.id || '';
         state.avatar = userData.avatar || '';
@@ -78,6 +87,13 @@ export default {
         
         // 同步更新角色到本地存储
         uni.setStorageSync('userRole', roleCode);
+        
+        console.log('更新后state:', {
+            id: state.id,
+            name: state.name,
+            avatar: state.avatar,
+            role: state.userInfo.role
+        });
     },
     
     /**
@@ -93,6 +109,8 @@ export default {
      * @param {string} userInfo.password - 用户密码
      */
     UPDATE_USER_INFO(state, userInfo) {
+        console.log('UPDATE_USER_INFO mutation执行, 入参:', userInfo);
+        
         const { 
             avatar, 
             name, 
@@ -140,6 +158,30 @@ export default {
             phoneNumber: state.phoneNumber,
             role: uni.getStorageSync('userRole') || 'student'
         }));
+        
+        console.log('更新后state:', {
+            id: state.id,
+            name: state.name,
+            avatar: state.avatar
+        });
+    },
+    
+    /**
+     * 更新用户个人档案（UPDATE_USER_INFO的别名，用于modify.vue页面）
+     * @param {Object} state - 当前状态
+     * @param {Object} profileData - 用户个人档案数据
+     */
+    UPDATE_USER_PROFILE(state, profileData) {
+        console.log('UPDATE_USER_PROFILE mutation执行, 入参:', profileData);
+        
+        // 直接调用UPDATE_USER_INFO mutation，保持逻辑一致
+        this.commit('user/baseInfo/UPDATE_USER_INFO', profileData);
+        
+        // 发送事件通知更新成功
+        uni.$emit('userProfileUpdated', {
+            timestamp: Date.now(),
+            data: profileData
+        });
     },
     
     /**
@@ -147,6 +189,8 @@ export default {
      * @param {Object} state - 当前状态
      */
     CLEAR_USER_INFO(state) {
+        console.log('CLEAR_USER_INFO mutation执行');
+        
         // 重置所有用户信息为默认值
         state.id = '';
         state.avatar = '';
@@ -170,5 +214,32 @@ export default {
             teacherGrade: '',
             teacherScore: 0,
         };
+        
+        console.log('清除后state:', {
+            id: state.id,
+            name: state.name,
+            avatar: state.avatar,
+            role: state.userInfo.role
+        });
     },
+    
+    /**
+     * 更新用户扩展信息
+     * @param {Object} state - 当前模块状态
+     * @param {Object} userInfoData - 用户扩展信息
+     */
+    UPDATE_USER_INFO_DATA(state, userInfoData) {
+        console.log('UPDATE_USER_INFO_DATA mutation执行, 入参:', userInfoData);
+        
+        // 更新userInfo对象中的字段
+        state.userInfo = {
+            ...state.userInfo,
+            ...userInfoData
+        };
+        
+        // 保存到本地存储
+        uni.setStorageSync('userInfoData', JSON.stringify(state.userInfo));
+        
+        console.log('更新后userInfo:', state.userInfo);
+    }
 }; 

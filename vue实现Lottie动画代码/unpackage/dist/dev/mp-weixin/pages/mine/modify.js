@@ -13,9 +13,12 @@ const _sfc_main = common_vendor.defineComponent({
         wechat: "",
         password: "未设置"
       }),
-      updating: false
+      updating: false,
+      originalData: null
+      // 用于存储原始数据以便对比变更
     };
   },
+<<<<<<< HEAD
   computed: Object.assign({}, common_vendor.mapGetters("user/baseInfo", [
     "profile",
     "userRole",
@@ -24,14 +27,27 @@ const _sfc_main = common_vendor.defineComponent({
   watch: {
     updateLoading(val = null) {
       this.updating = val;
+=======
+  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("user/baseInfo", [
+    "profile",
+    "userRole",
+    "isTeacher"
+  ])), {
+    // 计算属性：数据是否已修改
+    isDataChanged() {
+      if (!this.originalData)
+        return false;
+      return UTS.JSON.stringify(this.userInfo) !== UTS.JSON.stringify(this.originalData);
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     }
-  },
+  })),
   onLoad() {
     this.initUserInfo();
   },
-  methods: Object.assign(Object.assign({}, common_vendor.mapActions("user/baseInfo", [
-    "getUserInfo",
-    "updateUserInfo"
+  methods: Object.assign(Object.assign(Object.assign({}, common_vendor.mapActions("user/baseInfo", [
+    "getUserInfo"
+  ])), common_vendor.mapMutations("user/baseInfo", [
+    "UPDATE_USER_PROFILE"
   ])), {
     /**
      * @description 初始化用户信息
@@ -40,20 +56,21 @@ const _sfc_main = common_vendor.defineComponent({
       return common_vendor.__awaiter(this, void 0, void 0, function* () {
         try {
           const currentRole = common_vendor.index.getStorageSync("userRole") || "student";
-          common_vendor.index.__f__("log", "at pages/mine/modify.vue:151", "当前角色:", currentRole);
+          common_vendor.index.__f__("log", "at pages/mine/modify.vue:154", "当前角色:", currentRole);
           yield this.getUserInfo();
           this.userInfo = {
             avatar: this.profile.avatar || "",
             nickname: this.profile.nickname || "",
-            introduction: this.profile.introduction || "",
+            introduction: this.profile.introduction || this.profile.selfIntroduction || "",
             gender: this.profile.gender || "",
-            phone: this.profile.phone || "",
-            wechat: this.profile.wechat || "",
+            phone: this.profile.phone || this.profile.phoneNumber || "",
+            wechat: this.profile.wechat || this.profile.wechatNumber || "",
             password: this.profile.password || "未设置"
           };
-          common_vendor.index.__f__("log", "at pages/mine/modify.vue:167", "获取的用户信息:", this.userInfo);
+          this.originalData = UTS.JSON.parse(UTS.JSON.stringify(this.userInfo));
+          common_vendor.index.__f__("log", "at pages/mine/modify.vue:173", "获取的用户信息:", this.userInfo);
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/modify.vue:169", "获取用户信息失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/modify.vue:175", "获取用户信息失败", error);
           common_vendor.index.showToast({
             title: "获取用户信息失败",
             icon: "none"
@@ -103,17 +120,29 @@ const _sfc_main = common_vendor.defineComponent({
           });
           return Promise.resolve(null);
         }
+        if (!this.isDataChanged) {
+          common_vendor.index.showToast({
+            title: "未检测到数据变更",
+            icon: "none"
+          });
+          setTimeout(() => {
+            common_vendor.index.navigateBack();
+          }, 1500);
+          return Promise.resolve(null);
+        }
         try {
           this.updating = true;
           const profileData = new UTSJSONObject({
             avatar: this.userInfo.avatar,
             nickname: this.userInfo.nickname,
-            introduction: this.userInfo.introduction,
+            selfIntroduction: this.userInfo.introduction,
             gender: this.userInfo.gender,
-            phone: this.userInfo.phone,
-            wechat: this.userInfo.wechat
+            phoneNumber: this.userInfo.phone,
+            wechatNumber: this.userInfo.wechat
+            // 兼容state.js中的字段名
           });
-          yield this.updateUserInfo(profileData);
+          this.UPDATE_USER_PROFILE(profileData);
+          common_vendor.index.setStorageSync("userProfile", UTS.JSON.stringify(profileData));
           common_vendor.index.showToast({
             title: "保存成功",
             icon: "success"
@@ -122,7 +151,7 @@ const _sfc_main = common_vendor.defineComponent({
             common_vendor.index.navigateBack();
           }, 1500);
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/modify.vue:253", "保存失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/modify.vue:274", "保存失败", error);
           common_vendor.index.showToast({
             title: error.message || "保存失败",
             icon: "none"

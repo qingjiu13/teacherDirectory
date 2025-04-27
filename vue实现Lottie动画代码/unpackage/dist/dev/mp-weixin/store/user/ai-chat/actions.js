@@ -1,8 +1,12 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
-const store_user_aiChat_config = require("./config.js");
-const api = store_user_aiChat_config.getApiImplementation();
-const { questionAI, getConversationHistory, getConversationDetail, deleteConversationHistory } = api;
+const { questionAI, getConversationHistory, getConversationDetail, deleteConversationHistory } = {
+  // 这里可以替换为真实API实现
+  questionAI: (params) => Promise.resolve({ success: true, data: "", chatId: params.chatId || "new-chat-id" }),
+  getConversationHistory: () => Promise.resolve({ success: true, data: [] }),
+  getConversationDetail: (params) => Promise.resolve({ success: true, data: { id: params.conversationId, messages: [] } }),
+  deleteConversationHistory: () => Promise.resolve({ success: true })
+};
 const actions = {
   /**
    * 设置当前活跃的聊天会话
@@ -76,7 +80,7 @@ const actions = {
         chatId: response.chatId
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:100", "AI问答出错:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:103", "AI问答出错:", error);
       return {
         success: false,
         error: error.error || error,
@@ -101,7 +105,7 @@ const actions = {
         data: response.data
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:128", "获取历史记录失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:131", "获取历史记录失败:", error);
       return {
         success: false,
         error: error.error || error,
@@ -129,7 +133,7 @@ const actions = {
         data: response.data
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:159", "加载对话详情失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:162", "加载对话详情失败:", error);
       return {
         success: false,
         error: error.error || error,
@@ -168,7 +172,7 @@ const actions = {
       }
       return { success: true };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:206", "保存对话失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:209", "保存对话失败:", error);
       return {
         success: false,
         message: "保存对话失败"
@@ -198,7 +202,7 @@ const actions = {
         message: response.success ? "删除成功" : "删除失败"
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:242", "删除对话失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:245", "删除对话失败:", error);
       return {
         success: false,
         error: error.error || error,

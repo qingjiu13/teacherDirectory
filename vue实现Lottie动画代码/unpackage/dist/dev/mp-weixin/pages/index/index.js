@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const store_index = require("../../store/index.js");
+require("../../store/index.js");
 const router_Router = require("../../router/Router.js");
 const AICartoon = () => "../../components/AI-cartoon/AI-cartoon.js";
 const TabBar = () => "../../components/tab-bar/tab-bar.js";
@@ -9,6 +9,7 @@ const _sfc_main = common_vendor.defineComponent({
     AICartoon,
     TabBar
   },
+<<<<<<< HEAD
   navigateToMatch() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       try {
@@ -26,6 +27,14 @@ const _sfc_main = common_vendor.defineComponent({
     });
   }
 });
+=======
+  methods: new UTSJSONObject({
+    navigateToMatch() {
+      router_Router.Navigator.toMatch();
+    }
+  })
+}));
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 if (!Array) {
   const _component_AICartoon = common_vendor.resolveComponent("AICartoon");
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
@@ -33,7 +42,7 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: common_vendor.o((...args) => _ctx.navigateToMatch && _ctx.navigateToMatch(...args)),
+    a: common_vendor.o((...args) => $options.navigateToMatch && $options.navigateToMatch(...args)),
     b: common_vendor.p({
       pageName: "index"
     }),

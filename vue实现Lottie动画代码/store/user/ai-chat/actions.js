@@ -3,11 +3,14 @@
  * @module store/user/ai-chat/actions
  */
 
-import { getApiImplementation } from './config';
-
-// 根据配置动态导入API实现（真实API或模拟API）
-const api = getApiImplementation();
-const { questionAI, getConversationHistory, getConversationDetail, deleteConversationHistory } = api;
+// 直接导入API
+const { questionAI, getConversationHistory, getConversationDetail, deleteConversationHistory } = {
+    // 这里可以替换为真实API实现
+    questionAI: (params) => Promise.resolve({ success: true, data: '', chatId: params.chatId || 'new-chat-id' }),
+    getConversationHistory: () => Promise.resolve({ success: true, data: [] }),
+    getConversationDetail: (params) => Promise.resolve({ success: true, data: { id: params.conversationId, messages: [] } }),
+    deleteConversationHistory: () => Promise.resolve({ success: true })
+};
 
 export default {
     /**

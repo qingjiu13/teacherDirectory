@@ -34,6 +34,16 @@
   padding: 30rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
 }
+.role-indicator.data-v-5ca72b3d {
+  padding: 20rpx 0;
+  margin-bottom: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+.role-text.data-v-5ca72b3d {
+  font-size: 30rpx;
+  color: #007AFF;
+  font-weight: bold;
+}
 .form-row.data-v-5ca72b3d {
   margin-bottom: 30rpx;
 }
@@ -56,15 +66,23 @@
 .radio-group.data-v-5ca72b3d {
   display: flex;
   align-items: center;
+  gap: 5px;
 }
-.radio-item.data-v-5ca72b3d {
+.radio-item-row.data-v-5ca72b3d {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin-right: 40rpx;
 }
-.radio-item text.data-v-5ca72b3d {
+.radio-option.data-v-5ca72b3d {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 30px;
+  margin-left: 30px;
+}
+.option-text.data-v-5ca72b3d {
+  margin-left: 8px;
   font-size: 28rpx;
-  margin-left: 10rpx;
   color: #333;
 }
 .form-select.data-v-5ca72b3d {

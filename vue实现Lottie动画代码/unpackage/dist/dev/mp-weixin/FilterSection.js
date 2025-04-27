@@ -69,7 +69,11 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
+<<<<<<< HEAD
     a: common_vendor.sr("schoolDropdown", "3e78161c-0"),
+=======
+    a: common_vendor.sr("schoolDropdown", "39035120-0"),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     b: common_vendor.o($options.onSchoolClick),
     c: common_vendor.o($options.onSchoolSearch),
     d: common_vendor.p({
@@ -79,7 +83,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       mode: "search",
       searchPlaceholder: "搜索学校"
     }),
+<<<<<<< HEAD
     e: common_vendor.sr("majorDropdown", "3e78161c-1"),
+=======
+    e: common_vendor.sr("majorDropdown", "39035120-1"),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     f: common_vendor.o($options.onMajorClick),
     g: common_vendor.p({
       defaultText: "请选择专业",

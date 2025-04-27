@@ -17,7 +17,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     };
     return (_ctx = null, _cache = null) => {
       const __returned__ = {
+<<<<<<< HEAD
         a: common_vendor.sr(cLottieRef, "bfcb4f0c-0", {
+=======
+        a: common_vendor.sr(cLottieRef, "fc3b16b4-0", {
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
           "k": "cLottieRef"
         }),
         b: common_vendor.o(onLoopComplete),

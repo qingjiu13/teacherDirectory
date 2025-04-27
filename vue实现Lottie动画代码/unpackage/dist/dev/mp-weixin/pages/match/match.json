@@ -1,7 +1,4 @@
 {
   "navigationBarTitleText": "精准匹配",
-  "usingComponents": {
-    "cascade-container": "../../components/cascade-container/cascade-container",
-    "choice-selected": "../../components/combobox/combobox"
-  }
+  "usingComponents": {}
 }

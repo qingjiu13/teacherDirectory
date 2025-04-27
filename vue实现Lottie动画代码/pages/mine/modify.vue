@@ -101,7 +101,7 @@
 /**
  * @description 用户资料修改页面
  */
-import { mapState, mapGetters, mapActions } from 'vuex';
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 import { Navigator } from '@/router/Router.js';
 
 export default {
@@ -116,7 +116,8 @@ export default {
 				wechat: '',
 				password: '未设置'
 			},
-			updating: false
+			updating: false,
+			originalData: null // 用于存储原始数据以便对比变更
 		}
 	},
 	computed: {
@@ -124,11 +125,11 @@ export default {
 			'profile',
 			'userRole',
 			'isTeacher'
-		])
-	},
-	watch: {
-		updateLoading(val) {
-			this.updating = val;
+		]),
+		// 计算属性：数据是否已修改
+		isDataChanged() {
+			if (!this.originalData) return false;
+			return JSON.stringify(this.userInfo) !== JSON.stringify(this.originalData);
 		}
 	},
 	onLoad() {
@@ -137,8 +138,10 @@ export default {
 	},
 	methods: {
 		...mapActions('user/baseInfo', [
-			'getUserInfo',
-			'updateUserInfo'
+			'getUserInfo'
+		]),
+		...mapMutations('user/baseInfo', [
+			'UPDATE_USER_PROFILE'
 		]),
 		
 		/**
@@ -157,12 +160,15 @@ export default {
 				this.userInfo = {
 					avatar: this.profile.avatar || '',
 					nickname: this.profile.nickname || '',
-					introduction: this.profile.introduction || '',
+					introduction: this.profile.introduction || this.profile.selfIntroduction || '',
 					gender: this.profile.gender || '',
-					phone: this.profile.phone || '',
-					wechat: this.profile.wechat || '',
+					phone: this.profile.phone || this.profile.phoneNumber || '',
+					wechat: this.profile.wechat || this.profile.wechatNumber || '',
 					password: this.profile.password || '未设置'
 				};
+				
+				// 保存原始数据副本用于后续比较
+				this.originalData = JSON.parse(JSON.stringify(this.userInfo));
 				
 				console.log('获取的用户信息:', this.userInfo);
 			} catch (error) {
@@ -224,6 +230,18 @@ export default {
 				return;
 			}
 			
+			// 检查数据是否有变更
+			if (!this.isDataChanged) {
+				uni.showToast({
+					title: '未检测到数据变更',
+					icon: 'none'
+				});
+				setTimeout(() => {
+					uni.navigateBack();
+				}, 1500);
+				return;
+			}
+			
 			try {
 				this.updating = true;
 				
@@ -231,14 +249,17 @@ export default {
 				const profileData = {
 					avatar: this.userInfo.avatar,
 					nickname: this.userInfo.nickname,
-					introduction: this.userInfo.introduction,
+					selfIntroduction: this.userInfo.introduction, // 兼容state.js中的字段名
 					gender: this.userInfo.gender,
-					phone: this.userInfo.phone,
-					wechat: this.userInfo.wechat
+					phoneNumber: this.userInfo.phone, // 兼容state.js中的字段名
+					wechatNumber: this.userInfo.wechat // 兼容state.js中的字段名
 				};
 				
-				// 调用store中的updateUserInfo action
-				await this.updateUserInfo(profileData);
+				// 使用mutation直接更新store中的数据
+				this.UPDATE_USER_PROFILE(profileData);
+				
+				// 同时保存到本地存储
+				uni.setStorageSync('userProfile', JSON.stringify(profileData));
 				
 				uni.showToast({
 					title: '保存成功',
