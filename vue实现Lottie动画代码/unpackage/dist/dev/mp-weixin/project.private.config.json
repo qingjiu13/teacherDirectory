@@ -9,6 +9,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/mine/course/course_detail",
+          "pathName": "pages/mine/course/course",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/login/wechat_login",
           "pathName": "pages/login/wechat_login",
           "query": "",
