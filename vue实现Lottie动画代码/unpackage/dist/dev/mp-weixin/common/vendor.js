@@ -23,17 +23,17 @@ const remove = (arr, el) => {
     arr.splice(i2, 1);
   }
 };
-const hasOwnProperty$1 = Object.prototype.hasOwnProperty;
-const hasOwn$1 = (val2, key) => hasOwnProperty$1.call(val2, key);
+const hasOwnProperty$2 = Object.prototype.hasOwnProperty;
+const hasOwn$2 = (val2, key) => hasOwnProperty$2.call(val2, key);
 const isArray$1 = Array.isArray;
 const isMap = (val2) => toTypeString(val2) === "[object Map]";
 const isSet = (val2) => toTypeString(val2) === "[object Set]";
 const isFunction = (val2) => typeof val2 === "function";
 const isString$1 = (val2) => typeof val2 === "string";
 const isSymbol = (val2) => typeof val2 === "symbol";
-const isObject$2 = (val2) => val2 !== null && typeof val2 === "object";
+const isObject$3 = (val2) => val2 !== null && typeof val2 === "object";
 const isPromise$1 = (val2) => {
-  return (isObject$2(val2) || isFunction(val2)) && isFunction(val2.then) && isFunction(val2.catch);
+  return (isObject$3(val2) || isFunction(val2)) && isFunction(val2.then) && isFunction(val2.catch);
 };
 const objectToString = Object.prototype.toString;
 const toTypeString = (value2) => objectToString.call(value2);
@@ -101,7 +101,7 @@ function normalizeStyle$1(value2) {
       }
     }
     return res;
-  } else if (isString$1(value2) || isObject$2(value2)) {
+  } else if (isString$1(value2) || isObject$3(value2)) {
     return value2;
   }
 }
@@ -129,7 +129,7 @@ function normalizeClass$1(value2) {
         res += normalized + " ";
       }
     }
-  } else if (isObject$2(value2)) {
+  } else if (isObject$3(value2)) {
     for (const name in value2) {
       if (value2[name]) {
         res += name + " ";
@@ -139,7 +139,7 @@ function normalizeClass$1(value2) {
   return res.trim();
 }
 const toDisplayString = (val2) => {
-  return isString$1(val2) ? val2 : val2 == null ? "" : isArray$1(val2) || isObject$2(val2) && (val2.toString === objectToString || !isFunction(val2.toString)) ? JSON.stringify(val2, replacer, 2) : String(val2);
+  return isString$1(val2) ? val2 : val2 == null ? "" : isArray$1(val2) || isObject$3(val2) && (val2.toString === objectToString || !isFunction(val2.toString)) ? JSON.stringify(val2, replacer, 2) : String(val2);
 };
 const replacer = (_key, val2) => {
   if (val2 && val2.__v_isRef) {
@@ -160,7 +160,7 @@ const replacer = (_key, val2) => {
     };
   } else if (isSymbol(val2)) {
     return stringifySymbol(val2);
-  } else if (isObject$2(val2) && !isArray$1(val2) && !isPlainObject$1(val2)) {
+  } else if (isObject$3(val2) && !isArray$1(val2) && !isPlainObject$1(val2)) {
     return String(val2);
   }
   return val2;
@@ -169,11 +169,96 @@ const stringifySymbol = (v, i2 = "") => {
   var _a;
   return isSymbol(v) ? `Symbol(${(_a = v.description) != null ? _a : i2})` : v;
 };
+const isObject$2 = (val2) => val2 !== null && typeof val2 === "object";
+const defaultDelimiters = ["{", "}"];
+class BaseFormatter {
+  constructor() {
+    this._caches = /* @__PURE__ */ Object.create(null);
+  }
+  interpolate(message, values, delimiters = defaultDelimiters) {
+    if (!values) {
+      return [message];
+    }
+    let tokens = this._caches[message];
+    if (!tokens) {
+      tokens = parse$1(message, delimiters);
+      this._caches[message] = tokens;
+    }
+    return compile$1(tokens, values);
+  }
+}
+const RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
+const RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
+function parse$1(format2, [startDelimiter, endDelimiter]) {
+  const tokens = [];
+  let position = 0;
+  let text = "";
+  while (position < format2.length) {
+    let char = format2[position++];
+    if (char === startDelimiter) {
+      if (text) {
+        tokens.push({ type: "text", value: text });
+      }
+      text = "";
+      let sub = "";
+      char = format2[position++];
+      while (char !== void 0 && char !== endDelimiter) {
+        sub += char;
+        char = format2[position++];
+      }
+      const isClosed = char === endDelimiter;
+      const type = RE_TOKEN_LIST_VALUE.test(sub) ? "list" : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? "named" : "unknown";
+      tokens.push({ value: sub, type });
+    } else {
+      text += char;
+    }
+  }
+  text && tokens.push({ type: "text", value: text });
+  return tokens;
+}
+function compile$1(tokens, values) {
+  const compiled = [];
+  let index2 = 0;
+  const mode = Array.isArray(values) ? "list" : isObject$2(values) ? "named" : "unknown";
+  if (mode === "unknown") {
+    return compiled;
+  }
+  while (index2 < tokens.length) {
+    const token = tokens[index2];
+    switch (token.type) {
+      case "text":
+        compiled.push(token.value);
+        break;
+      case "list":
+        compiled.push(values[parseInt(token.value, 10)]);
+        break;
+      case "named":
+        if (mode === "named") {
+          compiled.push(values[token.value]);
+        } else {
+          {
+            console.warn(`Type of token '${token.type}' and format of value '${mode}' don't match!`);
+          }
+        }
+        break;
+      case "unknown":
+        {
+          console.warn(`Detect 'unknown' type of token!`);
+        }
+        break;
+    }
+    index2++;
+  }
+  return compiled;
+}
 const LOCALE_ZH_HANS = "zh-Hans";
 const LOCALE_ZH_HANT = "zh-Hant";
 const LOCALE_EN = "en";
 const LOCALE_FR = "fr";
 const LOCALE_ES = "es";
+const hasOwnProperty$1 = Object.prototype.hasOwnProperty;
+const hasOwn$1 = (val2, key) => hasOwnProperty$1.call(val2, key);
+const defaultFormatter = new BaseFormatter();
 function include(str, parts) {
   return !!parts.find((part) => str.indexOf(part) !== -1);
 }
@@ -212,6 +297,163 @@ function normalizeLocale(locale, messages) {
   if (lang) {
     return lang;
   }
+}
+class I18n {
+  constructor({ locale, fallbackLocale, messages, watcher, formater: formater2 }) {
+    this.locale = LOCALE_EN;
+    this.fallbackLocale = LOCALE_EN;
+    this.message = {};
+    this.messages = {};
+    this.watchers = [];
+    if (fallbackLocale) {
+      this.fallbackLocale = fallbackLocale;
+    }
+    this.formater = formater2 || defaultFormatter;
+    this.messages = messages || {};
+    this.setLocale(locale || LOCALE_EN);
+    if (watcher) {
+      this.watchLocale(watcher);
+    }
+  }
+  setLocale(locale) {
+    const oldLocale = this.locale;
+    this.locale = normalizeLocale(locale, this.messages) || this.fallbackLocale;
+    if (!this.messages[this.locale]) {
+      this.messages[this.locale] = {};
+    }
+    this.message = this.messages[this.locale];
+    if (oldLocale !== this.locale) {
+      this.watchers.forEach((watcher) => {
+        watcher(this.locale, oldLocale);
+      });
+    }
+  }
+  getLocale() {
+    return this.locale;
+  }
+  watchLocale(fn) {
+    const index2 = this.watchers.push(fn) - 1;
+    return () => {
+      this.watchers.splice(index2, 1);
+    };
+  }
+  add(locale, message, override = true) {
+    const curMessages = this.messages[locale];
+    if (curMessages) {
+      if (override) {
+        Object.assign(curMessages, message);
+      } else {
+        Object.keys(message).forEach((key) => {
+          if (!hasOwn$1(curMessages, key)) {
+            curMessages[key] = message[key];
+          }
+        });
+      }
+    } else {
+      this.messages[locale] = message;
+    }
+  }
+  f(message, values, delimiters) {
+    return this.formater.interpolate(message, values, delimiters).join("");
+  }
+  t(key, locale, values) {
+    let message = this.message;
+    if (typeof locale === "string") {
+      locale = normalizeLocale(locale, this.messages);
+      locale && (message = this.messages[locale]);
+    } else {
+      values = locale;
+    }
+    if (!hasOwn$1(message, key)) {
+      console.warn(`Cannot translate the value of keypath ${key}. Use the value of keypath as default.`);
+      return key;
+    }
+    return this.formater.interpolate(message[key], values).join("");
+  }
+}
+function watchAppLocale(appVm, i18n) {
+  if (appVm.$watchLocale) {
+    appVm.$watchLocale((newLocale) => {
+      i18n.setLocale(newLocale);
+    });
+  } else {
+    appVm.$watch(() => appVm.$locale, (newLocale) => {
+      i18n.setLocale(newLocale);
+    });
+  }
+}
+function getDefaultLocale() {
+  if (typeof index !== "undefined" && index.getLocale) {
+    return index.getLocale();
+  }
+  if (typeof global !== "undefined" && global.getLocale) {
+    return global.getLocale();
+  }
+  return LOCALE_EN;
+}
+function initVueI18n(locale, messages = {}, fallbackLocale, watcher) {
+  if (typeof locale !== "string") {
+    const options = [
+      messages,
+      locale
+    ];
+    locale = options[0];
+    messages = options[1];
+  }
+  if (typeof locale !== "string") {
+    locale = getDefaultLocale();
+  }
+  if (typeof fallbackLocale !== "string") {
+    fallbackLocale = typeof __uniConfig !== "undefined" && __uniConfig.fallbackLocale || LOCALE_EN;
+  }
+  const i18n = new I18n({
+    locale,
+    fallbackLocale,
+    messages,
+    watcher
+  });
+  let t2 = (key, values) => {
+    if (typeof getApp !== "function") {
+      t2 = function(key2, values2) {
+        return i18n.t(key2, values2);
+      };
+    } else {
+      let isWatchedAppLocale = false;
+      t2 = function(key2, values2) {
+        const appVm = getApp().$vm;
+        if (appVm) {
+          appVm.$locale;
+          if (!isWatchedAppLocale) {
+            isWatchedAppLocale = true;
+            watchAppLocale(appVm, i18n);
+          }
+        }
+        return i18n.t(key2, values2);
+      };
+    }
+    return t2(key, values);
+  };
+  return {
+    i18n,
+    f(message, values, delimiters) {
+      return i18n.f(message, values, delimiters);
+    },
+    t(key, values) {
+      return t2(key, values);
+    },
+    add(locale2, message, override = true) {
+      return i18n.add(locale2, message, override);
+    },
+    watch(fn) {
+      return i18n.watchLocale(fn);
+    },
+    getLocale() {
+      return i18n.getLocale();
+    },
+    setLocale(newLocale) {
+      return i18n.setLocale(newLocale);
+    }
+  };
 }
 const SLOT_DEFAULT_NAME = "d";
 const ON_SHOW = "onShow";
@@ -935,7 +1177,7 @@ class BaseReactiveHandler {
     }
     const targetIsArray = isArray$1(target);
     if (!isReadonly2) {
-      if (targetIsArray && hasOwn$1(arrayInstrumentations, key)) {
+      if (targetIsArray && hasOwn$2(arrayInstrumentations, key)) {
         return Reflect.get(arrayInstrumentations, key, receiver);
       }
       if (key === "hasOwnProperty") {
@@ -955,7 +1197,7 @@ class BaseReactiveHandler {
     if (isRef(res)) {
       return targetIsArray && isIntegerKey(key) ? res : res.value;
     }
-    if (isObject$2(res)) {
+    if (isObject$3(res)) {
       return isReadonly2 ? readonly(res) : reactive(res);
     }
     return res;
@@ -982,7 +1224,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
         }
       }
     }
-    const hadKey = isArray$1(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn$1(target, key);
+    const hadKey = isArray$1(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn$2(target, key);
     const result = Reflect.set(target, key, value2, receiver);
     if (target === toRaw(receiver)) {
       if (!hadKey) {
@@ -994,7 +1236,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
     return result;
   }
   deleteProperty(target, key) {
-    const hadKey = hasOwn$1(target, key);
+    const hadKey = hasOwn$2(target, key);
     const oldValue = target[key];
     const result = Reflect.deleteProperty(target, key);
     if (result && hadKey) {
@@ -1299,7 +1541,7 @@ function createInstrumentationGetter(isReadonly2, shallow) {
       return target;
     }
     return Reflect.get(
-      hasOwn$1(instrumentations, key) && key in target ? instrumentations : target,
+      hasOwn$2(instrumentations, key) && key in target ? instrumentations : target,
       key,
       receiver
     );
@@ -1387,7 +1629,7 @@ function shallowReadonly(target) {
   );
 }
 function createReactiveObject(target, isReadonly2, baseHandlers, collectionHandlers, proxyMap) {
-  if (!isObject$2(target)) {
+  if (!isObject$3(target)) {
     {
       warn$2(`value cannot be made reactive: ${String(target)}`);
     }
@@ -1436,8 +1678,8 @@ function markRaw(value2) {
   }
   return value2;
 }
-const toReactive = (value2) => isObject$2(value2) ? reactive(value2) : value2;
-const toReadonly = (value2) => isObject$2(value2) ? readonly(value2) : value2;
+const toReactive = (value2) => isObject$3(value2) ? reactive(value2) : value2;
+const toReadonly = (value2) => isObject$3(value2) ? readonly(value2) : value2;
 const COMPUTED_SIDE_EFFECT_WARN = `Computed is still dirty after getter evaluation, likely because a computed is mutating its own dependency in its getter. State mutations in computed getters should be avoided.  Check the docs for more details: https://vuejs.org/guide/essentials/computed.html#getters-should-be-side-effect-free`;
 class ComputedRefImpl {
   constructor(getter, _setter, isReadonly2, isSSR) {
@@ -2188,7 +2430,7 @@ function normalizeEmitsOptions(comp, appContext, asMixin = false) {
     }
   }
   if (!raw && !hasExtends) {
-    if (isObject$2(comp)) {
+    if (isObject$3(comp)) {
       cache.set(comp, null);
     }
     return null;
@@ -2198,7 +2440,7 @@ function normalizeEmitsOptions(comp, appContext, asMixin = false) {
   } else {
     extend(normalized, raw);
   }
-  if (isObject$2(comp)) {
+  if (isObject$3(comp)) {
     cache.set(comp, normalized);
   }
   return normalized;
@@ -2208,7 +2450,7 @@ function isEmitListener(options, key) {
     return false;
   }
   key = key.slice(2).replace(/Once$/, "");
-  return hasOwn$1(options, key[0].toLowerCase() + key.slice(1)) || hasOwn$1(options, hyphenate(key)) || hasOwn$1(options, key);
+  return hasOwn$2(options, key[0].toLowerCase() + key.slice(1)) || hasOwn$2(options, hyphenate(key)) || hasOwn$2(options, key);
 }
 let currentRenderingInstance = null;
 function setCurrentRenderingInstance(instance) {
@@ -2459,7 +2701,7 @@ function createPathGetter(ctx, path) {
   };
 }
 function traverse(value2, depth, currentDepth = 0, seen) {
-  if (!isObject$2(value2) || value2["__v_skip"]) {
+  if (!isObject$3(value2) || value2["__v_skip"]) {
     return value2;
   }
   if (depth && depth > 0) {
@@ -2522,7 +2764,7 @@ function createAppAPI(render, hydrate) {
     if (!isFunction(rootComponent)) {
       rootComponent = extend({}, rootComponent);
     }
-    if (rootProps != null && !isObject$2(rootProps)) {
+    if (rootProps != null && !isObject$3(rootProps)) {
       warn$1(`root props passed to app.mount() must be an object.`);
       rootProps = null;
     }
@@ -2796,7 +3038,7 @@ const publicPropertiesMap = (
   })
 );
 const isReservedPrefix = (key) => key === "_" || key === "$";
-const hasSetupBinding = (state, key) => state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn$1(state, key);
+const hasSetupBinding = (state, key) => state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn$2(state, key);
 const PublicInstanceProxyHandlers = {
   get({ _: instance }, key) {
     const { ctx, setupState, data: data2, props, accessCache, type, appContext } = instance;
@@ -2820,17 +3062,17 @@ const PublicInstanceProxyHandlers = {
       } else if (hasSetupBinding(setupState, key)) {
         accessCache[key] = 1;
         return setupState[key];
-      } else if (data2 !== EMPTY_OBJ && hasOwn$1(data2, key)) {
+      } else if (data2 !== EMPTY_OBJ && hasOwn$2(data2, key)) {
         accessCache[key] = 2;
         return data2[key];
       } else if (
         // only cache other properties when instance has declared (thus stable)
         // props
-        (normalizedProps = instance.propsOptions[0]) && hasOwn$1(normalizedProps, key)
+        (normalizedProps = instance.propsOptions[0]) && hasOwn$2(normalizedProps, key)
       ) {
         accessCache[key] = 3;
         return props[key];
-      } else if (ctx !== EMPTY_OBJ && hasOwn$1(ctx, key)) {
+      } else if (ctx !== EMPTY_OBJ && hasOwn$2(ctx, key)) {
         accessCache[key] = 4;
         return ctx[key];
       } else if (shouldCacheAccess) {
@@ -2851,12 +3093,12 @@ const PublicInstanceProxyHandlers = {
       (cssModule = type.__cssModules) && (cssModule = cssModule[key])
     ) {
       return cssModule;
-    } else if (ctx !== EMPTY_OBJ && hasOwn$1(ctx, key)) {
+    } else if (ctx !== EMPTY_OBJ && hasOwn$2(ctx, key)) {
       accessCache[key] = 4;
       return ctx[key];
     } else if (
       // global properties
-      globalProperties = appContext.config.globalProperties, hasOwn$1(globalProperties, key)
+      globalProperties = appContext.config.globalProperties, hasOwn$2(globalProperties, key)
     ) {
       {
         return globalProperties[key];
@@ -2864,7 +3106,7 @@ const PublicInstanceProxyHandlers = {
     } else if (currentRenderingInstance && (!isString$1(key) || // #1091 avoid internal isRef/isVNode checks on component instance leading
     // to infinite warning loop
     key.indexOf("__v") !== 0)) {
-      if (data2 !== EMPTY_OBJ && isReservedPrefix(key[0]) && hasOwn$1(data2, key)) {
+      if (data2 !== EMPTY_OBJ && isReservedPrefix(key[0]) && hasOwn$2(data2, key)) {
         warn$1(
           `Property ${JSON.stringify(
             key
@@ -2882,13 +3124,13 @@ const PublicInstanceProxyHandlers = {
     if (hasSetupBinding(setupState, key)) {
       setupState[key] = value2;
       return true;
-    } else if (setupState.__isScriptSetup && hasOwn$1(setupState, key)) {
+    } else if (setupState.__isScriptSetup && hasOwn$2(setupState, key)) {
       warn$1(`Cannot mutate <script setup> binding "${key}" from Options API.`);
       return false;
-    } else if (data2 !== EMPTY_OBJ && hasOwn$1(data2, key)) {
+    } else if (data2 !== EMPTY_OBJ && hasOwn$2(data2, key)) {
       data2[key] = value2;
       return true;
-    } else if (hasOwn$1(instance.props, key)) {
+    } else if (hasOwn$2(instance.props, key)) {
       warn$1(`Attempting to mutate prop "${key}". Props are readonly.`);
       return false;
     }
@@ -2914,12 +3156,12 @@ const PublicInstanceProxyHandlers = {
     _: { data: data2, setupState, accessCache, ctx, appContext, propsOptions }
   }, key) {
     let normalizedProps;
-    return !!accessCache[key] || data2 !== EMPTY_OBJ && hasOwn$1(data2, key) || hasSetupBinding(setupState, key) || (normalizedProps = propsOptions[0]) && hasOwn$1(normalizedProps, key) || hasOwn$1(ctx, key) || hasOwn$1(publicPropertiesMap, key) || hasOwn$1(appContext.config.globalProperties, key);
+    return !!accessCache[key] || data2 !== EMPTY_OBJ && hasOwn$2(data2, key) || hasSetupBinding(setupState, key) || (normalizedProps = propsOptions[0]) && hasOwn$2(normalizedProps, key) || hasOwn$2(ctx, key) || hasOwn$2(publicPropertiesMap, key) || hasOwn$2(appContext.config.globalProperties, key);
   },
   defineProperty(target, key, descriptor) {
     if (descriptor.get != null) {
       target._.accessCache[key] = 0;
-    } else if (hasOwn$1(descriptor, "value")) {
+    } else if (hasOwn$2(descriptor, "value")) {
       this.set(target, key, descriptor.value, null);
     }
     return Reflect.defineProperty(target, key, descriptor);
@@ -3098,7 +3340,7 @@ function applyOptions$1(instance) {
         `data() returned a Promise - note data() cannot be async; If you intend to perform data fetching before component renders, use async setup() + <Suspense>.`
       );
     }
-    if (!isObject$2(data2)) {
+    if (!isObject$3(data2)) {
       warn$1(`data() should return an object.`);
     } else {
       instance.data = reactive(data2);
@@ -3219,7 +3461,7 @@ function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) 
   for (const key in injectOptions) {
     const opt = injectOptions[key];
     let injected;
-    if (isObject$2(opt)) {
+    if (isObject$3(opt)) {
       if ("default" in opt) {
         injected = inject(
           opt.from || key,
@@ -3265,7 +3507,7 @@ function createWatcher(raw, ctx, publicThis, key) {
     }
   } else if (isFunction(raw)) {
     watch(getter, raw.bind(publicThis));
-  } else if (isObject$2(raw)) {
+  } else if (isObject$3(raw)) {
     if (isArray$1(raw)) {
       raw.forEach((r2) => createWatcher(r2, ctx, publicThis, key));
     } else {
@@ -3305,7 +3547,7 @@ function resolveMergedOptions(instance) {
     }
     mergeOptions(resolved, base, optionMergeStrategies);
   }
-  if (isObject$2(base)) {
+  if (isObject$3(base)) {
     cache.set(base, resolved);
   }
   return resolved;
@@ -3471,7 +3713,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         }
         const value2 = rawProps[key];
         if (options) {
-          if (hasOwn$1(attrs, key)) {
+          if (hasOwn$2(attrs, key)) {
             if (value2 !== attrs[key]) {
               attrs[key] = value2;
               hasAttrsChanged = true;
@@ -3502,9 +3744,9 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     let kebabKey;
     for (const key in rawCurrentProps) {
       if (!rawProps || // for camelCase
-      !hasOwn$1(rawProps, key) && // it's possible the original props was passed in as kebab-case
+      !hasOwn$2(rawProps, key) && // it's possible the original props was passed in as kebab-case
       // and converted to camelCase (#955)
-      ((kebabKey = hyphenate(key)) === key || !hasOwn$1(rawProps, kebabKey))) {
+      ((kebabKey = hyphenate(key)) === key || !hasOwn$2(rawProps, kebabKey))) {
         if (options) {
           if (rawPrevProps && // for camelCase
           (rawPrevProps[key] !== void 0 || // for kebab-case
@@ -3525,7 +3767,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     }
     if (attrs !== rawCurrentProps) {
       for (const key in attrs) {
-        if (!rawProps || !hasOwn$1(rawProps, key) && true) {
+        if (!rawProps || !hasOwn$2(rawProps, key) && true) {
           delete attrs[key];
           hasAttrsChanged = true;
         }
@@ -3550,7 +3792,7 @@ function setFullProps(instance, rawProps, props, attrs) {
       }
       const value2 = rawProps[key];
       let camelKey;
-      if (options && hasOwn$1(options, camelKey = camelize(key))) {
+      if (options && hasOwn$2(options, camelKey = camelize(key))) {
         if (!needCastKeys || !needCastKeys.includes(camelKey)) {
           props[camelKey] = value2;
         } else {
@@ -3575,7 +3817,7 @@ function setFullProps(instance, rawProps, props, attrs) {
         key,
         castValues[key],
         instance,
-        !hasOwn$1(castValues, key)
+        !hasOwn$2(castValues, key)
       );
     }
   }
@@ -3584,7 +3826,7 @@ function setFullProps(instance, rawProps, props, attrs) {
 function resolvePropValue$1(options, props, key, value2, instance, isAbsent) {
   const opt = options[key];
   if (opt != null) {
-    const hasDefault = hasOwn$1(opt, "default");
+    const hasDefault = hasOwn$2(opt, "default");
     if (hasDefault && value2 === void 0) {
       const defaultValue = opt.default;
       if (opt.type !== Function && !opt.skipFactory && isFunction(defaultValue)) {
@@ -3648,7 +3890,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
     }
   }
   if (!raw && !hasExtends) {
-    if (isObject$2(comp)) {
+    if (isObject$3(comp)) {
       cache.set(comp, EMPTY_ARR);
     }
     return EMPTY_ARR;
@@ -3664,7 +3906,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
       }
     }
   } else if (raw) {
-    if (!isObject$2(raw)) {
+    if (!isObject$3(raw)) {
       warn$1(`invalid props options`, raw);
     }
     for (const key in raw) {
@@ -3683,7 +3925,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
             1
             /* shouldCastTrue */
           ] = stringIndex < 0 || booleanIndex < stringIndex;
-          if (booleanIndex > -1 || hasOwn$1(prop, "default")) {
+          if (booleanIndex > -1 || hasOwn$2(prop, "default")) {
             needCastKeys.push(normalizedKey);
           }
         }
@@ -3691,7 +3933,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
     }
   }
   const res = [normalized, needCastKeys];
-  if (isObject$2(comp)) {
+  if (isObject$3(comp)) {
     cache.set(comp, res);
   }
   return res;
@@ -3739,7 +3981,7 @@ function validateProps(rawProps, props, instance) {
       resolvedValues[key],
       opt,
       shallowReadonly(resolvedValues),
-      !hasOwn$1(rawProps, key) && !hasOwn$1(rawProps, hyphenate(key))
+      !hasOwn$2(rawProps, key) && !hasOwn$2(rawProps, hyphenate(key))
     );
   }
 }
@@ -3783,7 +4025,7 @@ function assertType$1(value2, type) {
       valid = value2 instanceof type;
     }
   } else if (expectedType === "Object") {
-    valid = isObject$2(value2);
+    valid = isObject$3(value2);
   } else if (expectedType === "Array") {
     valid = isArray$1(value2);
   } else if (expectedType === "null") {
@@ -4093,7 +4335,7 @@ function handleSetupResult(instance, setupResult, isSSR) {
     {
       instance.render = setupResult;
     }
-  } else if (isObject$2(setupResult)) {
+  } else if (isObject$3(setupResult)) {
     if (isVNode(setupResult)) {
       warn$1(
         `setup() should not return VNodes directly - return a render function instead.`
@@ -4438,7 +4680,7 @@ function clone(src, seen) {
       copy = {};
       seen.set(src, copy);
       for (const name in src) {
-        if (hasOwn$1(src, name)) {
+        if (hasOwn$2(src, name)) {
           copy[name] = clone(src[name], seen);
         }
       }
@@ -4583,7 +4825,7 @@ function setRef$1(instance, isUnmount = false) {
   }
 }
 function toSkip(value2) {
-  if (isObject$2(value2)) {
+  if (isObject$3(value2)) {
     markRaw(value2);
   }
   return value2;
@@ -4626,7 +4868,7 @@ function setTemplateRef({ r: r2, f: f2 }, refValue, setupState) {
           }
         }
       } else if (_isString) {
-        if (hasOwn$1(setupState, r2)) {
+        if (hasOwn$2(setupState, r2)) {
           setupState[r2] = refValue;
         }
       } else if (isRef(r2)) {
@@ -5740,14 +5982,14 @@ function patchMPEvent(event, instance) {
     event.preventDefault = NOOP;
     event.stopPropagation = NOOP;
     event.stopImmediatePropagation = NOOP;
-    if (!hasOwn$1(event, "detail")) {
+    if (!hasOwn$2(event, "detail")) {
       event.detail = {};
     }
-    if (hasOwn$1(event, "markerId")) {
+    if (hasOwn$2(event, "markerId")) {
       event.detail = typeof event.detail === "object" ? event.detail : {};
       event.detail.markerId = event.markerId;
     }
-    if (isPlainObject$1(event.detail) && hasOwn$1(event.detail, "checked") && !hasOwn$1(event.detail, "value")) {
+    if (isPlainObject$1(event.detail) && hasOwn$2(event.detail, "checked") && !hasOwn$2(event.detail, "value")) {
       event.detail.value = event.detail.checked;
     }
     if (isPlainObject$1(event.detail)) {
@@ -5786,7 +6028,7 @@ function vFor(source, renderItem) {
     for (let i2 = 0; i2 < source; i2++) {
       ret[i2] = renderItem(i2 + 1, i2, i2);
     }
-  } else if (isObject$2(source)) {
+  } else if (isObject$3(source)) {
     if (source[Symbol.iterator]) {
       ret = Array.from(source, (item, i2) => renderItem(item, i2, i2));
     } else {
@@ -5926,7 +6168,7 @@ function validateProtocol(name, data2, protocol, onFail) {
     onFail = validateProtocolFail;
   }
   for (const key in protocol) {
-    const errMsg = validateProp(key, data2[key], protocol[key], !hasOwn$1(data2, key));
+    const errMsg = validateProp(key, data2[key], protocol[key], !hasOwn$2(data2, key));
     if (isString$1(errMsg)) {
       onFail(name, errMsg);
     }
@@ -5989,7 +6231,7 @@ function assertType(value2, type) {
       valid = value2 instanceof type;
     }
   } else if (expectedType === "Object") {
-    valid = isObject$2(value2);
+    valid = isObject$3(value2);
   } else if (expectedType === "Array") {
     valid = isArray$1(value2);
   } else {
@@ -6759,7 +7001,7 @@ function initWrapper(protocols2) {
         argsOption = argsOption(fromArgs, toArgs) || {};
       }
       for (const key in fromArgs) {
-        if (hasOwn$1(argsOption, key)) {
+        if (hasOwn$2(argsOption, key)) {
           let keyOption = argsOption[key];
           if (isFunction(keyOption)) {
             keyOption = keyOption(fromArgs[key], fromArgs, toArgs);
@@ -6777,7 +7019,7 @@ function initWrapper(protocols2) {
             toArgs[key] = processCallback(methodName, callback, returnValue2);
           }
         } else {
-          if (!keepFromArgs && !hasOwn$1(toArgs, key)) {
+          if (!keepFromArgs && !hasOwn$2(toArgs, key)) {
             toArgs[key] = fromArgs[key];
           }
         }
@@ -6799,7 +7041,7 @@ function initWrapper(protocols2) {
     return processArgs(methodName, res, returnValue2, {}, realKeepReturnValue);
   }
   return function wrapper(methodName, method) {
-    const hasProtocol = hasOwn$1(protocols2, methodName);
+    const hasProtocol = hasOwn$2(protocols2, methodName);
     if (!hasProtocol && typeof wx[methodName] !== "function") {
       return method;
     }
@@ -7190,13 +7432,13 @@ function initUni(api, protocols2, platform = wx) {
   const wrapper = initWrapper(protocols2);
   const UniProxyHandlers = {
     get(target, key) {
-      if (hasOwn$1(target, key)) {
+      if (hasOwn$2(target, key)) {
         return target[key];
       }
-      if (hasOwn$1(api, key)) {
+      if (hasOwn$2(api, key)) {
         return promisify(key, api[key]);
       }
-      if (hasOwn$1(baseApis, key)) {
+      if (hasOwn$2(baseApis, key)) {
         return promisify(key, baseApis[key]);
       }
       return promisify(key, wrapper(key, platform[key]));
@@ -8541,7 +8783,7 @@ function initVueIds(vueIds, mpInstance) {
 const EXTRAS = ["externalClasses"];
 function initExtraOptions(miniProgramComponentOptions, vueOptions) {
   EXTRAS.forEach((name) => {
-    if (hasOwn$1(vueOptions, name)) {
+    if (hasOwn$2(vueOptions, name)) {
       miniProgramComponentOptions[name] = vueOptions[name];
     }
   });
@@ -8711,7 +8953,7 @@ function initComponentInstance(instance, options) {
 function initMocks(instance, mpInstance, mocks2) {
   const ctx = instance.ctx;
   mocks2.forEach((mock) => {
-    if (hasOwn$1(mpInstance, mock)) {
+    if (hasOwn$2(mpInstance, mock)) {
       instance[mock] = ctx[mock] = mpInstance[mock];
     }
   });
@@ -8767,7 +9009,7 @@ function findHooks(vueOptions, hooks = /* @__PURE__ */ new Set()) {
   return hooks;
 }
 function initHook(mpOptions, hook, excludes) {
-  if (excludes.indexOf(hook) === -1 && !hasOwn$1(mpOptions, hook)) {
+  if (excludes.indexOf(hook) === -1 && !hasOwn$2(mpOptions, hook)) {
     mpOptions[hook] = function(args) {
       return this.$vm && this.$vm.$callHook(hook, args);
     };
@@ -8800,7 +9042,7 @@ const findMixinRuntimeHooks = /* @__PURE__ */ once(() => {
       const hooks = Object.keys(MINI_PROGRAM_PAGE_RUNTIME_HOOKS);
       mixins.forEach((mixin) => {
         hooks.forEach((hook) => {
-          if (hasOwn$1(mixin, hook) && !runtimeHooks.includes(hook)) {
+          if (hasOwn$2(mixin, hook) && !runtimeHooks.includes(hook)) {
             runtimeHooks.push(hook);
           }
         });
@@ -8878,13 +9120,13 @@ function initCreateSubpackageApp(parseAppOptions) {
     const globalData = app.globalData;
     if (globalData) {
       Object.keys(appOptions.globalData).forEach((name) => {
-        if (!hasOwn$1(globalData, name)) {
+        if (!hasOwn$2(globalData, name)) {
           globalData[name] = appOptions.globalData[name];
         }
       });
     }
     Object.keys(appOptions).forEach((name) => {
-      if (!hasOwn$1(app, name)) {
+      if (!hasOwn$2(app, name)) {
         app[name] = appOptions[name];
       }
     });
@@ -9181,7 +9423,7 @@ function parseComponent(vueOptions, { parse: parse2, mocks: mocks2, isPage: isPa
   }
   if (isArray$1(vueOptions.mixins)) {
     vueOptions.mixins.forEach((item) => {
-      if (isObject$2(item.options)) {
+      if (isObject$3(item.options)) {
         extend(options, item.options);
       }
     });
@@ -15671,7 +15913,6 @@ const lottie = /* @__PURE__ */ getDefaultExportFromCjs(miniprogram_dist);
 exports.Fuse = Fuse;
 exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
-exports.computed = computed;
 exports.createApp = createApp$1;
 exports.createStore = createStore;
 exports.defineComponent = defineComponent;
@@ -15680,6 +15921,7 @@ exports.f = f;
 exports.gei = gei;
 exports.getCurrentInstance = getCurrentInstance;
 exports.index = index;
+exports.initVueI18n = initVueI18n;
 exports.inject = inject;
 exports.isRef = isRef;
 exports.lottie = lottie;

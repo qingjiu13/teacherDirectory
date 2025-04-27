@@ -1,189 +1,132 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
+const common_assets = require("../../../common/assets.js");
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+  data() {
+    return {
+      courseList: [
+        new UTSJSONObject({
+          name: "前端开发基础",
+          teacher: "张老师",
+          time: "2023-12-15 14:00",
+          price: 199
+        }),
+        new UTSJSONObject({
+          name: "Vue.js实战",
+          teacher: "李老师",
+          time: "2023-12-16 10:00",
+          price: 299
+        }),
+        new UTSJSONObject({
+          name: "小程序开发",
+          teacher: "王老师",
+          time: "2023-12-17 15:00",
+          price: 249
+        })
+      ],
+      currentCourseIndex: null,
+      selectedDate: null
+      // 新增用于存储选择的日期
+    };
+  },
+  methods: new UTSJSONObject({
+    handleReserve(index = null) {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        const course = this.courseList[index];
+        const confirm = (yield common_vendor.index.showModal(new UTSJSONObject({
+          title: "确认预约",
+          content: `确定要预约《${course.name}》课程吗？`,
+          confirmText: "确认",
+          cancelText: "取消"
+        }))).confirm;
+        if (!confirm)
+          return Promise.resolve(null);
+        this.currentCourseIndex = index;
+        common_vendor.index.showToast({
+          title: "请选择预约日期",
+          icon: "none",
+          duration: 1500
+        });
+        this.$refs.calendar.open();
+      });
+    },
+    onCalendarConfirm(e = null) {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        this.selectedDate = e.fulldate;
+        yield common_vendor.index.showToast({
+          title: `已选择日期: ${e.fulldate}
+请选择时间段`,
+          icon: "none",
+          duration: 1500
+        });
+        yield this.selectReserveTime();
+      });
+    },
+    selectReserveTime() {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        const time = (yield new Promise((resolve) => {
+          common_vendor.index.showActionSheet({
+            title: "选择预约时间段",
+            itemList: ["上午 9:00-11:00", "下午 14:00-16:00", "晚上 19:00-21:00"],
+            success: (res) => {
+              const times = ["9:00-11:00", "14:00-16:00", "19:00-21:00"];
+              resolve({ time: times[res.tapIndex] });
+            },
+            fail: () => {
+              return resolve({ time: null });
+            }
+          });
+        })).time;
+        if (!time)
+          return Promise.resolve(null);
+        const course = this.courseList[this.currentCourseIndex];
+        common_vendor.index.showToast({
+          title: `已成功预约: ${course.name}
+日期: ${this.selectedDate}
+时间: ${time}`,
+          icon: "success",
+          duration: 3e3
+        });
+        this.currentCourseIndex = null;
+        this.selectedDate = null;
+      });
+    },
+    getToday() {
+      const today = /* @__PURE__ */ new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    }
+  })
+}));
 if (!Array) {
-  const _component_uni_search_bar = common_vendor.resolveComponent("uni-search-bar");
-  const _component_uni_segmented_control = common_vendor.resolveComponent("uni-segmented-control");
-  const _component_uni_rate = common_vendor.resolveComponent("uni-rate");
-  (_component_uni_search_bar + _component_uni_segmented_control + _component_uni_rate)();
+  const _easycom_uni_calendar2 = common_vendor.resolveComponent("uni-calendar");
+  _easycom_uni_calendar2();
 }
-const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
-  __name: "course",
-  setup(__props) {
-    const courses = common_vendor.ref([
-      new UTSJSONObject({
-        id: 2,
-        name: "考研政治冲刺班",
-        teacher: "李老师",
-        time: "2023-10-15 至 2023-12-15",
-        status: "upcoming",
-        // 修改头像路径
-        avatar: "/static/image/default_avatar.png",
-        rating: 4.8,
-        progress: 0
-      }),
-      new UTSJSONObject({
-        id: 3,
-        name: "考研数学基础班",
-        teacher: "王老师",
-        time: "2023-09-01 至 2023-11-30",
-        status: "completed",
-        avatar: "/static/image/default_avatar.png",
-        rating: 4.5,
-        progress: 100
-      }),
-      new UTSJSONObject({
-        id: 4,
-        name: "考研专业课辅导",
-        teacher: "赵老师",
-        time: "2023-11-01 至 2024-01-15",
-        status: "ongoing",
-        avatar: "/static/image/teacher4.png",
-        rating: 4.7,
-        progress: 30
-      }),
-      new UTSJSONObject({
-        id: 5,
-        name: "考研复试指导",
-        teacher: "钱老师",
-        time: "2024-02-15 至 2024-03-31",
-        status: "upcoming",
-        avatar: "/static/image/teacher5.png",
-        rating: 4.9,
-        progress: 0
-      }),
-      new UTSJSONObject(
-        // 新增课程数据
-        {
-          id: 6,
-          name: "考研写作专项",
-          teacher: "孙老师",
-          time: "每周一、三 19:00-21:00",
-          status: "ongoing",
-          avatar: "/static/image/default_avatar.png",
-          rating: 4.6,
-          progress: 45,
-          details: new UTSJSONObject({
-            duration: "24课时",
-            students: 128
-          })
-        }
-      ),
-      new UTSJSONObject({
-        id: 7,
-        name: "考研英语强化班",
-        teacher: "周老师",
-        time: "每周二、四 19:00-21:00",
-        status: "ongoing",
-        avatar: "/static/image/default_avatar.png",
-        rating: 4.7,
-        progress: 60
-      }),
-      new UTSJSONObject({
-        id: 8,
-        name: "考研专业课冲刺",
-        teacher: "吴老师",
-        time: "2024-01-10 至 2024-02-28",
-        status: "upcoming",
-        avatar: "/static/image/default_avatar.png",
-        rating: 4.9,
-        progress: 0
-      })
-    ]);
-    const currentTab = common_vendor.ref(0);
-    const tabs = ["全部", "进行中", "即将开始", "已结束"];
-    const searchText = common_vendor.ref("");
-    const filteredCourses = common_vendor.computed(() => {
-      let filtered = courses.value;
-      if (currentTab.value === 1) {
-        filtered = filtered.filter((course) => {
-          return course.status === "ongoing";
-        });
-      } else if (currentTab.value === 2) {
-        filtered = filtered.filter((course) => {
-          return course.status === "upcoming";
-        });
-      } else if (currentTab.value === 3) {
-        filtered = filtered.filter((course) => {
-          return course.status === "completed";
-        });
-      }
-      if (searchText.value) {
-        filtered = filtered.filter((course) => {
-          return course.name.includes(searchText.value) || course.teacher.includes(searchText.value);
-        });
-      }
-      return filtered;
-    });
-    const getStatusText = (status = null) => {
-      const statusMap = new UTSJSONObject({
-        ongoing: "进行中",
-        upcoming: "即将开始",
-        completed: "已结束"
-      });
-      return statusMap[status] || "";
-    };
-    const searchCourse = (e = null) => {
-      searchText.value = e.value;
-    };
-    const changeTab = (e = null) => {
-      currentTab.value = e.currentIndex;
-    };
-    const goToDetail = (id = null) => {
-      common_vendor.index.navigateTo({
-        url: `/pages/mine/course/course_detail?id=${id}`
-      });
-    };
-    const onRefresh = () => {
-      setTimeout(() => {
-        common_vendor.index.stopPullDownRefresh();
-      }, 1e3);
-    };
-    return (_ctx = null, _cache = null) => {
-      const __returned__ = {
-        a: common_vendor.o(searchCourse),
-        b: common_vendor.p({
-          placeholder: "搜索课程"
-        }),
-        c: common_vendor.o(changeTab),
-        d: common_vendor.p({
-          current: currentTab.value,
-          values: tabs
-        }),
-        e: common_vendor.f(filteredCourses.value, (course = null, index = null, i0 = null) => {
-          return {
-            a: course.avatar || "/static/image/default_avatar.png",
-            b: common_vendor.t(course.name),
-            c: "0cb8e478-2-" + i0,
-            d: common_vendor.p({
-              value: course.rating,
-              disabled: true,
-              size: "14"
-            }),
-            e: common_vendor.t(course.progress),
-            f: common_vendor.t(course.teacher),
-            g: common_vendor.t(getStatusText(course.status)),
-            h: common_vendor.n(course.status),
-            i: common_vendor.t(course.time),
-            j: "0cb8e478-3-" + i0,
-            k: common_vendor.p({
-              value: course.rating,
-              disabled: true,
-              size: "14"
-            }),
-            l: course.progress,
-            m: course.progress,
-            n: common_vendor.o(($event = null) => {
-              return goToDetail(course.id);
-            }, index),
-            o: index
-          };
-        }),
-        f: common_vendor.o(onRefresh),
-        g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+const _easycom_uni_calendar = () => "../../../uni_modules/uni-calendar/components/uni-calendar/uni-calendar.js";
+if (!Math) {
+  _easycom_uni_calendar();
+}
+function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  return {
+    a: common_vendor.sr("calendar", "0cb8e478-0"),
+    b: common_vendor.o($options.onCalendarConfirm),
+    c: common_vendor.p({
+      insert: false,
+      ["start-date"]: $options.getToday()
+    }),
+    d: common_vendor.f($data.courseList, (item, index, i0) => {
+      return {
+        a: common_vendor.t(item.name),
+        b: common_vendor.t(item.teacher),
+        c: common_vendor.t(item.time),
+        d: common_vendor.t(item.price),
+        e: common_vendor.o(($event) => $options.handleReserve(index), index),
+        f: index
       };
-      return __returned__;
-    };
-  }
-});
-wx.createPage(_sfc_main);
+    }),
+    e: common_assets._imports_0$1,
+    f: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+  };
+}
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
+wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../../.sourcemap/mp-weixin/pages/mine/course/course.js.map
