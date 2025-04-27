@@ -3,7 +3,7 @@ const common_vendor = require("../../../common/vendor.js");
 const router_Router = require("../../../router/Router.js");
 require("../../../store/index.js");
 const TabBar = () => "../../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   components: {
     TabBar
   },
@@ -17,9 +17,22 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       // 显示调试信息
     };
   },
+<<<<<<< HEAD
+  computed: {
+    // 直接从store获取状态
+    profile() {
+      var _a;
+      try {
+        return ((_a = store_index.store === null || store_index.store === void 0 ? void 0 : store_index.store.getters) === null || _a === void 0 ? void 0 : _a["user/baseInfo/profile"]) || new UTSJSONObject({});
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:112", "获取profile失败", e);
+        return new UTSJSONObject({});
+      }
+=======
   computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
     storeId: (state = null) => {
       return state.id;
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     },
     storeAvatar: (state = null) => {
       return state.avatar;
@@ -42,7 +55,11 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     storeUserInfo: (state = null) => {
       return state.userInfo;
     }
+<<<<<<< HEAD
+  },
+=======
   })))),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:119", "mine_common.vue onLoad开始执行");
@@ -81,7 +98,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       }
     });
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 从store初始化数据
      */
@@ -237,8 +254,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     navigateTo(url = null) {
       router_Router.Navigator.navigateTo(url);
     }
-  })
-}));
+  }
+});
 if (!Array) {
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
   _component_TabBar();
@@ -269,7 +286,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     p: common_vendor.p({
       pageName: "mine"
     }),
-    q: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    q: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -96,7 +96,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: $data.inputMessage,
     f: common_vendor.o(($event) => $data.inputMessage = $event.detail.value),
     g: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
-    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    h: common_vendor.sei(_ctx.virtualHostId, "view")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

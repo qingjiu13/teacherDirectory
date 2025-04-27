@@ -8,7 +8,7 @@ const _easycom_c_lottie = () => "../../uni_modules/c-lottie/components/c-lottie/
 if (!Math) {
   _easycom_c_lottie();
 }
-const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "test",
   setup(__props) {
     const cLottieRef = common_vendor.ref();
@@ -17,7 +17,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObjec
     };
     return (_ctx = null, _cache = null) => {
       const __returned__ = {
-        a: common_vendor.sr(cLottieRef, "74c39be4-0", {
+<<<<<<< HEAD
+        a: common_vendor.sr(cLottieRef, "bfcb4f0c-0", {
+=======
+        a: common_vendor.sr(cLottieRef, "fc3b16b4-0", {
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
           "k": "cLottieRef"
         }),
         b: common_vendor.o(onLoopComplete),
@@ -69,11 +73,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObjec
         q: common_vendor.o(($event = null) => {
           return cLottieRef.value.call("playSegments", [[[0, 5], [10, 18]], true]);
         }),
-        r: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+        r: common_vendor.sei(_ctx.virtualHostId, "view")
       };
       return __returned__;
     };
   }
-}));
+});
 wx.createPage(_sfc_main);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/test/test.js.map

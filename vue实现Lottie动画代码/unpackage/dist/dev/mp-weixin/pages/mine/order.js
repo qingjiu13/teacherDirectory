@@ -58,7 +58,7 @@ const _sfc_main = common_vendor.defineComponent({
     },
     // 处理支付
     handlePay(order = null) {
-      common_vendor.index.showModal(new UTSJSONObject({
+      common_vendor.index.showModal({
         title: "确认支付",
         content: `是否确认支付订单 ${order.orderId}？`,
         success: (res) => {
@@ -76,7 +76,7 @@ const _sfc_main = common_vendor.defineComponent({
             }, 1500);
           }
         }
-      }));
+      });
     },
     // 处理评价
     handleReview(order = null) {
@@ -84,7 +84,7 @@ const _sfc_main = common_vendor.defineComponent({
     },
     // 处理取消
     handleCancel(order = null) {
-      common_vendor.index.showModal(new UTSJSONObject({
+      common_vendor.index.showModal({
         title: "确认取消",
         content: `是否确认取消订单 ${order.orderId}？`,
         success: (res) => {
@@ -102,7 +102,7 @@ const _sfc_main = common_vendor.defineComponent({
             }, 1e3);
           }
         }
-      }));
+      });
     }
   }
 });
@@ -142,7 +142,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       });
     }),
     d: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args)),
-    e: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    e: common_vendor.sei(_ctx.virtualHostId, "view")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

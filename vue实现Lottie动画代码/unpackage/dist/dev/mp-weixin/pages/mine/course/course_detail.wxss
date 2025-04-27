@@ -1,0 +1,196 @@
+@import "../../../uvue.wxss";
+:host{display:flex;flex-direction:column}
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.course-detail-container {
+  padding: 20rpx;
+}
+.course-detail-container .header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+.course-detail-container .header .teacher-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 30rpx;
+}
+.course-detail-container .header .header-info {
+  flex: 1;
+}
+.course-detail-container .header .header-info .course-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+.course-detail-container .header .header-info .teacher {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+.course-detail-container .header .header-info .status {
+  font-size: 24rpx;
+  padding: 5rpx 15rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+.course-detail-container .header .header-info .status.ongoing {
+  background: linear-gradient(to right, #1890ff, #36cffd);
+  color: #fff;
+}
+.course-detail-container .header .header-info .status.upcoming {
+  background: linear-gradient(to right, #fa8c16, #ffc069);
+  color: #fff;
+}
+.course-detail-container .header .header-info .status.completed {
+  background: linear-gradient(to right, #52c41a, #73d13d);
+  color: #fff;
+}
+.course-detail-container .basic-info {
+  margin-bottom: 30rpx;
+}
+.course-detail-container .basic-info .info-card {
+  background-color: #fff;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.2);
+  border: 1rpx solid #1890ff;
+  background: linear-gradient(to bottom, #f9fcff, #e6f4ff);
+}
+.course-detail-container .basic-info .info-card .title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #1890ff;
+}
+.course-detail-container .basic-info .info-card .info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+.course-detail-container .basic-info .info-card .info-row .label {
+  font-size: 28rpx;
+  color: #666;
+  margin-right: 15rpx;
+  width: 100rpx;
+}
+.course-detail-container .basic-info .info-card .info-row .value, .course-detail-container .basic-info .info-card .info-row .rating-value, .course-detail-container .basic-info .info-card .info-row .progress-value {
+  font-size: 28rpx;
+  color: #333;
+}
+.course-detail-container .basic-info .info-card .info-row progress {
+  flex: 1;
+  margin: 0 10rpx;
+}
+.course-detail-container .tabs {
+  margin-bottom: 20rpx;
+}
+.course-detail-container .tab-content {
+  background-color: #fff;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(24, 144, 255, 0.1);
+}
+.course-detail-container .tab-content .section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #1890ff;
+}
+.course-detail-container .tab-content .content {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #333;
+}
+.course-detail-container .tab-content .chapter {
+  margin-bottom: 20rpx;
+}
+.course-detail-container .tab-content .chapter .chapter-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+  color: #333;
+}
+.course-detail-container .tab-content .chapter .lesson {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+.course-detail-container .tab-content .chapter .lesson .lesson-title {
+  font-size: 28rpx;
+  color: #666;
+}
+.course-detail-container .tab-content .chapter .lesson .lesson-duration {
+  font-size: 26rpx;
+  color: #999;
+}
+.course-detail-container .tab-content .resource {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+.course-detail-container .tab-content .resource .resource-name {
+  font-size: 28rpx;
+  color: #666;
+}
+.course-detail-container .tab-content .resource .download-btn {
+  background: linear-gradient(to right, #1890ff, #36cffd);
+  color: #fff;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+  border: none;
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 30rpx;
+}
+.course-detail-container .action-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+.course-detail-container .action-buttons .primary-btn, .course-detail-container .action-buttons .secondary-btn {
+  width: 48%;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 10rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+.course-detail-container .action-buttons .primary-btn {
+  background: linear-gradient(to right, #1890ff, #36cffd);
+  color: #fff;
+  border: none;
+}
+.course-detail-container .action-buttons .secondary-btn {
+  background: #fff;
+  color: #1890ff;
+  border: 1rpx solid #1890ff;
+}

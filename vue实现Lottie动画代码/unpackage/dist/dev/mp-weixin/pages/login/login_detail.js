@@ -45,6 +45,13 @@ const _sfc_main = common_vendor.defineComponent({
       // 默认空值
     };
   },
+<<<<<<< HEAD
+  computed: Object.assign({}, common_vendor.mapState(new UTSJSONObject({
+    userRole: (state = null) => {
+      return state.user.baseInfo.userInfo.role;
+    }
+  }))),
+=======
   computed: new UTSJSONObject({
     /**
      * 根据用户角色筛选年级列表
@@ -62,6 +69,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
     }
   }),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
   methods: {
     handleSchoolSelect(index = null) {
       this.formData.schoolIndex = index;
@@ -356,8 +364,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       searchPlaceholder: "输入目标专业名称"
     })
   } : {}, {
+<<<<<<< HEAD
+    r: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
+    s: common_vendor.sei(_ctx.virtualHostId, "view")
+=======
     C: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
     D: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-5ca72b3d"]]);

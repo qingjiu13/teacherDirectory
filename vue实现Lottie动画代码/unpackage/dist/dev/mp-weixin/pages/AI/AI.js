@@ -2,6 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 require("../../store/index.js");
 const _2886___ = require("../../2886所大学.js");
+const choiceSelected = () => "../../components/combobox/combobox.js";
 const HistorySidebar = () => "../../components/ai-chat/HistorySidebar.js";
 const MessageList = () => "../../components/ai-chat/MessageList.js";
 const FilterSection = () => "../../components/ai-chat/FilterSection.js";
@@ -30,34 +31,31 @@ const CHAT_MODE = new UTSJSONObject({
 });
 const _sfc_main = common_vendor.defineComponent({
   components: {
+    choiceSelected,
     HistorySidebar,
     MessageList,
     FilterSection,
     ModeSelector,
     InputSection
   },
-  computed: Object.assign(Object.assign({}, common_vendor.mapState("user/aiChat", new UTSJSONObject({
-    storeHistorySummaries: (state = null) => {
-      return state.aiChat.historySummaries;
-    },
-    storeHistoryChats: (state = null) => {
-      return state.aiChat.conversations;
-    },
-    storeActiveConversation: (state = null) => {
-      return state.aiChat.activeConversation;
-    },
-    storeChatMode: (state = null) => {
-      return state.aiChat.chatMode;
-    }
-  }))), {
-    // 当前选择的学校和专业
+  computed: Object.assign(Object.assign({}, common_vendor.mapGetters("user/aiChat", [
+    "testResult",
+    "isTesting",
+    "isLoading",
+    "historySummaries",
+    "historyChats",
+    "activeConversation",
+    "chatMode"
+  ])), {
+    // 当前选择的学校名称
     currentSchool() {
       return this.schoolIndex >= 0 ? this.schoolList[this.schoolIndex] : "";
     },
+    // 当前选择的专业名称
     currentMajor() {
       return this.majorIndex >= 0 ? this.majorList[this.majorIndex].choiceItemContent : "";
     },
-    // 当前模式名称
+    // 获取当前模式名称
     currentModeName() {
       const modeNames = new UTSJSONObject({
         [CHAT_MODE.GENERAL]: "通用",
@@ -65,24 +63,11 @@ const _sfc_main = common_vendor.defineComponent({
         [CHAT_MODE.CAREER]: "职业规划"
       });
       return modeNames[this.currentMode] || "通用";
-    },
-    // 兼容计算属性
-    historySummaries() {
-      return this.storeHistorySummaries;
-    },
-    historyChats() {
-      return this.storeHistoryChats || [];
-    },
-    activeConversation() {
-      return this.storeActiveConversation;
-    },
-    chatMode() {
-      return this.storeChatMode;
     }
   }),
   data() {
     return {
-      // 用户信息
+      // 用户基本信息
       userInfo: new UTSJSONObject({
         school: "",
         major: ""
@@ -95,7 +80,7 @@ const _sfc_main = common_vendor.defineComponent({
       autoScrollId: "",
       // 对话模式
       currentMode: CHAT_MODE.GENERAL,
-      // 学校和专业选择
+      // 学校和专业选择相关
       schoolIndex: -1,
       majorIndex: -1,
       schoolList: [],
@@ -117,27 +102,21 @@ const _sfc_main = common_vendor.defineComponent({
       ],
       // 滚动相关
       isAutoScrollEnabled: true,
-      // 当前会话控制器
+      // 当前会话的请求控制器
       currentController: null,
-      // 上下文信息
+      // 自定义的上下文信息
       contextInfo: new UTSJSONObject({}),
-      // 导航栏和侧边栏
+      // 导航栏和侧边栏相关
       sidebarVisible: false,
       currentChatId: null
+      // 当前会话ID
     };
   },
   watch: {
     // 监听activeConversation的变化
-    storeActiveConversation: {
+    activeConversation: {
       handler(newVal = null) {
-        if (newVal && typeof newVal === "object" && newVal.chatId) {
-          this.currentChatId = newVal.chatId;
-          if (newVal.chatMode) {
-            this.currentMode = newVal.chatMode;
-          }
-        } else if (newVal) {
-          this.currentChatId = newVal;
-        }
+        this.currentChatId = newVal;
       },
       immediate: true
     }
@@ -154,25 +133,46 @@ const _sfc_main = common_vendor.defineComponent({
   onUnload() {
     this.abortCurrentRequest();
   },
-  methods: {
+  onReady() {
+    setTimeout(() => {
+      this.updateLayout();
+    }, 300);
+  },
+  methods: Object.assign(Object.assign({}, common_vendor.mapActions("user/aiChat", [
+    "testAIQA",
+    "getHistoryChats",
+    "loadChat",
+    "saveChat",
+    "deleteChat",
+    "setCurrentChat",
+    "updateChatMode",
+    "updateUserInfo"
+  ])), {
     /**
-     * @description 从JSON文件加载大学数据
+     * @description 从JSON文件加载大学数据并转换为下拉框格式
      */
     loadUniversityData() {
       try {
         this.schoolList = _2886___.universityData;
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:268", "成功加载", this.schoolList.length, "所大学数据");
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:264", "加载大学数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:270", "加载大学数据失败:", error);
         this.schoolList = ["北京大学", "清华大学", "复旦大学"];
+        this.showToast("加载大学数据失败，使用默认列表");
       }
     },
     /**
-     * @description 处理页面点击事件，关闭下拉框
+     * @description 处理页面点击事件，用于关闭所有打开的下拉框
      */
     onPageClick() {
       if (this.$refs && this.$refs.filterSection) {
         this.$refs.filterSection.closeAllDropdowns();
       }
+    },
+    /**
+     * @description 更新布局，解决可能的定位问题
+     */
+    updateLayout() {
     },
     /**
      * @description 获取用户信息
@@ -188,22 +188,33 @@ const _sfc_main = common_vendor.defineComponent({
             try {
               parsedInfo = UTS.JSON.parse(userInfo);
             } catch (parseError) {
-              parsedInfo = new UTSJSONObject({ school: "", major: "" });
+              common_vendor.index.__f__("error", "at pages/AI/AI.vue:314", "解析用户信息失败:", parseError);
+              parsedInfo = new UTSJSONObject({
+                school: "",
+                major: ""
+              });
             }
           }
           this.userInfo = parsedInfo;
           this.setUserSelectionIndexes();
         }
       } catch (e) {
-        this.userInfo = { school: "", major: "" };
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:329", "获取用户信息失败:", e);
+        this.userInfo = {
+          school: "",
+          major: ""
+        };
       }
     },
     /**
-     * @description 根据用户信息设置学校和专业索引
+     * @description 根据用户信息设置学校和专业的索引
      */
     setUserSelectionIndexes() {
       if (!this.userInfo || typeof this.userInfo !== "object") {
-        this.userInfo = { school: "", major: "" };
+        this.userInfo = {
+          school: "",
+          major: ""
+        };
         return null;
       }
       if (this.userInfo.school) {
@@ -227,11 +238,15 @@ const _sfc_main = common_vendor.defineComponent({
     saveUserInfo() {
       try {
         if (!this.userInfo || typeof this.userInfo !== "object") {
-          this.userInfo = { school: "", major: "" };
+          this.userInfo = {
+            school: "",
+            major: ""
+          };
         }
         common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userInfo));
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:341", "保存用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:384", "保存用户信息失败:", e);
+        this.showToast("保存用户信息失败，可能影响后续对话");
       }
     },
     /**
@@ -259,7 +274,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} keyword - 搜索关键词
      */
     onSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/AI/AI.vue:372", "正在搜索学校:", keyword);
+      common_vendor.index.__f__("log", "at pages/AI/AI.vue:418", "正在搜索学校:", keyword);
     },
     /**
      * @description 切换对话模式
@@ -269,14 +284,8 @@ const _sfc_main = common_vendor.defineComponent({
       if (this.currentMode === mode)
         return null;
       this.currentMode = mode;
-      this.messages = [];
-      this.currentChatId = "chat_" + Date.now();
       this.updateContextInfo();
-      this.$store.dispatch("user/aiChat/setCurrentChat", new UTSJSONObject({
-        chatId: this.currentChatId,
-        chatMode: this.currentMode
-      }));
-      this.closeSidebar();
+      this.addSystemMessage(`已切换到${this.currentModeName}模式`);
     },
     /**
      * @description 更新对话上下文信息
@@ -306,18 +315,14 @@ const _sfc_main = common_vendor.defineComponent({
     startNewChat() {
       this.messages = [];
       this.currentChatId = "chat_" + Date.now();
-      this.updateContextInfo();
-      this.$store.dispatch("user/aiChat/setCurrentChat", new UTSJSONObject({
-        chatId: this.currentChatId,
-        chatMode: this.currentMode
-      }));
+      this.setCurrentChat(this.currentChatId);
       this.addSystemMessage("开始新对话，请输入您的问题");
       this.closeSidebar();
     },
     /**
-     * @description 处理消息发送和重试
+     * @description 处理消息发送和重试的统一方法
      * @param {String} messageContent - 消息内容
-     * @param {Number} [retryIndex] - 重试消息的索引
+     * @param {Number} [retryIndex] - 重试消息的索引，如果是新消息则为null
      */
     handleMessage(messageContent = null, retryIndex = null) {
       var _a;
@@ -351,16 +356,12 @@ const _sfc_main = common_vendor.defineComponent({
           this.updateContextInfo();
           if (!this.currentChatId) {
             this.currentChatId = "chat_" + Date.now();
-            this.$store.dispatch("user/aiChat/setCurrentChat", new UTSJSONObject({
-              chatId: this.currentChatId,
-              chatMode: this.currentMode
-            }));
+            this.setCurrentChat(this.currentChatId);
           }
-          const response = yield this.$store.dispatch("user/aiChat/testAIQA", new UTSJSONObject({
+          const response = yield this.testAIQA(new UTSJSONObject({
             question: messageContent,
             contextInfo: this.contextInfo,
-            chatId: this.currentChatId,
-            chatMode: this.currentMode
+            chatId: this.currentChatId
           }));
           if (response.success) {
             this.messages[aiMessageIndex].content = response.data;
@@ -368,12 +369,22 @@ const _sfc_main = common_vendor.defineComponent({
             this.saveChatHistory();
           } else {
             const errorMessage = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "获取回复失败，请稍后重试";
+            common_vendor.index.__f__("error", "at pages/AI/AI.vue:533", "AI回复失败:", errorMessage, response.error);
             this.messages[aiMessageIndex].content = `抱歉，无法获取回复：${errorMessage}`;
             this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
-            this.showToast(errorMessage, "none", 3e3);
+            if (errorMessage.includes("网络") || errorMessage.includes("连接")) {
+              this.showToast("网络连接异常，请检查您的网络设置", "none", 3e3);
+            } else if (errorMessage.includes("超时")) {
+              this.showToast("服务器响应超时，请稍后再试", "none", 3e3);
+            } else if (errorMessage.includes("服务器")) {
+              this.showToast("服务器暂时不可用，请稍后再试", "none", 3e3);
+            } else {
+              this.showToast(errorMessage, "none", 3e3);
+            }
           }
         } catch (error) {
           const errorMsg = error.message || "系统异常，请稍后再试";
+          common_vendor.index.__f__("error", "at pages/AI/AI.vue:553", "消息处理异常:", errorMsg, error);
           this.messages[aiMessageIndex].content = `抱歉，发生了错误：${errorMsg}`;
           this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
           this.showToast(errorMsg, "none", 3e3);
@@ -409,8 +420,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 中断当前请求
      */
     abortCurrentRequest() {
-      if (this.currentController && this.currentController.abort) {
-        this.currentController.abort();
+      if (this.currentController) {
         this.currentController = null;
       }
     },
@@ -423,6 +433,11 @@ const _sfc_main = common_vendor.defineComponent({
       if (this.messages.length > 0) {
         this.autoScrollId = "msg-" + (this.messages.length - 1);
       }
+    },
+    /**
+     * @description 处理滚动到顶部事件
+     */
+    onScrollToUpper(e = null) {
     },
     /**
      * @description 处理滚动事件
@@ -470,63 +485,34 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       try {
         this.toggleLoading("正在加载对话内容...");
-        const conversations = this.historyChats || [];
-        const conversation = conversations.find((chat = null) => {
-          return chat.id === chatId;
-        });
-        if (conversation) {
-          this.currentChatId = chatId;
-          if (conversation.chatMode) {
-            this.currentMode = conversation.chatMode;
-            this.updateContextInfo();
-          }
-          const messages = conversation.messages ? conversation.messages.map((msg = null) => {
-            let type = MESSAGE_TYPE.AI;
-            if (msg.id.includes("msg-user")) {
-              type = MESSAGE_TYPE.USER;
-            } else if (msg.id.includes("msg-system")) {
-              type = MESSAGE_TYPE.SYSTEM;
-            }
-            return new UTSJSONObject({
-              type,
-              content: msg.content,
-              status: MESSAGE_STATUS.SENT,
-              streaming: false
+        this.loadChat(chatId).then((response = null) => {
+          var _a, _b;
+          if (response.success) {
+            this.currentChatId = chatId;
+            this.messages = response.data.messages || [];
+            this.closeSidebar();
+            this.$nextTick(() => {
+              this.scrollToBottom();
             });
-          }) : [];
-          this.messages = messages;
-          this.closeSidebar();
-          this.$nextTick(() => {
-            this.scrollToBottom();
-          });
-          this.toggleLoading(false);
-        } else {
-          this.$store.dispatch("user/aiChat/loadChat", chatId).then((response = null) => {
-            var _a, _b;
-            if (response.success) {
-              this.currentChatId = chatId;
-              if (response.data.chatMode) {
-                this.currentMode = response.data.chatMode;
-                this.updateContextInfo();
-              }
-              this.messages = response.data.messages || [];
-              this.closeSidebar();
-              this.$nextTick(() => {
-                this.scrollToBottom();
-              });
-            } else {
-              const errorMsg = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "加载对话失败";
-              this.showToast(`加载失败: ${errorMsg}`, "none", 3e3);
-              if (((_b = response.error) === null || _b === void 0 ? void 0 : _b.statusCode) >= 500) {
-                this.startNewChat();
-              }
+          } else {
+            const errorMsg = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "加载对话失败";
+            common_vendor.index.__f__("error", "at pages/AI/AI.vue:697", "加载对话失败:", errorMsg, response.error);
+            this.showToast(`加载失败: ${errorMsg}`, "none", 3e3);
+            if (((_b = response.error) === null || _b === void 0 ? void 0 : _b.statusCode) >= 500) {
+              this.startNewChat();
+              this.showToast("服务器暂时不可用，已为您创建新对话", "none", 3e3);
             }
-          }).finally(() => {
-            this.toggleLoading(false);
-          });
-        }
+          }
+        }).catch((error = null) => {
+          common_vendor.index.__f__("error", "at pages/AI/AI.vue:708", "加载对话异常:", error);
+          this.showToast("加载对话时发生错误", "none", 3e3);
+          this.startNewChat();
+        }).finally(() => {
+          this.toggleLoading(false);
+        });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:685", "加载对话内容失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:715", "加载对话内容失败:", error);
+        this.showToast("加载对话内容失败: " + (error.message || "未知错误"));
         this.toggleLoading(false);
         this.startNewChat();
       }
@@ -535,20 +521,14 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 从Vuex加载历史会话摘要
      */
     loadChatHistoryFromStorage() {
-      const conversations = this.historyChats;
-      if (conversations && conversations.length > 0) {
-        const historySummaries = conversations.map((chat = null) => {
-          return new UTSJSONObject({
-            id: chat.id,
-            title: chat.abstract,
-            abstract: chat.abstract,
-            chatMode: chat.chatMode,
-            createdAt: chat.createdAt,
-            updatedAt: chat.updatedAt
-          });
-        });
-        this.$store.commit("user/aiChat/SET_HISTORY_SUMMARIES", historySummaries);
-      }
+      this.getHistoryChats().then((response = null) => {
+        if (!response.success) {
+          common_vendor.index.__f__("error", "at pages/AI/AI.vue:729", "加载历史会话摘要失败:", response.error || response.message);
+          this.showToast("加载历史对话记录失败，将使用本地缓存", "none", 2e3);
+        }
+      }).catch((error = null) => {
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:733", "加载历史会话异常:", error);
+      });
     },
     /**
      * @description 保存聊天历史摘要到Vuex
@@ -564,36 +544,29 @@ const _sfc_main = common_vendor.defineComponent({
         id: this.currentChatId,
         title: title + (title.length >= 20 ? "..." : ""),
         abstract: title,
-        chatMode: this.currentMode,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-        messages: this.messages.map((msg, index) => {
-          return new UTSJSONObject({
-            id: `msg-${msg.type === MESSAGE_TYPE.USER ? "user" : "ai"}-${this.currentChatId}-${index}`,
-            content: msg.content,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString()
-          });
-        })
+        // 完整消息内容由后端存储，客户端只保存摘要信息
+        createdAt: /* @__PURE__ */ new Date(),
+        updatedAt: /* @__PURE__ */ new Date()
       });
-      this.$store.commit("user/aiChat/ADD_CONVERSATION", chatData);
-      const summaryData = new UTSJSONObject({
-        id: chatData.id,
-        title: chatData.title,
-        abstract: chatData.abstract,
-        chatMode: chatData.chatMode,
-        createdAt: chatData.createdAt,
-        updatedAt: chatData.updatedAt
-      });
-      this.$store.commit("user/aiChat/ADD_HISTORY_SUMMARY", summaryData);
+      this.saveChat(chatData);
     },
     /**
      * @description 删除历史记录
      * @param {String} chatId - 历史记录ID
      */
     deleteChatHistory(chatId = null) {
-      if (!chatId)
+      if (!chatId) {
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:767", "删除历史记录失败: 无效的chatId");
+        this.showToast("删除失败: 无效的记录ID");
         return null;
+      }
+<<<<<<< HEAD
+      common_vendor.index.__f__("log", "at pages/AI/AI.vue:727", "请求删除历史记录:", chatId);
+      common_vendor.index.showModal({
+=======
+      common_vendor.index.__f__("log", "at pages/AI/AI.vue:772", "请求删除历史记录:", chatId);
       common_vendor.index.showModal(new UTSJSONObject({
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
         title: "确认删除",
         content: "确定要删除这条对话记录吗？",
         success: (res) => {
@@ -602,23 +575,54 @@ const _sfc_main = common_vendor.defineComponent({
               title: "正在删除...",
               mask: true
             });
-            try {
-              this.$store.commit("user/aiChat/REMOVE_CONVERSATION", chatId);
-              this.$store.commit("user/aiChat/REMOVE_HISTORY_SUMMARY", chatId);
+            this.deleteChat(chatId).then((response = null) => {
+              var _a;
               common_vendor.index.hideLoading();
-              if (this.currentChatId === chatId) {
-                this.startNewChat();
+              if (response.success) {
+                if (this.currentChatId === chatId) {
+                  this.startNewChat();
+                }
+                this.showToast("删除成功");
+              } else {
+                common_vendor.index.__f__("error", "at pages/AI/AI.vue:798", "删除失败:", response.message || "未知错误", response.error);
+                const errorMsg = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "删除失败";
+                if (errorMsg.includes("网络") || errorMsg.includes("连接")) {
+                  this.showToast("网络连接异常，请稍后再试删除", "none", 3e3);
+                } else if (errorMsg.includes("服务器")) {
+                  this.showToast("服务器暂时不可用，已在本地删除记录", "none", 3e3);
+                  if (this.currentChatId === chatId) {
+                    this.startNewChat();
+                  }
+                } else {
+                  this.showToast(errorMsg, "none", 3e3);
+                }
               }
-              this.showToast("删除成功");
-            } catch (error) {
+            }).catch((error = null) => {
               common_vendor.index.hideLoading();
+              common_vendor.index.__f__("error", "at pages/AI/AI.vue:820", "删除过程发生异常:", error);
               this.showToast("删除失败: " + (error.message || "系统错误"), "none", 3e3);
-            }
+            });
           }
         }
-      }));
+      });
+    },
+    /**
+     * @description 格式化时间
+     * @param {Date|String} time - 时间对象或时间字符串
+     * @returns {String} 格式化后的时间字符串
+     */
+    formatTime(time = null) {
+      if (!time)
+        return "";
+      const date = new Date(time);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
-  }
+  })
 });
 if (!Array) {
   const _easycom_history_sidebar2 = common_vendor.resolveComponent("history-sidebar");
@@ -647,12 +651,16 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: common_vendor.o($options.deleteChatHistory),
     f: common_vendor.p({
       visible: $data.sidebarVisible,
-      ["history-summaries"]: $options.historySummaries,
+      ["history-summaries"]: _ctx.historySummaries,
       ["current-chat-id"]: $data.currentChatId
     }),
     g: common_vendor.o((...args) => $options.toggleSidebar && $options.toggleSidebar(...args)),
     h: common_vendor.o((...args) => $options.startNewChat && $options.startNewChat(...args)),
-    i: common_vendor.sr("filterSection", "4e6adde4-1"),
+<<<<<<< HEAD
+    i: common_vendor.sr("filterSection", "23d2cd7a-1"),
+=======
+    i: common_vendor.sr("filterSection", "2807dfa6-1"),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     j: common_vendor.o($options.onSchoolClick),
     k: common_vendor.o($options.onMajorClick),
     l: common_vendor.o($options.onSchoolSearch),
@@ -662,29 +670,35 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["major-index"]: $data.majorIndex,
       ["major-list"]: $data.majorList
     }),
-    n: common_vendor.sr("messageList", "4e6adde4-2"),
-    o: common_vendor.o($options.retryMessage),
-    p: common_vendor.o(($event) => $data.autoScrollId = $event),
-    q: common_vendor.p({
+<<<<<<< HEAD
+    n: common_vendor.sr("messageList", "23d2cd7a-2"),
+=======
+    n: common_vendor.sr("messageList", "2807dfa6-2"),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
+    o: common_vendor.o($options.onScrollToUpper),
+    p: common_vendor.o($options.onScroll),
+    q: common_vendor.o($options.retryMessage),
+    r: common_vendor.o(($event) => $data.autoScrollId = $event),
+    s: common_vendor.p({
       messages: $data.messages,
       ["auto-scroll-id"]: $data.autoScrollId
     }),
-    r: common_vendor.o($options.switchMode),
-    s: common_vendor.p({
+    t: common_vendor.o($options.switchMode),
+    v: common_vendor.p({
       ["current-mode"]: $data.currentMode
     }),
-    t: common_vendor.o($options.sendMessage),
-    v: common_vendor.p({
+    w: common_vendor.o($options.sendMessage),
+    x: common_vendor.p({
       ["is-processing"]: $data.isProcessing
     }),
-    w: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
-    x: $data.sidebarVisible ? 1 : "",
-    y: $data.isFullLoading
+    y: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
+    z: $data.sidebarVisible ? 1 : "",
+    A: $data.isFullLoading
   }, $data.isFullLoading ? {
-    z: common_vendor.t($data.loadingText)
+    B: common_vendor.t($data.loadingText)
   } : {}, {
-    A: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
-    B: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
+    C: common_vendor.sei(_ctx.virtualHostId, "view"),
+    D: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

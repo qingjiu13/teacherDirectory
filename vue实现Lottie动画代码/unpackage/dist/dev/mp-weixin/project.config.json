@@ -1,8 +1,7 @@
 {
   "description": "项目配置文件。",
   "packOptions": {
-    "ignore": [],
-    "include": []
+    "ignore": []
   },
   "setting": {
     "urlCheck": false,
@@ -10,15 +9,20 @@
     "postcss": false,
     "minified": true,
     "newFeature": true,
+<<<<<<< HEAD
+    "bigPackageSizeSupport": true
+=======
     "bigPackageSizeSupport": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
       "outputPath": ""
-    }
+    },
+    "ignoreUploadUnusedFiles": true
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
   },
   "compileType": "miniprogram",
-  "libVersion": "3.8.2",
+  "libVersion": "",
   "appid": "wx5c97e17b02b54896",
   "projectname": "针对无法启动的修改",
   "condition": {
@@ -38,9 +42,5 @@
       "current": -1,
       "list": []
     }
-  },
-  "editorSetting": {
-    "tabIndent": "insertSpaces",
-    "tabSize": 2
   }
 }

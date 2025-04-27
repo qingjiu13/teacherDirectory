@@ -17,6 +17,7 @@ if (!Math) {
   "./pages/mine/mine/mine_common.js";
   "./pages/mine/modify.js";
   "./pages/mine/course/course.js";
+  "./pages/mine/course/course_detail.js";
   "./pages/mine/order.js";
   "./pages/mine/order/order_common.js";
   "./pages/mine/order/appraise/appraise.js";
@@ -26,6 +27,33 @@ if (!Math) {
   "./pages/mine/wallet.js";
   "./pages/test/test.js";
 }
+<<<<<<< HEAD
+const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
+  __name: "App",
+  setup(__props) {
+    common_vendor.onLaunch(() => {
+      common_vendor.index.__f__("log", "at App.vue:9", "App Launch");
+      if (common_vendor.index && !common_vendor.index.$store) {
+        common_vendor.index.$store = store_index.store;
+      }
+    });
+    common_vendor.onShow(() => {
+      common_vendor.index.__f__("log", "at App.vue:19", "App Show");
+    });
+    common_vendor.onHide(() => {
+      common_vendor.index.__f__("log", "at App.vue:24", "App Hide");
+    });
+    const handleExit = () => {
+      common_vendor.index.__f__("log", "at App.vue:47", "App Exit");
+    };
+    if (common_vendor.index) {
+      common_vendor.index.$onExit = handleExit;
+    }
+    return () => {
+    };
+  }
+});
+=======
 const settings = new UTSJSONObject({
   miniprogram: new UTSJSONObject({
     libVersion: "2.9.0"
@@ -37,6 +65,7 @@ const App = new UTSJSONObject({
 const app = common_vendor.createApp(App);
 app.use(store_index.store);
 app.provide("store", store_index.store);
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
 const handleError = (err) => {
   common_vendor.index.__f__("error", "at main.js:22", "捕获到全局错误:", err);
 };

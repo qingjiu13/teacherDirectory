@@ -7,26 +7,26 @@ const _sfc_main = common_vendor.defineComponent({
     MessageItem
   },
   props: {
-    messages: new UTSJSONObject({
+    messages: {
       type: Array,
       default: () => {
         return [];
       }
-    }),
-    emptyText: new UTSJSONObject({
+    },
+    emptyText: {
       type: String,
       default: "您可以开始提问了..."
-    }),
-    aiTitle: new UTSJSONObject({
+    },
+    aiTitle: {
       type: String,
       default: "研师录AI"
-    }),
-    autoScrollId: new UTSJSONObject({
+    },
+    autoScrollId: {
       type: String,
       default: ""
-    })
+    }
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 处理滚动到顶部事件
      * @param {Object} e - 事件对象
@@ -49,7 +49,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.$emit("updateAutoScrollId", "msg-" + (this.messages.length - 1));
       }
     }
-  })
+  }
 });
 if (!Array) {
   const _component_message_item = common_vendor.resolveComponent("message-item");
@@ -64,7 +64,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     c: common_vendor.f($props.messages, (msg, index, i0) => {
       return {
         a: common_vendor.o(($event) => _ctx.$emit("retryMessage", index), index),
-        b: "65e1fcc0-0-" + i0,
+<<<<<<< HEAD
+        b: "d7429e58-0-" + i0,
+=======
+        b: "ba2591b0-0-" + i0,
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
         c: common_vendor.p({
           type: msg.type,
           content: msg.content,
@@ -77,11 +81,15 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   }, {
-    d: common_vendor.sei("r0-65e1fcc0", "scroll-view", "messageScroll"),
+<<<<<<< HEAD
+    d: common_vendor.sei("r0-d7429e58", "scroll-view", "messageScroll"),
+=======
+    d: common_vendor.sei("r0-ba2591b0", "scroll-view", "messageScroll"),
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d
     e: $props.autoScrollId,
     f: common_vendor.o((...args) => $options.onScrollToUpper && $options.onScrollToUpper(...args)),
     g: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
-    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    h: common_vendor.sei(_ctx.virtualHostId, "view")
   });
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

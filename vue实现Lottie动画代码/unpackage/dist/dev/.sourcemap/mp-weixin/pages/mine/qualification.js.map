@@ -1,1 +1,5 @@
-{"version":3,"file":"qualification.js","sources":["../../../HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvbWluZS9xdWFsaWZpY2F0aW9uLnZ1ZQ"],"sourcesContent":["import MiniProgramPage from 'E:/研师录与其他人共享文件/teacherDirectory/vue实现Lottie动画代码/pages/mine/qualification.vue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}
+<<<<<<< HEAD
+{"version":3,"file":"qualification.js","sources":["../../../HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvbWluZS9xdWFsaWZpY2F0aW9uLnZ1ZQ"],"sourcesContent":["import MiniProgramPage from 'D:/github/teacherDirectory/vue实现Lottie动画代码/pages/mine/qualification.vue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}
+=======
+{"version":3,"file":"qualification.js","sources":["../../HBuilderX/HBuilderX.4.45.2025010502/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvbWluZS9xdWFsaWZpY2F0aW9uLnZ1ZQ"],"sourcesContent":["import MiniProgramPage from 'E:/yanshilu重新来过/vue实现Lottie动画代码/pages/mine/qualification.vue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}
+>>>>>>> a2bf9657a39810a133593f8de99b785a81f8875d

@@ -1,13 +1,13 @@
 {
-  "hash": "10da44ed",
-  "configHash": "abf8d70c",
-  "lockfileHash": "1eb86d0c",
-  "browserHash": "395e9f26",
+  "hash": "ef407a11",
+  "configHash": "3776b7c8",
+  "lockfileHash": "c58234bb",
+  "browserHash": "1a30ed2d",
   "optimized": {
-    "lottie-miniprogram": {
-      "src": "../../../../../node_modules/lottie-miniprogram/miniprogram_dist/index.js",
-      "file": "lottie-miniprogram.js",
-      "fileHash": "56638449",
+    "lottie-web": {
+      "src": "../../../../../uni_modules/c-lottie/node_modules/lottie-web/build/player/lottie.js",
+      "file": "lottie-web.js",
+      "fileHash": "f5226079",
       "needsInterop": true
     }
   },
