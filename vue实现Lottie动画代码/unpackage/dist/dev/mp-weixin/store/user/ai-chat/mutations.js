@@ -21,6 +21,74 @@ const mutations = {
     }
   },
   /**
+   * 设置历史会话摘要列表
+   * @param {Object} state - Vuex状态对象
+   * @param {Array<Object>} summaries - 历史会话摘要列表
+   */
+  SET_HISTORY_SUMMARIES(state, summaries) {
+    if (!state.aiChat.historySummaries) {
+      state.aiChat.historySummaries = [];
+    }
+    if (Array.isArray(summaries)) {
+      state.aiChat.historySummaries = summaries;
+    }
+  },
+  /**
+   * 添加一条会话记录
+   * @param {Object} state - Vuex状态对象
+   * @param {Object} conversation - 会话对象
+   */
+  ADD_CONVERSATION(state, conversation) {
+    if (!conversation || !conversation.id)
+      return;
+    const index = state.aiChat.conversations.findIndex((c) => c.id === conversation.id);
+    if (index !== -1) {
+      state.aiChat.conversations.splice(index, 1, conversation);
+    } else {
+      state.aiChat.conversations.push(conversation);
+    }
+  },
+  /**
+   * 移除一条会话记录
+   * @param {Object} state - Vuex状态对象
+   * @param {String} conversationId - 会话ID
+   */
+  REMOVE_CONVERSATION(state, conversationId) {
+    if (!conversationId)
+      return;
+    state.aiChat.conversations = state.aiChat.conversations.filter((c) => c.id !== conversationId);
+  },
+  /**
+   * 添加一条历史摘要
+   * @param {Object} state - Vuex状态对象
+   * @param {Object} summary - 历史摘要对象
+   */
+  ADD_HISTORY_SUMMARY(state, summary) {
+    if (!summary || !summary.id)
+      return;
+    if (!state.aiChat.historySummaries) {
+      state.aiChat.historySummaries = [];
+    }
+    const index = state.aiChat.historySummaries.findIndex((s) => s.id === summary.id);
+    if (index !== -1) {
+      state.aiChat.historySummaries.splice(index, 1, summary);
+    } else {
+      state.aiChat.historySummaries.push(summary);
+    }
+  },
+  /**
+   * 移除一条历史摘要
+   * @param {Object} state - Vuex状态对象
+   * @param {String} summaryId - 摘要ID
+   */
+  REMOVE_HISTORY_SUMMARY(state, summaryId) {
+    if (!summaryId)
+      return;
+    if (state.aiChat.historySummaries) {
+      state.aiChat.historySummaries = state.aiChat.historySummaries.filter((s) => s.id !== summaryId);
+    }
+  },
+  /**
    * 根据对话ID更新完整对话内容
    * @param {Object} state - Vuex状态对象
    * @param {Object} conversationData - 完整的对话数据

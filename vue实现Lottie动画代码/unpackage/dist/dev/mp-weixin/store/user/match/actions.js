@@ -40,21 +40,18 @@ const actions = {
    * @param {String} teacherId - 老师ID
    * @returns {Promise} - 返回获取结果的Promise
    */
-  getTeacherById({ state }, teacherId) {
-    return new Promise((resolve, reject) => {
+  getTeacherById({ commit }, teacherId) {
+    return new Promise(async (resolve, reject) => {
       try {
-        const teacher = state.matchList.find((item) => item.id === teacherId);
-        if (teacher) {
-          resolve({
-            success: true,
-            data: teacher
-          });
-        } else {
-          reject({
-            success: false,
-            message: "未找到该老师信息"
-          });
-        }
+        const result = await store_user_match_api.getTeacherDetail(teacherId);
+        commit("UPDATE_TEACHER_DETAIL", {
+          id: teacherId,
+          detailInfo: result
+        });
+        resolve({
+          success: true,
+          data: result
+        });
       } catch (error) {
         reject({
           success: false,

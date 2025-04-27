@@ -41,7 +41,7 @@ const _sfc_main = common_vendor.defineComponent({
       window.removeEventListener("mouseup", this.handleMouseUp);
     }
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 处理触摸开始事件
      * @param {Object} e - 触摸事件对象
@@ -139,12 +139,12 @@ const _sfc_main = common_vendor.defineComponent({
       }
       this.isMoving = false;
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: $data.iconPath,
-    b: common_vendor.sei(_ctx.virtualHostId, "view"),
+    b: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     c: $data.iconLeft + "px",
     d: $data.iconTop + "px",
     e: $data.config.size + "px",

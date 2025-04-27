@@ -3,17 +3,17 @@ const common_vendor = require("./common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "InputSection",
   props: {
-    isProcessing: {
+    isProcessing: new UTSJSONObject({
       type: Boolean,
       default: false
-    }
+    })
   },
   data() {
     return {
       inputValue: ""
     };
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 发送消息
      */
@@ -24,7 +24,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.$emit("send", this.inputValue.trim());
       this.inputValue = "";
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
@@ -35,7 +35,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: common_vendor.t($props.isProcessing ? "请稍候" : "发送"),
     f: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
     g: $props.isProcessing || !$data.inputValue.trim(),
-    h: common_vendor.sei(_ctx.virtualHostId, "view")
+    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

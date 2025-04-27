@@ -49,7 +49,7 @@ export const getMatchTeachers = async (params = {}) => {
 };
 
 /**
- * 通过教师ID获取教师详细信息（仅包含自我介绍和服务列表）
+ * 通过教师ID获取教师详细信息
  * @param {string} teacherId - 教师ID
  * @returns {Promise<Object>} 返回教师详细信息
  * @property {string} data.id - 教师ID
@@ -75,18 +75,7 @@ export const getTeacherDetail = async (teacherId) => {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     
-    const data = await response.json();
-    
-    // 确保返回的数据中包含selfIntroduction和service信息
-    if (!data.selfIntroduction) {
-      console.warn('接口返回的数据中缺少selfIntroduction字段');
-    }
-    
-    if (!data.service || !Array.isArray(data.service)) {
-      console.warn('接口返回的数据中缺少service字段或格式不正确');
-    }
-    
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('获取教师详情失败:', error);
     throw error;

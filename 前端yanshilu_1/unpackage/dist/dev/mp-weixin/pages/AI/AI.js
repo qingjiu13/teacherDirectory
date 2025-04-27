@@ -531,7 +531,7 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       }
       common_vendor.index.__f__("log", "at pages/AI/AI.uvue:714", "请求删除历史记录:", chatId);
-      common_vendor.index.showModal({
+      common_vendor.index.showModal(new UTSJSONObject({
         title: "确认删除",
         content: "确定要删除这条对话记录吗？",
         success: (res) => {
@@ -569,7 +569,7 @@ const _sfc_main = common_vendor.defineComponent({
             });
           }
         }
-      });
+      }));
     },
     /**
      * @description 格式化时间
@@ -653,7 +653,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.isFullLoading ? {
     A: common_vendor.t($data.loadingText)
   } : {}, {
-    B: common_vendor.sei(_ctx.virtualHostId, "view"),
+    B: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     C: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }

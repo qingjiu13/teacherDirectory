@@ -1,6 +1,6 @@
 <template>
 	<view class="page-container" @click="onPageClick">
-		<!-- 新增导航栏和侧边栏 -->
+		<!-- 导航栏和侧边栏 -->
 		<view class="nav-sidebar-container">
 			<!-- 侧边栏遮罩层 -->
 			<view class="sidebar-mask" v-if="sidebarVisible" @click.stop="closeSidebar" :style="{opacity: sidebarVisible ? 0.5 : 0}"></view>
@@ -14,7 +14,7 @@
 				@delete-chat="deleteChatHistory">
 			</history-sidebar>
 			
-			<!-- 主内容包装器（包含导航栏和主内容） -->
+			<!-- 主内容区域 -->
 			<view class="main-wrapper" :class="{shifted: sidebarVisible}">
 				<!-- 顶部导航栏 -->
 				<view class="nav-bar">
@@ -51,8 +51,6 @@
 					<message-list
 						:messages="messages"
 						:auto-scroll-id="autoScrollId"
-						@scroll-to-upper="onScrollToUpper"
-						@scroll="onScroll"
 						@retry-message="retryMessage"
 						@update-auto-scroll-id="autoScrollId = $event"
 						ref="messageList">
@@ -83,7 +81,6 @@
 </template>
 
 <script>
-	import choiceSelected from '../../components/combobox/combobox'
 	import HistorySidebar from '../../components/ai-chat/HistorySidebar'
 	import MessageList from '../../components/ai-chat/MessageList'
 	import FilterSection from '../../components/ai-chat/FilterSection'
@@ -91,7 +88,7 @@
 	import InputSection from '../../components/ai-chat/InputSection'
 	import store from '../../store'
 	import universityData from '../../store/data/2886所大学.json'
-	import { mapState, mapGetters, mapActions } from 'vuex';
+	import { mapState } from 'vuex';
 	
 	// 消息类型常量
 	const MESSAGE_TYPE = {
@@ -116,7 +113,6 @@
 	
 	export default {
 		components: {
-			choiceSelected,
 			HistorySidebar,
 			MessageList,
 			FilterSection,
@@ -124,26 +120,23 @@
 			InputSection
 		},
 		computed: {
-			// 使用mapGetters从Vuex中获取状态
-			...mapGetters('user/aiChat', [
-				'testResult',
-				'isTesting',
-				'isLoading',
-				'historySummaries',
-				'historyChats',
-				'activeConversation',
-				'chatMode'
-			]),
+			// 从Vuex获取状态
+			...mapState('user/aiChat', {
+				storeHistorySummaries: state => state.aiChat.historySummaries,
+				storeHistoryChats: state => state.aiChat.conversations,
+				storeActiveConversation: state => state.aiChat.activeConversation,
+				storeChatMode: state => state.aiChat.chatMode
+			}),
 			
-			// 当前选择的学校名称
+			// 当前选择的学校和专业
 			currentSchool() {
 				return this.schoolIndex >= 0 ? this.schoolList[this.schoolIndex] : '';
 			},
-			// 当前选择的专业名称
 			currentMajor() {
 				return this.majorIndex >= 0 ? this.majorList[this.majorIndex].choiceItemContent : '';
 			},
-			// 获取当前模式名称
+			
+			// 当前模式名称
 			currentModeName() {
 				const modeNames = {
 					[CHAT_MODE.GENERAL]: '通用',
@@ -151,11 +144,25 @@
 					[CHAT_MODE.CAREER]: '职业规划'
 				};
 				return modeNames[this.currentMode] || '通用';
+			},
+			
+			// 兼容计算属性
+			historySummaries() {
+				return this.storeHistorySummaries;
+			},
+			historyChats() {
+				return this.storeHistoryChats || [];
+			},
+			activeConversation() {
+				return this.storeActiveConversation;
+			},
+			chatMode() {
+				return this.storeChatMode;
 			}
 		},
 		data() {
 			return {
-				// 用户基本信息
+				// 用户信息
 				userInfo: {
 					school: '',
 					major: ''
@@ -163,18 +170,18 @@
 				
 				// 消息相关
 				messages: [],
-				isProcessing: false, // 是否正在处理消息
-				isFullLoading: false, // 是否显示全屏加载
+				isProcessing: false,
+				isFullLoading: false, 
 				loadingText: '正在加载...',
-				autoScrollId: '', // 用于自动滚动的ID
+				autoScrollId: '',
 				
 				// 对话模式
 				currentMode: CHAT_MODE.GENERAL,
 				
-				// 学校和专业选择相关
+				// 学校和专业选择
 				schoolIndex: -1,
 				majorIndex: -1,
-				schoolList: [], // 将从JSON文件加载
+				schoolList: [],
 				majorList: [
 					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
 					{ choiceItemId: "rjgc", choiceItemContent: "软件工程" },
@@ -195,22 +202,29 @@
 				// 滚动相关
 				isAutoScrollEnabled: true,
 				
-				// 当前会话的请求控制器
+				// 当前会话控制器
 				currentController: null,
 				
-				// 自定义的上下文信息
+				// 上下文信息
 				contextInfo: {},
 				
-				// 导航栏和侧边栏相关
+				// 导航栏和侧边栏
 				sidebarVisible: false,
-				currentChatId: null // 当前会话ID
+				currentChatId: null
 			}
 		},
 		watch: {
 			// 监听activeConversation的变化
-			activeConversation: {
+			storeActiveConversation: {
 				handler(newVal) {
-					this.currentChatId = newVal;
+					if (newVal && typeof newVal === 'object' && newVal.chatId) {
+						this.currentChatId = newVal.chatId;
+						if (newVal.chatMode) {
+							this.currentMode = newVal.chatMode;
+						}
+					} else if (newVal) {
+						this.currentChatId = newVal;
+					}
 				},
 				immediate: true
 			}
@@ -219,10 +233,10 @@
 			/**
 			 * @description 页面加载时的处理逻辑
 			 */
-			// 将JSON中的大学数据转换为下拉框需要的格式
+			// 加载大学数据
 			this.loadUniversityData();
 			
-			// 尝试获取用户信息并初始化
+			// 获取用户信息并初始化
 			this.getUserInfo();
 			
 			// 添加欢迎消息
@@ -236,62 +250,29 @@
 			this.loadChatHistoryFromStorage();
 		},
 		onUnload() {
-			// 页面卸载时中断所有未完成的请求
+			// 页面卸载时中断请求
 			this.abortCurrentRequest();
 		},
-		onReady() {
-			// 页面渲染完成后更新布局
-			setTimeout(() => {
-				this.updateLayout();
-			}, 300);
-		},
 		methods: {
-			// 使用mapActions从Vuex获取actions
-			...mapActions('user/aiChat', [
-				'testAIQA',
-				'getHistoryChats',
-				'loadChat',
-				'saveChat',
-				'deleteChat',
-				'setCurrentChat',
-				'updateChatMode',
-				'updateUserInfo'
-			]),
-			
 			/**
-			 * @description 从JSON文件加载大学数据并转换为下拉框格式
+			 * @description 从JSON文件加载大学数据
 			 */
 			loadUniversityData() {
 				try {
-					// 直接使用大学数据字符串数组，不再创建对象
 					this.schoolList = universityData;
-					console.log('成功加载', this.schoolList.length, '所大学数据');
 				} catch (error) {
 					console.error('加载大学数据失败:', error);
-					// 设置一个默认的学校列表，以防加载失败
 					this.schoolList = ["北京大学", "清华大学", "复旦大学"];
-					this.showToast('加载大学数据失败，使用默认列表');
 				}
 			},
 			
 			/**
-			 * @description 处理页面点击事件，用于关闭所有打开的下拉框
+			 * @description 处理页面点击事件，关闭下拉框
 			 */
 			onPageClick() {
-				// 关闭筛选区域的下拉框
 				if (this.$refs && this.$refs.filterSection) {
 					this.$refs.filterSection.closeAllDropdowns();
 				}
-			},
-			
-			/**
-			 * @description 更新布局，解决可能的定位问题
-			 */
-			updateLayout() {
-				// 微信小程序环境下特殊处理
-				// #ifdef MP-WEIXIN
-				// 这里可以添加特定于微信小程序的布局调整
-				// #endif
 			},
 			
 			/**
@@ -303,48 +284,30 @@
 					if (userInfo) {
 						let parsedInfo;
 						
-						// 检查userInfo是否已经是对象
 						if (typeof userInfo === 'object' && userInfo !== null) {
 							parsedInfo = userInfo;
 						} else {
-							// 尝试解析JSON字符串
 							try {
 								parsedInfo = JSON.parse(userInfo);
 							} catch (parseError) {
-								console.error('解析用户信息失败:', parseError);
-								// 初始化默认值
-								parsedInfo = {
-									school: '',
-									major: ''
-								};
+								parsedInfo = { school: '', major: '' };
 							}
 						}
 						
 						this.userInfo = parsedInfo;
-						
-						// 根据保存的用户信息设置选择框的索引
 						this.setUserSelectionIndexes();
 					}
 				} catch (e) {
-					console.error('获取用户信息失败:', e);
-					// 确保userInfo有默认值
-					this.userInfo = {
-						school: '',
-						major: ''
-					};
+					this.userInfo = { school: '', major: '' };
 				}
 			},
 			
 			/**
-			 * @description 根据用户信息设置学校和专业的索引
+			 * @description 根据用户信息设置学校和专业索引
 			 */
 			setUserSelectionIndexes() {
-				// 确保userInfo存在且是对象
 				if (!this.userInfo || typeof this.userInfo !== 'object') {
-					this.userInfo = {
-						school: '',
-						major: ''
-					};
+					this.userInfo = { school: '', major: '' };
 					return;
 				}
 				
@@ -370,19 +333,12 @@
 			 */
 			saveUserInfo() {
 				try {
-					// 确保userInfo是有效的对象
 					if (!this.userInfo || typeof this.userInfo !== 'object') {
-						this.userInfo = {
-							school: '',
-							major: ''
-						};
+						this.userInfo = { school: '', major: '' };
 					}
-					
-					// 确保存储有效的JSON字符串
 					uni.setStorageSync('userInfo', JSON.stringify(this.userInfo));
 				} catch (e) {
 					console.error('保存用户信息失败:', e);
-					this.showToast('保存用户信息失败，可能影响后续对话');
 				}
 			},
 			
@@ -413,12 +369,7 @@
 			 * @param {String} keyword - 搜索关键词
 			 */
 			onSchoolSearch(keyword) {
-				// 这里可以实现动态学校搜索逻辑
-				// 如果需要额外处理，可以在这里添加
 				console.log('正在搜索学校:', keyword);
-				
-				// 由于在combobox组件中已经实现了搜索功能，这里不需要额外处理
-				// 但如果需要高级搜索功能（如按地区筛选），可以在这里实现
 			},
 			
 			/**
@@ -429,8 +380,17 @@
 				if (this.currentMode === mode) return;
 				
 				this.currentMode = mode;
+				this.messages = [];
+				this.currentChatId = 'chat_' + Date.now();
+				
 				this.updateContextInfo();
-				this.addSystemMessage(`已切换到${this.currentModeName}模式`);
+				
+				this.$store.dispatch('user/aiChat/setCurrentChat', {
+					chatId: this.currentChatId,
+					chatMode: this.currentMode
+				});
+				
+				this.closeSidebar();
 			},
 			
 			/**
@@ -463,22 +423,28 @@
 			startNewChat() {
 				this.messages = [];
 				this.currentChatId = 'chat_' + Date.now();
-				this.setCurrentChat(this.currentChatId);
+				
+				this.updateContextInfo();
+				
+				this.$store.dispatch('user/aiChat/setCurrentChat', {
+					chatId: this.currentChatId,
+					chatMode: this.currentMode
+				});
+				
 				this.addSystemMessage('开始新对话，请输入您的问题');
 				this.closeSidebar();
 			},
 			
 			/**
-			 * @description 处理消息发送和重试的统一方法
+			 * @description 处理消息发送和重试
 			 * @param {String} messageContent - 消息内容
-			 * @param {Number} [retryIndex] - 重试消息的索引，如果是新消息则为null
+			 * @param {Number} [retryIndex] - 重试消息的索引
 			 */
 			async handleMessage(messageContent, retryIndex = null) {
 				if (!messageContent || this.isProcessing) return;
 				
 				let userMessageIndex, aiMessageIndex;
 				
-				// 处理新消息或重试
 				if (retryIndex === null) {
 					// 新消息
 					userMessageIndex = this.messages.length;
@@ -510,17 +476,19 @@
 				try {
 					this.updateContextInfo();
 					
-					// 确保有当前会话ID
 					if (!this.currentChatId) {
 						this.currentChatId = 'chat_' + Date.now();
-						this.setCurrentChat(this.currentChatId);
+						this.$store.dispatch('user/aiChat/setCurrentChat', {
+							chatId: this.currentChatId,
+							chatMode: this.currentMode
+						});
 					}
 					
-					// 使用映射的action调用后端API
-					const response = await this.testAIQA({
+					const response = await this.$store.dispatch('user/aiChat/testAIQA', {
 						question: messageContent,
 						contextInfo: this.contextInfo,
-						chatId: this.currentChatId
+						chatId: this.currentChatId,
+						chatMode: this.currentMode
 					});
 					
 					if (response.success) {
@@ -528,30 +496,14 @@
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
 						this.saveChatHistory();
 					} else {
-						// 改进的错误处理：获取详细的错误信息
 						const errorMessage = response.error?.message || response.message || '获取回复失败，请稍后重试';
-						console.error('AI回复失败:', errorMessage, response.error);
-						
-						// 添加更有用的用户提示
 						this.messages[aiMessageIndex].content = `抱歉，无法获取回复：${errorMessage}`;
 						this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
 						
-						// 如果是特定类型的错误，可以提供更具体的建议
-						if (errorMessage.includes('网络') || errorMessage.includes('连接')) {
-							this.showToast('网络连接异常，请检查您的网络设置', 'none', 3000);
-						} else if (errorMessage.includes('超时')) {
-							this.showToast('服务器响应超时，请稍后再试', 'none', 3000);
-						} else if (errorMessage.includes('服务器')) {
-							this.showToast('服务器暂时不可用，请稍后再试', 'none', 3000);
-						} else {
-							this.showToast(errorMessage, 'none', 3000);
-						}
+						this.showToast(errorMessage, 'none', 3000);
 					}
 				} catch (error) {
-					// 捕获未处理的异常
 					const errorMsg = error.message || '系统异常，请稍后再试';
-					console.error('消息处理异常:', errorMsg, error);
-					
 					this.messages[aiMessageIndex].content = `抱歉，发生了错误：${errorMsg}`;
 					this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
 					this.showToast(errorMsg, 'none', 3000);
@@ -575,12 +527,10 @@
 			 * @param {Number} index - 消息索引
 			 */
 			retryMessage(index) {
-				// 只能重试AI消息
 				if (index < 1 || this.messages[index].type !== MESSAGE_TYPE.AI) {
 					return;
 				}
 				
-				// 获取对应的用户消息
 				const userMessage = this.messages[index - 1];
 				if (userMessage.type !== MESSAGE_TYPE.USER) {
 					return;
@@ -593,13 +543,8 @@
 			 * @description 中断当前请求
 			 */
 			abortCurrentRequest() {
-				if (this.currentController) {
-					// #ifndef MP-WEIXIN
-					// 移除对已删除的services的引用
-					if (this.currentController.abort && typeof this.currentController.abort === 'function') {
-						this.currentController.abort();
-					}
-					// #endif
+				if (this.currentController && this.currentController.abort) {
+					this.currentController.abort();
 					this.currentController = null;
 				}
 			},
@@ -616,17 +561,10 @@
 			},
 			
 			/**
-			 * @description 处理滚动到顶部事件
-			 */
-			onScrollToUpper(e) {
-				// 滚动到顶部的处理逻辑
-			},
-			
-			/**
 			 * @description 处理滚动事件
 			 */
 			onScroll(e) {
-				// 滚动事件处理逻辑
+				// 滚动事件处理
 			},
 			
 			/**
@@ -675,45 +613,76 @@
 				try {
 					this.toggleLoading('正在加载对话内容...');
 					
-					// 通过Vuex从后端加载完整对话内容
-					this.loadChat(chatId).then(response => {
-						if (response.success) {
-							// 设置当前会话ID（这个在action中已经设置了）
-							this.currentChatId = chatId;
-							
-							// 替换当前消息列表为从后端获取的完整消息
-							this.messages = response.data.messages || [];
-							
-							// 关闭侧边栏
-							this.closeSidebar();
-							
-							// 滚动到底部
-							this.$nextTick(() => {
-								this.scrollToBottom();
-							});
-						} else {
-							// 改进错误处理和提示
-							const errorMsg = response.error?.message || response.message || '加载对话失败';
-							console.error('加载对话失败:', errorMsg, response.error);
-							this.showToast(`加载失败: ${errorMsg}`, 'none', 3000);
-							
-							// 如果后端错误导致无法加载对话，尝试创建新会话
-							if (response.error?.statusCode >= 500) {
-								this.startNewChat();
-								this.showToast('服务器暂时不可用，已为您创建新对话', 'none', 3000);
-							}
+					// 从本地状态找对话
+					const conversations = this.historyChats || [];
+					const conversation = conversations.find(chat => chat.id === chatId);
+					
+					if (conversation) {
+						// 设置当前会话ID
+						this.currentChatId = chatId;
+						
+						// 设置对话模式
+						if (conversation.chatMode) {
+							this.currentMode = conversation.chatMode;
+							this.updateContextInfo();
 						}
-					}).catch(error => {
-						// 捕获未处理的异常
-						console.error('加载对话异常:', error);
-						this.showToast('加载对话时发生错误', 'none', 3000);
-						this.startNewChat();
-					}).finally(() => {
+						
+						// 构建消息列表
+						const messages = conversation.messages ? conversation.messages.map(msg => {
+							let type = MESSAGE_TYPE.AI;
+							if (msg.id.includes('msg-user')) {
+								type = MESSAGE_TYPE.USER;
+							} else if (msg.id.includes('msg-system')) {
+								type = MESSAGE_TYPE.SYSTEM;
+							}
+							
+							return {
+								type: type,
+								content: msg.content,
+								status: MESSAGE_STATUS.SENT,
+								streaming: false
+							};
+						}) : [];
+						
+						this.messages = messages;
+						this.closeSidebar();
+						
+						this.$nextTick(() => {
+							this.scrollToBottom();
+						});
+						
 						this.toggleLoading(false);
-					});
+					} else {
+						// 从服务器加载
+						this.$store.dispatch('user/aiChat/loadChat', chatId).then(response => {
+							if (response.success) {
+								this.currentChatId = chatId;
+								
+								if (response.data.chatMode) {
+									this.currentMode = response.data.chatMode;
+									this.updateContextInfo();
+								}
+								
+								this.messages = response.data.messages || [];
+								this.closeSidebar();
+								
+								this.$nextTick(() => {
+									this.scrollToBottom();
+								});
+							} else {
+								const errorMsg = response.error?.message || response.message || '加载对话失败';
+								this.showToast(`加载失败: ${errorMsg}`, 'none', 3000);
+								
+								if (response.error?.statusCode >= 500) {
+									this.startNewChat();
+								}
+							}
+						}).finally(() => {
+							this.toggleLoading(false);
+						});
+					}
 				} catch (error) {
 					console.error('加载对话内容失败:', error);
-					this.showToast('加载对话内容失败: ' + (error.message || '未知错误'));
 					this.toggleLoading(false);
 					this.startNewChat();
 				}
@@ -723,15 +692,20 @@
 			 * @description 从Vuex加载历史会话摘要
 			 */
 			loadChatHistoryFromStorage() {
-				// 从Vuex获取历史会话摘要列表
-				this.getHistoryChats().then(response => {
-					if (!response.success) {
-						console.error('加载历史会话摘要失败:', response.error || response.message);
-						this.showToast('加载历史对话记录失败，将使用本地缓存', 'none', 2000);
-					}
-				}).catch(error => {
-					console.error('加载历史会话异常:', error);
-				});
+				const conversations = this.historyChats;
+				
+				if (conversations && conversations.length > 0) {
+					const historySummaries = conversations.map(chat => ({
+						id: chat.id,
+						title: chat.abstract,
+						abstract: chat.abstract,
+						chatMode: chat.chatMode,
+						createdAt: chat.createdAt,
+						updatedAt: chat.updatedAt
+					}));
+					
+					this.$store.commit('user/aiChat/SET_HISTORY_SUMMARIES', historySummaries);
+				}
 			},
 			
 			/**
@@ -740,22 +714,36 @@
 			saveChatHistory() {
 				if (!this.currentChatId || this.messages.length === 0) return;
 				
-				// 寻找第一条用户消息作为标题
 				const firstUserMessage = this.messages.find(msg => msg.type === MESSAGE_TYPE.USER);
 				const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
 				
-				// 创建聊天摘要对象
 				const chatData = {
 					id: this.currentChatId,
 					title: title + (title.length >= 20 ? '...' : ''),
-					abstract: title, // 添加abstract字段
-					// 完整消息内容由后端存储，客户端只保存摘要信息
-					createdAt: new Date(),
-					updatedAt: new Date()
+					abstract: title,
+					chatMode: this.currentMode,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+					messages: this.messages.map((msg, index) => ({
+						id: `msg-${msg.type === MESSAGE_TYPE.USER ? 'user' : 'ai'}-${this.currentChatId}-${index}`,
+						content: msg.content,
+						timestamp: new Date().toISOString()
+					}))
 				};
 				
-				// 保存到Vuex
-				this.saveChat(chatData);
+				// 更新到Vuex
+				this.$store.commit('user/aiChat/ADD_CONVERSATION', chatData);
+				
+				// 更新历史摘要
+				const summaryData = {
+					id: chatData.id,
+					title: chatData.title,
+					abstract: chatData.abstract,
+					chatMode: chatData.chatMode,
+					createdAt: chatData.createdAt,
+					updatedAt: chatData.updatedAt
+				};
+				this.$store.commit('user/aiChat/ADD_HISTORY_SUMMARY', summaryData);
 			},
 			
 			/**
@@ -763,84 +751,36 @@
 			 * @param {String} chatId - 历史记录ID
 			 */
 			deleteChatHistory(chatId) {
-				if (!chatId) {
-					console.error('删除历史记录失败: 无效的chatId');
-					this.showToast('删除失败: 无效的记录ID');
-					return;
-				}
+				if (!chatId) return;
 				
-				console.log('请求删除历史记录:', chatId);
-				
-				// 弹窗确认是否删除
 				uni.showModal({
 					title: '确认删除',
 					content: '确定要删除这条对话记录吗？',
 					success: (res) => {
 						if (res.confirm) {
-							// 显示加载提示
 							uni.showLoading({
 								title: '正在删除...',
 								mask: true
 							});
 							
-							// 使用映射的action删除历史记录
-							this.deleteChat(chatId).then(response => {
-								// 隐藏加载提示
+							try {
+								this.$store.commit('user/aiChat/REMOVE_CONVERSATION', chatId);
+								this.$store.commit('user/aiChat/REMOVE_HISTORY_SUMMARY', chatId);
+								
 								uni.hideLoading();
 								
-								if (response.success) {
-									// 如果删除的是当前会话，则清空当前会话
-									if (this.currentChatId === chatId) {
-										this.startNewChat();
-									}
-									this.showToast('删除成功');
-								} else {
-									console.error('删除失败:', response.message || '未知错误', response.error);
-									
-									// 提供更明确的错误信息
-									const errorMsg = response.error?.message || response.message || '删除失败';
-									
-									// 根据错误类型提供不同提示
-									if (errorMsg.includes('网络') || errorMsg.includes('连接')) {
-										this.showToast('网络连接异常，请稍后再试删除', 'none', 3000);
-									} else if (errorMsg.includes('服务器')) {
-										this.showToast('服务器暂时不可用，已在本地删除记录', 'none', 3000);
-										// 即使后端删除失败，也从本地移除该会话
-										if (this.currentChatId === chatId) {
-											this.startNewChat();
-										}
-									} else {
-										this.showToast(errorMsg, 'none', 3000);
-									}
+								if (this.currentChatId === chatId) {
+									this.startNewChat();
 								}
-							}).catch(error => {
-								// 隐藏加载提示
-								uni.hideLoading();
 								
-								console.error('删除过程发生异常:', error);
+								this.showToast('删除成功');
+							} catch (error) {
+								uni.hideLoading();
 								this.showToast('删除失败: ' + (error.message || '系统错误'), 'none', 3000);
-							});
+							}
 						}
 					}
 				});
-			},
-			
-			/**
-			 * @description 格式化时间
-			 * @param {Date|String} time - 时间对象或时间字符串
-			 * @returns {String} 格式化后的时间字符串
-			 */
-			formatTime(time) {
-				if (!time) return '';
-				
-				const date = new Date(time);
-				const year = date.getFullYear();
-				const month = String(date.getMonth() + 1).padStart(2, '0');
-				const day = String(date.getDate()).padStart(2, '0');
-				const hours = String(date.getHours()).padStart(2, '0');
-				const minutes = String(date.getMinutes()).padStart(2, '0');
-				
-				return `${year}-${month}-${day} ${hours}:${minutes}`;
 			}
 		}
 	}

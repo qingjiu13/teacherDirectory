@@ -29,15 +29,29 @@
             left: dropdownLeft + 'px',
             width: dropdownWidth + 'px'
         }" @click.stop>
-            <scroll-view scroll-y="true" class="dialog-scroll">
-                <view v-if="filteredChoiceList.length > 0">
-                    <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == index}"
-                        v-for="(item, index) in filteredChoiceList" :key="index" @click="btnChoiceClick(index)">
+            <scroll-view 
+                scroll-y="true" 
+                class="dialog-scroll" 
+                @scrolltolower="onScrollToBottom" 
+                ref="scrollView">
+                <view v-if="pagedChoiceList.length > 0">
+                    <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == findOriginalIndex(item)}"
+                        v-for="(item, index) in pagedChoiceList" :key="index" @click="btnChoiceClick(index)">
                         {{typeof item === 'string' ? item : item.choiceItemContent}}
                     </text>
                 </view>
                 <view v-else class="empty-result">
                     <text class="empty-result-text">无匹配数据</text>
+                </view>
+                
+                <!-- 加载更多提示 -->
+                <view v-if="isLoadingMore" class="loading-more">
+                    <text class="loading-text">加载中...</text>
+                </view>
+                
+                <!-- 全部加载完毕提示 -->
+                <view v-if="!isLoadingMore && hasMoreItems === false && pagedChoiceList.length > 0" class="loading-more">
+                    <text class="loading-text">没有更多数据了</text>
                 </view>
             </scroll-view>
         </view>
@@ -60,7 +74,14 @@
                 searchKeyword: '', // 搜索关键词
                 searchTimer: null, // 防抖定时器
                 filteredList: [], // 过滤后的列表
-                isFocused: false // 是否处于聚焦状态
+                isFocused: false, // 是否处于聚焦状态
+                lastSelectedValue: null, // 上次选中的值，用于检测变化
+                
+                // 分页相关
+                pageSize: 10, // 每页显示数量
+                currentPage: 1, // 当前页码
+                isLoadingMore: false, // 是否正在加载更多
+                hasMoreItems: true // 是否还有更多数据
             };
         },
         props: {
@@ -88,6 +109,32 @@
             searchPlaceholder: {
                 type: String,
                 default: '请输入关键词'
+            },
+            // 新增属性：组件类型，用于区分不同数据模式
+            componentType: {
+                type: String,
+                default: 'default', // 'default' | 'undergraduate' | 'graduateSchool' | 'graduateMajor'
+                validator: (value) => ['default', 'undergraduate', 'graduateSchool', 'graduateMajor'].includes(value)
+            },
+            // 新增属性：父级选择的值，用于联动模式
+            parentValue: {
+                type: [String, Object, Number],
+                default: null
+            },
+            // 新增属性：是否属于联动模式
+            isLinkage: {
+                type: Boolean,
+                default: false
+            },
+            // 新增属性：是否自动关闭其他下拉框
+            autoCloseOthers: {
+                type: Boolean,
+                default: true
+            },
+            // 新增属性：是否启用分页加载功能
+            enablePagination: {
+                type: Boolean,
+                default: true
             }
         },
         created() {
@@ -111,6 +158,11 @@
              * @returns {Array} 过滤后的选项列表
              */
             filteredChoiceList() {
+                // 如果是联动模式下的子级组件，但父级未选择，则返回空列表
+                if (this.isLinkage && this.componentType === 'graduateMajor' && !this.parentValue) {
+                    return [];
+                }
+                
                 if (!this.searchKeyword || this.mode === 'select') {
                     return this.choiceList;
                 }
@@ -128,6 +180,21 @@
                     }
                     return false; // 对于其他类型的项，排除
                 });
+            },
+            
+            /**
+             * @description 获取当前页的选项列表
+             * @returns {Array} 分页后的选项列表
+             */
+            pagedChoiceList() {
+                if (!this.enablePagination) {
+                    return this.filteredChoiceList;
+                }
+                
+                const startIndex = 0;
+                const endIndex = this.currentPage * this.pageSize;
+                
+                return this.filteredChoiceList.slice(startIndex, endIndex);
             }
         },
         watch: {
@@ -137,14 +204,28 @@
                     const selectedItem = this.choiceList[newVal];
                     this.displayContent = typeof selectedItem === 'string' ? selectedItem : selectedItem.choiceItemContent;
                     
+                    // 保存上次选中的值
+                    this.lastSelectedValue = selectedItem;
+                    
                     // 在搜索模式下，设置搜索关键词为选中项
                     if (this.mode === 'search') {
                         this.searchKeyword = typeof selectedItem === 'string' ? selectedItem : selectedItem.choiceItemContent;
                     }
+                    
+                    // 如果是联动模式的父级组件，触发联动事件
+                    if (this.componentType === 'graduateSchool') {
+                        this.$emit('linkage-change', selectedItem);
+                    }
                 } else {
                     this.displayContent = this.defaultText;
+                    this.lastSelectedValue = null;
                     if (this.mode === 'search') {
                         this.searchKeyword = '';
+                    }
+                    
+                    // 如果是联动模式的父级组件，触发联动事件（清空）
+                    if (this.componentType === 'graduateSchool') {
+                        this.$emit('linkage-change', null);
                     }
                 }
             },
@@ -153,9 +234,100 @@
                 if (this.choiceIndex < 0 || this.choiceIndex >= this.choiceList.length) {
                     this.displayContent = newVal;
                 }
+            },
+            // 监听父级选择变化，适用于联动模式
+            parentValue(newVal) {
+                if (this.isLinkage && this.componentType === 'graduateMajor') {
+                    // 父级值变化，清空当前选择
+                    this.searchKeyword = '';
+                    this.displayContent = this.defaultText;
+                    this.$emit('reset-selection');
+                }
+            },
+            // 监听选项列表变化，重新计算显示内容
+            choiceList() {
+                // 如果选项列表变化，且当前有选中项，更新显示内容
+                this.updateDisplayContent();
+            },
+            // 监听搜索关键词变化，重置分页
+            searchKeyword() {
+                this.resetPagination();
+            },
+            // 监听过滤后的列表变化，更新是否还有更多数据的状态
+            filteredChoiceList: {
+                handler(newVal) {
+                    this.hasMoreItems = newVal.length > this.currentPage * this.pageSize;
+                },
+                deep: true
             }
         },
         methods: {
+            /**
+             * @description 重置分页状态
+             */
+            resetPagination() {
+                this.currentPage = 1;
+                this.isLoadingMore = false;
+                this.hasMoreItems = this.filteredChoiceList.length > this.pageSize;
+            },
+            
+            /**
+             * @description 加载更多数据
+             */
+            loadMore() {
+                if (!this.hasMoreItems || this.isLoadingMore) return;
+                
+                this.isLoadingMore = true;
+                
+                // 模拟异步加载更多数据
+                setTimeout(() => {
+                    this.currentPage++;
+                    this.isLoadingMore = false;
+                    
+                    // 更新是否还有更多数据的状态
+                    this.hasMoreItems = this.filteredChoiceList.length > this.currentPage * this.pageSize;
+                }, 300);
+            },
+            
+            /**
+             * @description 处理滚动到底部事件
+             */
+            onScrollToBottom() {
+                if (this.enablePagination) {
+                    this.loadMore();
+                }
+            },
+            
+            /**
+             * @description 查找选项在原始列表中的索引
+             * @param {*} item - 选项项
+             * @returns {Number} 原始索引位置
+             */
+            findOriginalIndex(item) {
+                if (typeof item === 'string') {
+                    return this.choiceList.findIndex(originalItem => 
+                        typeof originalItem === 'string' && originalItem === item
+                    );
+                } else if (item && item.choiceItemId) {
+                    return this.choiceList.findIndex(originalItem => 
+                        originalItem && originalItem.choiceItemId && originalItem.choiceItemId === item.choiceItemId
+                    );
+                }
+                return -1;
+            },
+            
+            /**
+             * @description 更新显示内容，在选项列表变化时调用
+             */
+            updateDisplayContent() {
+                if (this.choiceIndex >= 0 && this.choiceIndex < this.choiceList.length) {
+                    const selectedItem = this.choiceList[this.choiceIndex];
+                    this.displayContent = typeof selectedItem === 'string' ? selectedItem : selectedItem.choiceItemContent;
+                } else {
+                    this.displayContent = this.defaultText;
+                }
+            },
+            
             /**
              * @description 处理选项点击事件，关闭下拉框并触发选择事件
              * @param {Number} position - 选中项的索引位置
@@ -164,17 +336,17 @@
                 var _this = this;
                 _this.isShowChoice = false;
                 
+                const selectedItem = _this.pagedChoiceList[position];
+                
                 // 在搜索模式下，我们需要找出在原始列表中的实际位置
                 if (_this.mode === 'search' && _this.searchKeyword) {
-                    const selectedItem = _this.filteredChoiceList[position];
-                    
                     if (typeof selectedItem === 'string') {
                         // 字符串项，直接查找原始列表中的匹配项
                         const originalIndex = _this.choiceList.findIndex(item => 
                             typeof item === 'string' && item === selectedItem
                         );
                         if (originalIndex !== -1) {
-                            _this.$emit("onChoiceClick", originalIndex);
+                            _this.$emit("onChoiceClick", originalIndex, selectedItem);
                             return;
                         }
                     } else if (selectedItem && selectedItem.choiceItemId) {
@@ -183,14 +355,15 @@
                             item && item.choiceItemId && item.choiceItemId === selectedItem.choiceItemId
                         );
                         if (originalIndex !== -1) {
-                            _this.$emit("onChoiceClick", originalIndex);
+                            _this.$emit("onChoiceClick", originalIndex, selectedItem);
                             return;
                         }
                     }
                 }
                 
-                // 对于普通模式或未找到匹配项
-                _this.$emit("onChoiceClick", position);
+                // 对于普通模式或未找到匹配项，查找在过滤列表中的位置
+                const filteredIndex = _this.filteredChoiceList.findIndex(item => item === selectedItem);
+                _this.$emit("onChoiceClick", filteredIndex, selectedItem);
             },
             
             /**
@@ -205,8 +378,13 @@
                 if (_this.isShowChoice) {
                     _this.isShowChoice = false;
                 } else {
-                    // 关闭其他所有下拉框
-                    this.closeOtherDropdowns();
+                    // 关闭其他所有下拉框（如果启用了自动关闭）
+                    if (this.autoCloseOthers) {
+                        this.closeOtherDropdowns();
+                    }
+                    
+                    // 重置分页状态
+                    this.resetPagination();
                     
                     // 使用uni.createSelectorQuery获取触发按钮的位置和尺寸
                     const query = uni.createSelectorQuery().in(this);
@@ -279,6 +457,31 @@
                 if (this.isShowChoice) {
                     this.isShowChoice = false;
                 }
+            },
+            
+            /**
+             * @description 重置组件状态
+             * @public 供外部调用
+             */
+            reset() {
+                this.searchKeyword = '';
+                this.displayContent = this.defaultText;
+                this.isShowChoice = false;
+                this.lastSelectedValue = null;
+                this.resetPagination();
+                this.$emit('reset-selection');
+            },
+            
+            /**
+             * @description 获取当前选中的值
+             * @returns {*} 当前选中的值
+             * @public 供外部调用
+             */
+            getSelectedValue() {
+                if (this.choiceIndex >= 0 && this.choiceIndex < this.choiceList.length) {
+                    return this.choiceList[this.choiceIndex];
+                }
+                return null;
             }
         }
     }
@@ -434,6 +637,19 @@
     .empty-result-text {
         color: #999;
         font-size: 28rpx;
+    }
+    
+    /* 加载更多样式 */
+    .loading-more {
+        display: flex;
+        justify-content: center;
+        padding: 10rpx 0;
+        background-color: #f8f8f8;
+    }
+    
+    .loading-text {
+        color: #999;
+        font-size: 24rpx;
     }
 
     /* start */

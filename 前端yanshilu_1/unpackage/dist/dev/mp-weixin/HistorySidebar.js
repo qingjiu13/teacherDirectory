@@ -3,22 +3,22 @@ const common_vendor = require("./common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "HistorySidebar",
   props: {
-    visible: {
+    visible: new UTSJSONObject({
       type: Boolean,
       default: false
-    },
-    historySummaries: {
+    }),
+    historySummaries: new UTSJSONObject({
       type: Array,
       default: () => {
         return [];
       }
-    },
-    currentChatId: {
+    }),
+    currentChatId: new UTSJSONObject({
       type: String,
       default: ""
-    }
+    })
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 加载聊天历史
      * @param {String} chatId - 聊天ID
@@ -55,7 +55,7 @@ const _sfc_main = common_vendor.defineComponent({
       const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
-  }
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -72,7 +72,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   }, {
-    c: common_vendor.sei(_ctx.virtualHostId, "view"),
+    c: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
     d: $props.visible ? 1 : ""
   });
 }

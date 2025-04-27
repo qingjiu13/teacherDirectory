@@ -4,7 +4,7 @@ const router_Router = require("../../../router/Router.js");
 const store_index = require("../../../store/index.js");
 const store_services_index = require("../../../store/services/index.js");
 const TabBar = () => "../../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent({
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   components: {
     TabBar
   },
@@ -18,11 +18,11 @@ const _sfc_main = common_vendor.defineComponent({
       isLoading: false
     };
   },
-  computed: Object.assign({}, common_vendor.mapGetters("user", [
+  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapGetters("user", [
     "teacherCertTag",
     "teacherOtherTags",
     "studentTags"
-  ])),
+  ]))),
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       yield this.loadUserData();
@@ -42,7 +42,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
     });
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 加载用户数据
      */
@@ -131,8 +131,8 @@ const _sfc_main = common_vendor.defineComponent({
     navigateTo(url = null) {
       router_Router.Navigator.navigateTo(url);
     }
-  }
-});
+  })
+}));
 if (!Array) {
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
   _component_TabBar();
@@ -185,7 +185,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     w: common_vendor.p({
       pageName: "mine"
     }),
-    x: common_vendor.sei(_ctx.virtualHostId, "view")
+    x: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

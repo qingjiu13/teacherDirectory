@@ -142,6 +142,7 @@
 			"^filter-section$": "components/ai-chat/FilterSection", 
 			"^mode-selector$": "components/ai-chat/ModeSelector",
 			"^input-section$": "components/ai-chat/InputSection"
+
 		}
 	},
 	"uniIdRouter": {},

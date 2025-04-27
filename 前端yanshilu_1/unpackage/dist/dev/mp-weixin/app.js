@@ -24,7 +24,7 @@ if (!Math) {
   "./pages/mine/settings.js";
   "./pages/mine/wallet.js";
 }
-const _sfc_main = common_vendor.defineComponent({
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   onLaunch: function() {
     common_vendor.index.__f__("log", "at App.uvue:7", "App Launch");
     this.initAppState();
@@ -38,7 +38,7 @@ const _sfc_main = common_vendor.defineComponent({
   onExit: function() {
     common_vendor.index.__f__("log", "at App.uvue:36", "App Exit");
   },
-  methods: {
+  methods: new UTSJSONObject({
     /**
      * @description 初始化应用状态
      * @returns {Promise<void>}
@@ -53,8 +53,8 @@ const _sfc_main = common_vendor.defineComponent({
         }
       });
     }
-  }
-});
+  })
+}));
 function createApp() {
   const app = common_vendor.createSSRApp(_sfc_main);
   app.use(store_index.store);

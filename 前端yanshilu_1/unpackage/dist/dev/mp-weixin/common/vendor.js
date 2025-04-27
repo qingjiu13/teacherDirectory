@@ -3967,7 +3967,8 @@ function createComponentInstance(vnode, parent, suspense) {
     $uniElements: /* @__PURE__ */ new Map(),
     $templateUniElementRefs: [],
     $templateUniElementStyles: {},
-    $eS: {}
+    $eS: {},
+    $eA: {}
   };
   {
     instance.ctx = createDevRenderContext(instance);
@@ -4465,6 +4466,7 @@ function patch(instance, data, oldData) {
   }
   data = deepCopy(data);
   data.$eS = instance.$eS || {};
+  data.$eA = instance.$eA || {};
   const ctx = instance.ctx;
   const mpType = ctx.mpType;
   if (mpType === "page" || mpType === "component") {
@@ -5173,7 +5175,7 @@ class UniCSSStyleDeclaration {
       get: (target, prop) => {
         if (prop in target) {
           const value = target[prop];
-          return typeof value === "function" ? value.bind(target) : value;
+          return isFunction(value) ? value.bind(target) : value;
         }
         return target.getPropertyValue(prop);
       },
@@ -5218,6 +5220,160 @@ function hyphenateCssProperty(str) {
     return "-webkit-" + hyphenate(str.slice(6));
   }
   return hyphenate(str);
+}
+class UniAnimation {
+  constructor(id, scope, keyframes, options = {}) {
+    var _a;
+    this._playState = "";
+    this.parsedKeyframes = [];
+    this.options = {};
+    this.onfinish = null;
+    this.oncancel = null;
+    this.id = id;
+    this.scope = scope;
+    this.options = typeof options === "number" ? { duration: options } : options;
+    if (((_a = this.options) === null || _a === void 0 ? void 0 : _a.iterations) === Infinity) {
+      this.options.iterations = -1;
+    }
+    this.parsedKeyframes = coverAnimateToStyle(keyframes, options);
+    this.onfinish = () => {
+    };
+    this.oncancel = () => {
+    };
+  }
+  get playState() {
+    return this._playState;
+  }
+  get currentTime() {
+    throw new Error("currentTime not implemented.");
+  }
+  cancel() {
+    toRaw(this.scope).setData({
+      ["$eA." + this.id]: JSON.stringify({
+        id: this.id,
+        playState: "cancel",
+        keyframes: this.parsedKeyframes,
+        options: this.options
+      })
+    });
+  }
+  finish() {
+    throw new Error("finish not implemented.");
+  }
+  pause() {
+    throw new Error("pause not implemented.");
+  }
+  play() {
+    this.scope.setData({
+      ["$eA." + this.id]: JSON.stringify({
+        id: this.id,
+        playState: "running",
+        keyframes: this.parsedKeyframes,
+        options: this.options
+      })
+    });
+  }
+}
+function handleDirection(keyframes, direction) {
+  if (direction === "reverse") {
+    keyframes.reverse();
+  } else if (direction === "alternate") {
+    keyframes = [...keyframes, ...keyframes.slice().reverse().slice(1)];
+  } else if (direction === "alternate-reverse") {
+    keyframes = keyframes.reverse().concat(keyframes.slice(1, -1).reverse());
+  }
+  return JSON.parse(JSON.stringify(keyframes));
+}
+function normalizeKeyframes(keyframes, direction = "normal") {
+  if (keyframes.length === 0) {
+    return [];
+  }
+  keyframes.forEach((kf) => {
+    Object.keys(kf).forEach((key) => {
+      const newKey = hyphenate(key);
+      if (key !== newKey) {
+        kf[newKey] = kf[key];
+        delete kf[key];
+      }
+    });
+  });
+  keyframes = handleDirection(keyframes, direction);
+  const existingOffsets = keyframes.map((kf, index2) => ({
+    index: index2,
+    offset: kf.offset
+  })).filter((item) => item.offset !== void 0);
+  if (existingOffsets.length === 0) {
+    for (let i = 0; i < keyframes.length; i++) {
+      keyframes[i].offset = i / (keyframes.length - 1);
+    }
+    return keyframes;
+  }
+  if (existingOffsets[0].index > 0) {
+    const firstOffset = existingOffsets[0].offset / existingOffsets[0].index;
+    for (let i = 0; i < existingOffsets[0].index; i++) {
+      keyframes[i].offset = firstOffset * i;
+    }
+  }
+  for (let i = 0; i < existingOffsets.length - 1; i++) {
+    const startOffset = existingOffsets[i].offset;
+    const endOffset = existingOffsets[i + 1].offset;
+    const diffFrames = existingOffsets[i + 1].index - existingOffsets[i].index;
+    if (diffFrames !== 1) {
+      const step = (endOffset - startOffset) / diffFrames;
+      for (let j2 = 1; j2 <= diffFrames; j2++) {
+        keyframes[existingOffsets[i].index + j2].offset = startOffset + j2 * step;
+      }
+    }
+  }
+  if (existingOffsets[existingOffsets.length - 1].index < keyframes.length - 1) {
+    const lastOffset = existingOffsets[existingOffsets.length - 1].offset;
+    const numFrames = keyframes.length - existingOffsets[existingOffsets.length - 1].index;
+    const step = (1 - lastOffset) / (numFrames - 1);
+    for (let i = 0; i < numFrames; i++) {
+      keyframes[existingOffsets[existingOffsets.length - 1].index + i].offset = lastOffset + i * step;
+    }
+  }
+  return keyframes.map((kf) => {
+    kf.offset = Number(kf.offset.toFixed(5));
+    return kf;
+  });
+}
+function coverAnimateToStyle(keyframes, options) {
+  let duration = (options === null || options === void 0 ? void 0 : options.duration) || 0;
+  const direction = (options === null || options === void 0 ? void 0 : options.direction) || "normal";
+  if (!Array.isArray(keyframes)) {
+    const propertyNames = Object.keys(keyframes);
+    const arrayLength = keyframes[propertyNames[0]].length;
+    const frames2 = Array.from({ length: arrayLength }, (_, i) => {
+      const frame = {};
+      propertyNames.forEach((prop) => {
+        frame[prop] = keyframes[prop][i];
+      });
+      return frame;
+    });
+    return coverAnimateToStyle(frames2, options);
+  }
+  const frames = normalizeKeyframes(keyframes, direction);
+  if (direction === "alternate") {
+    duration = duration * 2;
+  }
+  return frames.map((frame, index2) => {
+    var _a;
+    const currentOffset = frame.offset;
+    let stepDuration;
+    const prevOffset = ((_a = frames[index2 - 1]) === null || _a === void 0 ? void 0 : _a.offset) || 0;
+    const currentDuration = Math.round(duration * (currentOffset - prevOffset));
+    const currentOffsetStartTime = Math.round(duration * prevOffset);
+    stepDuration = currentDuration;
+    const result = frame;
+    return Object.assign({}, result, {
+      // ...result,
+      offset: void 0,
+      transition: `all ${stepDuration}ms linear`,
+      _duration: stepDuration,
+      _startTime: currentOffsetStartTime
+    });
+  });
 }
 class UniElement {
   constructor(id = "", name = "") {
@@ -5327,6 +5483,22 @@ class UniElement {
   }
   setAttribute(name, value) {
     console.warn(`Miniprogram does not support UniElement.setAttribute(${name}, value)`);
+  }
+  animate(keyframes, options) {
+    if (!this.id) {
+      throw new Error("animate is only supported on elements with id");
+    }
+    const root = this.$vm.$root;
+    const scope = root && root.$scope;
+    if (!scope) {
+      throw new Error(`animate is only supported on elements in page`);
+    }
+    if (!keyframes) {
+      throw new Error("animate keyframes is required");
+    }
+    const animation = new UniAnimation(this.id, scope, keyframes, options);
+    animation.play();
+    return animation;
   }
   $destroy() {
     if (this.style) {
@@ -5709,6 +5881,21 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
     });
   }
 }
+function hasIdProp(_ctx) {
+  return _ctx.$.propsOptions && _ctx.$.propsOptions[0] && "id" in _ctx.$.propsOptions[0];
+}
+function hasVirtualHostId(_ctx) {
+  return _ctx.virtualHostId !== "";
+}
+function genIdWithVirtualHost(_ctx, idBinding) {
+  if (!hasVirtualHostId(_ctx) || hasIdProp(_ctx)) {
+    return idBinding;
+  }
+  return _ctx.virtualHostId;
+}
+function genUniElementId(_ctx, idBinding, genId) {
+  return genIdWithVirtualHost(_ctx, idBinding) || genId || "";
+}
 const o = (value, key) => vOn(value, key);
 const f = (source, renderItem) => vFor(source, renderItem);
 const e = (target, ...sources) => extend(target, ...sources);
@@ -5717,11 +5904,21 @@ const t = (val) => toDisplayString(val);
 const p = (props) => renderProps(props);
 const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 const sei = setUniElementId;
+const gei = genUniElementId;
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
   return createVueApp(rootComponent, rootProps).use(plugin);
 }
 const createSSRApp = createApp$1;
+function getLocaleLanguage$1() {
+  let localeLanguage = "";
+  {
+    const appBaseInfo = wx.getAppBaseInfo();
+    const language = appBaseInfo && appBaseInfo.language ? appBaseInfo.language : LOCALE_EN;
+    localeLanguage = normalizeLocale(language) || LOCALE_EN;
+  }
+  return localeLanguage;
+}
 function validateProtocolFail(name, msg) {
   console.warn(`${name}: ${msg}`);
 }
@@ -6371,7 +6568,9 @@ const $once = defineSyncApi(API_ONCE, (name, callback) => {
 const $off = defineSyncApi(API_OFF, (name, callback) => {
   if (!isArray(name))
     name = name ? [name] : [];
-  name.forEach((n2) => eventBus.off(n2, callback));
+  name.forEach((n2) => {
+    eventBus.off(n2, callback);
+  });
 }, OffProtocol);
 const $emit = defineSyncApi(API_EMIT, (name, ...args) => {
   eventBus.emit(name, ...args);
@@ -6602,6 +6801,9 @@ function initWrapper(protocols2) {
   }
   return function wrapper(methodName, method) {
     const hasProtocol = hasOwn(protocols2, methodName);
+    if (!hasProtocol && typeof wx[methodName] !== "function") {
+      return method;
+    }
     const needWrapper = hasProtocol || isFunction(protocols2.returnValue) || isContextApi(methodName) || isTaskApi(methodName);
     const hasMethod = hasProtocol || isFunction(method);
     if (!hasProtocol && !method) {
@@ -6641,7 +6843,7 @@ const getLocale = () => {
   if (app && app.$vm) {
     return app.$vm.$locale;
   }
-  return normalizeLocale(wx.getAppBaseInfo().language) || LOCALE_EN;
+  return getLocaleLanguage$1();
 };
 const setLocale = (locale) => {
   const app = isFunction(getApp) && getApp();
@@ -6723,9 +6925,9 @@ function populateParameters(fromRes, toRes) {
     appVersion: "1.0.0",
     appVersionCode: "100",
     appLanguage: getAppLanguage(hostLanguage),
-    uniCompileVersion: "4.45",
-    uniCompilerVersion: "4.45",
-    uniRuntimeVersion: "4.45",
+    uniCompileVersion: "4.57",
+    uniCompilerVersion: "4.57",
+    uniRuntimeVersion: "4.57",
     uniPlatform: "mp-weixin",
     deviceBrand,
     deviceModel: model,
@@ -6753,8 +6955,8 @@ function populateParameters(fromRes, toRes) {
   };
   {
     try {
-      parameters.uniCompilerVersionCode = parseFloat("4.45");
-      parameters.uniRuntimeVersionCode = parseFloat("4.45");
+      parameters.uniCompilerVersionCode = parseFloat("4.57");
+      parameters.uniRuntimeVersionCode = parseFloat("4.57");
     } catch (error) {
     }
   }
@@ -6881,14 +7083,14 @@ const getAppBaseInfo = {
       appLanguage: getAppLanguage(hostLanguage),
       isUniAppX: true,
       uniPlatform: "mp-weixin",
-      uniCompileVersion: "4.45",
-      uniCompilerVersion: "4.45",
-      uniRuntimeVersion: "4.45"
+      uniCompileVersion: "4.57",
+      uniCompilerVersion: "4.57",
+      uniRuntimeVersion: "4.57"
     };
     {
       try {
-        parameters.uniCompilerVersionCode = parseFloat("4.45");
-        parameters.uniRuntimeVersionCode = parseFloat("4.45");
+        parameters.uniCompilerVersionCode = parseFloat("4.57");
+        parameters.uniRuntimeVersionCode = parseFloat("4.57");
       } catch (error) {
       }
     }
@@ -7073,11 +7275,23 @@ function createSelectorQuery() {
   const query = wx$2.createSelectorQuery();
   const oldIn = query.in;
   query.in = function newIn(component) {
+    if (component.$scope) {
+      return oldIn.call(this, component.$scope);
+    }
     return oldIn.call(this, initComponentMocks(component));
   };
   return query;
 }
 const wx$2 = initWx();
+if (!wx$2.canIUse("getAppBaseInfo")) {
+  wx$2.getAppBaseInfo = wx$2.getSystemInfoSync;
+}
+if (!wx$2.canIUse("getWindowInfo")) {
+  wx$2.getWindowInfo = wx$2.getSystemInfoSync;
+}
+if (!wx$2.canIUse("getDeviceInfo")) {
+  wx$2.getDeviceInfo = wx$2.getSystemInfoSync;
+}
 let baseInfo = wx$2.getAppBaseInfo && wx$2.getAppBaseInfo();
 if (!baseInfo) {
   baseInfo = wx$2.getSystemInfoSync();
@@ -7113,6 +7327,9 @@ var shims = /* @__PURE__ */ Object.freeze({
 function returnValue(method, res) {
   return parseXReturnValue(method, res);
 }
+const chooseFile = {
+  name: "chooseMessageFile"
+};
 const compressImage = {
   args(fromArgs, toArgs) {
     if (fromArgs.compressedHeight && !toArgs.compressHeight) {
@@ -7125,6 +7342,7 @@ const compressImage = {
 };
 var protocols = /* @__PURE__ */ Object.freeze({
   __proto__: null,
+  chooseFile,
   compressImage,
   getAppAuthorizeSetting,
   getAppBaseInfo,
@@ -7143,84 +7361,48 @@ var protocols = /* @__PURE__ */ Object.freeze({
 });
 const wx$1 = initWx();
 var index = initUni(shims, protocols, wx$1);
-const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
-let sendConsole = null;
-const messageQueue = [];
-function sendConsoleMessages(messages) {
-  if (sendConsole == null) {
-    messageQueue.push(...messages);
-    return;
-  }
-  sendConsole(JSON.stringify({
-    type: "console",
-    data: messages
-  }));
-}
-function setSendConsole(value) {
-  sendConsole = value;
-  if (value != null && messageQueue.length > 0) {
-    const messages = messageQueue.slice();
-    messageQueue.length = 0;
-    sendConsoleMessages(messages);
-  }
-}
-const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
-  methods[type] = console[type].bind(console);
-  return methods;
-}, {});
-const atFileRegex = /^at\s+[\w/./-]+:\d+$/;
-function rewriteConsole() {
-  function wrapConsole(type) {
-    return function(...args) {
-      const originalArgs = [...args];
-      if (originalArgs.length) {
-        const maybeAtFile = originalArgs[originalArgs.length - 1];
-        if (typeof maybeAtFile === "string" && atFileRegex.test(maybeAtFile)) {
-          originalArgs.pop();
-        }
-      }
-      {
-        originalConsole[type](...originalArgs);
-      }
-      sendConsoleMessages([formatMessage(type, args)]);
-    };
-  }
-  if (isConsoleWritable()) {
-    CONSOLE_TYPES.forEach((type) => {
-      console[type] = wrapConsole(type);
+function initRuntimeSocket(hosts, port, id) {
+  if (hosts == "" || port == "" || id == "")
+    return Promise.resolve(null);
+  return hosts.split(",").reduce((promise, host2) => {
+    return promise.then((socket) => {
+      if (socket != null)
+        return Promise.resolve(socket);
+      return tryConnectSocket(host2, port, id);
     });
-    return function restoreConsole() {
-      CONSOLE_TYPES.forEach((type) => {
-        console[type] = originalConsole[type];
-      });
-    };
-  } else {
-    const oldLog = index.__f__;
-    if (oldLog) {
-      index.__f__ = function(...args) {
-        const [type, filename, ...rest] = args;
-        oldLog(type, "", ...rest);
-        sendConsoleMessages([formatMessage(type, [...rest, filename])]);
-      };
-      return function restoreConsole() {
-        index.__f__ = oldLog;
-      };
-    }
-  }
-  return function restoreConsole() {
-  };
+  }, Promise.resolve(null));
 }
-function isConsoleWritable() {
-  const value = console.log;
-  const sym = Symbol();
-  try {
-    console.log = sym;
-  } catch (ex) {
-    return false;
-  }
-  const isWritable = console.log === sym;
-  console.log = value;
-  return isWritable;
+const SOCKET_TIMEOUT = 500;
+function tryConnectSocket(host2, port, id) {
+  return new Promise((resolve2, reject) => {
+    const socket = index.connectSocket({
+      url: `ws://${host2}:${port}/${id}`,
+      multiple: true,
+      // 支付宝小程序 是否开启多实例
+      fail() {
+        resolve2(null);
+      }
+    });
+    const timer = setTimeout(() => {
+      socket.close({
+        code: 1006,
+        reason: "connect timeout"
+      });
+      resolve2(null);
+    }, SOCKET_TIMEOUT);
+    socket.onOpen((e2) => {
+      clearTimeout(timer);
+      resolve2(socket);
+    });
+    socket.onClose((e2) => {
+      clearTimeout(timer);
+      resolve2(null);
+    });
+    socket.onError((e2) => {
+      clearTimeout(timer);
+      resolve2(null);
+    });
+  });
 }
 function formatMessage(type, args) {
   try {
@@ -7229,7 +7411,6 @@ function formatMessage(type, args) {
       args: formatArgs(args)
     };
   } catch (e2) {
-    originalConsole.error(e2);
   }
   return {
     type,
@@ -7246,7 +7427,67 @@ function formatArg(arg, depth = 0) {
       value: "[Maximum depth reached]"
     };
   }
-  return ARG_FORMATTERS[typeof arg](arg, depth);
+  const type = typeof arg;
+  switch (type) {
+    case "string":
+      return formatString(arg);
+    case "number":
+      return formatNumber(arg);
+    case "boolean":
+      return formatBoolean(arg);
+    case "object":
+      return formatObject(arg, depth);
+    case "undefined":
+      return formatUndefined();
+    case "function":
+      return formatFunction(arg);
+    case "symbol": {
+      return formatSymbol(arg);
+    }
+    case "bigint":
+      return formatBigInt(arg);
+  }
+}
+function formatFunction(value) {
+  return {
+    type: "function",
+    value: `function ${value.name}() {}`
+  };
+}
+function formatUndefined() {
+  return {
+    type: "undefined"
+  };
+}
+function formatBoolean(value) {
+  return {
+    type: "boolean",
+    value: String(value)
+  };
+}
+function formatNumber(value) {
+  return {
+    type: "number",
+    value: String(value)
+  };
+}
+function formatBigInt(value) {
+  return {
+    type: "bigint",
+    value: String(value)
+  };
+}
+function formatString(value) {
+  return {
+    type: "string",
+    value
+  };
+}
+function formatSymbol(value) {
+  return {
+    type: "symbol",
+    value: value.description
+  };
 }
 function formatObject(value, depth) {
   if (value === null) {
@@ -7254,17 +7495,19 @@ function formatObject(value, depth) {
       type: "null"
     };
   }
-  if (isComponentPublicInstance(value)) {
-    return formatComponentPublicInstance(value, depth);
-  }
-  if (isComponentInternalInstance(value)) {
-    return formatComponentInternalInstance(value, depth);
-  }
-  if (isUniElement(value)) {
-    return formatUniElement(value, depth);
-  }
-  if (isCSSStyleDeclaration(value)) {
-    return formatCSSStyleDeclaration(value, depth);
+  {
+    if (isComponentPublicInstance(value)) {
+      return formatComponentPublicInstance(value, depth);
+    }
+    if (isComponentInternalInstance(value)) {
+      return formatComponentInternalInstance(value, depth);
+    }
+    if (isUniElement(value)) {
+      return formatUniElement(value, depth);
+    }
+    if (isCSSStyleDeclaration(value)) {
+      return formatCSSStyleDeclaration(value, depth);
+    }
   }
   if (Array.isArray(value)) {
     return {
@@ -7330,10 +7573,20 @@ function formatObject(value, depth) {
       className: value.name || "Error"
     };
   }
+  let className = void 0;
+  {
+    const constructor = value.constructor;
+    if (constructor) {
+      if (constructor.get$UTSMetadata$) {
+        className = constructor.get$UTSMetadata$().name;
+      }
+    }
+  }
   return {
     type: "object",
+    className,
     value: {
-      properties: Object.entries(value).map(([name, value2]) => formatObjectProperty(name, value2, depth + 1))
+      properties: Object.entries(value).map((entry) => formatObjectProperty(entry[0], entry[1], depth + 1))
     }
   };
 }
@@ -7394,14 +7647,14 @@ function formatCSSStyleDeclaration(style, depth) {
   };
 }
 function formatObjectProperty(name, value, depth) {
-  return Object.assign(formatArg(value, depth), {
-    name
-  });
+  const result = formatArg(value, depth);
+  result.name = name;
+  return result;
 }
 function formatArrayElement(value, index2, depth) {
-  return Object.assign(formatArg(value, depth), {
-    name: `${index2}`
-  });
+  const result = formatArg(value, depth);
+  result.name = `${index2}`;
+  return result;
 }
 function formatSetEntry(value, depth) {
   return {
@@ -7414,97 +7667,94 @@ function formatMapEntry(value, depth) {
     value: formatArg(value[1], depth)
   };
 }
-const ARG_FORMATTERS = {
-  function(value) {
-    return {
-      type: "function",
-      value: `function ${value.name}() {}`
-    };
-  },
-  undefined() {
-    return {
-      type: "undefined"
-    };
-  },
-  object(value, depth) {
-    return formatObject(value, depth);
-  },
-  boolean(value) {
-    return {
-      type: "boolean",
-      value: String(value)
-    };
-  },
-  number(value) {
-    return {
-      type: "number",
-      value: String(value)
-    };
-  },
-  bigint(value) {
-    return {
-      type: "bigint",
-      value: String(value)
-    };
-  },
-  string(value) {
-    return {
-      type: "string",
-      value
-    };
-  },
-  symbol(value) {
-    return {
-      type: "symbol",
-      value: value.description
+const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
+let sendConsole = null;
+const messageQueue = [];
+const messageExtra = {};
+function sendConsoleMessages(messages) {
+  if (sendConsole == null) {
+    messageQueue.push(...messages);
+    return;
+  }
+  sendConsole(JSON.stringify(Object.assign({
+    type: "console",
+    data: messages
+  }, messageExtra)));
+}
+function setSendConsole(value, extra = {}) {
+  sendConsole = value;
+  Object.assign(messageExtra, extra);
+  if (value != null && messageQueue.length > 0) {
+    const messages = messageQueue.slice();
+    messageQueue.length = 0;
+    sendConsoleMessages(messages);
+  }
+}
+const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
+  methods[type] = console[type].bind(console);
+  return methods;
+}, {});
+const atFileRegex = /^\s*at\s+[\w/./-]+:\d+$/;
+function rewriteConsole() {
+  function wrapConsole(type) {
+    return function(...args) {
+      const originalArgs = [...args];
+      if (originalArgs.length) {
+        const maybeAtFile = originalArgs[originalArgs.length - 1];
+        if (typeof maybeAtFile === "string" && atFileRegex.test(maybeAtFile)) {
+          originalArgs.pop();
+        }
+      }
+      {
+        originalConsole[type](...originalArgs);
+      }
+      sendConsoleMessages([formatMessage(type, args)]);
     };
   }
-};
-function initRuntimeSocket(hosts, port, id) {
-  if (!hosts || !port || !id)
-    return Promise.resolve(null);
-  return hosts.split(",").reduce((promise, host2) => {
-    return promise.then((socket) => {
-      if (socket)
-        return socket;
-      return tryConnectSocket(host2, port, id);
+  if (isConsoleWritable()) {
+    CONSOLE_TYPES.forEach((type) => {
+      console[type] = wrapConsole(type);
     });
-  }, Promise.resolve(null));
-}
-const SOCKET_TIMEOUT = 500;
-function tryConnectSocket(host2, port, id) {
-  return new Promise((resolve2, reject) => {
-    const socket = index.connectSocket({
-      url: `ws://${host2}:${port}/${id}`,
-      // 支付宝小程序 是否开启多实例
-      multiple: true,
-      fail() {
-        resolve2(null);
-      }
-    });
-    const timer = setTimeout(() => {
-      socket.close({
-        code: 1006,
-        reason: "connect timeout"
+    return function restoreConsole() {
+      CONSOLE_TYPES.forEach((type) => {
+        console[type] = originalConsole[type];
       });
-      resolve2(null);
-    }, SOCKET_TIMEOUT);
-    socket.onOpen((e2) => {
-      clearTimeout(timer);
-      resolve2(socket);
-    });
-    socket.onClose((e2) => {
-      clearTimeout(timer);
-      resolve2(null);
-    });
-    socket.onError((e2) => {
-      clearTimeout(timer);
-      resolve2(null);
-    });
-  });
+    };
+  } else {
+    {
+      if (typeof index !== "undefined" && index.__f__) {
+        const oldLog = index.__f__;
+        if (oldLog) {
+          index.__f__ = function(...args) {
+            const [type, filename, ...rest] = args;
+            oldLog(type, "", ...rest);
+            sendConsoleMessages([formatMessage(type, [...rest, filename])]);
+          };
+          return function restoreConsole() {
+            index.__f__ = oldLog;
+          };
+        }
+      }
+    }
+  }
+  return function restoreConsole() {
+  };
+}
+function isConsoleWritable() {
+  const value = console.log;
+  const sym = Symbol();
+  try {
+    console.log = sym;
+  } catch (ex) {
+    return false;
+  }
+  const isWritable = console.log === sym;
+  console.log = value;
+  return isWritable;
 }
 let sendError = null;
 const errorQueue = /* @__PURE__ */ new Set();
+const errorExtra = {};
 function sendErrorMessages(errors) {
   if (sendError == null) {
     errors.forEach((error) => {
@@ -7512,30 +7762,38 @@ function sendErrorMessages(errors) {
     });
     return;
   }
-  sendError(JSON.stringify({
-    type: "error",
-    data: errors.map((err) => {
-      const isPromiseRejection = err && "promise" in err && "reason" in err;
-      const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
-      if (isPromiseRejection) {
-        err = err.reason;
+  const data = errors.map((err) => {
+    const isPromiseRejection = err && "promise" in err && "reason" in err;
+    const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
+    if (isPromiseRejection) {
+      err = err.reason;
+    }
+    if (err instanceof Error && err.stack) {
+      if (err.message && !err.stack.includes(err.message)) {
+        return `${prefix}${err.message}
+${err.stack}`;
       }
-      if (err instanceof Error && err.stack) {
-        return prefix + err.stack;
+      return `${prefix}${err.stack}`;
+    }
+    if (typeof err === "object" && err !== null) {
+      try {
+        return prefix + JSON.stringify(err);
+      } catch (err2) {
+        return prefix + String(err2);
       }
-      if (typeof err === "object" && err !== null) {
-        try {
-          return prefix + JSON.stringify(err);
-        } catch (err2) {
-          return prefix + String(err2);
-        }
-      }
-      return prefix + String(err);
-    })
-  }));
+    }
+    return prefix + String(err);
+  }).filter(Boolean);
+  if (data.length > 0) {
+    sendError(JSON.stringify(Object.assign({
+      type: "error",
+      data
+    }, errorExtra)));
+  }
 }
-function setSendError(value) {
+function setSendError(value, extra = {}) {
   sendError = value;
+  Object.assign(errorExtra, extra);
   if (value != null && errorQueue.size > 0) {
     const errors = Array.from(errorQueue);
     errorQueue.clear();
@@ -7574,7 +7832,7 @@ function initOnError() {
 function initRuntimeSocketService() {
   const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_jhdeQE";
+  const id = "mp-weixin_9UntLH";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -7757,7 +8015,7 @@ function isInstanceOf(value, type) {
     return value && value[Symbol.iterator];
   }
   const isNativeInstanceofType = value instanceof type;
-  if (isNativeInstanceofType || typeof value !== "object") {
+  if (isNativeInstanceofType || typeof value !== "object" || value === null) {
     return isNativeInstanceofType;
   }
   const proto = Object.getPrototypeOf(value).constructor;
@@ -7781,6 +8039,7 @@ function normalizeGenericValue(value, genericType, isJSONParse = false) {
 class UTSType {
   static get$UTSMetadata$(...args) {
     return {
+      name: "",
       kind: UTS_CLASS_METADATA_KIND.TYPE,
       interfaces: [],
       fields: {}
@@ -7855,14 +8114,15 @@ class UTSType {
         }
       }
       if (isUTSType(type)) {
-        obj[key] = new type(options[realKey], void 0, isJSONParse);
+        obj[key] = isJSONParse ? (
+          // @ts-ignore
+          new type(options[realKey], void 0, isJSONParse)
+        ) : options[realKey];
       } else if (type === Array) {
         if (!Array.isArray(options[realKey])) {
           throw new UTSError(`Failed to contruct type, property ${key} is not an array`);
         }
-        obj[key] = options[realKey].map((item) => {
-          return item == null ? null : item;
-        });
+        obj[key] = options[realKey];
       } else {
         obj[key] = options[realKey];
       }
@@ -8157,18 +8417,19 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
     }
     return keyPathArr;
   }
-  _getValue(keyPath) {
+  _getValue(keyPath, defaultValue) {
     const keyPathArr = this._resolveKeyPath(keyPath);
+    const realDefaultValue = defaultValue === void 0 ? null : defaultValue;
     if (keyPathArr.length === 0) {
-      return null;
+      return realDefaultValue;
     }
     let value = this;
     for (let i = 0; i < keyPathArr.length; i++) {
       const key = keyPathArr[i];
       if (value instanceof Object) {
-        value = value[key];
+        value = key in value ? value[key] : realDefaultValue;
       } else {
-        return null;
+        return realDefaultValue;
       }
     }
     return value;
@@ -8179,43 +8440,43 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
   set(key, value) {
     this[key] = value;
   }
-  getAny(key) {
-    return this._getValue(key);
+  getAny(key, defaultValue) {
+    return this._getValue(key, defaultValue);
   }
-  getString(key) {
-    const value = this._getValue(key);
+  getString(key, defaultValue) {
+    const value = this._getValue(key, defaultValue);
     if (typeof value === "string") {
       return value;
     } else {
       return null;
     }
   }
-  getNumber(key) {
-    const value = this._getValue(key);
+  getNumber(key, defaultValue) {
+    const value = this._getValue(key, defaultValue);
     if (typeof value === "number") {
       return value;
     } else {
       return null;
     }
   }
-  getBoolean(key) {
-    const boolean = this._getValue(key);
+  getBoolean(key, defaultValue) {
+    const boolean = this._getValue(key, defaultValue);
     if (typeof boolean === "boolean") {
       return boolean;
     } else {
       return null;
     }
   }
-  getJSON(key) {
-    let value = this._getValue(key);
+  getJSON(key, defaultValue) {
+    let value = this._getValue(key, defaultValue);
     if (value instanceof Object) {
-      return new UTSJSONObject2(value);
+      return value;
     } else {
       return null;
     }
   }
-  getArray(key) {
-    let value = this._getValue(key);
+  getArray(key, defaultValue) {
+    let value = this._getValue(key, defaultValue);
     if (value instanceof Array) {
       return value;
     } else {
@@ -8361,6 +8622,15 @@ function findVmByVueId(instance, vuePid) {
       return parentVm;
     }
   }
+}
+function getLocaleLanguage() {
+  let localeLanguage = "";
+  {
+    const appBaseInfo = wx.getAppBaseInfo();
+    const language = appBaseInfo && appBaseInfo.language ? appBaseInfo.language : LOCALE_EN;
+    localeLanguage = normalizeLocale(language) || LOCALE_EN;
+  }
+  return localeLanguage;
 }
 const MP_METHODS = [
   "createSelectorQuery",
@@ -8639,9 +8909,7 @@ function initAppLifecycle(appOptions, vm) {
   }
 }
 function initLocale(appVm) {
-  const locale = ref(
-    normalizeLocale(wx.getAppBaseInfo().language) || LOCALE_EN
-  );
+  const locale = ref(getLocaleLanguage());
   Object.defineProperty(appVm, "$locale", {
     get() {
       return locale.value;
@@ -10174,12 +10442,14 @@ function jwtDecode(token, options) {
 }
 exports.__awaiter = __awaiter;
 exports._export_sfc = _export_sfc;
+exports.computed = computed;
 exports.createSSRApp = createSSRApp;
 exports.createStore = createStore;
 exports.defineComponent = defineComponent;
 exports.e = e;
 exports.f = f;
 exports.gBase64 = gBase64;
+exports.gei = gei;
 exports.index = index;
 exports.jwtDecode = jwtDecode;
 exports.mapActions = mapActions;
@@ -10188,6 +10458,7 @@ exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
 exports.p = p;
+exports.ref = ref;
 exports.resolveComponent = resolveComponent;
 exports.sei = sei;
 exports.sr = sr;

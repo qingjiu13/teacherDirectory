@@ -25,7 +25,7 @@
       </view>
       
       <!-- 共有菜单项：我的订单 -->
-      <view class="menu-item" @click="navigateTo(MineRoutes.ORDER)">
+      <view class="menu-item" @click="toOrderCommon">
         <view class="icon-circle success">
           <text class="icon-text">✓</text>
         </view>
@@ -33,7 +33,7 @@
       </view>
       
       <!-- 共有菜单项：我的课程 -->
-      <view class="menu-item" @click="navigateTo(MineRoutes.COURSE)">
+      <view class="menu-item" @click="toCourse">
         <view class="icon-circle info">
           <text class="icon-text">📚</text>
         </view>
@@ -41,7 +41,7 @@
       </view>
       
       <!-- 老师特有菜单项：资质认证 -->
-      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="navigateTo(MineRoutes.QUALIFICATION)">
+      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="toQualification">
         <view class="icon-circle info">
           <text class="icon-text">📃</text>
         </view>
@@ -49,7 +49,7 @@
       </view>
       
       <!-- 老师特有菜单项：我的钱包 -->
-      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="navigateTo(MineRoutes.WALLET)">
+      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="toWallet">
         <view class="icon-circle warning">
           <text class="icon-text">💰</text>
         </view>
@@ -57,7 +57,7 @@
       </view>
       
       <!-- 共有菜单项：关注公众号 -->
-      <view class="menu-item" @click="navigateTo('/pages/subscribe/subscribe')">
+      <view class="menu-item" @click="toSubscribe">
         <view class="icon-circle info">
           <text class="icon-text">📢</text>
         </view>
@@ -65,7 +65,7 @@
       </view>
       
       <!-- 共有菜单项：设置 -->
-      <view class="menu-item" @click="navigateTo(MineRoutes.SETTINGS)">
+      <view class="menu-item" @click="toSettings">
         <view class="icon-circle info">
           <text class="icon-text">⚙️</text>
         </view>
@@ -343,6 +343,48 @@ export default {
      */
     navigateTo(url) {
       Navigator.navigateTo(url);
+    },
+    
+    /**
+     * @description 跳转到订单列表页面
+     */
+    toOrderCommon() {
+      Navigator.toOrderCommon();
+    },
+    
+    /**
+     * @description 跳转到课程列表页面
+     */
+    toCourse() {
+      Navigator.toCourse();
+    },
+    
+    /**
+     * @description 跳转到资质认证页面
+     */
+    toQualification() {
+      Navigator.toQualification();
+    },
+    
+    /**
+     * @description 跳转到钱包页面
+     */
+    toWallet() {
+      Navigator.toWallet();
+    },
+    
+    /**
+     * @description 跳转到设置页面
+     */
+    toSettings() {
+      Navigator.toSettings();
+    },
+    
+    /**
+     * @description 跳转到关注公众号页面
+     */
+    toSubscribe() {
+      Navigator.toSubscribe();
     }
   }
 }

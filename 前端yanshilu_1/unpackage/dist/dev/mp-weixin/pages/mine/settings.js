@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
-const _sfc_main = common_vendor.defineComponent({
+const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   data() {
     return {
       isLoggedIn: true,
@@ -10,17 +10,17 @@ const _sfc_main = common_vendor.defineComponent({
       // 模拟数据开关
     };
   },
-  computed: Object.assign({}, common_vendor.mapGetters("user", [
+  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapGetters("user", [
     "isTeacher",
     "isStudent",
     "userRole"
-  ])),
+  ]))),
   onLoad() {
     const token = common_vendor.index.getStorageSync("token");
     this.isLoggedIn = !!token;
     this.useMockData = common_vendor.index.getStorageSync("use_mock_api") === "true";
   },
-  methods: Object.assign(Object.assign({}, common_vendor.mapActions("user", [
+  methods: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapActions("user", [
     "switchRole",
     "clearProfile"
   ])), {
@@ -31,7 +31,7 @@ const _sfc_main = common_vendor.defineComponent({
       if (this.switching)
         return null;
       const newRole = this.isTeacher ? "student" : "teacher";
-      common_vendor.index.showModal({
+      common_vendor.index.showModal(new UTSJSONObject({
         title: "切换身份",
         content: `确定要切换到${newRole === "teacher" ? "老师" : "学生"}模式吗？`,
         success: (res) => {
@@ -59,23 +59,23 @@ const _sfc_main = common_vendor.defineComponent({
             }
           });
         }
-      });
+      }));
     },
     /**
      * @description 处理联系我们
      */
     handleContactUs() {
-      common_vendor.index.showModal({
+      common_vendor.index.showModal(new UTSJSONObject({
         title: "联系我们",
         content: "客服电话：400-123-4567\n客服邮箱：support@example.com\n工作时间：周一至周五 9:00-18:00",
         showCancel: false
-      });
+      }));
     },
     /**
      * @description 处理退出登录
      */
     handleLogout() {
-      common_vendor.index.showModal({
+      common_vendor.index.showModal(new UTSJSONObject({
         title: "提示",
         content: "确定要退出登录吗？",
         success: (res) => {
@@ -100,7 +100,7 @@ const _sfc_main = common_vendor.defineComponent({
             }
           }
         }
-      });
+      }));
     },
     /**
      * @description 切换模拟数据开关
@@ -114,16 +114,16 @@ const _sfc_main = common_vendor.defineComponent({
         icon: "none"
       });
       setTimeout(() => {
-        common_vendor.index.showModal({
+        common_vendor.index.showModal(new UTSJSONObject({
           title: "提示",
           content: "设置已更改，建议重启应用以使更改生效",
           showCancel: true,
           confirmText: "确定"
-        });
+        }));
       }, 1e3);
     }
-  })
-});
+  }))
+}));
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.t(_ctx.isTeacher ? "老师" : "学生"),
@@ -135,7 +135,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     f: common_vendor.t($data.useMockData ? "关闭" : "开启"),
     g: common_vendor.o((...args) => $options.toggleMockData && $options.toggleMockData(...args)),
-    h: common_vendor.sei(_ctx.virtualHostId, "view")
+    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

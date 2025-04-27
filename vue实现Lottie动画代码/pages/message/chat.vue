@@ -24,87 +24,111 @@
 </template>
 
 <script>
-	export default {
-		data() {
-			return {
-				teacherId: '',
-				teacherName: '老师',
-				inputMessage: '',
-				messages: [
-					{
-						content: '您好，我是您的专业辅导老师，有什么可以帮助您的？',
-						isSelf: false
-					}
-				]
-			}
-		},
-		onLoad(options) {
-			if (options.userId) {
-				this.teacherId = options.userId;
-				// 在实际应用中，这里应该根据teacherId查询获取教师信息
-				this.loadTeacherInfo();
-			}
-			// 添加对teacherId参数的支持
-			else if (options.teacherId) {
-				this.teacherId = options.teacherId;
-				this.teacherName = options.teacherName || '老师';
-				// 如果有教师名称但没有ID信息，仍然尝试加载
-				if (!options.teacherName) {
-					this.loadTeacherInfo();
+import { mapGetters } from 'vuex'
+
+export default {
+	data() {
+		return {
+			teacherId: '',
+			teacherName: '老师',
+			inputMessage: '',
+			messages: [
+				{
+					content: '您好，我是您的专业辅导老师，有什么可以帮助您的？',
+					isSelf: false
 				}
+			]
+		}
+	},
+	
+	computed: {
+		/**
+		 * 从Vuex获取老师信息
+		 */
+		...mapGetters('user/match', ['teacherInfo'])
+	},
+	
+	onLoad(options) {
+		if (options.userId) {
+			this.teacherId = options.userId;
+			// 加载教师信息
+			this.loadTeacherInfo();
+		}
+		// 添加对teacherId参数的支持
+		else if (options.teacherId) {
+			this.teacherId = options.teacherId;
+			this.teacherName = options.teacherName || '老师';
+			// 获取完整教师信息
+			this.loadTeacherInfo();
+		}
+	},
+	methods: {
+		/**
+		 * 返回上一页
+		 */
+		goBack() {
+			uni.navigateBack();
+		},
+		
+		/**
+		 * 加载教师信息
+		 */
+		loadTeacherInfo() {
+			if (!this.teacherId) return;
+			
+			// 直接从Vuex中获取教师信息
+			const teacherData = this.teacherInfo(this.teacherId);
+			
+			if (teacherData && teacherData.name) {
+				this.teacherName = teacherData.name;
+			} else {
+				// 如果没有找到，使用本地备选数据
+				this.getTeacherNameFromLocal();
 			}
 		},
-		methods: {
-			/**
-			 * 返回上一页
-			 */
-			goBack() {
-				uni.navigateBack();
-			},
+		
+		/**
+		 * 从本地模拟数据获取教师姓名（作为后备方案）
+		 */
+		getTeacherNameFromLocal() {
+			// 模拟获取教师信息
+			const teachers = {
+				'teacher001': '张老师',
+				'teacher002': '李老师',
+				'1': '王教授',
+				'2': '李博士',
+				'3': '张老师',
+				'4': '刘教授',
+				'5': '陈老师'
+			};
+			this.teacherName = teachers[this.teacherId] || '老师';
+		},
+		
+		/**
+		 * 发送消息
+		 */
+		sendMessage() {
+			if (!this.inputMessage.trim()) return;
 			
-			/**
-			 * 加载教师信息
-			 */
-			loadTeacherInfo() {
-				// 模拟获取教师信息
-				setTimeout(() => {
-					// 根据ID获取教师姓名，这里使用模拟数据
-					const teachers = {
-						'1': '王教授',
-						'2': '李博士',
-						'3': '张老师',
-						'4': '刘教授',
-						'5': '陈老师'
-					};
-					this.teacherName = teachers[this.teacherId] || '老师';
-				}, 100);
-			},
+			// 添加自己的消息
+			this.messages.push({
+				content: this.inputMessage,
+				isSelf: true
+			});
 			
-			/**
-			 * 发送消息
-			 */
-			sendMessage() {
-				if (!this.inputMessage.trim()) return;
-				
-				// 添加自己的消息
+			const userMessage = this.inputMessage;
+			this.inputMessage = '';
+			
+			// 模拟教师回复
+			setTimeout(() => {
 				this.messages.push({
-					content: this.inputMessage,
-					isSelf: true
+					content: `收到您的消息："${userMessage}"，我会尽快回复您。`,
+					isSelf: false
 				});
-				
-				const userMessage = this.inputMessage;
-				this.inputMessage = '';
-				
-				// 模拟教师回复
-				setTimeout(() => {
-					this.messages.push({
-						content: `收到您的消息："${userMessage}"，我会尽快回复您。`,
-						isSelf: false
-					});
-				}, 1000);
-			}
+			}, 1000);
 		}
 	}
+}
 </script>
 
 <style>

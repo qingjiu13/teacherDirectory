@@ -30,16 +30,9 @@ const getTeacherDetail = async (teacherId) => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    const data = await response.json();
-    if (!data.selfIntroduction) {
-      common_vendor.index.__f__("warn", "at store/user/match/api.js:82", "接口返回的数据中缺少selfIntroduction字段");
-    }
-    if (!data.service || !Array.isArray(data.service)) {
-      common_vendor.index.__f__("warn", "at store/user/match/api.js:86", "接口返回的数据中缺少service字段或格式不正确");
-    }
-    return data;
+    return await response.json();
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/user/match/api.js:91", "获取教师详情失败:", error);
+    common_vendor.index.__f__("error", "at store/user/match/api.js:80", "获取教师详情失败:", error);
     throw error;
   }
 };
