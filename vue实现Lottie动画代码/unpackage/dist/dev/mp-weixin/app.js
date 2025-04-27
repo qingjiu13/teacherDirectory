@@ -17,7 +17,6 @@ if (!Math) {
   "./pages/mine/mine/mine_common.js";
   "./pages/mine/modify.js";
   "./pages/mine/course/course.js";
-  "./pages/mine/course/course_detail.js";
   "./pages/mine/order.js";
   "./pages/mine/order/order_common.js";
   "./pages/mine/order/appraise/appraise.js";

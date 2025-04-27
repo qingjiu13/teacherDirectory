@@ -2743,21 +2743,21 @@ function injectHook(type, hook, target = currentInstance, prepend = false) {
     );
   }
 }
-const createHook$1 = (lifecycle) => (hook, target = currentInstance) => (
+const createHook = (lifecycle) => (hook, target = currentInstance) => (
   // post-create lifecycle registrations are noops during SSR (except for serverPrefetch)
   (!isInSSRComponentSetup || lifecycle === "sp") && injectHook(lifecycle, (...args) => hook(...args), target)
 );
-const onBeforeMount = createHook$1("bm");
-const onMounted = createHook$1("m");
-const onBeforeUpdate = createHook$1("bu");
-const onUpdated = createHook$1("u");
-const onBeforeUnmount = createHook$1("bum");
-const onUnmounted = createHook$1("um");
-const onServerPrefetch = createHook$1("sp");
-const onRenderTriggered = createHook$1(
+const onBeforeMount = createHook("bm");
+const onMounted = createHook("m");
+const onBeforeUpdate = createHook("bu");
+const onUpdated = createHook("u");
+const onBeforeUnmount = createHook("bum");
+const onUnmounted = createHook("um");
+const onServerPrefetch = createHook("sp");
+const onRenderTriggered = createHook(
   "rtg"
 );
-const onRenderTracked = createHook$1(
+const onRenderTracked = createHook(
   "rtc"
 );
 function onErrorCaptured(hook, target = currentInstance) {
@@ -7831,7 +7831,7 @@ function initOnError() {
 function initRuntimeSocketService() {
   const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_FNeyXw";
+  const id = "mp-weixin__dwQUV";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -10231,10 +10231,6 @@ function getModuleByNamespace(store, helper, namespace) {
   }
   return module2;
 }
-const createHook = (lifecycle) => (hook, target = getCurrentInstance()) => {
-  !isInSSRComponentSetup && injectHook(lifecycle, hook, target);
-};
-const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
 function __awaiter(thisArg, _arguments, P, generator) {
   function adopt(value2) {
     return value2 instanceof P ? value2 : new P(function(resolve2) {
@@ -15693,7 +15689,6 @@ exports.mapMutations = mapMutations;
 exports.mapState = mapState;
 exports.n = n;
 exports.o = o;
-exports.onLoad = onLoad;
 exports.onMounted = onMounted;
 exports.p = p;
 exports.reactive = reactive;

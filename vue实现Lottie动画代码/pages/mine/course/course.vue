@@ -177,12 +177,7 @@ const changeTab = (e) => {
 	currentTab.value = e.currentIndex;
 };
 
-// 跳转详情
-const goToDetail = (id) => {
-	uni.navigateTo({
-		url: `/pages/mine/course/course_detail?id=${id}`
-	});
-};
+
 
 // 下拉刷新
 const onRefresh = () => {

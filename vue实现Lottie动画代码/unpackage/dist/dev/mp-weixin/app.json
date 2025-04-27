@@ -12,7 +12,6 @@
     "pages/mine/mine/mine_common",
     "pages/mine/modify",
     "pages/mine/course/course",
-    "pages/mine/course/course_detail",
     "pages/mine/order",
     "pages/mine/order/order_common",
     "pages/mine/order/appraise/appraise",
