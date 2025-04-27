@@ -10,6 +10,7 @@
     /* 小程序特有相关 */
     "mp-weixin" : {
         "appid" : "wx5c97e17b02b54896",
+        "lazyCodeLoading": "requiredComponents",
         "setting" : {
             "urlCheck" : false,
             "minified" : true,
@@ -17,6 +18,7 @@
         },
         "usingComponents" : true
     },
+    
     "mp-alipay" : {
         "usingComponents" : true
     },

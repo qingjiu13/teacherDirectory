@@ -54,7 +54,7 @@ export const MineRoutes = {
 	
 	// 课程相关
 	COURSE: '/pages/mine/course/course',
-	COURSE_DETAIL: '/pages/mine/course/course_detail',
+
 	
 	// 订单相关
 	ORDER_COMMON: '/pages/mine/order/order_common',

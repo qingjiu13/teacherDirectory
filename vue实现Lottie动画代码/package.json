@@ -2,6 +2,7 @@
   "dependencies": {
     "@chinaso2018/lottie-miniprogram": "^1.1.5",
     "@lottiefiles/dotlottie-vue": "^0.6.2",
+    "fuse.js": "^7.1.0",
     "lottie-miniprogram": "^1.0.12",
     "lottie-web": "^5.9.1",
     "vue": "^3.2.47",

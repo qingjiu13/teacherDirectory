@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/match/match",
+    "pages/teacher/teacher",
+    "pages/AI/AI",
+    "pages/message/message",
+    "pages/message/chat",
+    "pages/login/login",
+    "pages/login/login_detail",
+    "pages/login/wechat_login",
+    "pages/mine/mine/mine_common",
+    "pages/mine/modify",
+    "pages/mine/course/course",
+    "pages/mine/order",
+    "pages/mine/order/order_common",
+    "pages/mine/order/appraise/appraise",
+    "pages/mine/qualification",
+    "pages/mine/service",
+    "pages/mine/settings",
+    "pages/mine/wallet",
+    "pages/test/test"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "研师录",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F8F8F8"
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {}
+}

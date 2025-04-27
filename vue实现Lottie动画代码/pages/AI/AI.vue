@@ -87,7 +87,7 @@
 	import ModeSelector from '../../components/ai-chat/ModeSelector'
 	import InputSection from '../../components/ai-chat/InputSection'
 	import store from '../../store'
-	import universityData from '../../store/data/2886所大学.json'
+	import universityData from '../../static/data/2886所大学.json'
 	import { mapState } from 'vuex';
 	
 	// 消息类型常量
