@@ -203,9 +203,31 @@ onMounted(() => {
     matchTeachers.value = store.state.user.match.matchList || []
   }
 })
+
+// 专业课和非专业课选择后互斥
+const onProfessionalSelected = (majorName) => {
+  if (selectedProfessional.value !== majorName) {
+    selectedProfessional.value = majorName
+    selectedNonProfessional.value = '' // 修改了才挤掉非专业课
+  }
+}
+
+const onNonProfessionalSelected = (nonMajorName) => {
+  if (selectedNonProfessional.value !== nonMajorName) {
+    selectedNonProfessional.value = nonMajorName
+    selectedProfessional.value = '' // 修改了才挤掉专业课
+  }
+}
 </script>
 
 <style scoped>
+.searchText {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
 .search-wrapper {
   display: flex;
   flex-direction: row;
