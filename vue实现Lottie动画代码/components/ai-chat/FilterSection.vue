@@ -4,17 +4,18 @@
 		<view class="filter-row">
 			<view class="filter-item full-width">
 				<text class="filter-label">所在学校：</text>
-				<view class="choice-wrapper">
-					<choice-selected 
+				<view class="choice-wrapper" @click.stop>
+					<ChoiceSelected 
 						:defaultText="'请选择学校'" 
 						:choiceIndex="schoolIndex" 
 						:choiceList="schoolList"
+						componentType="undergraduate"
 						mode="search"
-						:searchPlaceholder="'搜索学校'"
+						searchPlaceholder="输入学校名称"
 						@onChoiceClick="onSchoolClick"
 						@search-input="onSchoolSearch"
 						ref="schoolDropdown">
-					</choice-selected>
+					</ChoiceSelected>
 				</view>
 			</view>
 		</view>
@@ -23,14 +24,20 @@
 		<view class="filter-row">
 			<view class="filter-item full-width">
 				<text class="filter-label">专业：</text>
-				<view class="choice-wrapper">
-					<choice-selected 
+				<view class="choice-wrapper" @click.stop>
+					<ChoiceSelected 
 						:defaultText="'请选择专业'" 
 						:choiceIndex="majorIndex" 
 						:choiceList="majorList"
+						componentType="undergraduate"
+						mode="search"
+						searchPlaceholder="输入专业名称"
 						@onChoiceClick="onMajorClick"
+						@search-input="onMajorSearch"
+						:enablePagination="false"
+						:debounce="200"
 						ref="majorDropdown">
-					</choice-selected>
+					</ChoiceSelected>
 				</view>
 			</view>
 		</view>
@@ -38,7 +45,7 @@
 </template>
 
 <script>
-	import choiceSelected from '../../components/combobox/combobox'
+	import ChoiceSelected from '../../components/combobox/combobox'
 	
 	/**
 	 * @description 筛选区域组件
@@ -49,11 +56,12 @@
 	 * @event {Function} schoolChange - 学校变更事件
 	 * @event {Function} majorChange - 专业变更事件
 	 * @event {Function} schoolSearch - 学校搜索事件
+	 * @event {Function} majorSearch - 专业搜索事件
 	 */
 	export default {
 		name: "FilterSection",
 		components: {
-			choiceSelected
+			ChoiceSelected
 		},
 		props: {
 			schoolIndex: {
@@ -96,6 +104,14 @@
 			 */
 			onSchoolSearch(keyword) {
 				this.$emit('schoolSearch', keyword);
+			},
+			
+			/**
+			 * @description 处理专业搜索输入
+			 * @param {String} keyword - 搜索关键词
+			 */
+			onMajorSearch(keyword) {
+				this.$emit('majorSearch', keyword);
 			},
 			
 			/**

@@ -1,10 +1,10 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
-const choiceSelected = () => "./components/combobox/combobox.js";
+const ChoiceSelected = () => "./components/combobox/combobox.js";
 const _sfc_main = common_vendor.defineComponent({
   name: "FilterSection",
   components: {
-    choiceSelected
+    ChoiceSelected
   },
   props: {
     schoolIndex: new UTSJSONObject({
@@ -51,6 +51,13 @@ const _sfc_main = common_vendor.defineComponent({
       this.$emit("schoolSearch", keyword);
     },
     /**
+     * @description 处理专业搜索输入
+     * @param {String} keyword - 搜索关键词
+     */
+    onMajorSearch(keyword = null) {
+      this.$emit("majorSearch", keyword);
+    },
+    /**
      * @description 关闭所有下拉框
      */
     closeAllDropdowns() {
@@ -64,8 +71,8 @@ const _sfc_main = common_vendor.defineComponent({
   })
 });
 if (!Array) {
-  const _component_choice_selected = common_vendor.resolveComponent("choice-selected");
-  _component_choice_selected();
+  const _component_ChoiceSelected = common_vendor.resolveComponent("ChoiceSelected");
+  _component_ChoiceSelected();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
@@ -76,18 +83,29 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       defaultText: "请选择学校",
       choiceIndex: $props.schoolIndex,
       choiceList: $props.schoolList,
+      componentType: "undergraduate",
       mode: "search",
-      searchPlaceholder: "搜索学校"
+      searchPlaceholder: "输入学校名称"
     }),
-    e: common_vendor.sr("majorDropdown", "874fd1f0-1"),
-    f: common_vendor.o($options.onMajorClick),
-    g: common_vendor.p({
+    e: common_vendor.o(() => {
+    }),
+    f: common_vendor.sr("majorDropdown", "874fd1f0-1"),
+    g: common_vendor.o($options.onMajorClick),
+    h: common_vendor.o($options.onMajorSearch),
+    i: common_vendor.p({
       defaultText: "请选择专业",
       choiceIndex: $props.majorIndex,
-      choiceList: $props.majorList
+      choiceList: $props.majorList,
+      componentType: "undergraduate",
+      mode: "search",
+      searchPlaceholder: "输入专业名称",
+      enablePagination: false,
+      debounce: 200
     }),
-    h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
-    i: common_vendor.o(() => {
+    j: common_vendor.o(() => {
+    }),
+    k: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    l: common_vendor.o(() => {
     })
   };
 }

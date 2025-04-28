@@ -1,7 +1,8 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 require("../../store/index.js");
-const _2886___ = require("../../2886所大学.js");
+const ____ = require("../../本科专业.js");
+const components_combobox_undergraduate = require("../../components/combobox/undergraduate.js");
 const HistorySidebar = () => "../../components/ai-chat/HistorySidebar.js";
 const MessageList = () => "../../components/ai-chat/MessageList.js";
 const FilterSection = () => "../../components/ai-chat/FilterSection.js";
@@ -78,6 +79,10 @@ const _sfc_main = common_vendor.defineComponent({
     },
     chatMode() {
       return this.storeChatMode;
+    },
+    // 筛选后的学校列表
+    filteredSchoolList() {
+      return this.schoolDataModule.getters.filteredData(this.schoolDataModule.state);
     }
   }),
   data() {
@@ -99,22 +104,10 @@ const _sfc_main = common_vendor.defineComponent({
       schoolIndex: -1,
       majorIndex: -1,
       schoolList: [],
-      majorList: [
-        new UTSJSONObject({ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" }),
-        new UTSJSONObject({ choiceItemId: "rjgc", choiceItemContent: "软件工程" }),
-        new UTSJSONObject({ choiceItemId: "sx", choiceItemContent: "数学" }),
-        new UTSJSONObject({ choiceItemId: "wl", choiceItemContent: "物理" }),
-        new UTSJSONObject({ choiceItemId: "hx", choiceItemContent: "化学" }),
-        new UTSJSONObject({ choiceItemId: "sw", choiceItemContent: "生物" }),
-        new UTSJSONObject({ choiceItemId: "jdxy", choiceItemContent: "机电工程" }),
-        new UTSJSONObject({ choiceItemId: "dqxy", choiceItemContent: "电气工程" }),
-        new UTSJSONObject({ choiceItemId: "jzxy", choiceItemContent: "建筑学" }),
-        new UTSJSONObject({ choiceItemId: "lyxy", choiceItemContent: "临床医学" }),
-        new UTSJSONObject({ choiceItemId: "yyxy", choiceItemContent: "药学" }),
-        new UTSJSONObject({ choiceItemId: "glxy", choiceItemContent: "管理学" }),
-        new UTSJSONObject({ choiceItemId: "jjxy", choiceItemContent: "经济学" }),
-        new UTSJSONObject({ choiceItemId: "flxy", choiceItemContent: "法学" })
-      ],
+      majorList: [],
+      // 搜索相关
+      schoolDataModule: null,
+      majorDataModule: null,
       // 滚动相关
       isAutoScrollEnabled: true,
       // 当前会话控制器
@@ -153,6 +146,7 @@ const _sfc_main = common_vendor.defineComponent({
   },
   onUnload() {
     this.abortCurrentRequest();
+    this.clearUserSelections();
   },
   methods: {
     /**
@@ -160,19 +154,52 @@ const _sfc_main = common_vendor.defineComponent({
      */
     loadUniversityData() {
       try {
-        this.schoolList = _2886___.schoolData;
+        const universities = ____.schoolData || [];
+        this.schoolList = universities;
+        this.schoolDataModule = components_combobox_undergraduate.createDataModule(universities);
+        this.schoolDataModule.mutations.initFuse(this.schoolDataModule.state);
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:272", "专业数据类型:", typeof ____.majorData);
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:273", "专业数据示例:", Array.isArray(____.majorData) ? ____.majorData.slice(0, 3) : ____.majorData);
+        const majors = Array.isArray(____.majorData) ? ____.majorData : [];
+        this.majorList = majors.map((majorName) => {
+          return new UTSJSONObject({
+            choiceItemId: String(majorName).replace(/\s+/g, "").toLowerCase(),
+            choiceItemContent: String(majorName)
+          });
+        });
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:286", "处理后的专业列表:", this.majorList.slice(0, 3));
+        const majorNames = this.majorList.map((item) => {
+          return item.choiceItemContent;
+        });
+        this.majorDataModule = components_combobox_undergraduate.createDataModule(majorNames);
+        this.majorDataModule.mutations.initFuse(this.majorDataModule.state);
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:293", "加载大学数据成功，共", universities.length, "所学校");
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:294", "加载专业数据成功，共", this.majorList.length, "个专业");
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:264", "加载大学数据失败:", error);
-        this.schoolList = ["北京大学", "清华大学", "复旦大学"];
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:296", "加载数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:297", "错误详情:", error.message, error.stack);
+        if (!this.schoolDataModule) {
+          this.schoolDataModule = components_combobox_undergraduate.createDataModule(this.schoolList);
+          this.schoolDataModule.mutations.initFuse(this.schoolDataModule.state);
+        }
+        if (!this.majorDataModule) {
+          const majorNames = this.majorList.map((item) => {
+            return item.choiceItemContent;
+          });
+          this.majorDataModule = components_combobox_undergraduate.createDataModule(majorNames);
+          this.majorDataModule.mutations.initFuse(this.majorDataModule.state);
+        }
       }
     },
     /**
      * @description 处理页面点击事件，关闭下拉框
      */
     onPageClick() {
-      if (this.$refs && this.$refs.filterSection) {
-        this.$refs.filterSection.closeAllDropdowns();
-      }
+      setTimeout(() => {
+        if (this.$refs && this.$refs.filterSection) {
+          this.$refs.filterSection.closeAllDropdowns();
+        }
+      }, 10);
     },
     /**
      * @description 获取用户信息
@@ -231,7 +258,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
         common_vendor.index.setStorageSync("userInfo", UTS.JSON.stringify(this.userInfo));
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:341", "保存用户信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:389", "保存用户信息失败:", e);
       }
     },
     /**
@@ -239,27 +266,71 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {Number} position - 选择的索引位置
      */
     onSchoolClick(position = null) {
-      this.schoolIndex = position;
-      this.userInfo.school = this.currentSchool;
-      this.saveUserInfo();
-      this.updateContextInfo();
+      if (position >= 0 && position < this.schoolList.length) {
+        this.schoolIndex = position;
+        this.userInfo.school = this.currentSchool;
+        this.saveUserInfo();
+        this.updateContextInfo();
+      } else {
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:405", "无效的学校选择位置:", position);
+      }
     },
     /**
      * @description 专业选择事件处理
      * @param {Number} position - 选择的索引位置
      */
     onMajorClick(position = null) {
-      this.majorIndex = position;
-      this.userInfo.major = this.currentMajor;
-      this.saveUserInfo();
-      this.updateContextInfo();
+      if (position >= 0 && position < this.majorList.length) {
+        this.majorIndex = position;
+        this.userInfo.major = this.currentMajor;
+        this.saveUserInfo();
+        this.updateContextInfo();
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:422", "已选择专业:", this.currentMajor);
+      } else {
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:424", "无效的专业选择位置:", position);
+      }
     },
     /**
      * @description 处理学校搜索输入
      * @param {String} keyword - 搜索关键词
      */
     onSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/AI/AI.vue:372", "正在搜索学校:", keyword);
+      if (this.schoolDataModule) {
+        this.schoolDataModule.mutations.setFilterKeyword(this.schoolDataModule.state, keyword);
+        this.schoolList = this.filteredSchoolList;
+      }
+    },
+    /**
+     * @description 处理专业搜索输入
+     * @param {String} keyword - 搜索关键词
+     */
+    onMajorSearch(keyword = null) {
+      try {
+        if (!this.majorDataModule) {
+          common_vendor.index.__f__("error", "at pages/AI/AI.vue:450", "专业数据模块未初始化");
+          return null;
+        }
+        this.majorDataModule.mutations.setFilterKeyword(this.majorDataModule.state, keyword);
+        const filteredMajorNames = this.majorDataModule.getters.filteredData(this.majorDataModule.state);
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:465", "筛选后的专业数量:", filteredMajorNames.length);
+        if (filteredMajorNames.length === 0 && keyword) {
+          this.majorList = [
+            {
+              choiceItemId: keyword.replace(/\s+/g, "").toLowerCase(),
+              choiceItemContent: keyword
+            }
+          ];
+        } else {
+          this.majorList = filteredMajorNames.map((majorName = null) => {
+            return new UTSJSONObject({
+              choiceItemId: majorName.replace(/\s+/g, "").toLowerCase(),
+              choiceItemContent: majorName
+            });
+          });
+        }
+      } catch (error) {
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:483", "专业搜索处理错误:", error);
+      }
     },
     /**
      * @description 切换对话模式
@@ -526,7 +597,7 @@ const _sfc_main = common_vendor.defineComponent({
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:685", "加载对话内容失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:797", "加载对话内容失败:", error);
         this.toggleLoading(false);
         this.startNewChat();
       }
@@ -617,6 +688,20 @@ const _sfc_main = common_vendor.defineComponent({
           }
         }
       }));
+    },
+    /**
+     * @description 清除用户选择的学校和专业信息
+     */
+    clearUserSelections() {
+      this.schoolIndex = -1;
+      this.majorIndex = -1;
+      this.userInfo = {
+        school: "",
+        major: ""
+      };
+      this.saveUserInfo();
+      this.updateContextInfo();
+      common_vendor.index.__f__("log", "at pages/AI/AI.vue:918", "已清除用户的学校和专业选择");
     }
   }
 });
@@ -656,35 +741,36 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     j: common_vendor.o($options.onSchoolClick),
     k: common_vendor.o($options.onMajorClick),
     l: common_vendor.o($options.onSchoolSearch),
-    m: common_vendor.p({
+    m: common_vendor.o($options.onMajorSearch),
+    n: common_vendor.p({
       ["school-index"]: $data.schoolIndex,
       ["school-list"]: $data.schoolList,
       ["major-index"]: $data.majorIndex,
       ["major-list"]: $data.majorList
     }),
-    n: common_vendor.sr("messageList", "4e6adde4-2"),
-    o: common_vendor.o($options.retryMessage),
-    p: common_vendor.o(($event) => $data.autoScrollId = $event),
-    q: common_vendor.p({
+    o: common_vendor.sr("messageList", "4e6adde4-2"),
+    p: common_vendor.o($options.retryMessage),
+    q: common_vendor.o(($event) => $data.autoScrollId = $event),
+    r: common_vendor.p({
       messages: $data.messages,
       ["auto-scroll-id"]: $data.autoScrollId
     }),
-    r: common_vendor.o($options.switchMode),
-    s: common_vendor.p({
+    s: common_vendor.o($options.switchMode),
+    t: common_vendor.p({
       ["current-mode"]: $data.currentMode
     }),
-    t: common_vendor.o($options.sendMessage),
-    v: common_vendor.p({
+    v: common_vendor.o($options.sendMessage),
+    w: common_vendor.p({
       ["is-processing"]: $data.isProcessing
     }),
-    w: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
-    x: $data.sidebarVisible ? 1 : "",
-    y: $data.isFullLoading
+    x: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
+    y: $data.sidebarVisible ? 1 : "",
+    z: $data.isFullLoading
   }, $data.isFullLoading ? {
-    z: common_vendor.t($data.loadingText)
+    A: common_vendor.t($data.loadingText)
   } : {}, {
-    A: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
-    B: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
+    B: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    C: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -44,6 +44,7 @@
 						@school-change="onSchoolClick"
 						@major-change="onMajorClick"
 						@school-search="onSchoolSearch"
+						@major-search="onMajorSearch"
 						ref="filterSection">
 					</filter-section>
 					
@@ -87,8 +88,10 @@
 	import ModeSelector from '../../components/ai-chat/ModeSelector'
 	import InputSection from '../../components/ai-chat/InputSection'
 	import store from '../../store'
-	import universityData from '../../static/data/2886所大学.json'
+	import schoolData from '../../static/data/2886所大学.json';
+	import majorData from '../../static/data/本科专业.json';
 	import { mapState } from 'vuex';
+	import createDataModule from '../../components/combobox/undergraduate.js';
 	
 	// 消息类型常量
 	const MESSAGE_TYPE = {
@@ -158,6 +161,11 @@
 			},
 			chatMode() {
 				return this.storeChatMode;
+			},
+			
+			// 筛选后的学校列表
+			filteredSchoolList() {
+				return this.schoolDataModule.getters.filteredData(this.schoolDataModule.state);
 			}
 		},
 		data() {
@@ -182,22 +190,11 @@
 				schoolIndex: -1,
 				majorIndex: -1,
 				schoolList: [],
-				majorList: [
-					{ choiceItemId: "jsjkx", choiceItemContent: "计算机科学" },
-					{ choiceItemId: "rjgc", choiceItemContent: "软件工程" },
-					{ choiceItemId: "sx", choiceItemContent: "数学" },
-					{ choiceItemId: "wl", choiceItemContent: "物理" },
-					{ choiceItemId: "hx", choiceItemContent: "化学" },
-					{ choiceItemId: "sw", choiceItemContent: "生物" },
-					{ choiceItemId: "jdxy", choiceItemContent: "机电工程" },
-					{ choiceItemId: "dqxy", choiceItemContent: "电气工程" },
-					{ choiceItemId: "jzxy", choiceItemContent: "建筑学" },
-					{ choiceItemId: "lyxy", choiceItemContent: "临床医学" },
-					{ choiceItemId: "yyxy", choiceItemContent: "药学" },
-					{ choiceItemId: "glxy", choiceItemContent: "管理学" },
-					{ choiceItemId: "jjxy", choiceItemContent: "经济学" },
-					{ choiceItemId: "flxy", choiceItemContent: "法学" }
-				],
+				majorList: [],
+				
+				// 搜索相关
+				schoolDataModule: null,
+				majorDataModule: null,
 				
 				// 滚动相关
 				isAutoScrollEnabled: true,
@@ -252,6 +249,9 @@
 		onUnload() {
 			// 页面卸载时中断请求
 			this.abortCurrentRequest();
+			
+			// 清除学校和专业选择
+			this.clearUserSelections();
 		},
 		methods: {
 			/**
@@ -259,10 +259,55 @@
 			 */
 			loadUniversityData() {
 				try {
-					this.schoolList = universityData;
+					// 初始化学校数据
+					const universities = schoolData || [];
+					this.schoolList = universities;
+					
+					// 创建学校数据处理模块
+					this.schoolDataModule = createDataModule(universities);
+					this.schoolDataModule.mutations.initFuse(this.schoolDataModule.state);
+					
+					// 初始化专业数据
+					// 注意: 检查majorData的实际数据结构
+					console.log('专业数据类型:', typeof majorData);
+					console.log('专业数据示例:', Array.isArray(majorData) ? majorData.slice(0, 3) : majorData);
+					
+					const majors = Array.isArray(majorData) ? majorData : [];
+					
+					// 确保专业数据正确转换为对象格式
+					this.majorList = majors.map(majorName => ({
+						choiceItemId: String(majorName).replace(/\s+/g, '').toLowerCase(),
+						choiceItemContent: String(majorName)
+					}));
+					
+					
+					
+					
+					console.log('处理后的专业列表:', this.majorList.slice(0, 3));
+					
+					// 初始化专业数据处理模块 - 使用简单的专业名称字符串数组
+					const majorNames = this.majorList.map(item => item.choiceItemContent);
+					this.majorDataModule = createDataModule(majorNames);
+					this.majorDataModule.mutations.initFuse(this.majorDataModule.state);
+					
+					console.log('加载大学数据成功，共', universities.length, '所学校');
+					console.log('加载专业数据成功，共', this.majorList.length, '个专业');
 				} catch (error) {
-					console.error('加载大学数据失败:', error);
-					this.schoolList = ["北京大学", "清华大学", "复旦大学"];
+					console.error('加载数据失败:', error);
+					console.error('错误详情:', error.message, error.stack);
+					
+					
+					// 创建备用的数据处理模块
+					if (!this.schoolDataModule) {
+						this.schoolDataModule = createDataModule(this.schoolList);
+						this.schoolDataModule.mutations.initFuse(this.schoolDataModule.state);
+					}
+					
+					if (!this.majorDataModule) {
+						const majorNames = this.majorList.map(item => item.choiceItemContent);
+						this.majorDataModule = createDataModule(majorNames);
+						this.majorDataModule.mutations.initFuse(this.majorDataModule.state);
+					}
 				}
 			},
 			
@@ -270,9 +315,12 @@
 			 * @description 处理页面点击事件，关闭下拉框
 			 */
 			onPageClick() {
-				if (this.$refs && this.$refs.filterSection) {
-					this.$refs.filterSection.closeAllDropdowns();
-				}
+				// 延迟关闭下拉框，避免与输入框焦点冲突
+				setTimeout(() => {
+					if (this.$refs && this.$refs.filterSection) {
+						this.$refs.filterSection.closeAllDropdowns();
+					}
+				}, 10);
 			},
 			
 			/**
@@ -347,10 +395,15 @@
 			 * @param {Number} position - 选择的索引位置
 			 */
 			onSchoolClick(position) {
-				this.schoolIndex = position;
-				this.userInfo.school = this.currentSchool;
-				this.saveUserInfo();
-				this.updateContextInfo();
+				// 确保position是有效的索引
+				if (position >= 0 && position < this.schoolList.length) {
+					this.schoolIndex = position;
+					this.userInfo.school = this.currentSchool;
+					this.saveUserInfo();
+					this.updateContextInfo();
+				} else {
+					console.error('无效的学校选择位置:', position);
+				}
 			},
 			
 			/**
@@ -358,10 +411,18 @@
 			 * @param {Number} position - 选择的索引位置
 			 */
 			onMajorClick(position) {
-				this.majorIndex = position;
-				this.userInfo.major = this.currentMajor;
-				this.saveUserInfo();
-				this.updateContextInfo();
+				// 确保position是有效的索引
+				if (position >= 0 && position < this.majorList.length) {
+					this.majorIndex = position;
+					this.userInfo.major = this.currentMajor;
+					this.saveUserInfo();
+					this.updateContextInfo();
+					
+					// 调试信息
+					console.log('已选择专业:', this.currentMajor);
+				} else {
+					console.error('无效的专业选择位置:', position);
+				}
 			},
 			
 			/**
@@ -369,7 +430,58 @@
 			 * @param {String} keyword - 搜索关键词
 			 */
 			onSchoolSearch(keyword) {
-				console.log('正在搜索学校:', keyword);
+				if (this.schoolDataModule) {
+					this.schoolDataModule.mutations.setFilterKeyword(
+						this.schoolDataModule.state, 
+						keyword
+					);
+					// 更新学校列表
+					this.schoolList = this.filteredSchoolList;
+				}
+			},
+			
+			/**
+			 * @description 处理专业搜索输入
+			 * @param {String} keyword - 搜索关键词
+			 */
+			onMajorSearch(keyword) {
+				try {
+					if (!this.majorDataModule) {
+						console.error('专业数据模块未初始化');
+						return;
+					}
+					
+					// 设置搜索关键词
+					this.majorDataModule.mutations.setFilterKeyword(
+						this.majorDataModule.state, 
+						keyword
+					);
+					
+					// 获取筛选后的专业列表（字符串数组）
+					const filteredMajorNames = this.majorDataModule.getters.filteredData(
+						this.majorDataModule.state
+					);
+					
+					console.log('筛选后的专业数量:', filteredMajorNames.length);
+					
+					if (filteredMajorNames.length === 0 && keyword) {
+						// 如果没有找到匹配的，但用户输入了关键词，可以添加一个新的选项
+						this.majorList = [
+							{
+								choiceItemId: keyword.replace(/\s+/g, '').toLowerCase(),
+								choiceItemContent: keyword
+							}
+						];
+					} else {
+						// 将筛选后的专业名称转换回对象数组格式
+						this.majorList = filteredMajorNames.map(majorName => ({
+							choiceItemId: majorName.replace(/\s+/g, '').toLowerCase(),
+							choiceItemContent: majorName
+						}));
+					}
+				} catch (error) {
+					console.error('专业搜索处理错误:', error);
+				}
 			},
 			
 			/**
@@ -781,6 +893,29 @@
 						}
 					}
 				});
+			},
+			
+			/**
+			 * @description 清除用户选择的学校和专业信息
+			 */
+			clearUserSelections() {
+				// 重置选择索引
+				this.schoolIndex = -1;
+				this.majorIndex = -1;
+				
+				// 清空用户信息
+				this.userInfo = {
+					school: '',
+					major: ''
+				};
+				
+				// 更新到本地存储
+				this.saveUserInfo();
+				
+				// 更新上下文信息
+				this.updateContextInfo();
+				
+				console.log('已清除用户的学校和专业选择');
 			}
 		}
 	}
