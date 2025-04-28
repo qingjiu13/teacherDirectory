@@ -5,9 +5,14 @@ const state = {
   // 专业课列表
   professionalList: "",
   // 非专业课列表
-  nonProfessionalList: "",
-  // 筛选列表
-  filterMode: "",
+  nonProfessionalList: {
+    math: "",
+    english: "",
+    politics: "",
+    other: ""
+  },
+  // 排序方式
+  sortMode: "",
   // 匹配列表
   matchList: [
     {

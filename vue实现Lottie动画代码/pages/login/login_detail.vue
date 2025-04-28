@@ -726,7 +726,7 @@ export default {
       
       // 更新目标专业列表
       if (this.graduateStore.schools[school]) {
-        this.targetMajorList = this.graduateStore.schools[school].slice(0, 20); // 初始显示前20个专业
+        this.targetMajorList = this.graduateStore.schools[school].slice(0, 30); // 初始显示前30个专业
         console.log(`已加载 ${school} 的专业列表，共 ${this.targetMajorList.length} 个`);
       } else {
         this.resetMajorSelection();

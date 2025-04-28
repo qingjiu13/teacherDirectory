@@ -420,7 +420,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
       }), school);
       if (this.graduateStore.schools[school]) {
-        this.targetMajorList = this.graduateStore.schools[school].slice(0, 20);
+        this.targetMajorList = this.graduateStore.schools[school].slice(0, 30);
         common_vendor.index.__f__("log", "at pages/login/login_detail.vue:730", `已加载 ${school} 的专业列表，共 ${this.targetMajorList.length} 个`);
       } else {
         this.resetMajorSelection();
