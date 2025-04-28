@@ -55,11 +55,13 @@ export default {
                 messages: [
                     {
                         id: 'msg-001',
+                        role: 'user',
                         content: '我想咨询一下清华大学计算机专业的录取情况',
                         timestamp: '2023-10-01T10:05:00Z'
                     },
                     {
                         id: 'msg-002',
+                        role:'AI',
                         content: '清华大学计算机专业去年录取分数线为680分',
                         timestamp: '2023-10-01T10:10:00Z'
                     }
@@ -74,11 +76,13 @@ export default {
                 messages: [
                     {
                         id: 'msg-003',
+                        role:'user',
                         content: '我对人工智能领域很感兴趣，该如何规划职业发展？',
                         timestamp: '2023-10-02T14:05:00Z'
                     },
                     {
                         id: 'msg-004',
+                        role:'AI',
                         content: '建议先打好数学和编程基础，然后深入学习机器学习算法',
                         timestamp: '2023-10-02T14:15:00Z'
                     }

@@ -137,6 +137,34 @@ const mutations = {
     };
   },
   /**
+   * 更新用户学校信息
+   * @param {Object} state - Vuex状态对象
+   * @param {string} school - 用户学校
+   */
+  UPDATE_USER_SCHOOL(state, school) {
+    if (!state.aiChat.userInfo) {
+      state.aiChat.userInfo = {
+        school: "",
+        major: ""
+      };
+    }
+    state.aiChat.userInfo.school = school;
+  },
+  /**
+   * 更新用户专业信息
+   * @param {Object} state - Vuex状态对象
+   * @param {string} major - 用户专业
+   */
+  UPDATE_USER_MAJOR(state, major) {
+    if (!state.aiChat.userInfo) {
+      state.aiChat.userInfo = {
+        school: "",
+        major: ""
+      };
+    }
+    state.aiChat.userInfo.major = major;
+  },
+  /**
    * 从对话列表中删除指定ID的对话
    * @param {Object} state - Vuex状态对象
    * @param {string} conversationId - 对话ID

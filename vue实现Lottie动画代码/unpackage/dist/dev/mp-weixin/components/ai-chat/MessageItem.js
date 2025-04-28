@@ -3,11 +3,11 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "MessageItem",
   props: {
-    type: new UTSJSONObject({
+    role: new UTSJSONObject({
       type: String,
       default: "user",
       validator: (value = null) => {
-        return ["user", "ai", "system"].includes(value);
+        return ["user", "AI", "system"].includes(value);
       }
     }),
     content: new UTSJSONObject({
@@ -30,6 +30,15 @@ const _sfc_main = common_vendor.defineComponent({
       default: "研师录AI"
     })
   },
+  computed: new UTSJSONObject({
+    /**
+     * @description 获取消息类型（小写），用于CSS类名
+     * @returns {String} 消息类型
+     */
+    messageType() {
+      return this.role === "AI" ? "ai" : this.role;
+    }
+  }),
   methods: new UTSJSONObject({
     /**
      * @description 重试发送消息
@@ -41,8 +50,8 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: $props.type === "ai"
-  }, $props.type === "ai" ? {
+    a: $options.messageType === "ai"
+  }, $options.messageType === "ai" ? {
     b: common_vendor.t($props.aiTitle)
   } : {}, {
     c: common_vendor.t($props.content),
@@ -53,7 +62,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     f: common_vendor.o((...args) => $options.onRetry && $options.onRetry(...args))
   } : {}, {
     g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
-    h: common_vendor.n($props.type),
+    h: common_vendor.n($options.messageType),
     i: common_vendor.n({
       "streaming": $props.streaming
     })

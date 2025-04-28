@@ -52,7 +52,7 @@ function createDataModule(dataList) {
     getters: {
       filteredData(state) {
         if (!state.filterKeyword) {
-          return state.data.slice(0, 50);
+          return state.data.slice(0, 20);
         }
         if (!state.dataFuse) {
           this.mutations.initFuse(state);

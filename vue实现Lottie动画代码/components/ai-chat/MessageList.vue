@@ -17,7 +17,7 @@
 					:key="index" 
 					:id="'msg-' + index">
 					<message-item 
-						:type="msg.type"
+						:role="msg.role"
 						:content="msg.content"
 						:status="msg.status"
 						:streaming="msg.streaming"

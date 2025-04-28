@@ -77,11 +77,55 @@
 		overflow-y: auto; /* 允许内容垂直滚动 */
 }
 	
-	/* 消息列表区域样式 */
-.message-list-container {
+	/* 筛选区域样式 */
+.filter-section {
+		background-color: #fff;
+		border-radius: 15rpx;
+		margin: 20rpx 0;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+.choice-wrapper {
 		flex: 1;
-		padding: 20rpx 0;
-		overflow-y: auto;
+		box-sizing: border-box;
+		width: calc(100% - 150rpx); /* 考虑标签宽度和间距 */
+		padding-right: 10rpx; /* 防止右侧超出边界 */
+}
+.filter-title text {
+		font-size: 28rpx;
+		color: #333;
+		font-weight: 500;
+}
+.filter-content {
+		display: flex;
+		flex-direction: column;
+		gap: 20rpx;
+}
+.filter-item {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		box-sizing: border-box;
+		width: 100%;
+}
+.full-width {
+		width: 100%;
+}
+.filter-label {
+		font-size: 28rpx;
+		color: #333;
+		white-space: nowrap;
+		margin-right: 10rpx;
+		width: 140rpx; /* 改为固定宽度，不用min-width */
+		padding-left: 10rpx;
+		text-align: left;
+		box-sizing: border-box;
+}
+.filter-select {
+		width: 100%;
+		border: 1px solid #e0e0e0;
+		border-radius: 8rpx;
+		box-sizing: border-box;
 }
 	
 	/* 导航栏样式 */

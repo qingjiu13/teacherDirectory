@@ -85,7 +85,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       choiceList: $props.schoolList,
       componentType: "undergraduate",
       mode: "search",
-      searchPlaceholder: "输入学校名称"
+      searchPlaceholder: "输入学校名称",
+      pageSize: 10
     }),
     e: common_vendor.o(() => {
     }),
@@ -100,7 +101,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       mode: "search",
       searchPlaceholder: "输入专业名称",
       enablePagination: false,
-      debounce: 200
+      pageSize: 10
     }),
     j: common_vendor.o(() => {
     }),

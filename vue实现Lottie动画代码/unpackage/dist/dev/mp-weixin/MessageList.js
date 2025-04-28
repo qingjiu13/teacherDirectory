@@ -66,7 +66,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         a: common_vendor.o(($event) => _ctx.$emit("retryMessage", index), index),
         b: "65e1fcc0-0-" + i0,
         c: common_vendor.p({
-          type: msg.type,
+          role: msg.role,
           content: msg.content,
           status: msg.status,
           streaming: msg.streaming,

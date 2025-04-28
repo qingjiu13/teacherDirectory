@@ -50,7 +50,7 @@ export default function createDataModule(dataList) {
     getters: {
       filteredData(state) {
         if (!state.filterKeyword) {
-          return state.data.slice(0, 50) // 限制初始显示数量（比如前50个）
+          return state.data.slice(0, 20) // 限制初始显示数量（比如前20个）
         }
 
         if (!state.dataFuse) {

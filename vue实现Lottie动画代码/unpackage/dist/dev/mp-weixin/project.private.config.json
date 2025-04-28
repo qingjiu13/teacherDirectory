@@ -4,6 +4,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/AI/AI",
+          "pathName": "pages/AI/AI",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/login/wechat_login",
           "pathName": "pages/login/wechat_login",
           "query": "",

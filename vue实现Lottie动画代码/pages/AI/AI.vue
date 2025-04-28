@@ -36,17 +36,51 @@
 				<!-- 主内容区域 -->
 				<scroll-view scroll-y="true" class="main-content" @scroll="onScroll">
 					<!-- 筛选区域 -->
-					<filter-section
-						:school-index="schoolIndex"
-						:school-list="schoolList"
-						:major-index="majorIndex"
-						:major-list="majorList"
-						@school-change="onSchoolClick"
-						@major-change="onMajorClick"
-						@school-search="onSchoolSearch"
-						@major-search="onMajorSearch"
-						ref="filterSection">
-					</filter-section>
+					<view class="filter-section">
+						<view class="filter-content">
+							<!-- 学校筛选 -->
+							<view class="filter-item">
+								<view class="filter-item full-width">
+								<text class="filter-label">所在学校：</text>
+									<view class="choice-wrapper">
+										<ChoiceSelected
+										class="filter-select"
+										componentType="undergraduate"
+										:choiceIndex="schoolIndex"
+										:choiceList="schoolList"
+										defaultText="请选择学校"
+										mode="search"
+										searchPlaceholder="输入学校名称"
+										@onChoiceClick="handleSchoolSelect"
+										@search-input="handleSchoolSearch"
+										ref="schoolDropdown"
+									/>
+									</view>
+								</view>
+							</view>
+							
+							<!-- 专业筛选 -->
+							<view class="filter-item">
+								<view class="filter-item full-width">
+								<text class="filter-label">专业：</text>
+									<view class="choice-wrapper">
+										<ChoiceSelected
+										class="filter-select"
+										componentType="undergraduate"
+										:choiceIndex="majorIndex"
+										:choiceList="majorList"
+										defaultText="请选择专业"
+										mode="search"
+										searchPlaceholder="输入专业名称"
+										@onChoiceClick="handleMajorSelect"
+										@search-input="handleMajorSearch"
+										ref="majorDropdown"
+									/>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
 					
 					<!-- 消息区域 -->
 					<message-list
@@ -84,19 +118,21 @@
 <script>
 	import HistorySidebar from '../../components/ai-chat/HistorySidebar'
 	import MessageList from '../../components/ai-chat/MessageList'
-	import FilterSection from '../../components/ai-chat/FilterSection'
 	import ModeSelector from '../../components/ai-chat/ModeSelector'
 	import InputSection from '../../components/ai-chat/InputSection'
+	import ChoiceSelected from '../../components/combobox/combobox'
 	import store from '../../store'
 	import schoolData from '../../static/data/2886所大学.json';
 	import majorData from '../../static/data/本科专业.json';
 	import { mapState } from 'vuex';
 	import createDataModule from '../../components/combobox/undergraduate.js';
+
+	
 	
 	// 消息类型常量
 	const MESSAGE_TYPE = {
 		USER: 'user',
-		AI: 'ai',
+		AI: 'AI',
 		SYSTEM: 'system'
 	}
 	
@@ -115,12 +151,16 @@
 	}
 	
 	export default {
+		onPageScroll() {
+			// 通知所有组件页面已滚动
+			uni.$emit('page-scroll');
+  		},
 		components: {
 			HistorySidebar,
 			MessageList,
-			FilterSection,
 			ModeSelector,
-			InputSection
+			InputSection,
+			ChoiceSelected
 		},
 		computed: {
 			// 从Vuex获取状态
@@ -128,7 +168,8 @@
 				storeHistorySummaries: state => state.aiChat.historySummaries,
 				storeHistoryChats: state => state.aiChat.conversations,
 				storeActiveConversation: state => state.aiChat.activeConversation,
-				storeChatMode: state => state.aiChat.chatMode
+				storeChatMode: state => state.aiChat.chatMode,
+				storeUserInfo: state => state.aiChat.userInfo
 			}),
 			
 			// 当前选择的学校和专业
@@ -136,7 +177,7 @@
 				return this.schoolIndex >= 0 ? this.schoolList[this.schoolIndex] : '';
 			},
 			currentMajor() {
-				return this.majorIndex >= 0 ? this.majorList[this.majorIndex].choiceItemContent : '';
+				return this.majorIndex >= 0 ? this.majorList[this.majorIndex] : '';
 			},
 			
 			// 当前模式名称
@@ -165,17 +206,18 @@
 			
 			// 筛选后的学校列表
 			filteredSchoolList() {
-				return this.schoolDataModule.getters.filteredData(this.schoolDataModule.state);
+				if (!this.schoolStore) return [];
+				return this.schoolStore.getters.filteredData(this.schoolStore.state);
+			},
+			
+			// 筛选后的专业列表
+			filteredMajorList() {
+				if (!this.majorStore) return [];
+				return this.majorStore.getters.filteredData(this.majorStore.state);
 			}
 		},
 		data() {
 			return {
-				// 用户信息
-				userInfo: {
-					school: '',
-					major: ''
-				},
-				
 				// 消息相关
 				messages: [],
 				isProcessing: false,
@@ -193,8 +235,8 @@
 				majorList: [],
 				
 				// 搜索相关
-				schoolDataModule: null,
-				majorDataModule: null,
+				schoolStore: null,
+				majorStore: null,
 				
 				// 滚动相关
 				isAutoScrollEnabled: true,
@@ -224,6 +266,17 @@
 					}
 				},
 				immediate: true
+			},
+			
+			// 监听用户信息变化
+			storeUserInfo: {
+				handler(newVal) {
+					if (newVal) {
+						this.setUserSelectionIndexes();
+					}
+				},
+				deep: true,
+				immediate: true
 			}
 		},
 		onLoad() {
@@ -234,7 +287,7 @@
 			this.loadUniversityData();
 			
 			// 获取用户信息并初始化
-			this.getUserInfo();
+			this.syncUserInfoFromVuex();
 			
 			// 添加欢迎消息
 			this.addSystemMessage('欢迎使用研师录AI助手，请选择您的所在学校和专业，然后开始提问');
@@ -245,69 +298,65 @@
 		onShow() {
 			// 页面显示时刷新历史记录
 			this.loadChatHistoryFromStorage();
+			
+			// 刷新用户信息
+			this.syncUserInfoFromVuex();
 		},
 		onUnload() {
 			// 页面卸载时中断请求
 			this.abortCurrentRequest();
-			
-			// 清除学校和专业选择
-			this.clearUserSelections();
 		},
 		methods: {
+			/**
+			 * @description 初始化学校和专业搜索引擎
+			 */
+			initSchoolAndMajorSearch() {
+				// 初始化本科学校数据状态
+				this.schoolStore = createDataModule(schoolData);
+				
+				// 初始化本科专业数据状态
+				this.majorStore = createDataModule(majorData);
+				
+				// 初始化搜索引擎
+				this.schoolStore.actions.initSearch({
+					commit: (mutation, payload) => {
+						this.schoolStore.mutations[mutation](this.schoolStore.state, payload);
+					}
+				});
+				
+				this.majorStore.actions.initSearch({
+					commit: (mutation, payload) => {
+						this.majorStore.mutations[mutation](this.majorStore.state, payload);
+					}
+				});
+				
+				// 初始填充数据
+				this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
+				this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
+			},
+			
 			/**
 			 * @description 从JSON文件加载大学数据
 			 */
 			loadUniversityData() {
 				try {
-					// 初始化学校数据
-					const universities = schoolData || [];
-					this.schoolList = universities;
-					
-					// 创建学校数据处理模块
-					this.schoolDataModule = createDataModule(universities);
-					this.schoolDataModule.mutations.initFuse(this.schoolDataModule.state);
-					
-					// 初始化专业数据
-					// 注意: 检查majorData的实际数据结构
-					console.log('专业数据类型:', typeof majorData);
-					console.log('专业数据示例:', Array.isArray(majorData) ? majorData.slice(0, 3) : majorData);
-					
-					const majors = Array.isArray(majorData) ? majorData : [];
-					
-					// 确保专业数据正确转换为对象格式
-					this.majorList = majors.map(majorName => ({
-						choiceItemId: String(majorName).replace(/\s+/g, '').toLowerCase(),
-						choiceItemContent: String(majorName)
-					}));
-					
-					
-					
-					
-					console.log('处理后的专业列表:', this.majorList.slice(0, 3));
-					
-					// 初始化专业数据处理模块 - 使用简单的专业名称字符串数组
-					const majorNames = this.majorList.map(item => item.choiceItemContent);
-					this.majorDataModule = createDataModule(majorNames);
-					this.majorDataModule.mutations.initFuse(this.majorDataModule.state);
-					
-					console.log('加载大学数据成功，共', universities.length, '所学校');
-					console.log('加载专业数据成功，共', this.majorList.length, '个专业');
+					// 初始化学校和专业搜索引擎
+					this.initSchoolAndMajorSearch();
+					console.log('加载大学数据成功');
 				} catch (error) {
 					console.error('加载数据失败:', error);
 					console.error('错误详情:', error.message, error.stack);
 					
+					// 设置默认学校列表
+					const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
 					
-					// 创建备用的数据处理模块
-					if (!this.schoolDataModule) {
-						this.schoolDataModule = createDataModule(this.schoolList);
-						this.schoolDataModule.mutations.initFuse(this.schoolDataModule.state);
-					}
+					// 设置学校列表
+					this.schoolList = defaultSchools;
 					
-					if (!this.majorDataModule) {
-						const majorNames = this.majorList.map(item => item.choiceItemContent);
-						this.majorDataModule = createDataModule(majorNames);
-						this.majorDataModule.mutations.initFuse(this.majorDataModule.state);
-					}
+					uni.showToast({
+						title: '加载大学数据失败，使用默认列表',
+						icon: 'none'
+					});
 				}
 			},
 			
@@ -315,38 +364,29 @@
 			 * @description 处理页面点击事件，关闭下拉框
 			 */
 			onPageClick() {
-				// 延迟关闭下拉框，避免与输入框焦点冲突
-				setTimeout(() => {
-					if (this.$refs && this.$refs.filterSection) {
-						this.$refs.filterSection.closeAllDropdowns();
-					}
-				}, 10);
+				this.closeAllDropdowns();
 			},
 			
 			/**
-			 * @description 获取用户信息
+			 * @description 关闭所有下拉框
 			 */
-			getUserInfo() {
-				try {
-					const userInfo = uni.getStorageSync('userInfo');
-					if (userInfo) {
-						let parsedInfo;
-						
-						if (typeof userInfo === 'object' && userInfo !== null) {
-							parsedInfo = userInfo;
-						} else {
-							try {
-								parsedInfo = JSON.parse(userInfo);
-							} catch (parseError) {
-								parsedInfo = { school: '', major: '' };
-							}
-						}
-						
-						this.userInfo = parsedInfo;
-						this.setUserSelectionIndexes();
+			closeAllDropdowns() {
+				const dropdowns = ['schoolDropdown', 'majorDropdown'];
+				dropdowns.forEach(dropdown => {
+					if (this.$refs && this.$refs[dropdown]) {
+						this.$refs[dropdown].closeDropdown && this.$refs[dropdown].closeDropdown();
 					}
-				} catch (e) {
-					this.userInfo = { school: '', major: '' };
+				});
+			},
+			
+			/**
+			 * @description 从Vuex同步用户信息
+			 */
+			syncUserInfoFromVuex() {
+				// 从Vuex获取用户信息
+				if (this.storeUserInfo) {
+					// 设置选中索引
+					this.setUserSelectionIndexes();
 				}
 			},
 			
@@ -354,134 +394,91 @@
 			 * @description 根据用户信息设置学校和专业索引
 			 */
 			setUserSelectionIndexes() {
-				if (!this.userInfo || typeof this.userInfo !== 'object') {
-					this.userInfo = { school: '', major: '' };
-					return;
-				}
+				if (!this.storeUserInfo) return;
 				
-				if (this.userInfo.school) {
-					const schoolIndex = this.schoolList.indexOf(this.userInfo.school);
+				if (this.storeUserInfo.school && this.schoolList.length > 0) {
+					const schoolIndex = this.schoolList.indexOf(this.storeUserInfo.school);
 					if (schoolIndex !== -1) {
 						this.schoolIndex = schoolIndex;
 					}
 				}
 				
-				if (this.userInfo.major) {
-					const majorIndex = this.majorList.findIndex(
-						item => item.choiceItemContent === this.userInfo.major
-					);
+				if (this.storeUserInfo.major && this.majorList.length > 0) {
+					const majorIndex = this.majorList.indexOf(this.storeUserInfo.major);
 					if (majorIndex !== -1) {
 						this.majorIndex = majorIndex;
 					}
 				}
+				
+				this.updateContextInfo();
 			},
 			
 			/**
-			 * @description 保存用户信息
+			 * @description 处理学校选择
+			 * @param {Number} index - 选择的索引
+			 * @param {String} school - 选择的学校名称
 			 */
-			saveUserInfo() {
-				try {
-					if (!this.userInfo || typeof this.userInfo !== 'object') {
-						this.userInfo = { school: '', major: '' };
-					}
-					uni.setStorageSync('userInfo', JSON.stringify(this.userInfo));
-				} catch (e) {
-					console.error('保存用户信息失败:', e);
-				}
+			handleSchoolSelect(index, school) {
+				this.schoolIndex = index;
+				
+				// 更新到Vuex
+				store.commit('user/aiChat/UPDATE_USER_SCHOOL', school);
+				
+				// 更新上下文信息
+				this.updateContextInfo();
 			},
 			
 			/**
-			 * @description 学校选择事件处理
-			 * @param {Number} position - 选择的索引位置
+			 * @description 处理专业选择
+			 * @param {Number} index - 选择的索引
+			 * @param {String} major - 选择的专业名称
 			 */
-			onSchoolClick(position) {
-				// 确保position是有效的索引
-				if (position >= 0 && position < this.schoolList.length) {
-					this.schoolIndex = position;
-					this.userInfo.school = this.currentSchool;
-					this.saveUserInfo();
-					this.updateContextInfo();
-				} else {
-					console.error('无效的学校选择位置:', position);
-				}
-			},
-			
-			/**
-			 * @description 专业选择事件处理
-			 * @param {Number} position - 选择的索引位置
-			 */
-			onMajorClick(position) {
-				// 确保position是有效的索引
-				if (position >= 0 && position < this.majorList.length) {
-					this.majorIndex = position;
-					this.userInfo.major = this.currentMajor;
-					this.saveUserInfo();
-					this.updateContextInfo();
-					
-					// 调试信息
-					console.log('已选择专业:', this.currentMajor);
-				} else {
-					console.error('无效的专业选择位置:', position);
-				}
+			handleMajorSelect(index, major) {
+				this.majorIndex = index;
+				
+				// 更新到Vuex
+				store.commit('user/aiChat/UPDATE_USER_MAJOR', major);
+				
+				// 更新上下文信息
+				this.updateContextInfo();
 			},
 			
 			/**
 			 * @description 处理学校搜索输入
 			 * @param {String} keyword - 搜索关键词
 			 */
-			onSchoolSearch(keyword) {
-				if (this.schoolDataModule) {
-					this.schoolDataModule.mutations.setFilterKeyword(
-						this.schoolDataModule.state, 
-						keyword
-					);
-					// 更新学校列表
-					this.schoolList = this.filteredSchoolList;
-				}
+			handleSchoolSearch(keyword) {
+				// 更新学校搜索关键词
+				this.schoolStore.actions.updateFilterKeyword({
+					commit: (mutation, payload) => {
+						this.schoolStore.mutations[mutation](this.schoolStore.state, payload);
+					}
+				}, keyword);
+				
+				// 获取过滤结果
+				this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
+				
+				// 调试信息
+				console.log(`学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
 			},
 			
 			/**
 			 * @description 处理专业搜索输入
 			 * @param {String} keyword - 搜索关键词
 			 */
-			onMajorSearch(keyword) {
-				try {
-					if (!this.majorDataModule) {
-						console.error('专业数据模块未初始化');
-						return;
+			handleMajorSearch(keyword) {
+				// 更新专业搜索关键词
+				this.majorStore.actions.updateFilterKeyword({
+					commit: (mutation, payload) => {
+						this.majorStore.mutations[mutation](this.majorStore.state, payload);
 					}
-					
-					// 设置搜索关键词
-					this.majorDataModule.mutations.setFilterKeyword(
-						this.majorDataModule.state, 
-						keyword
-					);
-					
-					// 获取筛选后的专业列表（字符串数组）
-					const filteredMajorNames = this.majorDataModule.getters.filteredData(
-						this.majorDataModule.state
-					);
-					
-					console.log('筛选后的专业数量:', filteredMajorNames.length);
-					
-					if (filteredMajorNames.length === 0 && keyword) {
-						// 如果没有找到匹配的，但用户输入了关键词，可以添加一个新的选项
-						this.majorList = [
-							{
-								choiceItemId: keyword.replace(/\s+/g, '').toLowerCase(),
-								choiceItemContent: keyword
-							}
-						];
-					} else {
-						// 将筛选后的专业名称转换回对象数组格式
-						this.majorList = filteredMajorNames.map(majorName => ({
-							choiceItemId: majorName.replace(/\s+/g, '').toLowerCase(),
-							choiceItemContent: majorName
-						}));
-					}
-				} catch (error) {
-					console.error('专业搜索处理错误:', error);
-				}
+				}, keyword);
+				
+				// 获取过滤结果
+				this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
+				
+				// 调试信息
+				console.log(`专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
 			},
 			
 			/**
@@ -522,7 +519,7 @@
 			 */
 			addSystemMessage(content) {
 				this.messages.push({
-					type: MESSAGE_TYPE.SYSTEM,
+					role: MESSAGE_TYPE.SYSTEM,
 					content: content,
 					status: MESSAGE_STATUS.SENT
 				});
@@ -561,14 +558,14 @@
 					// 新消息
 					userMessageIndex = this.messages.length;
 					this.messages.push({
-						type: MESSAGE_TYPE.USER,
+						role: MESSAGE_TYPE.USER,
 						content: messageContent,
 						status: MESSAGE_STATUS.SENT
 					});
 					
 					aiMessageIndex = this.messages.length;
 					this.messages.push({
-						type: MESSAGE_TYPE.AI,
+						role: MESSAGE_TYPE.AI,
 						content: '',
 						status: MESSAGE_STATUS.SENDING,
 						streaming: false
@@ -639,12 +636,12 @@
 			 * @param {Number} index - 消息索引
 			 */
 			retryMessage(index) {
-				if (index < 1 || this.messages[index].type !== MESSAGE_TYPE.AI) {
+				if (index < 1 || this.messages[index].role !== MESSAGE_TYPE.AI) {
 					return;
 				}
 				
 				const userMessage = this.messages[index - 1];
-				if (userMessage.type !== MESSAGE_TYPE.USER) {
+				if (userMessage.role !== MESSAGE_TYPE.USER) {
 					return;
 				}
 				
@@ -741,15 +738,18 @@
 						
 						// 构建消息列表
 						const messages = conversation.messages ? conversation.messages.map(msg => {
-							let type = MESSAGE_TYPE.AI;
-							if (msg.id.includes('msg-user')) {
-								type = MESSAGE_TYPE.USER;
-							} else if (msg.id.includes('msg-system')) {
-								type = MESSAGE_TYPE.SYSTEM;
+							let role = msg.role || MESSAGE_TYPE.AI;
+							
+							if (!msg.role && msg.id) {
+								if (msg.id.includes('msg-user')) {
+									role = MESSAGE_TYPE.USER;
+								} else if (msg.id.includes('msg-system')) {
+									role = MESSAGE_TYPE.SYSTEM;
+								}
 							}
 							
 							return {
-								type: type,
+								role: role,
 								content: msg.content,
 								status: MESSAGE_STATUS.SENT,
 								streaming: false
@@ -826,7 +826,7 @@
 			saveChatHistory() {
 				if (!this.currentChatId || this.messages.length === 0) return;
 				
-				const firstUserMessage = this.messages.find(msg => msg.type === MESSAGE_TYPE.USER);
+				const firstUserMessage = this.messages.find(msg => msg.role === MESSAGE_TYPE.USER);
 				const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
 				
 				const chatData = {
@@ -837,7 +837,8 @@
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
 					messages: this.messages.map((msg, index) => ({
-						id: `msg-${msg.type === MESSAGE_TYPE.USER ? 'user' : 'ai'}-${this.currentChatId}-${index}`,
+						id: `msg-${msg.role === MESSAGE_TYPE.USER ? 'user' : 'ai'}-${this.currentChatId}-${index}`,
+						role: msg.role,
 						content: msg.content,
 						timestamp: new Date().toISOString()
 					}))
@@ -893,29 +894,6 @@
 						}
 					}
 				});
-			},
-			
-			/**
-			 * @description 清除用户选择的学校和专业信息
-			 */
-			clearUserSelections() {
-				// 重置选择索引
-				this.schoolIndex = -1;
-				this.majorIndex = -1;
-				
-				// 清空用户信息
-				this.userInfo = {
-					school: '',
-					major: ''
-				};
-				
-				// 更新到本地存储
-				this.saveUserInfo();
-				
-				// 更新上下文信息
-				this.updateContextInfo();
-				
-				console.log('已清除用户的学校和专业选择');
 			}
 		}
 	}
@@ -1004,11 +982,62 @@
 		overflow-y: auto; /* 允许内容垂直滚动 */
 	}
 	
-	/* 消息列表区域样式 */
-	.message-list-container {
+	/* 筛选区域样式 */
+	.filter-section {
+		background-color: #fff;
+		border-radius: 15rpx;
+		margin: 20rpx 0;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+	}
+	
+	.choice-wrapper {
 		flex: 1;
-		padding: 20rpx 0;
-		overflow-y: auto;
+		box-sizing: border-box;
+		width: calc(100% - 150rpx); /* 考虑标签宽度和间距 */
+		padding-right: 10rpx; /* 防止右侧超出边界 */
+	}
+	
+	.filter-title text {
+		font-size: 28rpx;
+		color: #333;
+		font-weight: 500;
+	}
+	
+	.filter-content {
+		display: flex;
+		flex-direction: column;
+		gap: 20rpx;
+	}
+	
+	.filter-item {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		box-sizing: border-box;
+		width: 100%;
+	}
+	
+	.full-width {
+		width: 100%;
+	}
+	
+	.filter-label {
+		font-size: 28rpx;
+		color: #333;
+		white-space: nowrap;
+		margin-right: 10rpx;
+		width: 140rpx; /* 改为固定宽度，不用min-width */
+		padding-left: 10rpx;
+		text-align: left;
+		box-sizing: border-box;
+	}
+	
+	.filter-select {
+		width: 100%;
+		border: 1px solid #e0e0e0;
+		border-radius: 8rpx;
+		box-sizing: border-box;
 	}
 	
 	/* 导航栏样式 */

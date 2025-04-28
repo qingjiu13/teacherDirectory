@@ -1,6 +1,6 @@
 <template>
-	<view class="message-item" :class="[type, {'streaming': streaming}]">
-		<view class="message-header" v-if="type === 'ai'">
+	<view class="message-item" :class="[messageType, {'streaming': streaming}]">
+		<view class="message-header" v-if="messageType === 'ai'">
 			<text class="ai-title">{{aiTitle}}</text>
 		</view>
 		<view class="message-content">
@@ -21,7 +21,7 @@
 <script>
 	/**
 	 * @description 消息项组件
-	 * @property {String} type - 消息类型，可能的值：user(用户), ai(AI), system(系统)
+	 * @property {String} role - 消息角色，可能的值：user(用户), AI(人工智能), system(系统)
 	 * @property {String} content - 消息内容
 	 * @property {String} status - 消息状态，可能的值：sending(发送中), sent(已发送), error(错误)
 	 * @property {Boolean} streaming - 是否正在流式接收
@@ -31,10 +31,10 @@
 	export default {
 		name: "MessageItem",
 		props: {
-			type: {
+			role: {
 				type: String,
 				default: 'user',
-				validator: (value) => ['user', 'ai', 'system'].includes(value)
+				validator: (value) => ['user', 'AI', 'system'].includes(value)
 			},
 			content: {
 				type: String,
@@ -52,6 +52,16 @@
 			aiTitle: {
 				type: String,
 				default: '研师录AI'
+			}
+		},
+		computed: {
+			/**
+			 * @description 获取消息类型（小写），用于CSS类名
+			 * @returns {String} 消息类型
+			 */
+			messageType() {
+				// 将AI角色转换为小写ai用于CSS类名
+				return this.role === 'AI' ? 'ai' : this.role;
 			}
 		},
 		methods: {
