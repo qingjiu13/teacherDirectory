@@ -11,7 +11,7 @@ const _sfc_main = common_vendor.defineComponent({
       dropdownLeft: 0,
       dropdownWidth: 0,
       displayContent: this.defaultText,
-      searchKeyword: "",
+      searchKeyword: this.defaultSearchValue || "",
       searchTimer: null,
       isFocused: false,
       lastSelectedValue: null,
@@ -83,6 +83,11 @@ const _sfc_main = common_vendor.defineComponent({
     enablePagination: {
       type: Boolean,
       default: true
+    },
+    // 新增属性：默认搜索值，当有值时直接显示但保持搜索功能
+    defaultSearchValue: {
+      type: String,
+      default: ""
     }
   }),
   created() {
@@ -129,7 +134,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.displayContent = this.defaultText;
         this.lastSelectedValue = null;
         if (this.mode === "search") {
-          this.searchKeyword = "";
+          this.searchKeyword = this.defaultSearchValue || "";
         }
         if (this.componentType === "graduateSchool") {
           this.$emit("linkage-change", null);
@@ -144,7 +149,7 @@ const _sfc_main = common_vendor.defineComponent({
     // 监听父级选择变化，适用于联动模式
     parentValue(newVal = null) {
       if (this.isLinkage && this.componentType === "graduateMajor") {
-        this.searchKeyword = "";
+        this.searchKeyword = this.defaultSearchValue || "";
         this.displayContent = this.defaultText;
         this.$emit("reset-selection");
       }
@@ -156,6 +161,15 @@ const _sfc_main = common_vendor.defineComponent({
     // 监听搜索关键词变化，重置分页
     searchKeyword() {
       this.resetPagination();
+    },
+    // 监听defaultSearchValue变化
+    defaultSearchValue(newVal = null) {
+      if ((this.choiceIndex < 0 || this.choiceIndex >= this.choiceList.length) && !this.searchKeyword) {
+        this.searchKeyword = newVal || "";
+        if (newVal && this.isShowChoice) {
+          this.onSearchInput(new UTSJSONObject({}));
+        }
+      }
     }
   },
   methods: new UTSJSONObject({
@@ -275,6 +289,10 @@ const _sfc_main = common_vendor.defineComponent({
             _this.dropdownLeft = data.left;
             _this.dropdownWidth = data.width;
             _this.isShowChoice = true;
+            if (_this.defaultSearchValue && !_this.searchKeyword) {
+              _this.searchKeyword = _this.defaultSearchValue;
+              _this.onSearchInput(event);
+            }
           }
         }).exec();
       }
@@ -299,7 +317,7 @@ const _sfc_main = common_vendor.defineComponent({
         clearTimeout(_this.searchTimer);
       }
       _this.searchTimer = setTimeout(() => {
-        common_vendor.index.__f__("log", "at components/combobox/combobox.vue:403", "发送搜索请求:", _this.searchKeyword);
+        common_vendor.index.__f__("log", "at components/combobox/combobox.vue:426", "发送搜索请求:", _this.searchKeyword);
         _this.$emit("search-input", _this.searchKeyword);
         if (!_this.isShowChoice) {
           _this.btnShowHideClick(event);
@@ -331,7 +349,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @public 供外部调用
      */
     reset() {
-      this.searchKeyword = "";
+      this.searchKeyword = this.defaultSearchValue || "";
       this.displayContent = this.defaultText;
       this.isShowChoice = false;
       this.lastSelectedValue = null;

@@ -66,7 +66,7 @@
                 dropdownLeft: 0,
                 dropdownWidth: 0,
                 displayContent: this.defaultText, // 使用传入的默认文本
-                searchKeyword: '', // 搜索关键词
+                searchKeyword: this.defaultSearchValue || '', // 初始化搜索关键词，优先使用defaultSearchValue
                 searchTimer: null, // 防抖定时器
                 isFocused: false, // 是否处于聚焦状态
                 lastSelectedValue: null, // 上次选中的值，用于检测变化
@@ -132,6 +132,11 @@
             enablePagination: {
                 type: Boolean,
                 default: true
+            },
+            // 新增属性：默认搜索值，当有值时直接显示但保持搜索功能
+            defaultSearchValue: {
+                type: String,
+                default: ''
             }
         },
         created() {
@@ -194,7 +199,7 @@
                     this.displayContent = this.defaultText;
                     this.lastSelectedValue = null;
                     if (this.mode === 'search') {
-                        this.searchKeyword = '';
+                        this.searchKeyword = this.defaultSearchValue || '';
                     }
                     
                     // 如果是联动模式的父级组件，触发联动事件（清空）
@@ -213,7 +218,7 @@
             parentValue(newVal) {
                 if (this.isLinkage && this.componentType === 'graduateMajor') {
                     // 父级值变化，清空当前选择
-                    this.searchKeyword = '';
+                    this.searchKeyword = this.defaultSearchValue || '';
                     this.displayContent = this.defaultText;
                     this.$emit('reset-selection');
                 }
@@ -226,6 +231,18 @@
             // 监听搜索关键词变化，重置分页
             searchKeyword() {
                 this.resetPagination();
+            },
+            // 监听defaultSearchValue变化
+            defaultSearchValue(newVal) {
+                // 仅当没有选中项或搜索关键词为空时更新搜索关键词
+                if ((this.choiceIndex < 0 || this.choiceIndex >= this.choiceList.length) && !this.searchKeyword) {
+                    this.searchKeyword = newVal || '';
+                    
+                    // 如果有新的默认值，并且当前下拉列表已打开，则触发一次搜索
+                    if (newVal && this.isShowChoice) {
+                        this.onSearchInput({});
+                    }
+                }
             }
         },
         methods: {
@@ -370,6 +387,12 @@
                             _this.dropdownLeft = data.left;
                             _this.dropdownWidth = data.width;
                             _this.isShowChoice = true;
+                            
+                            // 如果有默认搜索值并且当前没有搜索关键词，则立即触发一次搜索
+                            if (_this.defaultSearchValue && !_this.searchKeyword) {
+                                _this.searchKeyword = _this.defaultSearchValue;
+                                _this.onSearchInput(event);
+                            }
                         }
                     }).exec();
                 }
@@ -442,7 +465,7 @@
              * @public 供外部调用
              */
             reset() {
-                this.searchKeyword = '';
+                this.searchKeyword = this.defaultSearchValue || '';
                 this.displayContent = this.defaultText;
                 this.isShowChoice = false;
                 this.lastSelectedValue = null;

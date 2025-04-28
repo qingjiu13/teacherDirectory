@@ -363,3 +363,42 @@
     max-width: 80px;
 }
   
+  /* 非专业课选项卡样式 */
+.nonpro-tabs.data-v-d5601611 {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+.nonpro-tabs .tab-item.data-v-d5601611 {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #666;
+    position: relative;
+}
+.nonpro-tabs .tab-item.active.data-v-d5601611 {
+    color: #007AFF;
+    font-weight: 500;
+}
+.nonpro-tabs .tab-item.active.data-v-d5601611::after {
+    content: '';
+    position: absolute;
+    left: 25%;
+    bottom: -10px;
+    width: 50%;
+    height: 3px;
+    background-color: #007AFF;
+    border-radius: 3px;
+}
+.filter-label.data-v-d5601611 {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 10px;
+    display: block;
+}
+  

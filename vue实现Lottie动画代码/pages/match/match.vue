@@ -48,6 +48,7 @@
                 :choiceList="targetSchoolList"
                 :defaultText="'请选择学校'"
                 mode="search"
+                :defaultSearchValue="filterSummary.school"
                 searchPlaceholder="输入学校名称"
                 @onChoiceClick="handleTargetSchoolSelect"
                 @search-input="handleTargetSchoolSearch"
@@ -81,6 +82,7 @@
                 :isLinkage="true"
                 :defaultText="formData.targetSchool ? '请选择专业' : '请先选择学校'"
                 mode="search"
+                :defaultSearchValue="filterSummary.professional"
                 searchPlaceholder="输入专业名称"
                 @onChoiceClick="handleTargetMajorSelect"
                 @search-input="handleTargetMajorSearch"
@@ -104,58 +106,31 @@
             <text class="popup-title">非专业课</text>
           </view>
           <view class="popup-content">
-            <!-- 考研数学 -->
-            <view class="form-row">
-              <text class="filter-label">考研数学</text>
+            <!-- 水平排列四个选项 -->
+            <view class="nonpro-tabs">
+              <view
+                v-for="tab in nonProTabs"
+                :key="tab.key"
+                :class="['tab-item', activeNonProTab === tab.key ? 'active' : '']"
+                @click="selectNonProTab(tab.key)"
+              >
+                {{ tab.label }}
+              </view>
+            </view>
+
+            <!-- 选中的内容区域 -->
+            <view v-if="activeNonProTab" class="form-row">
+              <text class="filter-label">{{ tabLabelMap[activeNonProTab] }}</text>
               <ChoiceSelected
                 class="form-select"
-                :choiceIndex="formData.mathIndex"
-                :choiceList="mathOptions"
-                defaultText="请选择考研数学"
+                :choiceIndex="getChoiceIndex(activeNonProTab)"
+                :choiceList="getChoiceList(activeNonProTab)"
+                :defaultText="`请选择${tabLabelMap[activeNonProTab]}`"
                 mode="select"
-                @onChoiceClick="handleMathSelect"
+                @onChoiceClick="(index) => handleChoiceSelect(activeNonProTab, index)"
               />
             </view>
-            
-            <!-- 考研英语 -->
-            <view class="form-row">
-              <text class="filter-label">考研英语</text>
-              <ChoiceSelected
-                class="form-select"
-                :choiceIndex="formData.englishIndex"
-                :choiceList="englishOptions"
-                defaultText="请选择考研英语"
-                mode="select"
-                @onChoiceClick="handleEnglishSelect"
-              />
-            </view>
-            
-            <!-- 考研政治 -->
-            <view class="form-row">
-              <text class="filter-label">考研政治</text>
-              <ChoiceSelected
-                class="form-select"
-                :choiceIndex="formData.politicsIndex"
-                :choiceList="politicsOptions"
-                defaultText="请选择考研政治"
-                mode="select"
-                @onChoiceClick="handlePoliticsSelect"
-              />
-            </view>
-            
-            <!-- 其他 -->
-            <view class="form-row">
-              <text class="filter-label">其他</text>
-              <ChoiceSelected
-                class="form-select"
-                :choiceIndex="formData.otherIndex"
-                :choiceList="otherOptions"
-                defaultText="请选择其他考试"
-                mode="select"
-                @onChoiceClick="handleOtherSelect"
-              />
-            </view>
-            
+
             <!-- 底部按钮 -->
             <view class="popup-buttons">
               <button class="popup-button reset-button" @click="resetNonProfessionalFilter">重置</button>
@@ -254,6 +229,26 @@
   // 加载状态
   const isLoading = ref(false)
   
+  // 非专业课相关配置
+  // 当前选择的非专业课Tab（只允许一个）
+  const activeNonProTab = ref('')
+
+  // 非专业课四个tab选项
+  const nonProTabs = [
+    { key: 'math', label: '数学' },
+    { key: 'english', label: '英语' },
+    { key: 'politics', label: '政治' },
+    { key: 'other', label: '其他' }
+  ]
+
+  // tab key到中文描述的映射
+  const tabLabelMap = {
+    math: '考研数学',
+    english: '考研英语',
+    politics: '考研政治',
+    other: '其他科目'
+  }
+
   /**
    * 从Vuex获取匹配的老师列表
    */
@@ -370,36 +365,30 @@
         // 非专业课筛选同步
         const nonProfList = store.state.user.match.nonProfessionalList
         
-        // 同步数学科目
+        // 重置所有索引
+        formData.mathIndex = -1
+        formData.englishIndex = -1
+        formData.politicsIndex = -1
+        formData.otherIndex = -1
+        activeNonProTab.value = ''
+        
+        // 找出哪个字段有值，并设置对应的tab和索引
         if (nonProfList.math) {
           const mathIndex = mathOptions.value.findIndex(item => item === nonProfList.math)
           formData.mathIndex = mathIndex >= 0 ? mathIndex : -1
-        } else {
-          formData.mathIndex = -1
-        }
-        
-        // 同步英语科目
-        if (nonProfList.english) {
+          activeNonProTab.value = 'math'
+        } else if (nonProfList.english) {
           const englishIndex = englishOptions.value.findIndex(item => item === nonProfList.english)
           formData.englishIndex = englishIndex >= 0 ? englishIndex : -1
-        } else {
-          formData.englishIndex = -1
-        }
-        
-        // 同步政治科目
-        if (nonProfList.politics) {
+          activeNonProTab.value = 'english'
+        } else if (nonProfList.politics) {
           const politicsIndex = politicsOptions.value.findIndex(item => item === nonProfList.politics)
           formData.politicsIndex = politicsIndex >= 0 ? politicsIndex : -1
-        } else {
-          formData.politicsIndex = -1
-        }
-        
-        // 同步其他科目
-        if (nonProfList.other) {
+          activeNonProTab.value = 'politics'
+        } else if (nonProfList.other) {
           const otherIndex = otherOptions.value.findIndex(item => item === nonProfList.other)
           formData.otherIndex = otherIndex >= 0 ? otherIndex : -1
-        } else {
-          formData.otherIndex = -1
+          activeNonProTab.value = 'other'
         }
         break
         
@@ -751,6 +740,9 @@
       other: ''
     })
     
+    // 重置当前选中的tab
+    activeNonProTab.value = ''
+    
     // 应用筛选
     applyFilters()
   }
@@ -791,6 +783,7 @@
   const confirmNonProfessionalFilter = () => {
     // 关闭弹窗
     showPopup.value = false
+    currentOption.value = ''
   }
   
   /**
@@ -917,6 +910,124 @@
   const resetMajorSelection = () => {
     formData.targetMajorIndex = -1
     formData.targetMajor = ''
+  }
+  
+  /**
+   * 选择非专业课Tab
+   * @param {String} key - 选项key
+   */
+  const selectNonProTab = (key) => {
+    activeNonProTab.value = key
+  }
+  
+  /**
+   * 获取当前tab对应的选项列表
+   * @param {String} key - 选项key
+   * @returns {Array} 选项列表
+   */
+  const getChoiceList = (key) => {
+    switch (key) {
+      case 'math':
+        return mathOptions.value
+      case 'english':
+        return englishOptions.value
+      case 'politics':
+        return politicsOptions.value
+      case 'other':
+        return otherOptions.value
+      default:
+        return []
+    }
+  }
+  
+  /**
+   * 获取当前tab对应的选中索引
+   * @param {String} key - 选项key
+   * @returns {Number} 选中索引
+   */
+  const getChoiceIndex = (key) => {
+    switch (key) {
+      case 'math':
+        return formData.mathIndex
+      case 'english':
+        return formData.englishIndex
+      case 'politics':
+        return formData.politicsIndex
+      case 'other':
+        return formData.otherIndex
+      default:
+        return -1
+    }
+  }
+  
+  /**
+   * 处理下拉框选项选择
+   * @param {String} key - 选项key
+   * @param {Number} index - 选中索引
+   */
+  const handleChoiceSelect = (key, index) => {
+    // 先清空所有非专业课选择
+    formData.mathIndex = -1
+    formData.englishIndex = -1
+    formData.politicsIndex = -1
+    formData.otherIndex = -1
+    
+    // 只设置当前选中的值
+    switch (key) {
+      case 'math':
+        formData.mathIndex = index
+        // 更新Vuex状态
+        store.dispatch('user/match/updateNonProfessionalList', {
+          math: index >= 0 ? mathOptions.value[index] : '',
+          english: '',
+          politics: '',
+          other: ''
+        })
+        break
+      case 'english':
+        formData.englishIndex = index
+        // 更新Vuex状态
+        store.dispatch('user/match/updateNonProfessionalList', {
+          math: '',
+          english: index >= 0 ? englishOptions.value[index] : '',
+          politics: '',
+          other: ''
+        })
+        break
+      case 'politics':
+        formData.politicsIndex = index
+        // 更新Vuex状态
+        store.dispatch('user/match/updateNonProfessionalList', {
+          math: '',
+          english: '',
+          politics: index >= 0 ? politicsOptions.value[index] : '',
+          other: ''
+        })
+        break
+      case 'other':
+        formData.otherIndex = index
+        // 更新Vuex状态
+        store.dispatch('user/match/updateNonProfessionalList', {
+          math: '',
+          english: '',
+          politics: '',
+          other: index >= 0 ? otherOptions.value[index] : ''
+        })
+        break
+    }
+    
+    // 如果选择了非专业课，则清空专业课选择（互斥逻辑）
+    if (index >= 0) {
+      // 清空专业课相关数据
+      formData.targetMajorIndex = -1
+      formData.targetMajor = ''
+      
+      // 清空专业课筛选状态 - 使用Vuex的actions重置专业课筛选
+      store.dispatch('user/match/updateProfessionalList', '')
+    }
+    
+    // 应用筛选
+    applyFilters()
   }
   
   // 在组件挂载时初始化数据
@@ -1351,6 +1462,49 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 80px;
+  }
+  
+  /* 非专业课选项卡样式 */
+  .nonpro-tabs {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+  }
+  
+  .nonpro-tabs .tab-item {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #666;
+    position: relative;
+  }
+  
+  .nonpro-tabs .tab-item.active {
+    color: #007AFF;
+    font-weight: 500;
+  }
+  
+  .nonpro-tabs .tab-item.active::after {
+    content: '';
+    position: absolute;
+    left: 25%;
+    bottom: -10px;
+    width: 50%;
+    height: 3px;
+    background-color: #007AFF;
+    border-radius: 3px;
+  }
+  
+  .filter-label {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 10px;
+    display: block;
   }
   </style>
   
