@@ -44,45 +44,48 @@
         <input class="form-input" type="text" v-model="formData.phone" placeholder="请输入手机号" />
       </view>
       
-      <!-- School - 使用单输入筛选框 -->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">就读学校</text>
-          <text class="optional-tag">(选填)</text>
+      <!-- 普通学校和专业筛选框 - 仅学生显示 -->
+      <block v-if="userRole === '学生'">
+        <!-- School - 使用单输入筛选框 -->
+        <view class="form-row">
+          <view class="label-container">
+            <text class="form-label">就读学校</text>
+            <text class="optional-tag">(选填)</text>
+          </view>
+          <ChoiceSelected
+            class="form-select"
+            componentType="undergraduate"
+            :choiceIndex="formData.schoolIndex"
+            :choiceList="schoolList"
+            defaultText="请选择学校"
+            mode="search"
+            searchPlaceholder="输入学校名称"
+            @onChoiceClick="handleSchoolSelect"
+            @search-input="handleSchoolSearch"
+            ref="schoolDropdown"
+          />
         </view>
-        <ChoiceSelected
-          class="form-select"
-          componentType="undergraduate"
-          :choiceIndex="formData.schoolIndex"
-          :choiceList="schoolList"
-          defaultText="请选择学校"
-          mode="search"
-          searchPlaceholder="输入学校名称"
-          @onChoiceClick="handleSchoolSelect"
-          @search-input="handleSchoolSearch"
-          ref="schoolDropdown"
-        />
-      </view>
-      
-      <!-- Major - 使用单输入筛选框 -->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">就读专业</text>
-          <text class="optional-tag">(选填)</text>
+        
+        <!-- Major - 使用单输入筛选框 -->
+        <view class="form-row">
+          <view class="label-container">
+            <text class="form-label">就读专业</text>
+            <text class="optional-tag">(选填)</text>
+          </view>
+          <ChoiceSelected
+            class="form-select"
+            componentType="undergraduate"
+            :choiceIndex="formData.majorIndex"
+            :choiceList="majorList"
+            defaultText="请选择专业"
+            mode="search"
+            searchPlaceholder="输入专业名称"
+            @onChoiceClick="handleMajorSelect"
+            @search-input="handleMajorSearch"
+            ref="majorDropdown"
+          />
         </view>
-        <ChoiceSelected
-          class="form-select"
-          componentType="undergraduate"
-          :choiceIndex="formData.majorIndex"
-          :choiceList="majorList"
-          defaultText="请选择专业"
-          mode="search"
-          searchPlaceholder="输入专业名称"
-          @onChoiceClick="handleMajorSelect"
-          @search-input="handleMajorSearch"
-          ref="majorDropdown"
-        />
-      </view>
+      </block>
 
       <!-- Grade -->
       <view class="form-row">
@@ -100,12 +103,12 @@
         />
       </view>
       
-      <!-- 学生特有字段：目标学校和目标专业 - 使用联合输入筛选框 -->
-      <block v-if="userRole === '学生'">
-          <!-- Target School - 仅学生显示 -->
+      <!-- 目标学校和目标专业筛选框 - 学生和老师都显示，但标签有区别 -->
+      <block>
+          <!-- Target School -->
           <view class="form-row">
             <view class="label-container">
-              <text class="form-label">目标学校</text>
+              <text class="form-label">{{ userRole === '学生' ? '目标学校' : '就读学校' }}</text>
               <text class="optional-tag">(选填)</text>
             </view>
             <ChoiceSelected
@@ -113,9 +116,9 @@
               componentType="graduateSchool"
               :choiceIndex="formData.targetSchoolIndex"
               :choiceList="targetSchoolList"
-              defaultText="请选择目标学校"
+              :defaultText="userRole === '学生' ? '请选择目标学校' : '请选择学校'"
               mode="search"
-              searchPlaceholder="输入目标学校名称"
+              :searchPlaceholder="userRole === '学生' ? '输入目标学校名称' : '输入学校名称'"
               @onChoiceClick="handleTargetSchoolSelect"
               @search-input="handleTargetSchoolSearch"
               @linkage-change="handleSchoolChange"
@@ -125,10 +128,10 @@
             />
           </view>
           
-          <!-- Target Major - 仅学生显示 - 级联选择框 -->
+          <!-- Target Major -->
           <view class="form-row">
             <view class="label-container">
-              <text class="form-label">目标专业</text>
+              <text class="form-label">{{ userRole === '学生' ? '目标专业' : '就读专业' }}</text>
               <text class="optional-tag">(选填)</text>
             </view>
             <ChoiceSelected
@@ -138,9 +141,9 @@
               :choiceList="targetMajorList"
               :parentValue="formData.targetSchool"
               :isLinkage="true"
-              :defaultText="formData.targetSchool ? '请选择专业' : '请先选择学校'"
+              :defaultText="formData.targetSchool ? (userRole === '学生' ? '请选择专业' : '请选择专业') : '请先选择学校'"
               mode="search"
-              searchPlaceholder="输入目标专业名称"
+              :searchPlaceholder="userRole === '学生' ? '输入目标专业名称' : '输入专业名称'"
               @onChoiceClick="handleTargetMajorSelect"
               @search-input="handleTargetMajorSearch"
               @reset-selection="resetMajorSelection"
@@ -182,7 +185,10 @@ import ChoiceSelected from '../../components/combobox/combobox'
 import store from '../../store'
 import { Navigator } from '../../router/Router';
 import GraduateStore from '../../components/combobox/graduate_school_major.js';
-import UndergraduateStore from '../../components/combobox/undergraduate_school.js';
+import createDataModule from '../../components/combobox/undergraduate.js';
+import schoolData from '../../static/data/2886所大学.json';
+import majorData from '../../static/data/本科专业.json';
+
 
 export default {
   onPageScroll() {
@@ -194,7 +200,7 @@ export default {
   },
   onLoad() {
     this.loadUniversityData();
-    this.initSchoolSearch();
+    this.initSchoolAndMajorSearch();
   },
   data() {
     return {
@@ -214,21 +220,14 @@ export default {
       majorList: [], // 普通专业列表
       targetSchoolList: [], // 目标学校列表（考研）
       targetMajorList: [], // 目标专业列表（考研）
-      // 存储原始完整的学校和专业列表，用于搜索恢复
-      originalMajorList: [
-        '计算机科学',
-        '电子工程',
-        '机械工程',
-        '经济学',
-        '法学',
-      ],
       allGradeList: ['大一', '大二', '大三', '大四', '研一', '研二', '研三'],
       userRole: '学生',  // 默认值为学生
       showAgreementModal: false, // 控制协议浮窗显示
       pendingUserInfo: null, // 暂存待提交的用户信息
       // 分离筛选器状态
       graduateStore: null, // 研究生数据状态
-      undergraduateStore: null, // 本科生数据状态
+      schoolStore: null, // 本科学校数据状态
+      majorStore: null, // 本科专业数据状态
     };
   },
   computed: {
@@ -266,24 +265,37 @@ export default {
      * @returns {Array} 过滤后的本科学校列表
      */
     filteredSchoolList() {
-      if (!this.undergraduateStore) return [];
-      return UndergraduateStore.getters.filteredSchools(this.undergraduateStore);
+      if (!this.schoolStore) return [];
+      return this.schoolStore.getters.filteredData(this.schoolStore.state);
     }
   },
   methods: {
     /**
-     * @description 初始化学校搜索引擎
+     * @description 初始化学校和专业搜索引擎
      */
-    initSchoolSearch() {
-      // 初始化本科生数据状态
-      this.undergraduateStore = JSON.parse(JSON.stringify(UndergraduateStore.state));
+    initSchoolAndMajorSearch() {
+      // 初始化本科学校数据状态
+      this.schoolStore = createDataModule(schoolData);
+      
+      // 初始化本科专业数据状态
+      this.majorStore = createDataModule(majorData);
       
       // 初始化搜索引擎
-      UndergraduateStore.actions.initSearch({
+      this.schoolStore.actions.initSearch({
         commit: (mutation, payload) => {
-          UndergraduateStore.mutations[mutation](this.undergraduateStore, payload);
+          this.schoolStore.mutations[mutation](this.schoolStore.state, payload);
         }
       });
+      
+      this.majorStore.actions.initSearch({
+        commit: (mutation, payload) => {
+          this.majorStore.mutations[mutation](this.majorStore.state, payload);
+        }
+      });
+      
+      // 初始填充数据
+      this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
+      this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
     },
 
     /**
@@ -348,14 +360,17 @@ export default {
      */
     handleSchoolSearch(keyword) {
       // 更新学校搜索关键词
-      UndergraduateStore.actions.updateFilterKeyword({
+      this.schoolStore.actions.updateFilterKeyword({
         commit: (mutation, payload) => {
-          UndergraduateStore.mutations[mutation](this.undergraduateStore, payload);
+          this.schoolStore.mutations[mutation](this.schoolStore.state, payload);
         }
       }, keyword);
       
-      // 直接从计算属性获取结果
-      this.schoolList = this.filteredSchoolList;
+      // 获取过滤结果
+      this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
+      
+      // 调试信息
+      console.log(`学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
     },
     
     /**
@@ -363,15 +378,18 @@ export default {
      * @param {String} keyword - 搜索关键词
      */
     handleMajorSearch(keyword) {
-      if (keyword === '') {
-        this.majorList = [...this.originalMajorList];
-        return;
-      }
+      // 更新专业搜索关键词
+      this.majorStore.actions.updateFilterKeyword({
+        commit: (mutation, payload) => {
+          this.majorStore.mutations[mutation](this.majorStore.state, payload);
+        }
+      }, keyword);
       
-      // 简单搜索实现
-      this.majorList = this.originalMajorList.filter(major => 
-        major.toLowerCase().includes(keyword.toLowerCase())
-      );
+      // 获取过滤结果
+      this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
+      
+      // 调试信息
+      console.log(`专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
     },
     
     /**
@@ -519,9 +537,6 @@ export default {
       try {
         // 初始化考研数据（目标学校和专业）
         this.initGraduateData(); 
-        
-        // 从本科学校列表加载
-        this.schoolList = UndergraduateStore.state.schools.slice(0, 20); // 初始只显示前20所，后续通过搜索获取更多
         
         console.log('成功加载学校数据');
       } catch (error) {
@@ -762,17 +777,14 @@ export default {
         });
       }
     }
+    
+    // 重新初始化本科学校和专业搜索引擎
+    if (this.schoolStore && this.majorStore) {
+      this.initSchoolAndMajorSearch();
+    }
   },
   watch: {
-    // 监听过滤后的学校列表变化
-    filteredSchoolList: {
-      handler(newVal) {
-        if (newVal && newVal.length > 0) {
-          this.schoolList = newVal;
-        }
-      },
-      immediate: false
-    }
+    // 不再需要监听filteredSchoolList计算属性
   }
 };
 </script>

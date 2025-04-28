@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 require("../../store/index.js");
-const components_combobox_undergraduate_school = require("../../components/combobox/undergraduate_school.js");
+const _2886___ = require("../../2886所大学.js");
 const HistorySidebar = () => "../../components/ai-chat/HistorySidebar.js";
 const MessageList = () => "../../components/ai-chat/MessageList.js";
 const FilterSection = () => "../../components/ai-chat/FilterSection.js";
@@ -160,7 +160,7 @@ const _sfc_main = common_vendor.defineComponent({
      */
     loadUniversityData() {
       try {
-        this.schoolList = components_combobox_undergraduate_school.schoolList;
+        this.schoolList = _2886___.schoolData;
       } catch (error) {
         common_vendor.index.__f__("error", "at pages/AI/AI.vue:264", "加载大学数据失败:", error);
         this.schoolList = ["北京大学", "清华大学", "复旦大学"];
