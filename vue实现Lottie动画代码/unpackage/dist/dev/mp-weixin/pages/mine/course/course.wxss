@@ -2,55 +2,70 @@
 :host{display:flex;flex-direction:column}
 
 .container {
-		padding: 20rpx;
+	padding: 20rpx;
 }
-	/* 移除.header相关样式 */
-.header {
-		margin-bottom: 30rpx;
+.tabs {
+	display: flex;
+	justify-content: space-around;
+	margin-bottom: 20rpx;
 }
-.title {
-		font-size: 36rpx;
-		font-weight: bold;
+.tab-item {
+	padding: 10rpx 20rpx;
+	border-bottom: 2rpx solid transparent;
+	color: #666;
+}
+.tab-item.active {
+	color: #007AFF;
+	border-bottom: 2rpx solid #007AFF;
+}
+.search-bar {
+	margin-bottom: 20rpx;
+}
+.search-bar input {
+	width: 100%;
+	padding: 10rpx;
+	border: 1rpx solid #ccc;
+	border-radius: 10rpx;
 }
 .course-list {
-		height: calc(100vh - 100rpx);
+	height: calc(100vh - 300rpx);
 }
 .course-item {
-		display: flex;
-		align-items: center;
-		padding: 20rpx;
-		margin-bottom: 20rpx;
-		background-color: #fff;
-		border-radius: 10rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+	display: flex;
+	align-items: center;
+	padding: 20rpx;
+	margin-bottom: 20rpx;
+	background-color: #fff;
+	border-radius: 10rpx;
+	box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
 }
 .course-img {
-		width: 150rpx;
-		height: 150rpx;
-		border-radius: 10rpx;
-		margin-right: 20rpx;
+	width: 150rpx;
+	height: 150rpx;
+	border-radius: 10rpx;
+	margin-right: 20rpx;
 }
 .course-info {
-		flex: 1;
+	flex: 1;
 }
 .course-name {
-		font-size: 32rpx;
-		font-weight: bold;
-		display: block;
-		margin-bottom: 10rpx;
+	font-size: 32rpx;
+	font-weight: bold;
+	display: block;
+	margin-bottom: 10rpx;
 }
-.course-teacher, .course-time, .course-price {
-		font-size: 28rpx;
-		color: #666;
-		display: block;
-		margin-bottom: 5rpx;
+.course-teacher, .course-time, .course-status, .course-price {
+	font-size: 28rpx;
+	color: #666;
+	display: block;
+	margin-bottom: 5rpx;
 }
 .reserve-btn {
-		background-color: #007AFF;
-		color: white;
-		border-radius: 40rpx;
-		padding: 0 30rpx;
-		height: 60rpx;
-		line-height: 60rpx;
-		font-size: 28rpx;
+	background-color: #007AFF;
+	color: white;
+	border-radius: 40rpx;
+	padding: 0 30rpx;
+	height: 60rpx;
+	line-height: 60rpx;
+	font-size: 28rpx;
 }

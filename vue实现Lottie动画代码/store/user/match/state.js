@@ -4,6 +4,15 @@
  */
 
 export default {
+    // 学校列表
+    schoolList: '',
+    // 专业课列表
+    professionalList: '',
+    // 非专业课列表
+    nonProfessionalList: '',
+    // 筛选列表
+    filterMode: '',
+    // 匹配列表
     matchList: [
         {
             id: 'teacher001',

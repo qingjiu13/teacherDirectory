@@ -65,6 +65,9 @@
 .select-item.active .label-text.data-v-d5601611 {
   color: #007AFF;
 }
+.select-item.active .arrow-icon.data-v-d5601611 {
+  color: #007AFF;
+}
 .arrow-icon.data-v-d5601611 {
   width: 16px;
   height: 16px;
@@ -73,9 +76,6 @@
 }
 .arrow-icon-rotate.data-v-d5601611 {
   transform: rotate(180deg);
-}
-.select-item.active .arrow-icon.data-v-d5601611 {
-  color: #007AFF;
 }
 .container-match.data-v-d5601611 {
   flex: 1;
@@ -91,23 +91,22 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  padding: 15rpx 30rpx;
 }
 
 /* 顶部标题栏 */
 .popup-header.data-v-d5601611 {
   position: relative;
+  height: 100rpx;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  justify-content: center;
+  border-bottom: 1px solid #f5f5f5;
 }
 .popup-title.data-v-d5601611 {
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 32rpx;
+  font-weight: 500;
   color: #333;
-  text-align: center;
-  position: relative;
 }
 .popup-close.data-v-d5601611 {
   color: #007AFF;
@@ -301,42 +300,51 @@
   flex-direction: column;
 }
 
-/* 弹出层标题栏 */
-.popup-header.data-v-d5601611 {
-  position: relative;
-  height: 100rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #f5f5f5;
-}
-.popup-title.data-v-d5601611 {
-  font-size: 32rpx;
-  font-weight: 500;
+/* 筛选标签 */
+.filter-label.data-v-d5601611 {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
   color: #333;
+  margin-bottom: 15rpx;
 }
-.popup-close.data-v-d5601611 {
-  position: absolute;
-  right: 30rpx;
-  color: #007AFF;
+
+/* 底部按钮容器 */
+.popup-buttons.data-v-d5601611 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 30rpx 0;
+  margin-top: auto;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 底部按钮样式 */
+.popup-button.data-v-d5601611 {
+  width: 45%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 40rpx;
   font-size: 28rpx;
 }
 
-/* 弹出层内容 */
-.popup-content.data-v-d5601611 {
-  padding: 20rpx 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+/* 重置按钮样式 */
+.reset-button.data-v-d5601611 {
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
 }
-.popup-complete-text.data-v-d5601611 {
+
+/* 确定按钮样式 */
+.confirm-button.data-v-d5601611 {
+  background-color: #007AFF;
+  color: #fff;
+  border: none;
+}
+
+/* 表单行样式 */
+.form-row.data-v-d5601611 {
+  margin-bottom: 25rpx;
   width: 100%;
-  text-align: right;
-  padding-right: 30rpx;
-}
-.complete-text.data-v-d5601611 {
-  color: #007AFF;
-  font-size: 28rpx;
 }

@@ -29,18 +29,164 @@
     </view>
 
     <!-- 筛选弹层 -->
-    <view v-if="showPopup" class="filter-mask" @click="onPopupClose"></view>
-    <view v-if="showPopup" class="filter-popup">
+    <view v-if="showPopup" class="filter-mask" @click="onPopupClose">
+          <!-- 学校筛选弹层 -->
+    <view v-if="currentOption === 'school'" class="filter-popup">
       <view class="popup-header">
-        <text class="popup-title">{{ getPopupTitle() }}</text>
-        <text class="popup-close" @click="onPopupClose">完成</text>
+        <text class="popup-title">学校</text>
       </view>
       <view class="popup-content">
-        <view class="popup-complete-text" v-if="changedOptions[currentOption]">
-          <text class="complete-text">完成</text>
+        <view class="form-row">
+          <ChoiceSelected
+            class="form-select"
+            componentType="graduateSchool"
+            :choiceIndex="formData.targetSchoolIndex"
+            :choiceList="targetSchoolList"
+            :defaultText="'请选择学校'"
+            mode="search"
+            searchPlaceholder="输入学校名称"
+            @onChoiceClick="handleTargetSchoolSelect"
+            @search-input="handleTargetSchoolSearch"
+            @linkage-change="handleSchoolChange"
+            :enablePagination="true"
+            :pageSize="10"
+            ref="targetSchoolDropdown"
+          />
+        </view>
+        <!-- 底部按钮 -->
+        <view class="popup-buttons">
+          <button class="popup-button reset-button" @click="resetSchoolFilter">重置</button>
+          <button class="popup-button confirm-button" @click="confirmSchoolFilter">确定</button>
         </view>
       </view>
     </view>
+
+    <!-- 专业课筛选弹层 -->
+    <view v-if="currentOption === 'professional'" class="filter-popup">
+      <view class="popup-header">
+        <text class="popup-title">专业课</text>
+      </view>
+      <view class="popup-content">
+        <view class="form-row">
+          <ChoiceSelected
+            class="form-select"
+            componentType="graduateMajor"
+            :choiceIndex="formData.targetMajorIndex"
+            :choiceList="targetMajorList"
+            :parentValue="formData.targetSchool"
+            :isLinkage="true"
+            :defaultText="formData.targetSchool ? '请选择专业' : '请先选择学校'"
+            mode="search"
+            searchPlaceholder="输入专业名称"
+            @onChoiceClick="handleTargetMajorSelect"
+            @search-input="handleTargetMajorSearch"
+            @reset-selection="resetMajorSelection"
+            :enablePagination="true"
+            :pageSize="10"
+            ref="targetMajorDropdown"
+          />
+        </view>
+        <!-- 底部按钮 -->
+        <view class="popup-buttons">
+          <button class="popup-button reset-button" @click="resetProfessionalFilter">重置</button>
+          <button class="popup-button confirm-button" @click="confirmProfessionalFilter">确定</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 非专业课筛选弹层 -->
+    <view v-if="currentOption === 'nonProfessional'" class="filter-popup">
+      <view class="popup-header">
+        <text class="popup-title">非专业课</text>
+      </view>
+      <view class="popup-content">
+        <!-- 考研数学 -->
+        <view class="form-row">
+          <text class="filter-label">考研数学</text>
+          <ChoiceSelected
+            class="form-select"
+            :choiceIndex="formData.mathIndex"
+            :choiceList="mathOptions"
+            defaultText="请选择考研数学"
+            mode="select"
+            @onChoiceClick="handleMathSelect"
+          />
+        </view>
+        
+        <!-- 考研英语 -->
+        <view class="form-row">
+          <text class="filter-label">考研英语</text>
+          <ChoiceSelected
+            class="form-select"
+            :choiceIndex="formData.englishIndex"
+            :choiceList="englishOptions"
+            defaultText="请选择考研英语"
+            mode="select"
+            @onChoiceClick="handleEnglishSelect"
+          />
+        </view>
+        
+        <!-- 考研政治 -->
+        <view class="form-row">
+          <text class="filter-label">考研政治</text>
+          <ChoiceSelected
+            class="form-select"
+            :choiceIndex="formData.politicsIndex"
+            :choiceList="politicsOptions"
+            defaultText="请选择考研政治"
+            mode="select"
+            @onChoiceClick="handlePoliticsSelect"
+          />
+        </view>
+        
+        <!-- 其他 -->
+        <view class="form-row">
+          <text class="filter-label">其他</text>
+          <ChoiceSelected
+            class="form-select"
+            :choiceIndex="formData.otherIndex"
+            :choiceList="otherOptions"
+            defaultText="请选择其他考试"
+            mode="select"
+            @onChoiceClick="handleOtherSelect"
+          />
+        </view>
+        
+        <!-- 底部按钮 -->
+        <view class="popup-buttons">
+          <button class="popup-button reset-button" @click="resetNonProfessionalFilter">重置</button>
+          <button class="popup-button confirm-button" @click="confirmNonProfessionalFilter">确定</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 排序方式筛选弹层 -->
+    <view v-if="currentOption === 'sort'" class="filter-popup">
+      <view class="popup-header">
+        <text class="popup-title">排序方式</text>
+      </view>
+      <view class="popup-content">
+        <view class="form-row">
+          <ChoiceSelected
+            class="form-select"
+            :choiceIndex="formData.sortIndex"
+            :choiceList="sortOptions"
+            defaultText="请选择排序方式"
+            mode="select"
+            @onChoiceClick="handleSortSelect"
+          />
+        </view>
+        
+        <!-- 底部按钮 -->
+        <view class="popup-buttons">
+          <button class="popup-button reset-button" @click="resetSortFilter">重置</button>
+          <button class="popup-button confirm-button" @click="confirmSortFilter">确定</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+
 
     <!-- 内容区 -->
     <view class="container-match">
@@ -78,146 +224,325 @@
   </view>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useStore } from 'vuex'
+<script>
+import { ref, reactive, onMounted, nextTick } from 'vue'
+import store from '../../store'
 import { Navigator } from '@/router/Router.js'
+import ChoiceSelected from '../../components/combobox/combobox'
+import GraduateStore from '../../components/combobox/graduate_school_major.js'
 
-// 实例化store
-const store = useStore()
+// 定义 searchText
+const searchText = ref('')
 
 // 选项列表
 const options = [
   { key: 'school', label: '学校' },
   { key: 'professional', label: '专业课' },
   { key: 'nonProfessional', label: '非专业课' },
-  { key: 'filter', label: '筛选' }
+  { key: 'sort', label: '排序方式' }
 ]
 
 // 当前激活的选项
 const currentOption = ref('')
 // 弹层显示控制
 const showPopup = ref(false)
-// 记录已修改的选项
-const changedOptions = reactive({})
+
 // 加载状态
 const isLoading = ref(false)
 // 老师列表数据
 const matchTeachers = ref([])
 
-// 选择数据
-const selectedSchool = ref('')
-const selectedProfessional = ref('')
-const selectedNonProfessional = ref('')
-const filterOptions = reactive({
-  certified: null
+// 表单数据
+const formData = reactive({
+  targetSchoolIndex: -1,
+  targetMajorIndex: -1,
+  targetSchool: '',
+  targetMajor: '',
+  mathIndex: -1,
+  englishIndex: -1,
+  politicsIndex: -1,
+  otherIndex: -1,
+  sortIndex: -1,
 })
 
-/**
- * 获取弹出层标题
- * @returns {String} 当前选项的标题
- */
+// 学校和专业列表数据
+const targetSchoolList = ref([])
+const targetMajorList = ref([])
+const graduateStore = ref(null)
+
+// 下拉选项列表
+const mathOptions = ref(['数学一', '数学二', '数学三'])
+const englishOptions = ref(['英语一', '英语二'])
+const politicsOptions = ref(['政治必修', '政治选修'])
+const otherOptions = ref(['经济学', '管理学', '教育学', '历史学'])
+const sortOptions = ref(['综合评分从高到低', '价格从低到高', '价格从高到低', '最新发布'])
+
+// 筛选记录
+const filterState = reactive({
+  school: '',
+  professional: '',
+  nonProfessional: {
+    math: '',
+    english: '',
+    politics: '',
+    other: ''
+  },
+  sort: ''
+})
+
 const getPopupTitle = () => {
   const option = options.find(o => o.key === currentOption.value)
   return option ? option.label : ''
 }
 
-// 判断是否高亮
 const isActive = key => {
-  // 专业课和非专业课互斥
-  if (key === 'professional' && changedOptions.nonProfessional) return false
-  if (key === 'nonProfessional' && changedOptions.professional) return false
-  // 若已修改，则保持高亮
-  if (changedOptions[key]) return true
-  // 若当前正激活
+  if (key === 'school') return !!filterState.school
+  if (key === 'professional') return !!filterState.professional
+  if (key === 'nonProfessional') {
+    const nonProf = filterState.nonProfessional
+    return !!(nonProf.math || nonProf.english || nonProf.politics || nonProf.other)
+  }
+  if (key === 'sort') return !!filterState.sort
   return currentOption.value === key
 }
 
-// 点击选项
 const onOptionClick = key => {
-  // 专业/非专业互斥：若其中一个已选且已修改，不可点击另一个
-  if ((key === 'professional' && changedOptions.nonProfessional) ||
-      (key === 'nonProfessional' && changedOptions.professional)) {
-    return
-  }
-  
-  // 如果点击的是已经打开的选项，则关闭弹窗
   if (currentOption.value === key && showPopup.value) {
     showPopup.value = false
     currentOption.value = ''
     return
   }
-  
   currentOption.value = key
   showPopup.value = true
-  
-  // 标记该选项已被选择（模拟行为）
-  if (!changedOptions[key]) {
-    changedOptions[key] = true
-  }
 }
 
-// 弹层关闭
 const onPopupClose = () => {
+  console.log('onPopupClose called, currentOption:', currentOption.value)
   showPopup.value = false
-  
-  // 若此选项未修改，取消激活
-  if (!changedOptions[currentOption.value]) {
-    currentOption.value = ''
+  currentOption.value = ''
+  console.log('After close - showPopup:', showPopup.value, 'currentOption:', currentOption.value)
+  nextTick(() => {
+    console.log('After nextTick - showPopup:', showPopup.value, 'currentOption:', currentOption.value)
+  })
+}
+
+const initGraduateData = () => {
+  try {
+    graduateStore.value = JSON.parse(JSON.stringify(GraduateStore.state))
+    GraduateStore.mutations.initSchoolFuse(graduateStore.value)
+    const schools = Object.keys(graduateStore.value.schools).slice(0, 50)
+    targetSchoolList.value = schools
+    console.log('初始化研究生学校专业数据成功')
+  } catch (error) {
+    console.error('初始化研究生学校专业数据失败:', error)
+    targetSchoolList.value = ["北京大学", "清华大学", "复旦大学"]
   }
 }
 
-/**
- * 查看老师详情
- * @param {String} teacherId - 老师ID
- */
+const handleTargetSchoolSelect = (index, school) => {
+  formData.targetSchoolIndex = index
+  formData.targetSchool = school
+  filterState.school = school
+  handleSchoolChange(school)
+}
+
+const handleSchoolChange = (school) => {
+  if (!school) {
+    resetMajorSelection()
+    return
+  }
+  GraduateStore.actions.selectSchool({
+    commit: (mutation, payload) => {
+      GraduateStore.mutations[mutation](graduateStore.value, payload)
+    }
+  }, school)
+  if (graduateStore.value.schools[school]) {
+    targetMajorList.value = graduateStore.value.schools[school].slice(0, 20)
+  } else {
+    resetMajorSelection()
+  }
+}
+
+const resetMajorSelection = () => {
+  formData.targetMajorIndex = -1
+  formData.targetMajor = ''
+}
+
+const handleTargetMajorSelect = (index, major) => {
+  formData.targetMajorIndex = index
+  formData.targetMajor = major
+  filterState.professional = major
+  if (major) {
+    formData.mathIndex = -1
+    formData.englishIndex = -1
+    formData.politicsIndex = -1
+    formData.otherIndex = -1
+    filterState.nonProfessional = {
+      math: '',
+      english: '',
+      politics: '',
+      other: ''
+    }
+  }
+  applyFilters()
+}
+
+const handleTargetSchoolSearch = (keyword) => {
+  if (!keyword || keyword.trim() === '') {
+    const allSchools = Object.keys(graduateStore.value.schools).slice(0, 50)
+    targetSchoolList.value = allSchools
+    return
+  }
+  GraduateStore.mutations.setSchoolKeyword(graduateStore.value, keyword)
+  const filteredSchools = GraduateStore.getters.filteredSchoolList(graduateStore.value)
+  targetSchoolList.value = filteredSchools
+}
+
+const handleTargetMajorSearch = (keyword) => {
+  if (!graduateStore.value.selectedSchool) {
+    return
+  }
+  if (!keyword || keyword.trim() === '') {
+    const allMajors = graduateStore.value.schools[graduateStore.value.selectedSchool] || []
+    targetMajorList.value = allMajors.slice(0, 20)
+    return
+  }
+  GraduateStore.mutations.setMajorKeyword(graduateStore.value, keyword)
+  const filteredMajors = GraduateStore.getters.filteredMajorList(graduateStore.value)
+  targetMajorList.value = filteredMajors
+}
+
+const handleMathSelect = (index) => {
+  formData.mathIndex = index
+  filterState.nonProfessional.math = index >= 0 ? mathOptions.value[index] : ''
+  handleNonProfessionalSelect()
+  applyFilters()
+}
+
+const handleEnglishSelect = (index) => {
+  formData.englishIndex = index
+  filterState.nonProfessional.english = index >= 0 ? englishOptions.value[index] : ''
+  handleNonProfessionalSelect()
+  applyFilters()
+}
+
+const handlePoliticsSelect = (index) => {
+  formData.politicsIndex = index
+  filterState.nonProfessional.politics = index >= 0 ? politicsOptions.value[index] : ''
+  handleNonProfessionalSelect()
+  applyFilters()
+}
+
+const handleOtherSelect = (index) => {
+  formData.otherIndex = index
+  filterState.nonProfessional.other = index >= 0 ? otherOptions.value[index] : ''
+  handleNonProfessionalSelect()
+  applyFilters()
+}
+
+const handleNonProfessionalSelect = () => {
+  if (formData.mathIndex >= 0 || formData.englishIndex >= 0 || 
+      formData.politicsIndex >= 0 || formData.otherIndex >= 0) {
+    formData.targetMajorIndex = -1
+    formData.targetMajor = ''
+    filterState.professional = ''
+  }
+}
+
+const handleSortSelect = (index) => {
+  formData.sortIndex = index
+  filterState.sort = index >= 0 ? sortOptions.value[index] : ''
+  applyFilters()
+}
+
+const resetSchoolFilter = () => {
+  formData.targetSchoolIndex = -1
+  formData.targetSchool = ''
+  filterState.school = ''
+  applyFilters()
+}
+
+const resetProfessionalFilter = () => {
+  formData.targetMajorIndex = -1
+  formData.targetMajor = ''
+  filterState.professional = ''
+  applyFilters()
+}
+
+const resetNonProfessionalFilter = () => {
+  formData.mathIndex = -1
+  formData.englishIndex = -1
+  formData.politicsIndex = -1
+  formData.otherIndex = -1
+  filterState.nonProfessional = {
+    math: '',
+    english: '',
+    politics: '',
+    other: ''
+  }
+  applyFilters()
+}
+
+const resetSortFilter = () => {
+  formData.sortIndex = -1
+  filterState.sort = ''
+  applyFilters()
+}
+
+const confirmSchoolFilter = () => {
+  console.log('confirmSchoolFilter called')
+  onPopupClose()
+}
+
+const confirmProfessionalFilter = () => {
+  console.log('confirmProfessionalFilter called')
+  onPopupClose()
+}
+
+const confirmNonProfessionalFilter = () => {
+  console.log('confirmNonProfessionalFilter called')
+  onPopupClose()
+}
+
+const confirmSortFilter = () => {
+  console.log('confirmSortFilter called')
+  onPopupClose()
+}
+
+const applyFilters = () => {
+  isLoading.value = true
+  setTimeout(() => {
+    let filteredTeachers = []
+    if (store.state.user && store.state.user.match) {
+      filteredTeachers = store.state.user.match.matchList || []
+    }
+    matchTeachers.value = filteredTeachers
+    isLoading.value = false
+  }, 500)
+}
+
 const viewTeacherDetail = (teacherId) => {
   Navigator.toTeacher(teacherId)
 }
 
-/**
- * 处理沟通按钮点击
- * @param {String} teacherId - 老师ID
- */
 const handleCommunicate = (teacherId) => {
   Navigator.toChat(teacherId)
 }
 
-/**
- * 加载更多老师数据
- */
 const loadMoreTeachers = () => {
   if (isLoading.value) return
   isLoading.value = true
-  
-  // 这里只是模拟加载效果，后续会由实际接口替代
   setTimeout(() => {
     isLoading.value = false
   }, 1000)
 }
 
-// 在组件挂载时获取数据
 onMounted(() => {
-  // 从store获取教师列表数据
+  initGraduateData()
   if (store.state.user && store.state.user.match) {
     matchTeachers.value = store.state.user.match.matchList || []
   }
 })
-
-// 专业课和非专业课选择后互斥
-const onProfessionalSelected = (majorName) => {
-  if (selectedProfessional.value !== majorName) {
-    selectedProfessional.value = majorName
-    selectedNonProfessional.value = '' // 修改了才挤掉非专业课
-  }
-}
-
-const onNonProfessionalSelected = (nonMajorName) => {
-  if (selectedNonProfessional.value !== nonMajorName) {
-    selectedNonProfessional.value = nonMajorName
-    selectedProfessional.value = '' // 修改了才挤掉专业课
-  }
-}
 </script>
 
 <style scoped>
@@ -291,6 +616,10 @@ const onNonProfessionalSelected = (nonMajorName) => {
   color: #007AFF;
 }
 
+.select-item.active .arrow-icon {
+  color: #007AFF;
+}
+
 .arrow-icon {
   width: 16px;
   height: 16px;
@@ -300,10 +629,6 @@ const onNonProfessionalSelected = (nonMajorName) => {
 
 .arrow-icon-rotate {
   transform: rotate(180deg);
-}
-
-.select-item.active .arrow-icon {
-  color: #007AFF;
 }
 
 .container-match {
@@ -321,24 +646,23 @@ const onNonProfessionalSelected = (nonMajorName) => {
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  padding: 15rpx 30rpx;
 }
 
 /* 顶部标题栏 */
 .popup-header {
   position: relative;
+  height: 100rpx;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  justify-content: center;
+  border-bottom: 1px solid #f5f5f5;
 }
 
 .popup-title {
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 32rpx;
+  font-weight: 500;
   color: #333;
-  text-align: center;
-  position: relative;
 }
 
 .popup-close {
@@ -551,47 +875,52 @@ const onNonProfessionalSelected = (nonMajorName) => {
   flex-direction: column;
 }
 
-/* 弹出层标题栏 */
-.popup-header {
-  position: relative;
-  height: 100rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.popup-title {
-  font-size: 32rpx;
-  font-weight: 500;
+/* 筛选标签 */
+.filter-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
   color: #333;
+  margin-bottom: 15rpx;
 }
 
-.popup-close {
-  position: absolute;
-  right: 30rpx;
-  color: #007AFF;
-  font-size: 28rpx;
-}
-
-/* 弹出层内容 */
-.popup-content {
-  padding: 20rpx 0;
-  flex: 1;
+/* 底部按钮容器 */
+.popup-buttons {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 30rpx 0;
+  margin-top: auto;
+  border-top: 1px solid #f0f0f0;
 }
 
-.popup-complete-text {
-  width: 100%;
-  text-align: right;
-  padding-right: 30rpx;
-}
-
-.complete-text {
-  color: #007AFF;
+/* 底部按钮样式 */
+.popup-button {
+  width: 45%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 40rpx;
   font-size: 28rpx;
+}
+
+/* 重置按钮样式 */
+.reset-button {
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
+}
+
+/* 确定按钮样式 */
+.confirm-button {
+  background-color: #007AFF;
+  color: #fff;
+  border: none;
+}
+
+/* 表单行样式 */
+.form-row {
+  margin-bottom: 25rpx;
+  width: 100%;
 }
 </style>
