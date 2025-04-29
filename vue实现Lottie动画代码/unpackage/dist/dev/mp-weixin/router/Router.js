@@ -32,6 +32,7 @@ const MineRoutes = {
   // 其他设置
   QUALIFICATION: "/pages/mine/qualification",
   SERVICE: "/pages/mine/service",
+  SERVICE_NEWBUILT: "/pages/mine/service_newbuilt",
   SETTINGS: "/pages/mine/settings",
   WALLET: "/pages/mine/wallet",
   SUBSCRIBE: "/pages/mine/subscribe"
@@ -192,6 +193,12 @@ const Navigator = {
    */
   toService() {
     this.navigateTo(MineRoutes.SERVICE);
+  },
+  /**
+   * @description 跳转到新建服务页面
+   */
+  toService() {
+    this.navigateTo(MineRoutes.SERVICE_NEWBUILT);
   },
   /**
    * @description 跳转到设置页面

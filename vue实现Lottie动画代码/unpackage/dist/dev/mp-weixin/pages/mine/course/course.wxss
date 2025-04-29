@@ -2,70 +2,167 @@
 :host{display:flex;flex-direction:column}
 
 .container {
-	padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f7f9fc;
+  font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 }
-.tabs {
-	display: flex;
-	justify-content: space-around;
-	margin-bottom: 20rpx;
-}
-.tab-item {
-	padding: 10rpx 20rpx;
-	border-bottom: 2rpx solid transparent;
-	color: #666;
-}
-.tab-item.active {
-	color: #007AFF;
-	border-bottom: 2rpx solid #007AFF;
-}
-.search-bar {
-	margin-bottom: 20rpx;
-}
-.search-bar input {
-	width: 100%;
-	padding: 10rpx;
-	border: 1rpx solid #ccc;
-	border-radius: 10rpx;
+.page-content {
+  padding: 30rpx;
 }
 .course-list {
-	height: calc(100vh - 300rpx);
+  height: calc(100vh - 180rpx);
 }
+
+/* 已选择日期信息样式 */
+.selected-date-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #ffffff;
+  margin: 20rpx 0;
+  padding: 25rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border-left: 8rpx solid #3a86ff;
+}
+.date-info-title {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+}
+.date-info-content {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: bold;
+  margin: 0 15rpx;
+}
+.reset-btn {
+  margin-left: auto;
+  font-size: 26rpx;
+  background-color: #f0f5ff;
+  color: #3a86ff;
+  border-radius: 30rpx;
+  padding: 10rpx 24rpx;
+  line-height: 1.2;
+  border: 1px solid #d0e1ff;
+}
+
+/* 课程项目样式 */
 .course-item {
-	display: flex;
-	align-items: center;
-	padding: 20rpx;
-	margin-bottom: 20rpx;
-	background-color: #fff;
-	border-radius: 10rpx;
-	box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+  display: flex;
+  background-color: #ffffff;
+  padding: 30rpx;
+  margin-bottom: 25rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border-bottom: 3px solid #eaeef5;
+  transition: all 0.3s ease;
+}
+.course-item:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 .course-img {
-	width: 150rpx;
-	height: 150rpx;
-	border-radius: 10rpx;
-	margin-right: 20rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+  margin-right: 25rpx;
+  border: 1px solid #e5e9f2;
+  background-color: #f7f9fc;
 }
 .course-info {
-	flex: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .course-name {
-	font-size: 32rpx;
-	font-weight: bold;
-	display: block;
-	margin-bottom: 10rpx;
+  font-size: 34rpx;
+  color: #2c3e50;
+  font-weight: bold;
+  margin-bottom: 12rpx;
+  line-height: 1.4;
 }
-.course-teacher, .course-time, .course-status, .course-price {
-	font-size: 28rpx;
-	color: #666;
-	display: block;
-	margin-bottom: 5rpx;
+.course-teacher {
+  font-size: 28rpx;
+  color: #5d6b89;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+}
+.course-teacher::before {
+  content: "";
+  display: inline-block;
+  width: 6rpx;
+  height: 6rpx;
+  background-color: #5d6b89;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+.course-time {
+  font-size: 28rpx;
+  color: #5d6b89;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+}
+.course-time::before {
+  content: "";
+  display: inline-block;
+  width: 6rpx;
+  height: 6rpx;
+  background-color: #5d6b89;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+.course-price {
+  font-size: 36rpx;
+  color: #ff5a5f;
+  font-weight: bold;
 }
 .reserve-btn {
-	background-color: #007AFF;
-	color: white;
-	border-radius: 40rpx;
-	padding: 0 30rpx;
-	height: 60rpx;
-	line-height: 60rpx;
-	font-size: 28rpx;
+  background: linear-gradient(135deg, #3a86ff, #4361ee);
+  color: white;
+  border-radius: 40rpx;
+  padding: 0 35rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  align-self: center;
+  box-shadow: 0 6rpx 12rpx rgba(67, 97, 238, 0.2);
+}
+.cancel-btn {
+  background: linear-gradient(135deg, #ff5a5f, #ff8a8e);
+  color: white;
+  border-radius: 40rpx;
+  padding: 0 35rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  align-self: center;
+  box-shadow: 0 6rpx 12rpx rgba(255, 90, 95, 0.2);
+}
+.review-btn {
+  background: linear-gradient(135deg, #ff9e00, #ffb347);
+  color: white;
+  border-radius: 40rpx;
+  padding: 0 35rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  align-self: center;
+  box-shadow: 0 6rpx 12rpx rgba(255, 158, 0, 0.2);
+}
+.empty-tip {
+  display: flex;
+  justify-content: center;
+  padding: 60rpx 0;
+  color: #8c9db5;
+  font-size: 30rpx;
+  font-weight: 500;
 }

@@ -19,7 +19,8 @@
     "pages/mine/service",
     "pages/mine/settings",
     "pages/mine/wallet",
-    "pages/test/test"
+    "pages/test/test",
+    "pages/mine/service_newbuilt"
   ],
   "window": {
     "navigationBarTextStyle": "black",

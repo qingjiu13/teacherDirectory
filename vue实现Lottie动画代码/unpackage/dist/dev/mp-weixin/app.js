@@ -26,6 +26,7 @@ if (!Math) {
   "./pages/mine/settings.js";
   "./pages/mine/wallet.js";
   "./pages/test/test.js";
+  "./pages/mine/service_newbuilt.js";
 }
 const settings = new UTSJSONObject({
   miniprogram: new UTSJSONObject({
@@ -51,17 +52,33 @@ function createApp() {
     handleError(err);
   };
   {
-    utils_vuexDebug.installDebugPlugin(store_index.store);
-    utils_vuexDebug.installDebugForVue3(app, store_index.store);
-    store_injectChecker.checkStoreAvailability(store_index.store);
-    common_vendor.index.__f__("log", "at main.js:42", "初始Vuex状态:", store_index.store.state);
+    try {
+      utils_vuexDebug.installDebugPlugin(store_index.store);
+      utils_vuexDebug.installDebugForVue3(app, store_index.store);
+      store_injectChecker.checkStoreAvailability(store_index.store);
+      common_vendor.index.__f__("log", "at main.js:43", "初始Vuex状态:", store_index.store.state);
+    } catch (e) {
+      common_vendor.index.__f__("error", "at main.js:45", "调试插件初始化失败:", e);
+    }
   }
   if (common_vendor.index.getSystemInfoSync().platform === "mp-weixin") {
-    common_vendor.index.__f__("log", "at main.js:47", "当前运行环境: 微信小程序");
-    common_vendor.index.onError((err) => {
-      common_vendor.index.__f__("error", "at main.js:49", "小程序错误:", err);
-      handleError(err);
-    });
+    common_vendor.index.__f__("log", "at main.js:51", "当前运行环境: 微信小程序");
+    try {
+      common_vendor.index.onError((err) => {
+        common_vendor.index.__f__("error", "at main.js:57", "小程序错误:", err);
+        handleError(err);
+      });
+      common_vendor.index.onNetworkStatusChange((res) => {
+        common_vendor.index.__f__("log", "at main.js:63", "网络状态变化:", res.isConnected ? "已连接" : "已断开");
+        store_index.store.commit("app/setNetworkStatus", res.isConnected);
+      });
+      const app2 = getApp();
+      if (app2 && !app2.globalData) {
+        app2.globalData = {};
+      }
+    } catch (e) {
+      common_vendor.index.__f__("error", "at main.js:73", "微信小程序配置失败:", e);
+    }
   }
   return {
     app

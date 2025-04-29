@@ -382,7 +382,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     g: $data.searchKeyword
   }, {
     h: $data.isShowChoice ? 1 : "",
-    i: common_assets._imports_0$2,
+    i: common_assets._imports_0$1,
     j: common_vendor.sei("r0-4c16e9dc", "view", "dropdownTrigger"),
     k: common_vendor.n($data.isShowChoice ? "drop-down-box-selected" : "drop-down-box"),
     l: common_vendor.o((...args) => $options.btnShowHideClick && $options.btnShowHideClick(...args)),

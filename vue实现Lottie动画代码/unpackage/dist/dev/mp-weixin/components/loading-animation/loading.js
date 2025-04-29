@@ -11,17 +11,28 @@ if (!Math) {
 const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "loading",
   props: {
-    visible: Boolean,
     src: new UTSJSONObject({
       type: String,
       default: "https://lottie.host/1f64310d-d1a9-44c9-ac77-3c29ae849559/c3yfKGAzCm.json"
     })
   },
-  setup(__props) {
+  setup(__props, _a) {
+    var __expose = _a.expose;
+    const visible = common_vendor.ref(false);
+    const show = () => {
+      visible.value = true;
+    };
+    const hide = () => {
+      visible.value = false;
+    };
+    __expose(new UTSJSONObject({
+      show,
+      hide
+    }));
     return (_ctx = null, _cache = null) => {
       const __returned__ = common_vendor.e(new UTSJSONObject({
-        a: __props.visible
-      }), __props.visible ? new UTSJSONObject({
+        a: visible.value
+      }), visible.value ? new UTSJSONObject({
         b: common_vendor.p(new UTSJSONObject({
           src: __props.src,
           width: "300rpx",
