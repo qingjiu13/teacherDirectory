@@ -59,10 +59,8 @@
               />
             </view>
             <!-- 底部按钮 -->
-            <view class="popup-buttons">
-              <button class="popup-button reset-button" @click="resetSchoolFilter">重置</button>
-              <button class="popup-button confirm-button" @click="confirmSchoolFilter">确定</button>
-            </view>
+            <button class="popup-button reset-button" @click="resetSchoolFilter">重置</button>
+
           </view>
         </view>
     
@@ -93,15 +91,14 @@
               />
             </view>
             <!-- 底部按钮 -->
-            <view class="popup-buttons">
-              <button class="popup-button reset-button" @click="resetProfessionalFilter">重置</button>
-              <button class="popup-button confirm-button" @click="confirmProfessionalFilter">确定</button>
-            </view>
+
+            <button class="popup-button reset-button" @click="resetProfessionalFilter">重置</button>
+
           </view>
         </view>
     
         <!-- 非专业课筛选弹层 -->
-        <view v-if="currentOption === 'nonProfessional'" class="filter-popup">
+        <view v-if="currentOption === 'nonProfessional'" class="filter-popup non-professional-popup" @click.stop>
           <view class="popup-header">
             <text class="popup-title">非专业课</text>
           </view>
@@ -112,30 +109,29 @@
                 v-for="tab in nonProTabs"
                 :key="tab.key"
                 :class="['tab-item', activeNonProTab === tab.key ? 'active' : '']"
-                @click="selectNonProTab(tab.key)"
+                @click.stop="selectNonProTab(tab.key)"
               >
                 {{ tab.label }}
               </view>
             </view>
 
             <!-- 选中的内容区域 -->
-            <view v-if="activeNonProTab" class="form-row">
-              <text class="filter-label">{{ tabLabelMap[activeNonProTab] }}</text>
-              <ChoiceSelected
-                class="form-select"
-                :choiceIndex="getChoiceIndex(activeNonProTab)"
-                :choiceList="getChoiceList(activeNonProTab)"
-                :defaultText="`请选择${tabLabelMap[activeNonProTab]}`"
-                mode="select"
-                @onChoiceClick="(index) => handleChoiceSelect(activeNonProTab, index)"
-              />
+            <view class="filter-section">
+                <text class="filter-label">{{ tabLabelMap[activeNonProTab] }}</text>
+                <view class="option-buttons">
+                  <view 
+                    v-for="(option, index) in getChoiceList(activeNonProTab)" 
+                    :key="index"
+                    class="option-button"
+                    :class="{'option-button-active': index === getChoiceIndex(activeNonProTab)}"
+                    @click.stop="handleChoiceSelect(activeNonProTab, index)"
+                  >
+                    {{ option }}
+                  </view>
+                </view>
             </view>
-
-            <!-- 底部按钮 -->
-            <view class="popup-buttons">
-              <button class="popup-button reset-button" @click="resetNonProfessionalFilter">重置</button>
-              <button class="popup-button confirm-button" @click="confirmNonProfessionalFilter">确定</button>
-            </view>
+                        <!-- 底部按钮 -->
+            <button class="nonpro-popup-button reset-button" @click.stop="resetNonProfessionalFilter">重置</button>
           </view>
         </view>
     
@@ -157,10 +153,7 @@
             </view>
             
             <!-- 底部按钮 -->
-            <view class="popup-buttons">
-              <button class="popup-button reset-button" @click="resetSortFilter">重置</button>
-              <button class="popup-button confirm-button" @click="confirmSortFilter">确定</button>
-            </view>
+            <button class="popup-button reset-button" @click="resetSortFilter">重置</button>
           </view>
         </view>
       </view>
@@ -233,7 +226,10 @@
   // 当前选择的非专业课Tab（只允许一个）
   const activeNonProTab = ref('')
 
-  // 非专业课四个tab选项
+  /**
+   * 非专业课四个tab选项
+   * @type {Array}
+   */
   const nonProTabs = [
     { key: 'math', label: '数学' },
     { key: 'english', label: '英语' },
@@ -241,7 +237,10 @@
     { key: 'other', label: '其他' }
   ]
 
-  // tab key到中文描述的映射
+  /**
+   * tab key到中文描述的映射
+   * @type {Object}
+   */
   const tabLabelMap = {
     math: '考研数学',
     english: '考研英语',
@@ -573,110 +572,6 @@
   }
   
   /**
-   * 处理考研数学选择
-   * @param {Number} index - 选择的索引
-   */
-  const handleMathSelect = (index) => {
-    // 直接更新到正式表单数据
-    formData.mathIndex = index
-    
-    // 更新筛选状态 - 使用Vuex的actions更新筛选模式
-    const mathValue = index >= 0 ? mathOptions.value[index] : ''
-    store.dispatch('user/match/updateNonProfessionalList', {
-      ...store.state.user.match.nonProfessionalList,
-      math: mathValue
-    })
-    
-    // 如果选择了非专业课，则清空专业课选择（互斥逻辑）
-    handleNonProfessionalSelect()
-    
-    // 应用筛选
-    applyFilters()
-  }
-  
-  /**
-   * 处理考研英语选择
-   * @param {Number} index - 选择的索引
-   */
-  const handleEnglishSelect = (index) => {
-    // 直接更新到正式表单数据
-    formData.englishIndex = index
-    
-    // 更新筛选状态 - 使用Vuex的actions更新筛选模式
-    const englishValue = index >= 0 ? englishOptions.value[index] : ''
-    store.dispatch('user/match/updateNonProfessionalList', {
-      ...store.state.user.match.nonProfessionalList,
-      english: englishValue
-    })
-    
-    // 如果选择了非专业课，则清空专业课选择（互斥逻辑）
-    handleNonProfessionalSelect()
-    
-    // 应用筛选
-    applyFilters()
-  }
-  
-  /**
-   * 处理考研政治选择
-   * @param {Number} index - 选择的索引
-   */
-  const handlePoliticsSelect = (index) => {
-    // 直接更新到正式表单数据
-    formData.politicsIndex = index
-    
-    // 更新筛选状态 - 使用Vuex的actions更新筛选模式
-    const politicsValue = index >= 0 ? politicsOptions.value[index] : ''
-    store.dispatch('user/match/updateNonProfessionalList', {
-      ...store.state.user.match.nonProfessionalList,
-      politics: politicsValue
-    })
-    
-    // 如果选择了非专业课，则清空专业课选择（互斥逻辑）
-    handleNonProfessionalSelect()
-    
-    // 应用筛选
-    applyFilters()
-  }
-  
-  /**
-   * 处理其他考试选择
-   * @param {Number} index - 选择的索引
-   */
-  const handleOtherSelect = (index) => {
-    // 直接更新到正式表单数据
-    formData.otherIndex = index
-    
-    // 更新筛选状态 - 使用Vuex的actions更新筛选模式
-    const otherValue = index >= 0 ? otherOptions.value[index] : ''
-    store.dispatch('user/match/updateNonProfessionalList', {
-      ...store.state.user.match.nonProfessionalList,
-      other: otherValue
-    })
-    
-    // 如果选择了非专业课，则清空专业课选择（互斥逻辑）
-    handleNonProfessionalSelect()
-    
-    // 应用筛选
-    applyFilters()
-  }
-  
-  /**
-   * 非专业课选择后的通用处理
-   */
-  const handleNonProfessionalSelect = () => {
-    // 检查是否有任何非专业课被选中
-    const nonProfList = store.state.user.match.nonProfessionalList
-    if (nonProfList.math || nonProfList.english || nonProfList.politics || nonProfList.other) {
-      // 清空专业课相关数据
-      formData.targetMajorIndex = -1
-      formData.targetMajor = ''
-      
-      // 清空专业课筛选状态 - 使用Vuex的actions重置专业课筛选
-      store.dispatch('user/match/updateProfessionalList', '')
-    }
-  }
-  
-  /**
    * 处理排序方式选择
    * @param {Number} index - 选择的索引
    */
@@ -762,39 +657,6 @@
   }
   
   /**
-   * 确认学校筛选 - 关闭弹窗
-   */
-  const confirmSchoolFilter = () => {
-    // 关闭弹窗
-    showPopup.value = false
-  }
-  
-  /**
-   * 确认专业课筛选 - 关闭弹窗
-   */
-  const confirmProfessionalFilter = () => {
-    // 关闭弹窗
-    showPopup.value = false
-  }
-  
-  /**
-   * 确认非专业课筛选 - 关闭弹窗
-   */
-  const confirmNonProfessionalFilter = () => {
-    // 关闭弹窗
-    showPopup.value = false
-    currentOption.value = ''
-  }
-  
-  /**
-   * 确认排序方式筛选 - 关闭弹窗
-   */
-  const confirmSortFilter = () => {
-    // 关闭弹窗
-    showPopup.value = false
-  }
-  
-  /**
    * 应用所有筛选条件 - 触发Vuex的获取匹配老师列表action
    */
   const applyFilters = () => {
@@ -835,73 +697,6 @@
       .finally(() => {
         isLoading.value = false
       })
-  }
-  
-  /**
-   * 初始化表单数据，从Vuex状态加载用户已选择的筛选条件
-   */
-  const initFormDataFromState = () => {
-    // 学校筛选初始化
-    if (store.state.user.match.schoolList) {
-      formData.targetSchool = store.state.user.match.schoolList
-      // 找到对应的学校索引
-      if (targetSchoolList.value.length > 0) {
-        const schoolIndex = targetSchoolList.value.findIndex(
-          school => school === formData.targetSchool
-        )
-        formData.targetSchoolIndex = schoolIndex >= 0 ? schoolIndex : -1
-      }
-      
-      // 如果学校已选择，初始化对应的专业列表
-      if (formData.targetSchool) {
-        handleSchoolChange(formData.targetSchool)
-      }
-    }
-    
-    // 专业课筛选初始化
-    if (store.state.user.match.professionalList) {
-      formData.targetMajor = store.state.user.match.professionalList
-      // 找到对应的专业索引
-      if (targetMajorList.value.length > 0) {
-        const majorIndex = targetMajorList.value.findIndex(
-          major => major === formData.targetMajor
-        )
-        formData.targetMajorIndex = majorIndex >= 0 ? majorIndex : -1
-      }
-    }
-    
-    // 非专业课筛选初始化
-    const nonProfList = store.state.user.match.nonProfessionalList
-    
-    // 数学科目初始化
-    if (nonProfList.math) {
-      const mathIndex = mathOptions.value.findIndex(item => item === nonProfList.math)
-      formData.mathIndex = mathIndex >= 0 ? mathIndex : -1
-    }
-    
-    // 英语科目初始化
-    if (nonProfList.english) {
-      const englishIndex = englishOptions.value.findIndex(item => item === nonProfList.english)
-      formData.englishIndex = englishIndex >= 0 ? englishIndex : -1
-    }
-    
-    // 政治科目初始化
-    if (nonProfList.politics) {
-      const politicsIndex = politicsOptions.value.findIndex(item => item === nonProfList.politics)
-      formData.politicsIndex = politicsIndex >= 0 ? politicsIndex : -1
-    }
-    
-    // 其他科目初始化
-    if (nonProfList.other) {
-      const otherIndex = otherOptions.value.findIndex(item => item === nonProfList.other)
-      formData.otherIndex = otherIndex >= 0 ? otherIndex : -1
-    }
-    
-    // 排序方式初始化
-    if (store.state.user.match.sortMode) {
-      const sortIndex = sortOptions.value.findIndex(item => item === store.state.user.match.sortMode)
-      formData.sortIndex = sortIndex >= 0 ? sortIndex : -1
-    }
   }
   
   /**
@@ -1030,19 +825,6 @@
     applyFilters()
   }
   
-  // 在组件挂载时初始化数据
-  onMounted(() => {
-    // 初始化研究生学校专业数据
-    initGraduateData()
-    
-    // 从Vuex store获取教师列表数据 - 初始化加载
-    store.dispatch('user/match/fetchMatchTeachers')
-      .finally(() => {
-        // 在获取数据完成后，初始化表单数据
-        initFormDataFromState()
-      })
-  })
-  
   // 创建一个计算属性来处理已保存的筛选条件显示
   const filterSummary = computed(() => {
     const summary = {}
@@ -1066,6 +848,15 @@
     summary.sort = store.state.user.match.sortMode || ''
     
     return summary
+  })
+
+  // 在组件挂载时初始化数据
+  onMounted(() => {
+    // 初始化研究生学校专业数据
+    initGraduateData()
+    
+    // 从Vuex store获取教师列表数据 - 初始化加载
+    store.dispatch('user/match/fetchMatchTeachers')
   })
   </script>
   
@@ -1235,33 +1026,36 @@
     color: #007AFF;
   }
   
-  .filter-section {
-    padding: 10px 16px;
-  }
-  
-  .filter-title {
+  .filter-label {
     font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 10px;
     color: #333;
+    margin-bottom: 10px;
+    display: block;
   }
   
-  .filter-options {
+  .filter-section {
+    padding: 25rpx 0;
+  }
+  
+  
+  .option-buttons {
     display: flex;
     flex-wrap: wrap;
+    margin-top: 10rpx;
   }
   
-  .filter-option {
-    padding: 8px 12px;
-    margin-right: 10px;
-    margin-bottom: 10px;
+  .option-button {
+    padding: 8px 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
     background-color: #f5f5f5;
     border-radius: 20px;
     font-size: 14px;
     color: #666;
+    transition: all 0.3s ease;
   }
   
-  .filter-option-active {
+  .option-button-active {
     background-color: #e6f2ff;
     color: #007AFF;
     border: 1px solid #007AFF;
@@ -1404,29 +1198,27 @@
     flex-direction: column;
     height: 650rpx;
   }
-  
-  /* 筛选标签 */
-  .filter-label {
-    display: block;
-    font-size: 28rpx;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 15rpx;
-  }
-  
-  /* 底部按钮容器 */
-  .popup-buttons {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 30rpx 0;
-    margin-top: 320rpx;
-    border-top: 1px solid #f0f0f0;
+  .filter-popup.non-professional-popup {
+    height: 60vh;
   }
   
   /* 底部按钮样式 */
   .popup-button {
-    width: 45%;
+    
+    margin-top: 320rpx;
+    margin-left: 10%;
+    width: 80%;
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    border-radius: 40rpx;
+    font-size: 28rpx;
+  }
+  .nonpro-popup-button {
+    position: absolute;
+    top: 640rpx;
+    left: 10%;
+    width: 80%;
     height: 80rpx;
     line-height: 80rpx;
     text-align: center;
@@ -1438,15 +1230,9 @@
   .reset-button {
     background-color: #f5f5f5;
     color: #666;
-    border: none;
+    border: 1px solid #007AFF;
   }
   
-  /* 确定按钮样式 */
-  .confirm-button {
-    background-color: #007AFF;
-    color: #fff;
-    border: none;
-  }
   
   /* 表单行样式 */
   .form-row {
@@ -1498,13 +1284,6 @@
     height: 3px;
     background-color: #007AFF;
     border-radius: 3px;
-  }
-  
-  .filter-label {
-    font-size: 15px;
-    color: #333;
-    margin-bottom: 10px;
-    display: block;
   }
   </style>
   
