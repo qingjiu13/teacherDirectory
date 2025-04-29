@@ -46,7 +46,7 @@
 <script setup>
 	import { ref } from "vue";
 	const cLottieRef = ref()
-	let src=ref('https://lottie.host/5082ce37-c10e-4773-984c-ea2558105fd8/KhTUklUfWb.json')
+	let src=ref('https://lottie.host/1f64310d-d1a9-44c9-ac77-3c29ae849559/c3yfKGAzCm.json')
 	const onLoopComplete=(val)=>{
 		// console.log('当前循环播放完成',val);
 	}

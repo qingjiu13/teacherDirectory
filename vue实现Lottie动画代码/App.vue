@@ -1,9 +1,50 @@
+<template>
+  <App>
+    <LoadingOverlay ref="loadingRef" />
+  </App>
+</template>
+
 <script setup>
+	import { ref, onMounted, provide } from 'vue'
+	import LoadingOverlay from '@/components/loading-animation/loading.vue'
 	import store from './store/index.js';
 	import { onLaunch, onShow, onHide } from '@dcloudio/uni-app';
 	
 	let firstBackTime = 0
+	// 用 uni 全局变量控制 loading 状态
+	const loadingRef = ref(null)
 	
+	// 提供全局loading状态控制
+	const isLoading = ref(false)
+	
+	// 全局加载控制方法
+	const showGlobalLoading = () => {
+		isLoading.value = true
+		loadingRef.value?.show?.()
+	}
+	
+	const hideGlobalLoading = () => {
+		isLoading.value = false
+		loadingRef.value?.hide?.()
+	}
+	
+	// 提供全局加载状态
+	provide('globalLoading', {
+		isLoading,
+		show: showGlobalLoading,
+		hide: hideGlobalLoading
+	})
+	
+	// 全局变量控制
+	onMounted(() => {
+		const app = getApp()
+		app.globalData = app.globalData || {}
+		app.globalData.$loading = {
+			show: showGlobalLoading,
+			hide: hideGlobalLoading
+		}
+	})
+
 	// 应用启动时
 	onLaunch(() => {
 		console.log('App Launch')

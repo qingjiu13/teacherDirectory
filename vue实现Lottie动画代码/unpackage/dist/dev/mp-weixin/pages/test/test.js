@@ -12,7 +12,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent(new UTSJSONObjec
   __name: "test",
   setup(__props) {
     const cLottieRef = common_vendor.ref();
-    let src = common_vendor.ref("https://lottie.host/5082ce37-c10e-4773-984c-ea2558105fd8/KhTUklUfWb.json");
+    let src = common_vendor.ref("https://lottie.host/1f64310d-d1a9-44c9-ac77-3c29ae849559/c3yfKGAzCm.json");
     const onLoopComplete = (val = null) => {
     };
     return (_ctx = null, _cache = null) => {

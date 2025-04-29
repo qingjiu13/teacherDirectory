@@ -63,6 +63,51 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const politicsOptions = common_vendor.ref(["政治必修", "政治选修"]);
     const otherOptions = common_vendor.ref(["经济学", "管理学", "教育学", "历史学"]);
     const sortOptions = common_vendor.ref(["综合评分从高到低", "价格从低到高", "价格从高到低", "最新发布"]);
+    const keyboardHeight = common_vendor.ref(0);
+    const isInputFocused = common_vendor.ref(false);
+    const safeAreaInsetBottom = common_vendor.ref(0);
+    const popupStyle = common_vendor.computed(() => {
+      return new UTSJSONObject({
+        bottom: keyboardHeight.value > 0 ? `${keyboardHeight.value}px` : "0px",
+        transition: "bottom 0.2s",
+        zIndex: keyboardHeight.value > 0 ? "1001" : "999"
+      });
+    });
+    const handleInputFocus = () => {
+      isInputFocused.value = true;
+      setTimeout(() => {
+        if (common_vendor.index.canIUse("getSystemInfoSync")) {
+          try {
+            const systemInfo = common_vendor.index.getSystemInfoSync();
+            if (systemInfo.safeArea) {
+              safeAreaInsetBottom.value = systemInfo.screenHeight - systemInfo.safeArea.bottom;
+            }
+          } catch (e) {
+            common_vendor.index.__f__("error", "at pages/match/match.vue:340", "获取系统信息失败", e);
+          }
+        }
+      }, 100);
+    };
+    const handleInputBlur = () => {
+      isInputFocused.value = false;
+      setTimeout(() => {
+        if (!isInputFocused.value) {
+          keyboardHeight.value = 0;
+        }
+      }, 300);
+    };
+    const keyboardHeightChangeHandler = (res = null) => {
+      if (typeof res.height === "number") {
+        common_vendor.nextTick$1(() => {
+          keyboardHeight.value = res.height;
+          if (res.height === 0 && showPopup.value && isInputFocused.value) {
+            setTimeout(() => {
+              keyboardHeight.value = 0;
+            }, 200);
+          }
+        });
+      }
+    };
     const isActive = (key = null) => {
       if (key === "school") {
         return !!store.state.user.match.schoolList;
@@ -196,9 +241,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           components_combobox_graduate_school_major.GraduateStore.mutations.initSchoolFuse(graduateStore.value);
           const schools = Object.keys(graduateStore.value.schools).slice(0, 50);
           targetSchoolList.value = schools;
-          common_vendor.index.__f__("log", "at pages/match/match.vue:473", "初始化研究生学校专业数据成功");
+          common_vendor.index.__f__("log", "at pages/match/match.vue:568", "初始化研究生学校专业数据成功");
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/match/match.vue:475", "初始化研究生学校专业数据失败:", error);
+          common_vendor.index.__f__("error", "at pages/match/match.vue:570", "初始化研究生学校专业数据失败:", error);
           targetSchoolList.value = ["北京大学", "清华大学", "复旦大学"];
         }
       });
@@ -413,17 +458,57 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       summary.sort = store.state.user.match.sortMode || "";
       return summary;
     });
+    const setupKeyboardListener = () => {
+      try {
+        if (typeof common_vendor.wx$1 !== "undefined" && common_vendor.wx$1.onKeyboardHeightChange) {
+          common_vendor.wx$1.onKeyboardHeightChange(keyboardHeightChangeHandler);
+        } else if (common_vendor.index.onKeyboardHeightChange) {
+          common_vendor.index.onKeyboardHeightChange(keyboardHeightChangeHandler);
+        } else {
+          common_vendor.index.__f__("warn", "at pages/match/match.vue:957", "当前环境不支持键盘高度变化监听");
+        }
+      } catch (error) {
+        common_vendor.index.__f__("error", "at pages/match/match.vue:960", "注册键盘监听失败", error);
+      }
+    };
+    const removeKeyboardListener = () => {
+      try {
+        if (typeof common_vendor.wx$1 !== "undefined" && common_vendor.wx$1.offKeyboardHeightChange) {
+          common_vendor.wx$1.offKeyboardHeightChange(keyboardHeightChangeHandler);
+        } else if (common_vendor.index.offKeyboardHeightChange) {
+          common_vendor.index.offKeyboardHeightChange(keyboardHeightChangeHandler);
+        }
+      } catch (error) {
+        common_vendor.index.__f__("error", "at pages/match/match.vue:973", "移除键盘监听失败", error);
+      }
+    };
     common_vendor.onMounted(() => {
       initGraduateData();
       store.dispatch("user/match/fetchMatchTeachers");
+      setupKeyboardListener();
+      if (common_vendor.index.canIUse("getSystemInfoSync")) {
+        try {
+          const systemInfo = common_vendor.index.getSystemInfoSync();
+          if (systemInfo.safeArea) {
+            safeAreaInsetBottom.value = systemInfo.screenHeight - systemInfo.safeArea.bottom;
+          }
+        } catch (e) {
+          common_vendor.index.__f__("error", "at pages/match/match.vue:996", "获取系统信息失败", e);
+        }
+      }
+    });
+    common_vendor.onBeforeUnmount(() => {
+      removeKeyboardListener();
     });
     return (_ctx = null, _cache = null) => {
       const __returned__ = common_vendor.e(new UTSJSONObject({
-        a: searchText.value,
-        b: common_vendor.o(($event = null) => {
+        a: common_vendor.o(handleInputFocus),
+        b: common_vendor.o(handleInputBlur),
+        c: searchText.value,
+        d: common_vendor.o(($event = null) => {
           return searchText.value = $event.detail.value;
         }),
-        c: common_vendor.f(options, (item = null, k0 = null, i0 = null) => {
+        e: common_vendor.f(options, (item = null, k0 = null, i0 = null) => {
           return common_vendor.e(new UTSJSONObject({
             a: common_vendor.t(item.label),
             b: filterSummary.value[item.key]
@@ -438,15 +523,15 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, item.key)
           }));
         }),
-        d: showPopup.value
+        f: showPopup.value
       }), showPopup.value ? common_vendor.e(new UTSJSONObject({
-        e: currentOption.value === "school"
+        g: currentOption.value === "school"
       }), currentOption.value === "school" ? new UTSJSONObject({
-        f: common_vendor.sr("targetSchoolDropdown", "d5601611-0"),
-        g: common_vendor.o(handleTargetSchoolSelect),
-        h: common_vendor.o(handleTargetSchoolSearch),
-        i: common_vendor.o(handleSchoolChange),
-        j: common_vendor.p(new UTSJSONObject({
+        h: common_vendor.sr("targetSchoolDropdown", "d5601611-0"),
+        i: common_vendor.o(handleTargetSchoolSelect),
+        j: common_vendor.o(handleTargetSchoolSearch),
+        k: common_vendor.o(handleSchoolChange),
+        l: common_vendor.p(new UTSJSONObject({
           componentType: "graduateSchool",
           choiceIndex: formData.targetSchoolIndex,
           choiceList: targetSchoolList.value,
@@ -457,15 +542,16 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           enablePagination: true,
           pageSize: 10
         })),
-        k: common_vendor.o(resetSchoolFilter)
+        m: common_vendor.o(resetSchoolFilter),
+        n: common_vendor.s(popupStyle.value)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        l: currentOption.value === "professional"
+        o: currentOption.value === "professional"
       }), currentOption.value === "professional" ? new UTSJSONObject({
-        m: common_vendor.sr("targetMajorDropdown", "d5601611-1"),
-        n: common_vendor.o(handleTargetMajorSelect),
-        o: common_vendor.o(handleTargetMajorSearch),
-        p: common_vendor.o(resetMajorSelection),
-        q: common_vendor.p(new UTSJSONObject({
+        p: common_vendor.sr("targetMajorDropdown", "d5601611-1"),
+        q: common_vendor.o(handleTargetMajorSelect),
+        r: common_vendor.o(handleTargetMajorSearch),
+        s: common_vendor.o(resetMajorSelection),
+        t: common_vendor.p(new UTSJSONObject({
           componentType: "graduateMajor",
           choiceIndex: formData.targetMajorIndex,
           choiceList: targetMajorList.value,
@@ -478,11 +564,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           enablePagination: true,
           pageSize: 10
         })),
-        r: common_vendor.o(resetProfessionalFilter)
+        v: common_vendor.o(resetProfessionalFilter),
+        w: common_vendor.s(popupStyle.value)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        s: currentOption.value === "nonProfessional"
+        x: currentOption.value === "nonProfessional"
       }), currentOption.value === "nonProfessional" ? new UTSJSONObject({
-        t: common_vendor.f(nonProTabs, (tab = null, k0 = null, i0 = null) => {
+        y: common_vendor.f(nonProTabs, (tab = null, k0 = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(tab.label),
             b: tab.key,
@@ -492,8 +579,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, tab.key)
           });
         }),
-        v: common_vendor.t(tabLabelMap[activeNonProTab.value]),
-        w: common_vendor.f(getChoiceList(activeNonProTab.value), (option = null, index = null, i0 = null) => {
+        z: common_vendor.t(tabLabelMap[activeNonProTab.value]),
+        A: common_vendor.f(getChoiceList(activeNonProTab.value), (option = null, index = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(option),
             b: index,
@@ -503,24 +590,26 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, index)
           });
         }),
-        x: common_vendor.o(resetNonProfessionalFilter),
-        y: common_vendor.o(() => {
-        })
+        B: common_vendor.o(resetNonProfessionalFilter),
+        C: common_vendor.o(() => {
+        }),
+        D: common_vendor.s(popupStyle.value)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        z: currentOption.value === "sort"
+        E: currentOption.value === "sort"
       }), currentOption.value === "sort" ? new UTSJSONObject({
-        A: common_vendor.o(handleSortSelect),
-        B: common_vendor.p(new UTSJSONObject({
+        F: common_vendor.o(handleSortSelect),
+        G: common_vendor.p(new UTSJSONObject({
           choiceIndex: formData.sortIndex,
           choiceList: sortOptions.value,
           defaultText: "请选择排序方式",
           mode: "select"
         })),
-        C: common_vendor.o(resetSortFilter)
+        H: common_vendor.o(resetSortFilter),
+        I: common_vendor.s(popupStyle.value)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        D: common_vendor.o(onPopupClose)
+        J: common_vendor.o(onPopupClose)
       })) : new UTSJSONObject({}), new UTSJSONObject({
-        E: common_vendor.f(matchTeachers.value, (teacher = null, index = null, i0 = null) => {
+        K: common_vendor.f(matchTeachers.value, (teacher = null, index = null, i0 = null) => {
           return common_vendor.e(new UTSJSONObject({
             a: teacher.avatar || "/static/image/tab-bar/default_avatar.png",
             b: common_vendor.o(($event = null) => {
@@ -538,13 +627,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             i: teacher.id || index
           }));
         }),
-        F: matchTeachers.value.length === 0 && !isLoading.value
+        L: matchTeachers.value.length === 0 && !isLoading.value
       }), matchTeachers.value.length === 0 && !isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        G: isLoading.value
+        M: isLoading.value
       }), isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        H: common_vendor.sei("step2", "scroll-view"),
-        I: common_vendor.o(loadMoreTeachers),
-        J: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+        N: common_vendor.sei("step2", "scroll-view"),
+        O: common_vendor.o(loadMoreTeachers),
+        P: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
       }));
       return __returned__;
     };

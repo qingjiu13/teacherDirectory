@@ -4,6 +4,20 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/test/test",
+          "pathName": "pages/test/test",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/test/test",
+          "pathName": "pages/test/test",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/match/match",
           "pathName": "pages/match/match",
           "query": "",

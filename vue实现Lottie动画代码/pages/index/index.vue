@@ -11,6 +11,7 @@
       </view>
     </view>
 
+
     <AICartoon />
     <TabBar pageName="index" />
   </view>
@@ -21,6 +22,7 @@ import AICartoon from '@/components/AI-cartoon/AI-cartoon.vue'
 import TabBar from '@/components/tab-bar/tab-bar.vue'
 import store from '@/store/index.js'
 import { Navigator } from '@/router/Router.js'
+
 
 export default {
   components: {

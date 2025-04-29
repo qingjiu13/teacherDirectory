@@ -4,6 +4,7 @@ const common_vendor = require("./common/vendor.js");
 const store_index = require("./store/index.js");
 const utils_vuexDebug = require("./utils/vuex-debug.js");
 const store_injectChecker = require("./store/inject-checker.js");
+const mixin_loading_mixin = require("./mixin/loading.mixin.js");
 if (!Math) {
   "./pages/index/index.js";
   "./pages/match/match.js";
@@ -34,37 +35,38 @@ const settings = new UTSJSONObject({
 const App = new UTSJSONObject({
   settings
 });
-const app = common_vendor.createApp(App);
-app.use(store_index.store);
-app.provide("store", store_index.store);
-const handleError = (err) => {
-  common_vendor.index.__f__("error", "at main.js:22", "捕获到全局错误:", err);
-};
-app.config.errorHandler = (err, vm, info) => {
-  common_vendor.index.__f__("error", "at main.js:28", "Vue错误:", err);
-  common_vendor.index.__f__("info", "at main.js:29", "错误来源:", info);
-  handleError(err);
-};
-app.config.globalProperties.$store = store_index.store;
-app.mixin(store_injectChecker.injectStoreSafety);
-{
-  utils_vuexDebug.installDebugPlugin(store_index.store);
-  utils_vuexDebug.installDebugForVue3(app, store_index.store);
-  store_injectChecker.checkStoreAvailability(store_index.store);
-  common_vendor.index.__f__("log", "at main.js:50", "初始Vuex状态:", store_index.store.state);
-}
-if (common_vendor.index.getSystemInfoSync().platform === "mp-weixin") {
-  common_vendor.index.__f__("log", "at main.js:55", "当前运行环境: 微信小程序");
-  common_vendor.index.onError((err) => {
-    common_vendor.index.__f__("error", "at main.js:59", "小程序错误:", err);
-    handleError(err);
-  });
-}
-app.mount("#app");
 function createApp() {
+  const app = common_vendor.createSSRApp(App);
+  app.use(store_index.store);
+  app.provide("store", store_index.store);
+  app.config.globalProperties.$store = store_index.store;
+  app.mixin(mixin_loading_mixin.loadingMixin);
+  app.mixin(store_injectChecker.injectStoreSafety);
+  const handleError = (err) => {
+    common_vendor.index.__f__("error", "at main.js:27", "捕获到全局错误:", err);
+  };
+  app.config.errorHandler = (err, vm, info) => {
+    common_vendor.index.__f__("error", "at main.js:32", "Vue错误:", err);
+    common_vendor.index.__f__("info", "at main.js:33", "错误来源:", info);
+    handleError(err);
+  };
+  {
+    utils_vuexDebug.installDebugPlugin(store_index.store);
+    utils_vuexDebug.installDebugForVue3(app, store_index.store);
+    store_injectChecker.checkStoreAvailability(store_index.store);
+    common_vendor.index.__f__("log", "at main.js:42", "初始Vuex状态:", store_index.store.state);
+  }
+  if (common_vendor.index.getSystemInfoSync().platform === "mp-weixin") {
+    common_vendor.index.__f__("log", "at main.js:47", "当前运行环境: 微信小程序");
+    common_vendor.index.onError((err) => {
+      common_vendor.index.__f__("error", "at main.js:49", "小程序错误:", err);
+      handleError(err);
+    });
+  }
   return {
     app
   };
 }
+createApp().app.mount("#app");
 exports.createApp = createApp;
 //# sourceMappingURL=../.sourcemap/mp-weixin/app.js.map

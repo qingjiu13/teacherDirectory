@@ -6,6 +6,9 @@
           v-model="searchText"
           placeholder="请输入搜索内容"
           class="search-input"
+          @focus="handleInputFocus"
+          @blur="handleInputBlur"
+          adjust-position="false"
         />
       </view>
   
@@ -35,7 +38,11 @@
       <view v-if="showPopup" class="filter-mask" @click="onPopupClose">
   
         <!-- 学校筛选弹层 -->
-        <view v-if="currentOption === 'school'" class="filter-popup">
+        <view 
+          v-if="currentOption === 'school'" 
+          class="filter-popup"
+          :style="popupStyle"
+        >
           <view class="popup-header">
             <text class="popup-title">学校</text>
           </view>
@@ -65,7 +72,11 @@
         </view>
     
         <!-- 专业课筛选弹层 -->
-        <view v-if="currentOption === 'professional'" class="filter-popup">
+        <view 
+          v-if="currentOption === 'professional'" 
+          class="filter-popup"
+          :style="popupStyle"
+        >
           <view class="popup-header">
             <text class="popup-title">专业课</text>
           </view>
@@ -98,7 +109,12 @@
         </view>
     
         <!-- 非专业课筛选弹层 -->
-        <view v-if="currentOption === 'nonProfessional'" class="filter-popup non-professional-popup" @click.stop>
+        <view 
+          v-if="currentOption === 'nonProfessional'" 
+          class="filter-popup non-professional-popup" 
+          @click.stop
+          :style="popupStyle"
+        >
           <view class="popup-header">
             <text class="popup-title">非专业课</text>
           </view>
@@ -136,7 +152,11 @@
         </view>
     
         <!-- 排序方式筛选弹层 -->
-        <view v-if="currentOption === 'sort'" class="filter-popup">
+        <view 
+          v-if="currentOption === 'sort'" 
+          class="filter-popup"
+          :style="popupStyle"
+        >
           <view class="popup-header">
             <text class="popup-title">排序方式</text>
           </view>
@@ -194,7 +214,7 @@
   </template>
   
   <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
+  import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
   import { useStore } from 'vuex'
   import { Navigator } from '@/router/Router.js'
   import ChoiceSelected from '../../components/combobox/combobox'
@@ -283,6 +303,81 @@
   const politicsOptions = ref(['政治必修', '政治选修'])
   const otherOptions = ref(['经济学', '管理学', '教育学', '历史学'])
   const sortOptions = ref(['综合评分从高到低', '价格从低到高', '价格从高到低', '最新发布'])
+  
+  // 键盘高度监听相关
+  const keyboardHeight = ref(0)
+  const isInputFocused = ref(false)
+  const safeAreaInsetBottom = ref(0) // 安全区域底部高度
+  
+  /**
+   * 弹出层样式计算属性
+   */
+  const popupStyle = computed(() => {
+    return {
+      bottom: keyboardHeight.value > 0 ? `${keyboardHeight.value}px` : '0px',
+      transition: 'bottom 0.2s',
+      zIndex: keyboardHeight.value > 0 ? '1001' : '999',
+    }
+  })
+  
+  /**
+   * 处理输入框获取焦点事件
+   * @returns {void}
+   */
+  const handleInputFocus = () => {
+    isInputFocused.value = true
+    
+    // 在某些设备上需要延迟一下才能正确捕获键盘高度
+    setTimeout(() => {
+      if (uni.canIUse('getSystemInfoSync')) {
+        try {
+          const systemInfo = uni.getSystemInfoSync()
+          // 获取安全区域
+          if (systemInfo.safeArea) {
+            safeAreaInsetBottom.value = systemInfo.screenHeight - systemInfo.safeArea.bottom
+          }
+        } catch (e) {
+          console.error('获取系统信息失败', e)
+        }
+      }
+    }, 100)
+  }
+  
+  /**
+   * 处理输入框失去焦点事件
+   * @returns {void}
+   */
+  const handleInputBlur = () => {
+    isInputFocused.value = false
+    // 设置延迟，确保键盘完全收起后再重置高度
+    setTimeout(() => {
+      if (!isInputFocused.value) {
+        keyboardHeight.value = 0
+      }
+    }, 300)
+  }
+  
+  /**
+   * 监听键盘高度变化事件
+   * @param {Object} res - 包含键盘高度的对象
+   * @returns {void}
+   */
+  const keyboardHeightChangeHandler = (res) => {
+    // 直接更新键盘高度，不考虑焦点状态
+    // 因为在某些场景下，键盘可能已经弹出但焦点状态还未更新
+    if (typeof res.height === 'number') {
+      nextTick(() => {
+        keyboardHeight.value = res.height
+        // 如果键盘高度为0（收起）且弹窗已显示，更新showPopup状态
+        if (res.height === 0 && showPopup.value && isInputFocused.value) {
+          // 延迟处理，避免闪烁
+          setTimeout(() => {
+            keyboardHeight.value = 0
+          }, 200)
+        }
+      })
+    }
+  }
   
   /**
    * 判断选项是否处于活跃状态
@@ -850,13 +945,63 @@
     return summary
   })
 
-  // 在组件挂载时初始化数据
+  // 注册键盘高度变化监听函数
+  const setupKeyboardListener = () => {
+    try {
+      // 使用微信原生API直接监听键盘高度变化
+      if (typeof wx !== 'undefined' && wx.onKeyboardHeightChange) {
+        wx.onKeyboardHeightChange(keyboardHeightChangeHandler)
+      } else if (uni.onKeyboardHeightChange) {
+        uni.onKeyboardHeightChange(keyboardHeightChangeHandler)
+      } else {
+        console.warn('当前环境不支持键盘高度变化监听')
+      }
+    } catch (error) {
+      console.error('注册键盘监听失败', error)
+    }
+  }
+
+  // 移除键盘高度变化监听函数
+  const removeKeyboardListener = () => {
+    try {
+      if (typeof wx !== 'undefined' && wx.offKeyboardHeightChange) {
+        wx.offKeyboardHeightChange(keyboardHeightChangeHandler)
+      } else if (uni.offKeyboardHeightChange) {
+        uni.offKeyboardHeightChange(keyboardHeightChangeHandler)
+      }
+    } catch (error) {
+      console.error('移除键盘监听失败', error)
+    }
+  }
+
+  // 生命周期钩子：组件挂载时添加键盘高度变化监听
   onMounted(() => {
     // 初始化研究生学校专业数据
     initGraduateData()
     
     // 从Vuex store获取教师列表数据 - 初始化加载
     store.dispatch('user/match/fetchMatchTeachers')
+    
+    // 添加键盘高度变化监听
+    setupKeyboardListener()
+    
+    // 获取系统信息，包括安全区域
+    if (uni.canIUse('getSystemInfoSync')) {
+      try {
+        const systemInfo = uni.getSystemInfoSync()
+        if (systemInfo.safeArea) {
+          safeAreaInsetBottom.value = systemInfo.screenHeight - systemInfo.safeArea.bottom
+        }
+      } catch (e) {
+        console.error('获取系统信息失败', e)
+      }
+    }
+  })
+
+  // 生命周期钩子：组件卸载前移除键盘高度变化监听
+  onBeforeUnmount(() => {
+    // 移除键盘高度变化监听
+    removeKeyboardListener()
   })
   </script>
   
@@ -1197,9 +1342,14 @@
     display: flex;
     flex-direction: column;
     height: 650rpx;
+    /* 添加过渡效果使位置变化更平滑 */
+    transition: bottom 0.2s ease;
+    /* 防止被键盘遮挡 */
+    will-change: transform, bottom;
   }
   .filter-popup.non-professional-popup {
     height: 60vh;
+    max-height: calc(100vh - 100px);
   }
   
   /* 底部按钮样式 */
