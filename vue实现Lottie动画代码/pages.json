@@ -116,9 +116,15 @@
 		},
 		{
 			"path" : "pages/test/test",
+			"style" : {
+				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path" : "pages/mine/service_newbuilt",
 			"style" : 
 			{
-				"navigationBarTitleText" : ""
+				"navigationBarTitleText" : "新建服务"
 			}
 		}
 	],
@@ -135,14 +141,11 @@
 			"^message-list$": "components/ai-chat/MessageList",
 			"^filter-section$": "components/ai-chat/FilterSection", 
 			"^mode-selector$": "components/ai-chat/ModeSelector",
-			"^input-section$": "components/ai-chat/InputSection"
-
+			"^top-navbar$": "components/top-navbar/top-navbar"
 		}
 	},
 	"uniIdRouter": {},
-	// 修改 package.json
 	"dependencies": {
-	  // 替换为
-	  "lottie-miniprogram": "npm:@tencent/lottie-miniprogram"
+		"lottie-miniprogram": "npm:@tencent/lottie-miniprogram"
 	}
 }

@@ -14,9 +14,21 @@
         "setting" : {
             "urlCheck" : false,
             "minified" : true,
-            "es6" : true
+            "es6" : true,
+            "checkSiteMap": false,
+            "postcss": true,
+            "ignoreDevUnusedFiles": false,
+            "ignoreUploadUnusedFiles": true
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "packOptions": {
+            "ignore": []
+        },
+        "permission": {
+            "scope.userLocation": {
+                "desc": "获取您的位置信息用于优化服务体验"
+            }
+        }
     },
     
     "mp-alipay" : {

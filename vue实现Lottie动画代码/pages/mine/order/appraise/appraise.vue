@@ -4,15 +4,15 @@
     <view class="order-card">
       <view class="user-info">
         <view class="avatar">
-          <text class="avatar-text">学姐</text>
+          <text class="avatar-text">{{ courseInfo.teacher ? courseInfo.teacher.substring(0, 1) : '讲' }}</text>
         </view>
         <view class="order-details">
-          <text class="user-name">XXXX学姐</text>
-          <text class="course-type">类型：线上课程-政治</text>
-          <text class="order-time">订单时间：2025/04/12 11:30</text>
+          <text class="user-name">{{ courseInfo.teacher || 'XXXX老师' }}</text>
+          <text class="course-type">课程：{{ courseInfo.name || 'XXXX课程' }}</text>
+          <text class="order-time">订单时间：{{ getCurrentDate() }}</text>
         </view>
       </view>
-      <text class="price">金额：100.00元</text>
+      <text class="price">金额：{{ courseInfo.price }}元</text>
     </view>
 
     <!-- 评价内容 -->
@@ -106,7 +106,24 @@ export default {
       overallRating: 0,
       professionalRating: 0,
       attitudeRating: 0,
-      comment: ''
+      comment: '',
+      courseInfo: {
+        id: '',
+        name: '',
+        teacher: '',
+        price: 0
+      }
+    }
+  },
+  onLoad(options) {
+    // 接收传递的课程信息
+    if (options) {
+      this.courseInfo = {
+        id: options.courseId || '',
+        name: options.courseName || 'XXXX课程',
+        teacher: options.teacherName || 'XXXX老师',
+        price: options.price || '100.00'
+      };
     }
   },
   methods: {
@@ -132,6 +149,22 @@ export default {
         return
       }
       
+      // 构建评价数据，实际应用中可以发送到服务器
+      const appraiseData = {
+        courseId: this.courseInfo.id,
+        courseName: this.courseInfo.name,
+        teacher: this.courseInfo.teacher,
+        ratings: {
+          overall: this.overallRating,
+          professional: this.professionalRating,
+          attitude: this.attitudeRating
+        },
+        comment: this.comment,
+        submitTime: new Date().toLocaleString()
+      };
+      
+      console.log('提交评价:', appraiseData);
+      
       uni.showToast({
         title: '评价提交成功',
         icon: 'success'
@@ -141,6 +174,10 @@ export default {
       setTimeout(() => {
         uni.navigateBack()
       }, 1500)
+    },
+    getCurrentDate() {
+      const date = new Date();
+      return date.toLocaleString();
     }
   }
 }
@@ -149,37 +186,40 @@ export default {
 <style>
 .container {
   flex: 1;
-  background-color: #f8f8f8;
+  background-color: #f7f9fc;
   padding-bottom: 120rpx;
-  padding-top: 20rpx;
+  padding-top: 30rpx;
+  font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 }
 
 .order-card {
-  margin: 20rpx;
-  padding: 30rpx;
+  margin: 20rpx 30rpx;
+  padding: 35rpx;
   background-color: #ffffff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border-left: 8rpx solid #3a86ff;
 }
 
 .user-info {
   flex-direction: row;
-  margin-bottom: 20rpx;
+  margin-bottom: 25rpx;
 }
 
 .avatar {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50rpx;
-  margin-right: 20rpx;
-  background: linear-gradient(45deg, #007AFF, #00C6FF);
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 55rpx;
+  margin-right: 25rpx;
+  background: linear-gradient(135deg, #3a86ff, #4361ee);
   justify-content: center;
   align-items: center;
+  box-shadow: 0 6rpx 12rpx rgba(67, 97, 238, 0.2);
 }
 
 .avatar-text {
   color: #ffffff;
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: bold;
 }
 
@@ -189,87 +229,101 @@ export default {
 }
 
 .user-name {
-  font-size: 32rpx;
-  color: #333333;
+  font-size: 34rpx;
+  color: #2c3e50;
   font-weight: 600;
-  margin-bottom: 12rpx;
+  margin-bottom: 14rpx;
 }
 
 .course-type, .order-time {
-  font-size: 26rpx;
-  color: #666666;
-  margin-bottom: 6rpx;
+  font-size: 28rpx;
+  color: #5d6b89;
+  margin-bottom: 8rpx;
+  display: flex;
+  align-items: center;
+}
+
+.course-type::before, .order-time::before {
+  content: "";
+  display: inline-block;
+  width: 6rpx;
+  height: 6rpx;
+  background-color: #5d6b89;
+  border-radius: 50%;
+  margin-right: 8rpx;
 }
 
 .price {
-  font-size: 30rpx;
-  color: #ff6b6b;
+  font-size: 34rpx;
+  color: #ff5a5f;
   font-weight: 500;
 }
 
 .rating-section {
-  margin: 20rpx;
-  padding: 30rpx;
+  margin: 20rpx 30rpx;
+  padding: 35rpx;
   background-color: #ffffff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 
 .rating-item {
-  margin-bottom: 40rpx;
+  margin-bottom: 45rpx;
 }
 
 .rating-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 25rpx;
 }
 
 .icon-wrapper {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 30rpx;
-  margin-right: 16rpx;
+  width: 65rpx;
+  height: 65rpx;
+  border-radius: 32.5rpx;
+  margin-right: 20rpx;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
 }
 
 .satisfaction {
-  background: linear-gradient(45deg, #FFB800, #FFDA00);
+  background: linear-gradient(45deg, #ffb800, #ffda00);
 }
 
 .knowledge {
-  background: linear-gradient(45deg, #00B578, #00E1A0);
+  background: linear-gradient(45deg, #00b578, #00e1a0);
 }
 
 .attitude {
-  background: linear-gradient(45deg, #FF6B6B, #FFA0A0);
+  background: linear-gradient(45deg, #ff5a5f, #ff8a8e);
 }
 
 .comment {
-  background: linear-gradient(45deg, #8A2BE2, #BA55D3);
+  background: linear-gradient(45deg, #8a2be2, #ba55d3);
 }
 
 .icon-smile, .icon-book, .icon-heart, .icon-edit {
   color: #ffffff;
-  font-size: 36rpx;
+  font-size: 38rpx;
 }
 
 .rating-title {
-  font-size: 30rpx;
-  color: #333333;
+  font-size: 32rpx;
+  color: #2c3e50;
   font-weight: 500;
 }
 
 .star-group {
   flex-direction: row;
-  padding: 0 20rpx;
+  padding: 0 25rpx;
 }
 
 .star-icon {
-  font-size: 50rpx;
-  color: #dddddd;
-  margin-right: 30rpx;
+  font-size: 55rpx;
+  color: #e5e9f2;
+  margin-right: 35rpx;
+  transition: all 0.2s ease;
 }
 
 .star-active {
@@ -277,38 +331,39 @@ export default {
 }
 
 .comment-section {
-  margin-top: 20rpx;
+  margin-top: 30rpx;
   position: relative;
 }
 
 .comment-header {
   flex-direction: row;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 25rpx;
 }
 
 .comment-title {
-  font-size: 30rpx;
-  color: #333333;
+  font-size: 32rpx;
+  color: #2c3e50;
   font-weight: 500;
 }
 
 .comment-input {
   width: 100%;
   height: 240rpx;
-  padding: 24rpx;
-  font-size: 28rpx;
-  color: #333333;
-  background-color: #f8f8f8;
-  border-radius: 12rpx;
+  padding: 30rpx;
+  font-size: 30rpx;
+  color: #2c3e50;
+  background-color: #f7f9fc;
+  border-radius: 16rpx;
+  border: 1px solid #e5e9f2;
 }
 
 .word-count {
   position: absolute;
-  right: 24rpx;
-  bottom: 24rpx;
-  font-size: 24rpx;
-  color: #999999;
+  right: 30rpx;
+  bottom: 30rpx;
+  font-size: 26rpx;
+  color: #8c9db5;
 }
 
 .submit-section {
@@ -316,20 +371,21 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20rpx 40rpx;
+  padding: 25rpx 40rpx;
   background-color: #ffffff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 
 .submit-btn {
   width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
-  background: linear-gradient(45deg, #007AFF, #00C6FF);
+  height: 90rpx;
+  line-height: 90rpx;
+  background: linear-gradient(135deg, #3a86ff, #4361ee);
   color: #ffffff;
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 500;
-  border-radius: 40rpx;
+  border-radius: 45rpx;
   text-align: center;
+  box-shadow: 0 6rpx 12rpx rgba(67, 97, 238, 0.2);
 }
 </style>
