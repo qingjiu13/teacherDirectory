@@ -663,15 +663,14 @@ if (!Array) {
   const _component_ChoiceSelected = common_vendor.resolveComponent("ChoiceSelected");
   const _easycom_message_list2 = common_vendor.resolveComponent("message-list");
   const _easycom_mode_selector2 = common_vendor.resolveComponent("mode-selector");
-  const _easycom_input_section2 = common_vendor.resolveComponent("input-section");
-  (_easycom_history_sidebar2 + _component_ChoiceSelected + _easycom_message_list2 + _easycom_mode_selector2 + _easycom_input_section2)();
+  const _component_input_section = common_vendor.resolveComponent("input-section");
+  (_easycom_history_sidebar2 + _component_ChoiceSelected + _easycom_message_list2 + _easycom_mode_selector2 + _component_input_section)();
 }
 const _easycom_history_sidebar = () => "../../components/ai-chat/HistorySidebar2.js";
 const _easycom_message_list = () => "../../components/ai-chat/MessageList2.js";
 const _easycom_mode_selector = () => "../../components/ai-chat/ModeSelector2.js";
-const _easycom_input_section = () => "../../components/ai-chat/InputSection2.js";
 if (!Math) {
-  (_easycom_history_sidebar + _easycom_message_list + _easycom_mode_selector + _easycom_input_section)();
+  (_easycom_history_sidebar + _easycom_message_list + _easycom_mode_selector)();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

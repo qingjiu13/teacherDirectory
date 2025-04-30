@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { defineProps, ref, defineExpose } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
 	src: {

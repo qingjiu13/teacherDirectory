@@ -55,10 +55,13 @@
 </template>
 
 <script>
+    
     let dropdownInstances = [];
     
     export default {
         name: "ChoiceSelected",
+        components: {
+        },
         data() {
             return {
                 isShowChoice: false,
@@ -444,9 +447,9 @@
                 // 如果下拉框未显示，阻止下拉框被关闭
                 event.stopPropagation();
                 
-                // 如果下拉框未显示，则显示
-                if (!this.isShowChoice) {
-                    this.btnShowHideClick(event);
+                // 使用KeyboardWatcher的openWhenReady方法
+                if (!this.isShowChoice && this.$refs.keyboardWatcher) {
+                    this.$refs.keyboardWatcher.openWhenReady(this);
                 }
             },
             
@@ -483,6 +486,18 @@
                     return this.choiceList[this.choiceIndex];
                 }
                 return null;
+            },
+            
+            /**
+             * @description 公开方法，供KeyboardWatcher调用以打开下拉框
+             * @public
+             */
+            openDropdown() {
+                // 使用现有的按钮点击方法，但创建一个合成事件对象
+                const syntheticEvent = {
+                    stopPropagation: () => {}
+                };
+                this.btnShowHideClick(syntheticEvent);
             }
         }
     }

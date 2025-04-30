@@ -1,6 +1,7 @@
 <template>
   <view class="form-container">
-    <!-- 表单内容 -->
+    
+          <!-- 表单内容 -->
     <view class="form-card">
       <view class="form-notice">
         <text class="notice-text">以下信息为选填项，您可以选择填写您想提供的信息</text>
@@ -153,12 +154,12 @@
             />
           </view>
       </block>
-      
       <!-- 按钮区域 -->
       <view class="button-container">
         <button class="submit-btn" @click="submitForm">提交信息</button>
       </view>
     </view>
+
     
     <!-- 老师角色协议确认浮窗 -->
     <view class="modal-overlay" v-if="showAgreementModal" @click.stop="closeModal">
@@ -188,7 +189,6 @@ import GraduateStore from '../../components/combobox/graduate_school_major.js';
 import createDataModule from '../../components/combobox/undergraduate.js';
 import schoolData from '../../static/data/2886所大学.json';
 import majorData from '../../static/data/本科专业.json';
-
 
 export default {
   onPageScroll() {

@@ -4,6 +4,7 @@ const common_assets = require("../../common/assets.js");
 let dropdownInstances = [];
 const _sfc_main = common_vendor.defineComponent({
   name: "ChoiceSelected",
+  components: {},
   data() {
     return {
       isShowChoice: false,
@@ -172,7 +173,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
     }
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 处理页面滚动事件
      * 当页面滚动时关闭下拉框
@@ -317,7 +318,7 @@ const _sfc_main = common_vendor.defineComponent({
         clearTimeout(_this.searchTimer);
       }
       _this.searchTimer = setTimeout(() => {
-        common_vendor.index.__f__("log", "at components/combobox/combobox.vue:426", "发送搜索请求:", _this.searchKeyword);
+        common_vendor.index.__f__("log", "at components/combobox/combobox.vue:429", "发送搜索请求:", _this.searchKeyword);
         _this.$emit("search-input", _this.searchKeyword);
         if (!_this.isShowChoice) {
           _this.btnShowHideClick(event);
@@ -331,8 +332,8 @@ const _sfc_main = common_vendor.defineComponent({
     onInputFocus(event = null) {
       this.isFocused = true;
       event.stopPropagation();
-      if (!this.isShowChoice) {
-        this.btnShowHideClick(event);
+      if (!this.isShowChoice && this.$refs.keyboardWatcher) {
+        this.$refs.keyboardWatcher.openWhenReady(this);
       }
     },
     /**
@@ -366,8 +367,19 @@ const _sfc_main = common_vendor.defineComponent({
         return this.choiceList[this.choiceIndex];
       }
       return null;
+    },
+    /**
+     * @description 公开方法，供KeyboardWatcher调用以打开下拉框
+     * @public
+     */
+    openDropdown() {
+      const syntheticEvent = new UTSJSONObject({
+        stopPropagation: () => {
+        }
+      });
+      this.btnShowHideClick(syntheticEvent);
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

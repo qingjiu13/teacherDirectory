@@ -1,0 +1,1 @@
+<view style="{{'padding-bottom:' + b + ';' + virtualHostStyle}}" id="{{a}}" change:eS="{{uV.sS}}" eS="{{$eS[a]}}" change:eA="{{uV.sA}}" eA="{{$eA[a]}}" class="{{['form-container', 'data-v-92a14c50', virtualHostClass]}}" hidden="{{virtualHostHidden || false}}"><slot/></view><wxs src="/common/uniView.wxs" module="uV"/>
