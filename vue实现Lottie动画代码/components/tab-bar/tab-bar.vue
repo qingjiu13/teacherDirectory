@@ -5,6 +5,10 @@
 				<image class="nav-icon" :src="getIconPath('index')"></image>
 				<text class="tab-text">首页</text>
 			</view>
+			<view class="tab-item" :class="{ active: pageName === 'AI' }" @click="switchPage('AI')">
+				<image class="nav-icon" :src="getIconPath('AI')"></image>
+				<text class="tab-text">AI</text>
+			</view>
 			<view class="tab-item" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
 				<image class="nav-icon" :src="getIconPath('message')"></image>
 				<text class="tab-text">消息</text>
@@ -21,7 +25,7 @@
 	/**
 	 * @description 底部导航栏组件
 	 */
-	import { Navigator, IndexRoutes, MessageRoutes, MineRoutes } from '@/router/Router.js';
+	import { Navigator, IndexRoutes, MessageRoutes, MineRoutes, AIRoutes } from '@/router/Router.js';
 	
 	export default {
 		props: {
@@ -37,6 +41,7 @@
 				 */
 				tabRoutes: {
 					'index': IndexRoutes.INDEX,
+					'AI': AIRoutes.AI_SERVER,
 					'message': MessageRoutes.MESSAGE,
 					'mine': MineRoutes.MINE
 				},
@@ -45,6 +50,10 @@
 				 */
 				iconPaths: {
 					'index': {
+						normal: '/static/image/tab-bar/wechat.png',
+						active: '/static/image/tab-bar/default_avatar.png'
+					},
+					'AI': {
 						normal: '/static/image/tab-bar/wechat.png',
 						active: '/static/image/tab-bar/default_avatar.png'
 					},
@@ -106,6 +115,9 @@
 							case 'mine':
 								Navigator.reLaunch(MineRoutes.MINE);
 								break;
+							case 'AI':
+								Navigator.reLaunch(AIRoutes.AI_SERVER);
+								break;
 							default:
 								console.error('未知的页面类型:', page);
 						}
@@ -123,6 +135,9 @@
 							break;
 						case 'mine':
 							Navigator.redirectTo(MineRoutes.MINE);
+							break;
+						case 'AI':
+							Navigator.redirectTo(AIRoutes.AI_SERVER);
 							break;
 						default:
 							console.error('未知的页面类型:', page);

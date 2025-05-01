@@ -15,6 +15,7 @@ const _sfc_main = common_vendor.defineComponent({
        */
       tabRoutes: new UTSJSONObject({
         "index": router_Router.IndexRoutes.INDEX,
+        "AI": router_Router.AIRoutes.AI_SERVER,
         "message": router_Router.MessageRoutes.MESSAGE,
         "mine": router_Router.MineRoutes.MINE
       }),
@@ -23,6 +24,10 @@ const _sfc_main = common_vendor.defineComponent({
        */
       iconPaths: new UTSJSONObject({
         "index": new UTSJSONObject({
+          normal: "/static/image/tab-bar/wechat.png",
+          active: "/static/image/tab-bar/default_avatar.png"
+        }),
+        "AI": new UTSJSONObject({
           normal: "/static/image/tab-bar/wechat.png",
           active: "/static/image/tab-bar/default_avatar.png"
         }),
@@ -57,14 +62,14 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       }
       if (!this.tabRoutes[page]) {
-        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:86", "页面不存在:", page);
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:95", "页面不存在:", page);
         return null;
       }
       try {
         const pages = getCurrentPages();
         const stackDepth = pages.length;
         if (stackDepth >= 8) {
-          common_vendor.index.__f__("warn", "at components/tab-bar/tab-bar.vue:98", "页面栈接近上限，使用reLaunch清空页面栈");
+          common_vendor.index.__f__("warn", "at components/tab-bar/tab-bar.vue:107", "页面栈接近上限，使用reLaunch清空页面栈");
           switch (page) {
             case "index":
               router_Router.Navigator.reLaunch(router_Router.IndexRoutes.INDEX);
@@ -75,8 +80,11 @@ const _sfc_main = common_vendor.defineComponent({
             case "mine":
               router_Router.Navigator.reLaunch(router_Router.MineRoutes.MINE);
               break;
+            case "AI":
+              router_Router.Navigator.reLaunch(router_Router.AIRoutes.AI_SERVER);
+              break;
             default:
-              common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:110", "未知的页面类型:", page);
+              common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:122", "未知的页面类型:", page);
           }
           return null;
         }
@@ -90,11 +98,14 @@ const _sfc_main = common_vendor.defineComponent({
           case "mine":
             router_Router.Navigator.redirectTo(router_Router.MineRoutes.MINE);
             break;
+          case "AI":
+            router_Router.Navigator.redirectTo(router_Router.AIRoutes.AI_SERVER);
+            break;
           default:
-            common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:128", "未知的页面类型:", page);
+            common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:143", "未知的页面类型:", page);
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:131", "Tab切换失败:", e);
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:146", "Tab切换失败:", e);
       }
     }
   })
@@ -104,13 +115,16 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     a: $options.getIconPath("index"),
     b: $props.pageName === "index" ? 1 : "",
     c: common_vendor.o(($event) => $options.switchPage("index")),
-    d: $options.getIconPath("message"),
-    e: $props.pageName === "message" ? 1 : "",
-    f: common_vendor.o(($event) => $options.switchPage("message")),
-    g: $options.getIconPath("mine"),
-    h: $props.pageName === "mine" ? 1 : "",
-    i: common_vendor.o(($event) => $options.switchPage("mine")),
-    j: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    d: $options.getIconPath("AI"),
+    e: $props.pageName === "AI" ? 1 : "",
+    f: common_vendor.o(($event) => $options.switchPage("AI")),
+    g: $options.getIconPath("message"),
+    h: $props.pageName === "message" ? 1 : "",
+    i: common_vendor.o(($event) => $options.switchPage("message")),
+    j: $options.getIconPath("mine"),
+    k: $props.pageName === "mine" ? 1 : "",
+    l: common_vendor.o(($event) => $options.switchPage("mine")),
+    m: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }
 const Component = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

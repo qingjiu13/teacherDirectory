@@ -1,12 +1,10 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-require("../../store/index.js");
 const router_Router = require("../../router/Router.js");
-const AICartoon = () => "../../components/AI-cartoon/AI-cartoon.js";
 const TabBar = () => "../../components/tab-bar/tab-bar.js";
 const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   components: {
-    AICartoon,
+    // AICartoon,
     TabBar
   },
   methods: new UTSJSONObject({
@@ -16,9 +14,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   })
 }));
 if (!Array) {
-  const _component_AICartoon = common_vendor.resolveComponent("AICartoon");
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
-  (_component_AICartoon + _component_TabBar)();
+  _component_TabBar();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {

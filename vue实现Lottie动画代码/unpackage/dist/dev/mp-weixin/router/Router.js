@@ -225,6 +225,7 @@ const Navigator = {
     this.navigateTo(MineRoutes.SUBSCRIBE);
   }
 };
+exports.AIRoutes = AIRoutes;
 exports.IndexRoutes = IndexRoutes;
 exports.MessageRoutes = MessageRoutes;
 exports.MineRoutes = MineRoutes;
