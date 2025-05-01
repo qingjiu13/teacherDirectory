@@ -10,27 +10,25 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       // 角色切换中状态
     };
   },
-  computed: new UTSJSONObject({
-    // 直接从store获取数据，替代mapGetters
-    isTeacher() {
-      return store_index.store.getters["user/baseInfo/isTeacher"];
-    },
-    userRole() {
-      return store_index.store.getters["user/baseInfo/userRole"];
-    },
-    profile() {
-      return store_index.store.getters["user/baseInfo/profile"];
-    },
-    isStudent() {
-      return !this.isTeacher;
-    }
-  }),
+  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters(new UTSJSONObject({
+    isTeacher: "user/baseInfo/isTeacher",
+    userRole: "user/baseInfo/userRole",
+    profile: "user/baseInfo/profile"
+  }))), { isStudent() {
+    return !this.isTeacher;
+  } })),
   onLoad() {
     const token = common_vendor.index.getStorageSync("token");
     this.isLoggedIn = !!token;
   },
   methods: new UTSJSONObject({
     // 直接调用store的dispatch方法，替代mapActions
+    /**
+     * @description 处理修改个人信息
+     */
+    handleModifyInfo() {
+      router_Router.Navigator.toModify();
+    },
     /**
      * @description 处理切换身份
      */
@@ -55,7 +53,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
                   router_Router.Navigator.reLaunch("/pages/mine/mine/mine_common");
                 }, 1500);
               } catch (error) {
-                common_vendor.index.__f__("error", "at pages/mine/settings.vue:98", "切换角色失败:", error);
+                common_vendor.index.__f__("error", "at pages/mine/settings.vue:105", "切换角色失败:", error);
                 common_vendor.index.showToast({
                   title: "切换角色失败",
                   icon: "none"
@@ -98,7 +96,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
                   router_Router.Navigator.reLaunch("/pages/mine/mine/mine_common");
                 }, 1500);
               } catch (error) {
-                common_vendor.index.__f__("error", "at pages/mine/settings.vue:146", "退出登录时出错:", error);
+                common_vendor.index.__f__("error", "at pages/mine/settings.vue:153", "退出登录时出错:", error);
                 common_vendor.index.showToast({
                   title: "退出登录时出错",
                   icon: "none"
@@ -113,14 +111,15 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
 }));
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.t($options.isTeacher ? "老师" : "学生"),
+    a: common_vendor.t(_ctx.isTeacher ? "老师" : "学生"),
     b: common_vendor.o((...args) => $options.handleSwitchRole && $options.handleSwitchRole(...args)),
-    c: common_vendor.o((...args) => $options.handleContactUs && $options.handleContactUs(...args)),
-    d: $data.isLoggedIn
+    c: common_vendor.o((...args) => $options.handleModifyInfo && $options.handleModifyInfo(...args)),
+    d: common_vendor.o((...args) => $options.handleContactUs && $options.handleContactUs(...args)),
+    e: $data.isLoggedIn
   }, $data.isLoggedIn ? {
-    e: common_vendor.o((...args) => $options.handleLogout && $options.handleLogout(...args))
+    f: common_vendor.o((...args) => $options.handleLogout && $options.handleLogout(...args))
   } : {}, {
-    f: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

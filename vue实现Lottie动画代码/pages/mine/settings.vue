@@ -8,7 +8,13 @@
         </view>
         <text class="settings-text">切换身份（当前：{{isTeacher ? '老师' : '学生'}}）</text>
       </view>
-      
+      <!--修改个人信息-->
+      <view class="settings-item" @click="handleModifyInfo">
+        <view class="icon-circle info">
+          <text class="icon-text">🔄</text>
+        </view>
+        <text class="settings-text">修改个人信息</text>
+      </view>
       <!-- 联系我们 -->
       <view class="settings-item" @click="handleContactUs">
         <view class="icon-circle info">
@@ -34,6 +40,7 @@
  */
 import { Navigator } from '@/router/Router.js';
 import store from '@/store';
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -43,16 +50,11 @@ export default {
     }
   },
   computed: {
-    // 直接从store获取数据，替代mapGetters
-    isTeacher() {
-      return store.getters['user/baseInfo/isTeacher'];
-    },
-    userRole() {
-      return store.getters['user/baseInfo/userRole'];
-    },
-    profile() {
-      return store.getters['user/baseInfo/profile'];
-    },
+    ...mapGetters({
+      isTeacher: 'user/baseInfo/isTeacher',
+      userRole: 'user/baseInfo/userRole',
+      profile: 'user/baseInfo/profile'
+    }),
     isStudent() {
       return !this.isTeacher;
     }
@@ -64,7 +66,12 @@ export default {
   },
   methods: {
     // 直接调用store的dispatch方法，替代mapActions
-    
+    /**
+     * @description 处理修改个人信息
+     */
+    handleModifyInfo() {
+      Navigator.toModify();
+    },
     /**
      * @description 处理切换身份
      */

@@ -12,6 +12,9 @@
     </view>
 
 
+
+    
+
     <!-- <AICartoon /> -->
     <TabBar pageName="index" />
   </view>

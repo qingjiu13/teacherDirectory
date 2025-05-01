@@ -8,8 +8,10 @@
           <view class="nickname-row">
             <text class="login-text" @click="handleLoginClick">{{ userData.name || storeName || '登录' }}</text>
           </view>
-          <!-- 修改个人信息链接 -->
-          <text class="edit-profile-link" @click="handleEditProfile">修改个人信息</text>
+          <!-- 是否认证 -->
+          <view class="certification-row" v-if="storeUserInfo.role === '老师'">
+            <text class="certification-text">是否认证：{{ userData.certification || '未认证' }}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -82,7 +84,7 @@
 /**
  * @description 我的页面（通用）
  */
-import { Navigator, MineRoutes } from '@/router/Router.js';
+import { Navigator} from '@/router/Router.js';
 import TabBar from '../../../components/tab-bar/tab-bar.vue';
 import store from '@/store/index.js';
 import { mapState } from 'vuex';
@@ -95,7 +97,6 @@ export default {
     return {
       userData: {},
       isLoggedIn: false,
-      MineRoutes,
       isLoading: false,
       isDebug: true  // 显示调试信息
     }
@@ -330,12 +331,6 @@ export default {
       }
     },
     
-    /**
-     * @description 跳转到修改个人信息页面
-     */
-    handleEditProfile() {
-      Navigator.toModify();
-    },
     
     /**
      * @description 页面跳转方法
@@ -524,5 +519,9 @@ export default {
   font-size: 30rpx;
   color: #333;
   text-align: left;
+}
+.certification-row {
+  display: flex;
+  flex-wrap: wrap;
 }
 </style>

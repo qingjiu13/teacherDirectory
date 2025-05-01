@@ -37,14 +37,6 @@ const MineRoutes = {
   WALLET: "/pages/mine/wallet",
   SUBSCRIBE: "/pages/mine/subscribe"
 };
-({
-  ...IndexRoutes,
-  ...MatchRoutes,
-  ...AIRoutes,
-  ...MessageRoutes,
-  ...LoginRoutes,
-  ...MineRoutes
-});
 const Navigator = {
   /**
    * @description 普通页面跳转

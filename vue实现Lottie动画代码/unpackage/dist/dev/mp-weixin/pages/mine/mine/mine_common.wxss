@@ -119,3 +119,7 @@
   color: #333;
   text-align: left;
 }
+.certification-row {
+  display: flex;
+  flex-wrap: wrap;
+}

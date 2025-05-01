@@ -1,6 +1,5 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-require("../../router/Router.js");
 const _sfc_main = common_vendor.defineComponent({
   data() {
     return {

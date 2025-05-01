@@ -335,7 +335,6 @@ export default {
       // 重置专业选择
       this.resetMajorSelection();
     },
-
     /**
      * @description 处理目标专业选择 - 级联选择的子项
      * @param {Number} index - 选择的索引
@@ -345,7 +344,6 @@ export default {
       this.formData.targetMajorIndex = index;
       this.formData.targetMajor = major;
     },
-
     /**
      * @description 处理年级选择
      * @param {Number} index - 选择的索引
