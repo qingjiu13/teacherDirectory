@@ -1,28 +1,28 @@
 "use strict";
 const state = {
   // 用户基本身份信息
-  id: "123456",
+  id: "1566454",
   avatar: "/static/image/tab-bar/default_avatar.png",
-  name: "张三",
-  gender: "男",
-  selfIntroduction: "我是一个热爱学习的学生",
-  wechatNumber: "zhangsan123",
-  phoneNumber: "13800138000",
+  name: "",
+  gender: "",
+  selfIntroduction: "",
+  wechatNumber: "",
+  phoneNumber: "",
   password: "",
   userInfo: {
-    certificate: 1,
+    certificate: 0,
     //是否认证，0为未认证，1为已认证
     role: "学生",
     //学生或老师
-    school: "北京大学",
+    school: "",
     //学校
-    major: "计算机科学",
+    major: "",
     //专业
-    targetSchool: "清华大学",
+    targetSchool: "",
     //目标学校
-    targetMajor: "软件工程",
+    targetMajor: "",
     //目标专业
-    studentGrade: "大三",
+    studentGrade: "",
     //学生年级
     teacherGrade: "",
     //老师年级

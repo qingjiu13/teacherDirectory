@@ -3,14 +3,23 @@
     <!-- 用户信息区 -->
     <view class="user-info">
       <view class="user-info-row">
-        <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleAvatarClick"></image>
+        <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleClick"></image>
         <view class="user-info-content">
           <view class="nickname-row">
-            <text class="login-text" @click="handleLoginClick">{{ userData.name || storeName || '登录' }}</text>
+            <text class="login-text" @click="handleClick">{{ userData.name || storeName || '登录' }}</text>
           </view>
           <!-- 是否认证 -->
           <view class="certification-row" v-if="storeUserInfo.role === '老师'">
-            <text class="certification-text">是否认证：{{ userData.certification || '未认证' }}</text>
+            <text class="tag">{{ storeCertificate === 1 ? '已认证' : '未认证' }}</text>
+          </view>
+          <!--老师学校专业-->
+          <view class="school-major-row" v-if="storeSchool || storeMajor">
+            <view v-if="storeSchool">
+              <text class="tag">{{ storeSchool }}</text>
+            </view>
+            <view v-if="storeMajor">
+              <text class="tag">{{ storeMajor }}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -96,7 +105,7 @@ export default {
   data() {
     return {
       userData: {},
-      isLoggedIn: false,
+      isLoggedIn: store.getters['user/baseInfo/id'] !== '',
       isLoading: false,
       isDebug: true  // 显示调试信息
     }
@@ -112,7 +121,10 @@ export default {
       storeSelfIntroduction: state => state.selfIntroduction,
       storeWechatNumber: state => state.wechatNumber,
       storePhoneNumber: state => state.phoneNumber,
-      storeUserInfo: state => state.userInfo
+      storeUserInfo: state => state.userInfo,
+      storeCertificate: state => state.certificate,
+      storeSchool: state => state.userInfo.school,
+      storeMajor: state => state.userInfo.major,
     })
   },
   
@@ -315,21 +327,15 @@ export default {
     /**
      * @description 处理头像点击
      */
-    handleAvatarClick() {
-      this.handleEditProfile();
-    },
-    
-    /**
-     * @description 处理登录文本点击
-     */
-    handleLoginClick() {
+    handleClick() {
       if (this.isLoggedIn) {
-        this.handleEditProfile();
+        Navigator.toModify();
       } else {
         // 未登录时导航到登录页
-        Navigator.toLogin();
+        Navigator.toWechatLogin();
       }
     },
+    
     
     
     /**
@@ -523,5 +529,27 @@ export default {
 .certification-row {
   display: flex;
   flex-wrap: wrap;
+}
+.tag {
+  font-size: 12px;
+  color: #1E90FF;
+  background-color: rgba(30, 144, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  /* 新增以下属性 */
+  display: inline-flex;
+  justify-content: center;
+  white-space: nowrap;
+  width: fit-content;
+  /* 或者可以使用 min-width: fit-content; */
+}
+
+.school-major-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px; /* 标签之间的间距 */
 }
 </style>

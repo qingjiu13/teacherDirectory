@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
 const router_Router = require("../../../router/Router.js");
-require("../../../store/index.js");
+const store_index = require("../../../store/index.js");
 const TabBar = () => "../../../components/tab-bar/tab-bar.js";
 const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   components: {
@@ -10,7 +10,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   data() {
     return {
       userData: new UTSJSONObject({}),
-      isLoggedIn: false,
+      isLoggedIn: store_index.store.getters["user/baseInfo/id"] !== "",
       isLoading: false,
       isDebug: true
       // 显示调试信息
@@ -40,28 +40,37 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     },
     storeUserInfo: (state = null) => {
       return state.userInfo;
+    },
+    storeCertificate: (state = null) => {
+      return state.certificate;
+    },
+    storeSchool: (state = null) => {
+      return state.userInfo.school;
+    },
+    storeMajor: (state = null) => {
+      return state.userInfo.major;
     }
   })))),
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:120", "mine_common.vue onLoad开始执行");
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:132", "mine_common.vue onLoad开始执行");
       try {
         yield this.$nextTick();
         this.initFromStore();
         yield this.loadUserData();
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:131", "mine_common.vue onLoad执行完成，userData:", UTS.JSON.stringify(this.userData));
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:132", "store中的name值:", this.storeName);
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:143", "mine_common.vue onLoad执行完成，userData:", UTS.JSON.stringify(this.userData));
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:144", "store中的name值:", this.storeName);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:134", "onLoad错误:", error);
+        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:146", "onLoad错误:", error);
       }
     });
   },
   onShow() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:139", "mine_common.vue onShow开始执行");
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:151", "mine_common.vue onShow开始执行");
       try {
         yield this.$nextTick();
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:145", "onShow检查store数据:", new UTSJSONObject({
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:157", "onShow检查store数据:", new UTSJSONObject({
           storeName: this.storeName,
           storeAvatar: this.storeAvatar
         }));
@@ -71,12 +80,12 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
           yield this.updateUserRole(storedUserRole);
         }
         if (!this.userData.name && !this.storeName) {
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:161", "用户数据为空，尝试重新加载");
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:173", "用户数据为空，尝试重新加载");
           yield this.loadUserData();
         }
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:165", "mine_common.vue onShow执行完成，userData:", UTS.JSON.stringify(this.userData));
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:177", "mine_common.vue onShow执行完成，userData:", UTS.JSON.stringify(this.userData));
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:167", "onShow错误:", error);
+        common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:179", "onShow错误:", error);
       }
     });
   },
@@ -85,8 +94,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      * @description 从store初始化数据
      */
     initFromStore() {
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:176", "initFromStore - 从store直接获取数据");
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:177", "store中的数据:", new UTSJSONObject({
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:188", "initFromStore - 从store直接获取数据");
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:189", "store中的数据:", new UTSJSONObject({
         id: this.storeId,
         name: this.storeName,
         avatar: this.storeAvatar,
@@ -103,9 +112,9 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
           phoneNumber: this.storePhoneNumber
         });
         this.isLoggedIn = true;
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:196", "从store初始化userData成功:", this.userData);
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:208", "从store初始化userData成功:", this.userData);
       } else {
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:198", "store中没有用户数据");
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:210", "store中没有用户数据");
       }
     },
     /**
@@ -115,16 +124,16 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     updateUserRole(role = null) {
       return common_vendor.__awaiter(this, void 0, void 0, function* () {
         try {
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:208", "更新用户角色:", role);
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:220", "更新用户角色:", role);
           if (this.$store) {
             yield this.$store.dispatch("user/baseInfo/updateRole", role);
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:212", "角色更新成功, 新角色:", this.storeUserInfo.role);
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:224", "角色更新成功, 新角色:", this.storeUserInfo.role);
           } else {
-            common_vendor.index.__f__("warn", "at pages/mine/mine/mine_common.vue:214", "$store不可用，直接使用本地存储");
+            common_vendor.index.__f__("warn", "at pages/mine/mine/mine_common.vue:226", "$store不可用，直接使用本地存储");
             common_vendor.index.setStorageSync("userRole", role);
           }
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:218", "更新用户角色失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:230", "更新用户角色失败", error);
           common_vendor.index.setStorageSync("userRole", role);
         }
       });
@@ -134,19 +143,19 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      */
     loadUserData() {
       return common_vendor.__awaiter(this, void 0, void 0, function* () {
-        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:228", "loadUserData 开始执行");
+        common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:240", "loadUserData 开始执行");
         this.isLoading = true;
         try {
           if (this.$store) {
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:233", "使用Vuex获取用户数据");
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:245", "使用Vuex获取用户数据");
             const result = yield this.$store.dispatch("user/baseInfo/getUserInfo");
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:237", "getUserInfo返回结果:", result);
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:240", "store中的数据是否更新:", new UTSJSONObject({
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:249", "getUserInfo返回结果:", result);
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:252", "store中的数据是否更新:", new UTSJSONObject({
               storeName: this.storeName
             }));
             this.initFromStore();
             if (!this.userData.name && result) {
-              common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:249", "使用API返回的结果更新userData");
+              common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:261", "使用API返回的结果更新userData");
               this.userData = new UTSJSONObject({
                 id: result.id || "",
                 avatar: result.avatar || "",
@@ -158,21 +167,21 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
               });
               this.isLoggedIn = !!this.userData.name;
               common_vendor.index.setStorageSync("userData", UTS.JSON.stringify(this.userData));
-              common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:263", "更新userData成功:", this.userData);
+              common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:275", "更新userData成功:", this.userData);
             } else if (!this.userData.name) {
-              common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:265", "尝试从本地存储恢复数据");
+              common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:277", "尝试从本地存储恢复数据");
               this.recoverFromLocalStorage();
             }
           } else {
-            common_vendor.index.__f__("warn", "at pages/mine/mine/mine_common.vue:269", "$store不可用，从本地存储加载");
+            common_vendor.index.__f__("warn", "at pages/mine/mine/mine_common.vue:281", "$store不可用，从本地存储加载");
             this.recoverFromLocalStorage();
           }
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:273", "加载用户数据失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:285", "加载用户数据失败", error);
           this.recoverFromLocalStorage();
         } finally {
           this.isLoading = false;
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:277", "loadUserData 执行完成, userData:", this.userData);
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:289", "loadUserData 执行完成, userData:", this.userData);
         }
       });
     },
@@ -180,15 +189,15 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      * @description 从本地存储恢复数据
      */
     recoverFromLocalStorage() {
-      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:285", "从本地存储恢复数据");
+      common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:297", "从本地存储恢复数据");
       const localUserData = common_vendor.index.getStorageSync("userData");
       if (localUserData) {
         try {
           this.userData = UTS.JSON.parse(localUserData);
           this.isLoggedIn = !!this.userData.name;
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:291", "从userData恢复成功:", this.userData);
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:303", "从userData恢复成功:", this.userData);
         } catch (e) {
-          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:293", "解析本地用户数据失败", e);
+          common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:305", "解析本地用户数据失败", e);
         }
       }
       if (!this.userData.name) {
@@ -198,29 +207,23 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
             const parsedInfo = UTS.JSON.parse(baseInfo);
             this.userData = new UTSJSONObject(Object.assign({}, parsedInfo));
             this.isLoggedIn = !!this.userData.name;
-            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:305", "从userBaseInfo恢复成功:", this.userData);
+            common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:317", "从userBaseInfo恢复成功:", this.userData);
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:307", "解析userBaseInfo失败", e);
+            common_vendor.index.__f__("error", "at pages/mine/mine/mine_common.vue:319", "解析userBaseInfo失败", e);
           }
         } else {
-          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:310", "本地存储中没有用户数据");
+          common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:322", "本地存储中没有用户数据");
         }
       }
     },
     /**
      * @description 处理头像点击
      */
-    handleAvatarClick() {
-      this.handleEditProfile();
-    },
-    /**
-     * @description 处理登录文本点击
-     */
-    handleLoginClick() {
+    handleClick() {
       if (this.isLoggedIn) {
-        this.handleEditProfile();
+        router_Router.Navigator.toModify();
       } else {
-        router_Router.Navigator.toLogin();
+        router_Router.Navigator.toWechatLogin();
       }
     },
     /**
@@ -275,33 +278,43 @@ if (!Array) {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $data.userData.avatar || _ctx.storeAvatar || "/static/image/tab-bar/default_avatar.png",
-    b: common_vendor.o((...args) => $options.handleAvatarClick && $options.handleAvatarClick(...args)),
+    b: common_vendor.o((...args) => $options.handleClick && $options.handleClick(...args)),
     c: common_vendor.t($data.userData.name || _ctx.storeName || "登录"),
-    d: common_vendor.o((...args) => $options.handleLoginClick && $options.handleLoginClick(...args)),
+    d: common_vendor.o((...args) => $options.handleClick && $options.handleClick(...args)),
     e: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    f: common_vendor.t($data.userData.certification || "未认证")
+    f: common_vendor.t(_ctx.storeCertificate === 1 ? "已认证" : "未认证")
   } : {}, {
-    g: _ctx.storeUserInfo.role === "老师"
+    g: _ctx.storeSchool || _ctx.storeMajor
+  }, _ctx.storeSchool || _ctx.storeMajor ? common_vendor.e({
+    h: _ctx.storeSchool
+  }, _ctx.storeSchool ? {
+    i: common_vendor.t(_ctx.storeSchool)
+  } : {}, {
+    j: _ctx.storeMajor
+  }, _ctx.storeMajor ? {
+    k: common_vendor.t(_ctx.storeMajor)
+  } : {}) : {}, {
+    l: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    h: common_vendor.o(($event) => $options.navigateTo(_ctx.MineRoutes.SERVICE))
+    m: common_vendor.o(($event) => $options.navigateTo(_ctx.MineRoutes.SERVICE))
   } : {}, {
-    i: common_vendor.o((...args) => $options.toOrderCommon && $options.toOrderCommon(...args)),
-    j: common_vendor.o((...args) => $options.toCourse && $options.toCourse(...args)),
-    k: _ctx.storeUserInfo.role === "老师"
+    n: common_vendor.o((...args) => $options.toOrderCommon && $options.toOrderCommon(...args)),
+    o: common_vendor.o((...args) => $options.toCourse && $options.toCourse(...args)),
+    p: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    l: common_vendor.o((...args) => $options.toQualification && $options.toQualification(...args))
+    q: common_vendor.o((...args) => $options.toQualification && $options.toQualification(...args))
   } : {}, {
-    m: _ctx.storeUserInfo.role === "老师"
+    r: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    n: common_vendor.o((...args) => $options.toWallet && $options.toWallet(...args))
+    s: common_vendor.o((...args) => $options.toWallet && $options.toWallet(...args))
   } : {}, {
-    o: common_vendor.o((...args) => $options.toSubscribe && $options.toSubscribe(...args)),
-    p: common_vendor.o((...args) => $options.toSettings && $options.toSettings(...args)),
-    q: common_vendor.p({
+    t: common_vendor.o((...args) => $options.toSubscribe && $options.toSubscribe(...args)),
+    v: common_vendor.o((...args) => $options.toSettings && $options.toSettings(...args)),
+    w: common_vendor.p({
       pageName: "mine"
     }),
-    r: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    x: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -45,7 +45,7 @@ import { mapGetters } from 'vuex';
 export default {
   data() {
     return {
-      isLoggedIn: true, // 默认设为true方便调试
+      isLoggedIn: false, 
       switching: false,  // 角色切换中状态
     }
   },
@@ -61,8 +61,7 @@ export default {
   },
   onLoad() {
     // 检查登录状态
-    const token = uni.getStorageSync('token');
-    this.isLoggedIn = !!token;
+    this.isLoggedIn = store.getters['user/baseInfo/id'] !== '';
   },
   methods: {
     // 直接调用store的dispatch方法，替代mapActions

@@ -5,7 +5,7 @@ const store_index = require("../../store/index.js");
 const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   data() {
     return {
-      isLoggedIn: true,
+      isLoggedIn: false,
       switching: false
       // 角色切换中状态
     };
@@ -18,8 +18,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     return !this.isTeacher;
   } })),
   onLoad() {
-    const token = common_vendor.index.getStorageSync("token");
-    this.isLoggedIn = !!token;
+    this.isLoggedIn = store_index.store.getters["user/baseInfo/id"] !== "";
   },
   methods: new UTSJSONObject({
     // 直接调用store的dispatch方法，替代mapActions
@@ -53,7 +52,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
                   router_Router.Navigator.reLaunch("/pages/mine/mine/mine_common");
                 }, 1500);
               } catch (error) {
-                common_vendor.index.__f__("error", "at pages/mine/settings.vue:105", "切换角色失败:", error);
+                common_vendor.index.__f__("error", "at pages/mine/settings.vue:104", "切换角色失败:", error);
                 common_vendor.index.showToast({
                   title: "切换角色失败",
                   icon: "none"
@@ -96,7 +95,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
                   router_Router.Navigator.reLaunch("/pages/mine/mine/mine_common");
                 }, 1500);
               } catch (error) {
-                common_vendor.index.__f__("error", "at pages/mine/settings.vue:153", "退出登录时出错:", error);
+                common_vendor.index.__f__("error", "at pages/mine/settings.vue:152", "退出登录时出错:", error);
                 common_vendor.index.showToast({
                   title: "退出登录时出错",
                   icon: "none"

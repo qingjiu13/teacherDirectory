@@ -183,7 +183,7 @@
 
 <script>
 import ChoiceSelected from '../../components/combobox/combobox'
-import store from '../../store'
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { Navigator } from '../../router/Router';
 import GraduateStore from '../../components/combobox/graduate_school_major.js';
 import createDataModule from '../../components/combobox/undergraduate.js';
@@ -270,6 +270,9 @@ export default {
     }
   },
   methods: {
+    // 使用mapMutations映射UPDATE_USER_INFO方法
+    ...mapMutations('user/baseInfo', ['UPDATE_USER_INFO']),
+    
     /**
      * @description 初始化学校和专业搜索引擎
      */
@@ -508,8 +511,9 @@ export default {
     getUserRole() {
       try {
         // 优先从store获取
-        if (store.state && store.state.user && store.state.user.baseInfo) {
-          return store.state.user.baseInfo.userInfo.role;
+        const userState = this.$store.state.user && this.$store.state.user.baseInfo;
+        if (userState && userState.userInfo) {
+          return userState.userInfo.role;
         }
         
         // 从本地存储中获取备份
@@ -569,8 +573,8 @@ export default {
      */
     confirmAgreement() {
       if (this.pendingUserInfo) {
-        // 使用导入的store实例更新用户信息
-        store.commit('user/baseInfo/UPDATE_USER_INFO', this.pendingUserInfo);
+        // 使用mapMutations映射的方法更新用户信息
+        this.UPDATE_USER_INFO(this.pendingUserInfo);
         
         // 提示成功
         uni.showToast({
@@ -598,13 +602,13 @@ export default {
         // 转换为角色代码用于存储
         const roleCode = currentRole === '老师' ? 'teacher' : 'student';
         
-        // 构建用户信息对象
+        // 构建用户信息对象，与state.js中的结构保持一致
         const userInfo = {
           name: this.formData.nickname || '',
           gender: this.formData.gender || '',
           phoneNumber: this.formData.phone || '',
-          role: roleCode, // 使用角色代码
           userInfo: {
+            role: currentRole, // 使用角色显示名称（'学生'或'老师'）
             school: this.formData.schoolIndex >= 0 ? this.schoolList[this.formData.schoolIndex] : '',
             major: this.formData.majorIndex >= 0 ? this.majorList[this.formData.majorIndex] : '',
             studentGrade: (currentRole === '学生' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : '',
@@ -614,7 +618,7 @@ export default {
         
         // 如果是学生角色，添加目标学校和目标专业
         if (currentRole === '学生') {
-          // 使用保存的目标学校和专业值，而不是通过索引获取
+          // 使用保存的目标学校和专业值
           userInfo.userInfo.targetSchool = this.formData.targetSchool || '';
           userInfo.userInfo.targetMajor = this.formData.targetMajor || '';
         }
@@ -626,8 +630,8 @@ export default {
           return; // 终止后续处理，等待用户确认
         }
         
-        // 学生角色直接提交信息
-        store.commit('user/baseInfo/UPDATE_USER_INFO', userInfo);
+        // 学生角色直接提交信息，使用mapMutations映射的方法
+        this.UPDATE_USER_INFO(userInfo);
         
         // 提示成功
         uni.showToast({
@@ -637,7 +641,7 @@ export default {
         
         // 跳转到下一个页面
         setTimeout(() => {
-          Navigator.toMine();
+          Navigator.toIndex();
         }, 1500);
       } catch (error) {
         console.error('提交表单时出错:', error);
@@ -780,9 +784,6 @@ export default {
     if (this.schoolStore && this.majorStore) {
       this.initSchoolAndMajorSearch();
     }
-  },
-  watch: {
-    // 不再需要监听filteredSchoolList计算属性
   }
 };
 </script>
