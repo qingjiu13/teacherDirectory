@@ -18,14 +18,6 @@ const actions = {
     commit("SET_PROFESSIONAL_LIST", professionalName);
   },
   /**
-   * 更新筛选模式
-   * @param {Object} context - Vuex上下文对象
-   * @param {Object} filterMode - 筛选模式对象
-   */
-  updateFilterMode({ commit }, filterMode) {
-    commit("SET_FILTER_MODE", filterMode);
-  },
-  /**
    * 更新排序模式
    * @param {Object} context - Vuex上下文对象
    * @param {String} sortMode - 排序模式

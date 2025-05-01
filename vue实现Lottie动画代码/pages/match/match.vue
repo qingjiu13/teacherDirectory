@@ -532,7 +532,7 @@ const handleTargetMajorSelect = (index, major) => {
     formData.otherIndex = -1
     
     // 清空非专业课筛选状态 - 使用Vuex的actions重置非专业课筛选
-    store.dispatch('user/match/updateFilterMode', {
+    store.dispatch('user/match/updateNonProfessionalList', {
       math: '',
       english: '',
       politics: '',

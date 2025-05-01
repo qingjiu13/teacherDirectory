@@ -8,7 +8,7 @@ const state = {
   selfIntroduction: "我是一个热爱学习的学生",
   wechatNumber: "zhangsan123",
   phoneNumber: "13800138000",
-  password: "123456",
+  password: "",
   userInfo: {
     certificate: 1,
     //是否认证，0为未认证，1为已认证

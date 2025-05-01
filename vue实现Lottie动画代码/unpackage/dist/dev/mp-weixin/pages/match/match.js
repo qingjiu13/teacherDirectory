@@ -218,7 +218,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         formData.englishIndex = -1;
         formData.politicsIndex = -1;
         formData.otherIndex = -1;
-        store.dispatch("user/match/updateFilterMode", new UTSJSONObject({
+        store.dispatch("user/match/updateNonProfessionalList", new UTSJSONObject({
           math: "",
           english: "",
           politics: "",
