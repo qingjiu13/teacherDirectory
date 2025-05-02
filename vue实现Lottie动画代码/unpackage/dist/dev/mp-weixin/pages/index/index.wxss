@@ -15,13 +15,13 @@
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin-left: 200rpx;
   margin-top: 80rpx;
   width: 100%;
 }
 .main-title {
   font-size: 48rpx;
-  font-weight: bold;
+  font-weight: 550;
   margin-bottom: 20rpx;
   color: #333;
 }
@@ -29,7 +29,8 @@
   font-size: 28rpx;
   color: #666;
   margin-bottom: 40rpx;
-  text-align: center;
+  font-weight: 450;
+  text-align: left;
 }
 .button-area {
   width: 100%;
@@ -51,9 +52,14 @@
   justify-content: center;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-}
-.button-text {
-  color: #333;
+  padding: 0;
   font-weight: 500;
+  line-height: 80rpx;
+}
+.match-animation {
+  position: relative;
+  margin-top: 50rpx;
+  top: 0;
+  left: 0;
 }
 

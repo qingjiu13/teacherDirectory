@@ -13,6 +13,7 @@ const { getUserInfo, updateUserInfo, updateRole } = {
       wechatNumber: "",
       phoneNumber: "",
       password: "",
+      isRegistered: true,
       userInfo: {
         certificate: 0,
         role: "学生",
@@ -36,13 +37,13 @@ const actions = {
    * @returns {Promise} - 返回Promise对象
    */
   async getUserInfo({ commit, state }) {
-    common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:44", "getUserInfo action开始执行, 当前state:", {
+    common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:45", "getUserInfo action开始执行, 当前state:", {
       id: state.id,
       name: state.name
     });
     try {
       if (state.name && state.name !== "") {
-        common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:52", "本地已有数据，直接返回state");
+        common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:53", "本地已有数据，直接返回state");
         return {
           id: state.id,
           avatar: state.avatar,
@@ -54,22 +55,22 @@ const actions = {
           userInfo: state.userInfo
         };
       }
-      common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:65", "本地无数据，请求API");
+      common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:66", "本地无数据，请求API");
       const response = await getUserInfo();
-      common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:67", "API返回结果:", response);
+      common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:68", "API返回结果:", response);
       if (response.success) {
         commit("SET_USER_INFO", response.data);
-        common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:72", "提交SET_USER_INFO后，state变为:", {
+        common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:73", "提交SET_USER_INFO后，state变为:", {
           id: state.id,
           name: state.name
         });
         return response.data;
       } else {
-        common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:79", "API返回失败:", response.error);
+        common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:80", "API返回失败:", response.error);
         return Promise.reject(response.error || { message: "获取用户信息失败" });
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:83", "获取用户信息失败", error);
+      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:84", "获取用户信息失败", error);
       return Promise.reject(error);
     }
   },
@@ -89,7 +90,7 @@ const actions = {
         return Promise.reject(response.error || { message: "更新用户信息失败" });
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:107", "更新用户信息失败", error);
+      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:108", "更新用户信息失败", error);
       return Promise.reject(error);
     }
   },
@@ -109,7 +110,7 @@ const actions = {
         return Promise.reject(response.error || { message: "更新用户扩展信息失败" });
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:131", "更新用户扩展信息失败", error);
+      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:132", "更新用户扩展信息失败", error);
       return Promise.reject(error);
     }
   },
@@ -120,24 +121,24 @@ const actions = {
    * @returns {Promise} - 返回Promise对象
    */
   async updateRole({ commit, state }, role) {
-    common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:143", "updateRole action开始执行, 角色:", role, "当前role:", state.userInfo.role);
+    common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:144", "updateRole action开始执行, 角色:", role, "当前role:", state.userInfo.role);
     try {
       const response = await updateRole(role);
       if (response.success) {
         commit("updateRole", role);
-        common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:152", "角色更新成功，新角色:", state.userInfo.role);
+        common_vendor.index.__f__("log", "at store/user/baseInfo/actions.js:153", "角色更新成功，新角色:", state.userInfo.role);
         common_vendor.index.setStorageSync("userRole", role);
         return { success: true, role };
       } else {
         return Promise.reject(response.error || { message: "更新用户角色失败" });
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:162", "更新用户角色失败:", error);
+      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:163", "更新用户角色失败:", error);
       try {
         commit("updateRole", role);
         common_vendor.index.setStorageSync("userRole", role);
       } catch (e) {
-        common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:169", "本地更新角色失败", e);
+        common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:170", "本地更新角色失败", e);
       }
       return Promise.reject(error);
     }
@@ -159,7 +160,7 @@ const actions = {
       common_vendor.index.removeStorageSync("userRole");
       return { success: true, message: "退出登录成功" };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:197", "退出登录失败:", error);
+      common_vendor.index.__f__("error", "at store/user/baseInfo/actions.js:198", "退出登录失败:", error);
       return Promise.reject({ message: "退出登录失败" });
     }
   }

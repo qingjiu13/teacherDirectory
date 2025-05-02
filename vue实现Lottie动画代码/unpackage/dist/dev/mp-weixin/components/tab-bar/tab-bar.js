@@ -112,12 +112,12 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: $options.getIconPath("index"),
-    b: $props.pageName === "index" ? 1 : "",
-    c: common_vendor.o(($event) => $options.switchPage("index")),
-    d: $options.getIconPath("AI"),
-    e: $props.pageName === "AI" ? 1 : "",
-    f: common_vendor.o(($event) => $options.switchPage("AI")),
+    a: $options.getIconPath("AI"),
+    b: $props.pageName === "AI" ? 1 : "",
+    c: common_vendor.o(($event) => $options.switchPage("AI")),
+    d: $options.getIconPath("index"),
+    e: $props.pageName === "index" ? 1 : "",
+    f: common_vendor.o(($event) => $options.switchPage("index")),
     g: $options.getIconPath("message"),
     h: $props.pageName === "message" ? 1 : "",
     i: common_vendor.o(($event) => $options.switchPage("message")),

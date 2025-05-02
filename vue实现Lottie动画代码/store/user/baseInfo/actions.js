@@ -17,6 +17,7 @@ const { getUserInfo, updateUserInfo, updateRole } = {
             wechatNumber: '',
             phoneNumber: '',
             password: '',
+            isRegistered: true,
             userInfo: {
                 certificate: 0,
                 role: '学生',

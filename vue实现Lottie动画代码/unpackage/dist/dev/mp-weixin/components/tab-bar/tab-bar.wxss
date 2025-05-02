@@ -2,7 +2,7 @@
 
 .tab-bar-wrapper {
 		width: 100%;
-		height: 55px;
+		height: 80px;
 		position: fixed;
 		bottom: 0;
 		left: 0;
@@ -13,12 +13,13 @@
 		display: flex;
 		flex-direction: row;
 		width: 100%;
-		height: 55px;
+		height: 80px;
 		border-top: 1px solid #eeeeee;
 		background-color: #ffffff;
 }
 .tab-item {
-		flex: 1;
+		width: auto;
+		padding: 0 10px;
 		height: 55px;
 		display: flex;
 		flex-direction: column;
@@ -36,4 +37,16 @@
 }
 .active .tab-text {
 		color: #007aff;
+}
+.tab-item.ai-tab {
+		width: 40%;
+}
+.tab-item.index-tab {
+		width: 20%;
+}
+.tab-item.message-tab {
+		width: 20%;
+}
+.tab-item.mine-tab {
+		width: 20%;
 }

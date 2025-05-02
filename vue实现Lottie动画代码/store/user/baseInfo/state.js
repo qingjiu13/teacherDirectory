@@ -13,6 +13,7 @@ export default {
     wechatNumber: '',
     phoneNumber: '',
     password: '',
+    isRegistered: true, // 是否注册过
     userInfo:{    
         certificate: 0,//是否认证，0为未认证，1为已认证
         role: '学生',//学生或老师

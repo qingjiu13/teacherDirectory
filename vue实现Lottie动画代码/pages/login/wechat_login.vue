@@ -42,14 +42,50 @@
 		</view>
     </view>
     
-
+    <!-- 用户协议弹窗 -->
+    <view class="modal-overlay" v-if="showAgreementModal" @click.stop="closeModal('agreement')">
+      <view class="modal-content" @click.stop>
+        <view class="modal-title">用户协议</view>
+        <view class="modal-body">
+          <view class="agreement-text">
+            <view class="agreement-item">就平台使用涉及的权利和义务与您做出如下约定：</view>
+            <view class="agreement-item">1、您知晓并同意，登署本协议即代表您依照本协议公布的规则履行义务并享有权利。</view>
+            <view class="agreement-item">2、您同意，注册并使用本平台服务时，需遵守相关法律法规和平台规定。</view>
+            <view class="agreement-item">3、您同意，在使用平台服务过程中，遵守诚实信用原则，不发布违法、虚假或侵害他人权益的信息。</view>
+            <view class="agreement-item">4、本平台保留对用户资料进行审核的权利，对违反协议的用户有权封禁账号。</view>
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="agree-btn" @click="closeModal('agreement')">我已悉知并同意</button>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 隐私政策弹窗 -->
+    <view class="modal-overlay" v-if="showPrivacyModal" @click.stop="closeModal('privacy')">
+      <view class="modal-content" @click.stop>
+        <view class="modal-title">隐私政策</view>
+        <view class="modal-body">
+          <view class="agreement-text">
+            <view class="agreement-item">本应用非常重视用户隐私政策并严格遵守相关法律法规：</view>
+            <view class="agreement-item">1、我们只会收集必要的用户信息，包括但不限于用户昵称、头像等基本信息。</view>
+            <view class="agreement-item">2、我们采取业界标准的安全防护措施保护您的个人信息安全。</view>
+            <view class="agreement-item">3、未经您的同意，我们不会向任何第三方提供、出售、出租、分享或交易您的个人信息。</view>
+            <view class="agreement-item">4、我们会通过合理有效的管理措施和技术手段，保护您提供的个人信息安全，防止信息泄露、损毁或丢失。</view>
+          </view>
+        </view>
+        <view class="modal-footer">
+          <button class="agree-btn" @click="closeModal('privacy')">我已悉知并同意</button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
-	
 import { Navigator } from '../../router/Router';
-	
+import { mapState } from 'vuex';
+
 export default {
   data() {
     return {
@@ -57,8 +93,13 @@ export default {
       userInfo: {
         nickName: '',
         avatarUrl: ''
-      }
+      },
+      showAgreementModal: false,
+      showPrivacyModal: false
     }
+  },
+  computed: {
+    ...mapState('user/baseInfo', ['isRegistered'])
   },
   onLoad() {
     this.checkLoginStatus();
@@ -118,7 +159,7 @@ export default {
               icon: 'success'
             });
             
-            // 登录成功后跳转首页
+            // 登录成功后跳转页面
             this.toHome();
           }, 1500);
         },
@@ -133,23 +174,47 @@ export default {
       });
     },
     
-    // 跳转首页
+    /**
+     * 根据注册状态跳转到相应页面
+     * @returns {void}
+     */
     toHome() {
-		Navigator.toLogin()
+      // 如果已经注册过，则跳转到主页
+      if (this.isRegistered) {
+        Navigator.toIndex();
+      } else {
+        // 如果未注册过，使用原有的跳转逻辑
+        Navigator.toLogin();
+      }
     },
     
-    // 显示用户协议
+    /**
+     * 显示用户协议弹窗
+     * @returns {void}
+     */
     showAgreement() {
-      uni.navigateTo({
-        url: '/pages/agreement/index?type=user'
-      });
+      this.showAgreementModal = true;
     },
     
-    // 显示隐私政策
+    /**
+     * 显示隐私政策弹窗
+     * @returns {void}
+     */
     showPrivacy() {
-      uni.navigateTo({
-        url: '/pages/agreement/index?type=privacy'
-      });
+      this.showPrivacyModal = true;
+    },
+    
+    /**
+     * 关闭弹窗
+     * @param {string} type - 要关闭的弹窗类型（'agreement'或'privacy'）
+     * @returns {void}
+     */
+    closeModal(type) {
+      if (type === 'agreement') {
+        this.showAgreementModal = false;
+      } else if (type === 'privacy') {
+        this.showPrivacyModal = false;
+      }
     }
   }
 }
@@ -271,5 +336,77 @@ export default {
 }
   }
   
+  // 弹窗样式
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  .modal-content {
+    width: 80%;
+    max-height: 70vh;
+    background-color: #fff;
+    border-radius: 20rpx;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-title {
+    text-align: center;
+    font-size: 36rpx;
+    font-weight: bold;
+    padding: 30rpx 0;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .modal-body {
+    padding: 30rpx;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .agreement-text {
+    font-size: 28rpx;
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  .agreement-item {
+    margin-bottom: 20rpx;
+    
+  }
+  
+  .modal-footer {
+    padding: 20rpx 30rpx 40rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    .agree-btn {
+      width: 80%;
+      height: 80rpx;
+      line-height: 80rpx;
+      text-align: center;
+      background: linear-gradient(to right, #1989fa, #3194fa);
+      color: #fff;
+      font-size: 30rpx;
+      border-radius: 40rpx;
+      border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+    }
+  }
 }
 </style>

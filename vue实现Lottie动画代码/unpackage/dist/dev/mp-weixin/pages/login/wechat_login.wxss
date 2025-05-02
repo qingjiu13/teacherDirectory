@@ -125,3 +125,66 @@
 .login-container .content .agreement .link.data-v-ff132c6c {
   color: #1989fa;
 }
+.login-container .modal-overlay.data-v-ff132c6c {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.login-container .modal-content.data-v-ff132c6c {
+  width: 80%;
+  max-height: 70vh;
+  background-color: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.login-container .modal-title.data-v-ff132c6c {
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  padding: 30rpx 0;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+.login-container .modal-body.data-v-ff132c6c {
+  padding: 30rpx;
+  flex: 1;
+  overflow-y: auto;
+}
+.login-container .agreement-text.data-v-ff132c6c {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+.login-container .agreement-item.data-v-ff132c6c {
+  margin-bottom: 20rpx;
+}
+.login-container .modal-footer.data-v-ff132c6c {
+  padding: 20rpx 30rpx 40rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.login-container .modal-footer .agree-btn.data-v-ff132c6c {
+  width: 80%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background: linear-gradient(to right, #1989fa, #3194fa);
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}

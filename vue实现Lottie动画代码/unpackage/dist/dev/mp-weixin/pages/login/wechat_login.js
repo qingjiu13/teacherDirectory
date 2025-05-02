@@ -9,9 +9,12 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       userInfo: new UTSJSONObject({
         nickName: "",
         avatarUrl: ""
-      })
+      }),
+      showAgreementModal: false,
+      showPrivacyModal: false
     };
   },
+  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState("user/baseInfo", ["isRegistered"]))),
   onLoad() {
     this.checkLoginStatus();
   },
@@ -64,25 +67,46 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
             title: "登录失败",
             icon: "none"
           });
-          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:131", "微信登录失败:", err);
+          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:172", "微信登录失败:", err);
         }
       }));
     },
-    // 跳转首页
+    /**
+     * 根据注册状态跳转到相应页面
+     * @returns {void}
+     */
     toHome() {
-      router_Router.Navigator.toLogin();
+      if (this.isRegistered) {
+        router_Router.Navigator.toIndex();
+      } else {
+        router_Router.Navigator.toLogin();
+      }
     },
-    // 显示用户协议
+    /**
+     * 显示用户协议弹窗
+     * @returns {void}
+     */
     showAgreement() {
-      common_vendor.index.navigateTo({
-        url: "/pages/agreement/index?type=user"
-      });
+      this.showAgreementModal = true;
     },
-    // 显示隐私政策
+    /**
+     * 显示隐私政策弹窗
+     * @returns {void}
+     */
     showPrivacy() {
-      common_vendor.index.navigateTo({
-        url: "/pages/agreement/index?type=privacy"
-      });
+      this.showPrivacyModal = true;
+    },
+    /**
+     * 关闭弹窗
+     * @param {string} type - 要关闭的弹窗类型（'agreement'或'privacy'）
+     * @returns {void}
+     */
+    closeModal(type = null) {
+      if (type === "agreement") {
+        this.showAgreementModal = false;
+      } else if (type === "privacy") {
+        this.showPrivacyModal = false;
+      }
     }
   })
 }));
@@ -103,7 +127,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, {
     i: common_vendor.o((...args) => $options.showAgreement && $options.showAgreement(...args)),
     j: common_vendor.o((...args) => $options.showPrivacy && $options.showPrivacy(...args)),
-    k: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    k: $data.showAgreementModal
+  }, $data.showAgreementModal ? {
+    l: common_vendor.o(($event) => $options.closeModal("agreement")),
+    m: common_vendor.o(() => {
+    }),
+    n: common_vendor.o(($event) => $options.closeModal("agreement"))
+  } : {}, {
+    o: $data.showPrivacyModal
+  }, $data.showPrivacyModal ? {
+    p: common_vendor.o(($event) => $options.closeModal("privacy")),
+    q: common_vendor.o(() => {
+    }),
+    r: common_vendor.o(($event) => $options.closeModal("privacy"))
+  } : {}, {
+    s: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-ff132c6c"]]);

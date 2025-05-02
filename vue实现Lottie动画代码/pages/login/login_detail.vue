@@ -7,44 +7,6 @@
         <text class="notice-text">以下信息为选填项，您可以选择填写您想提供的信息</text>
       </view>
 
-      <!-- Nickname -->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">昵称</text>
-          <text class="optional-tag">(选填)</text>
-        </view>
-        <input class="form-input" type="text" v-model="formData.nickname" placeholder="请输入昵称" />
-      </view>
-      
-      <!-- Gender -->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">性别</text>
-          <text class="optional-tag">(选填)</text>
-        </view>
-        <view class="radio-group">
-          <view class="radio-item-row">
-            <view class="radio-option" @click="formData.gender = '男'">
-              <radio :checked="formData.gender === '男'" color="#007AFF" />
-              <text class="option-text">男</text>
-            </view>
-            <view class="radio-option" @click="formData.gender = '女'">
-              <radio :checked="formData.gender === '女'" color="#007AFF" />
-              <text class="option-text">女</text>
-            </view>
-          </view>
-        </view>
-      </view>
-      
-      <!-- Phone Number -->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">手机号</text>
-          <text class="optional-tag">(选填)</text>
-        </view>
-        <input class="form-input" type="text" v-model="formData.phone" placeholder="请输入手机号" />
-      </view>
-      
       <!-- 普通学校和专业筛选框 - 仅学生显示 -->
       <block v-if="userRole === '学生'">
         <!-- School - 使用单输入筛选框 -->
@@ -205,9 +167,6 @@ export default {
   data() {
     return {
       formData: {
-        nickname: '',
-        gender: '男',
-        phone: '',
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,  // 目标学校索引
@@ -221,7 +180,6 @@ export default {
       targetSchoolList: [], // 目标学校列表（考研）
       targetMajorList: [], // 目标专业列表（考研）
       allGradeList: ['大一', '大二', '大三', '大四', '研一', '研二', '研三'],
-      userRole: '学生',  // 默认值为学生
       showAgreementModal: false, // 控制协议浮窗显示
       pendingUserInfo: null, // 暂存待提交的用户信息
       // 分离筛选器状态
@@ -231,6 +189,17 @@ export default {
     };
   },
   computed: {
+    // 使用mapState映射userInfo相关状态
+    ...mapState('user/baseInfo', {
+      userRole: state => state.userInfo.role,
+      userSchool: state => state.userInfo.school,
+      userMajor: state => state.userInfo.major,
+      userTargetSchool: state => state.userInfo.targetSchool,
+      userTargetMajor: state => state.userInfo.targetMajor,
+      userStudentGrade: state => state.userInfo.studentGrade,
+      userTeacherGrade: state => state.userInfo.teacherGrade,
+    }),
+    
     /**
      * 根据用户角色筛选年级列表
      * @returns {Array} 筛选后的年级列表
@@ -505,34 +474,6 @@ export default {
     },
     
     /**
-     * @description 获取当前用户角色
-     * @returns {string} 用户角色
-     */
-    getUserRole() {
-      try {
-        // 优先从store获取
-        const userState = this.$store.state.user && this.$store.state.user.baseInfo;
-        if (userState && userState.userInfo) {
-          return userState.userInfo.role;
-        }
-        
-        // 从本地存储中获取备份
-        const localRole = uni.getStorageSync('userRole');
-        // 将存储的角色代码转换为显示名称
-        if (localRole === 'teacher') {
-          return '老师';
-        } else if (localRole === 'student') {
-          return '学生';
-        } else {
-          return '学生'; // 默认为学生角色
-        }
-      } catch (error) {
-        console.error('获取用户角色出错:', error);
-        return '学生'; // 默认返回学生角色
-      }
-    },
-
-    /**
      * @description 加载大学数据
      */
     loadUniversityData() {
@@ -597,30 +538,30 @@ export default {
      */
     submitForm() {
       try {
-        // 获取当前角色
-        const currentRole = this.getUserRole();
-        // 转换为角色代码用于存储
-        const roleCode = currentRole === '老师' ? 'teacher' : 'student';
+        // 从Vuex获取角色，无需本地存储
+        const currentRole = this.userRole;
         
         // 构建用户信息对象，与state.js中的结构保持一致
         const userInfo = {
-          name: this.formData.nickname || '',
-          gender: this.formData.gender || '',
-          phoneNumber: this.formData.phone || '',
+
           userInfo: {
-            role: currentRole, // 使用角色显示名称（'学生'或'老师'）
-            school: this.formData.schoolIndex >= 0 ? this.schoolList[this.formData.schoolIndex] : '',
-            major: this.formData.majorIndex >= 0 ? this.majorList[this.formData.majorIndex] : '',
-            studentGrade: (currentRole === '学生' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : '',
-            teacherGrade: (currentRole === '老师' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : '',
+            // 保留证书状态
+            certificate: this.$store.state.user.baseInfo.userInfo.certificate,
+            role: currentRole, // 使用vuex中的角色
+            school: this.formData.schoolIndex >= 0 ? this.schoolList[this.formData.schoolIndex] : this.userSchool,
+            major: this.formData.majorIndex >= 0 ? this.majorList[this.formData.majorIndex] : this.userMajor,
+            studentGrade: (currentRole === '学生' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : this.userStudentGrade,
+            teacherGrade: (currentRole === '老师' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : this.userTeacherGrade,
+            // 保留原有的考研成绩
+            teacherScore: this.$store.state.user.baseInfo.userInfo.teacherScore
           }
         };
         
         // 如果是学生角色，添加目标学校和目标专业
         if (currentRole === '学生') {
-          // 使用保存的目标学校和专业值
-          userInfo.userInfo.targetSchool = this.formData.targetSchool || '';
-          userInfo.userInfo.targetMajor = this.formData.targetMajor || '';
+          // 使用保存的目标学校和专业值或者保留原有值
+          userInfo.userInfo.targetSchool = this.formData.targetSchool || this.userTargetSchool;
+          userInfo.userInfo.targetMajor = this.formData.targetMajor || this.userTargetMajor;
         }
         
         // 如果是老师角色，显示协议确认浮窗
@@ -744,20 +685,8 @@ export default {
       this.formData.targetMajor = '';
     }
   },
-  created() {
-    // 初始化用户角色
-    this.userRole = this.getUserRole();
-    console.log('当前用户角色:', this.userRole);
-  },
-  // 监听页面显示时更新角色
+  // 监听页面显示时更新搜索引擎
   onShow() {
-    const newRole = this.getUserRole();
-    // 如果角色发生变化，重置年级选择
-    if (this.userRole !== newRole) {
-      this.userRole = newRole;
-      this.formData.gradeIndex = -1; // 重置年级选择
-    }
-    
     // 每次显示页面时强制重新初始化搜索引擎，确保搜索功能正常工作
     if (this.graduateStore) {
       // 使用强制重新初始化搜索方法

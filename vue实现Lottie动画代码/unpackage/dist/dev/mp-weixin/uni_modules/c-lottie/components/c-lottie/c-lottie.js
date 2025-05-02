@@ -77,7 +77,7 @@ const _sfc_main = common_vendor.defineComponent({
     },
     getContext() {
       return new Promise((resolve) => {
-        const pixelRatio = common_vendor.index.getSystemInfoSync().pixelRatio;
+        const pixelRatio = common_vendor.index.getWindowInfo().pixelRatio;
         common_vendor.index.createSelectorQuery().in(this).select(`#${this.myCanvasId}`).fields(new UTSJSONObject({
           node: true,
           size: true

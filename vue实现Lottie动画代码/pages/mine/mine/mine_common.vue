@@ -12,8 +12,8 @@
           <view class="certification-row" v-if="storeUserInfo.role === '老师'">
             <text class="tag">{{ storeCertificate === 1 ? '已认证' : '未认证' }}</text>
           </view>
-          <!--老师学校专业-->
-          <view class="school-major-row" v-if="storeSchool || storeMajor">
+          <!--学校专业-->
+          <view class="school-major-row">
             <view v-if="storeSchool">
               <text class="tag">{{ storeSchool }}</text>
             </view>

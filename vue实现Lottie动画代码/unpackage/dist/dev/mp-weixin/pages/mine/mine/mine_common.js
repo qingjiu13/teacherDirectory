@@ -285,36 +285,34 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, _ctx.storeUserInfo.role === "老师" ? {
     f: common_vendor.t(_ctx.storeCertificate === 1 ? "已认证" : "未认证")
   } : {}, {
-    g: _ctx.storeSchool || _ctx.storeMajor
-  }, _ctx.storeSchool || _ctx.storeMajor ? common_vendor.e({
-    h: _ctx.storeSchool
+    g: _ctx.storeSchool
   }, _ctx.storeSchool ? {
-    i: common_vendor.t(_ctx.storeSchool)
+    h: common_vendor.t(_ctx.storeSchool)
   } : {}, {
-    j: _ctx.storeMajor
+    i: _ctx.storeMajor
   }, _ctx.storeMajor ? {
-    k: common_vendor.t(_ctx.storeMajor)
-  } : {}) : {}, {
-    l: _ctx.storeUserInfo.role === "老师"
-  }, _ctx.storeUserInfo.role === "老师" ? {
-    m: common_vendor.o(($event) => $options.navigateTo(_ctx.MineRoutes.SERVICE))
+    j: common_vendor.t(_ctx.storeMajor)
   } : {}, {
-    n: common_vendor.o((...args) => $options.toOrderCommon && $options.toOrderCommon(...args)),
-    o: common_vendor.o((...args) => $options.toCourse && $options.toCourse(...args)),
-    p: _ctx.storeUserInfo.role === "老师"
+    k: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    q: common_vendor.o((...args) => $options.toQualification && $options.toQualification(...args))
+    l: common_vendor.o(($event) => $options.navigateTo(_ctx.MineRoutes.SERVICE))
   } : {}, {
-    r: _ctx.storeUserInfo.role === "老师"
+    m: common_vendor.o((...args) => $options.toOrderCommon && $options.toOrderCommon(...args)),
+    n: common_vendor.o((...args) => $options.toCourse && $options.toCourse(...args)),
+    o: _ctx.storeUserInfo.role === "老师"
   }, _ctx.storeUserInfo.role === "老师" ? {
-    s: common_vendor.o((...args) => $options.toWallet && $options.toWallet(...args))
+    p: common_vendor.o((...args) => $options.toQualification && $options.toQualification(...args))
   } : {}, {
-    t: common_vendor.o((...args) => $options.toSubscribe && $options.toSubscribe(...args)),
-    v: common_vendor.o((...args) => $options.toSettings && $options.toSettings(...args)),
-    w: common_vendor.p({
+    q: _ctx.storeUserInfo.role === "老师"
+  }, _ctx.storeUserInfo.role === "老师" ? {
+    r: common_vendor.o((...args) => $options.toWallet && $options.toWallet(...args))
+  } : {}, {
+    s: common_vendor.o((...args) => $options.toSubscribe && $options.toSubscribe(...args)),
+    t: common_vendor.o((...args) => $options.toSettings && $options.toSettings(...args)),
+    v: common_vendor.p({
       pageName: "mine"
     }),
-    x: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    w: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

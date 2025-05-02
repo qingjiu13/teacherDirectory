@@ -1,21 +1,21 @@
 <template>
 	<view class="tab-bar-wrapper">
 		<view class="tab-bar">
-			<view class="tab-item" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
-				<image class="nav-icon" :src="getIconPath('index')"></image>
-				<text class="tab-text">首页</text>
-			</view>
-			<view class="tab-item" :class="{ active: pageName === 'AI' }" @click="switchPage('AI')">
+			<view class="tab-item ai-tab" :class="{ active: pageName === 'AI' }" @click="switchPage('AI')">
 				<image class="nav-icon" :src="getIconPath('AI')"></image>
 				<text class="tab-text">AI</text>
 			</view>
-			<view class="tab-item" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
+			<view class="tab-item index-tab" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
+				<image class="nav-icon" :src="getIconPath('index')"></image>
+				<text class="tab-text">主页</text>
+			</view>
+			<view class="tab-item message-tab" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
 				<image class="nav-icon" :src="getIconPath('message')"></image>
 				<text class="tab-text">消息</text>
 			</view>
-			<view class="tab-item" :class="{ active: pageName === 'mine' }" @click="switchPage('mine')">
+			<view class="tab-item mine-tab" :class="{ active: pageName === 'mine' }" @click="switchPage('mine')">
 				<image class="nav-icon" :src="getIconPath('mine')"></image>
-				<text class="tab-text">我的</text>
+				<text class="tab-text">个人</text>
 			</view>
 		</view>
 	</view>
@@ -153,7 +153,7 @@
 <style>
 	.tab-bar-wrapper {
 		width: 100%;
-		height: 55px;
+		height: 80px;
 		position: fixed;
 		bottom: 0;
 		left: 0;
@@ -165,13 +165,14 @@
 		display: flex;
 		flex-direction: row;
 		width: 100%;
-		height: 55px;
+		height: 80px;
 		border-top: 1px solid #eeeeee;
 		background-color: #ffffff;
 	}
 	
 	.tab-item {
-		flex: 1;
+		width: auto;
+		padding: 0 10px;
 		height: 55px;
 		display: flex;
 		flex-direction: column;
@@ -192,5 +193,18 @@
 	
 	.active .tab-text {
 		color: #007aff;
+	}
+	
+	.tab-item.ai-tab {
+		width: 40%;
+	}
+	.tab-item.index-tab {
+		width: 20%;
+	}
+	.tab-item.message-tab {
+		width: 20%;
+	}
+	.tab-item.mine-tab {
+		width: 20%;
 	}
 </style> 
