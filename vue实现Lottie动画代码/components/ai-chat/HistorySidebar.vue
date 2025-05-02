@@ -31,11 +31,11 @@
 </template>
 
 <script>
+	import { mapState, mapActions } from 'vuex';
+	
 	/**
 	 * @description 历史记录侧边栏组件
 	 * @property {Boolean} visible - 侧边栏是否可见
-	 * @property {Array} historySummaries - 历史聊天摘要数组（只包含ID和标题等基本信息）
-	 * @property {String} currentChatId - 当前选中的聊天ID
 	 * @event {Function} loadChat - 加载聊天历史记录
 	 * @event {Function} deleteChat - 删除聊天历史记录
 	 */
@@ -45,25 +45,105 @@
 			visible: {
 				type: Boolean,
 				default: false
-			},
-			historySummaries: {
-				type: Array,
-				default: () => []
-			},
-			currentChatId: {
-				type: String,
-				default: ''
 			}
 		},
-		watch: {
-			historySummaries: {
-				handler(newVal) {
-					console.log('HistorySidebar 接收到历史摘要数据:', newVal && newVal.length);
+		computed: {
+			/**
+			 * @description 从 Vuex 状态中获取数据
+			 */
+			...mapState({
+				conversations: state => {
+					try {
+						return state.user && state.user.aiChat && state.user.aiChat.aiChat 
+							? (state.user.aiChat.aiChat.conversations || []) 
+							: [];
+					} catch (e) {
+						console.error('获取 conversations 状态出错:', e);
+						return [];
+					}
 				},
-				immediate: true
+				activeConversation: state => {
+					try {
+						return state.user && state.user.aiChat && state.user.aiChat.aiChat 
+							? state.user.aiChat.aiChat.activeConversation 
+							: null;
+					} catch (e) {
+						console.error('获取 activeConversation 状态出错:', e);
+						return null;
+					}
+				}
+			}),
+			
+			/**
+			 * @description 历史聊天摘要数组（只包含ID、标题等基本信息）
+			 * @returns {Array} 历史聊天摘要数组
+			 */
+			historySummaries() {
+				// 添加防御性检查，确保 conversations 存在
+				if (!this.conversations) {
+					console.warn('conversations 是 undefined');
+					return [];
+				}
+				
+				try {
+					return this.conversations.map(conv => ({
+						id: conv.id,
+						abstract: conv.abstract,
+						chatMode: conv.chatMode,
+						createdAt: conv.createdAt,
+						updatedAt: conv.updatedAt
+					}));
+				} catch (e) {
+					console.error('处理 historySummaries 出错:', e);
+					return [];
+				}
+			},
+			
+			/**
+			 * @description 当前选中的聊天ID
+			 * @returns {String} 当前选中的聊天ID
+			 */
+			currentChatId() {
+				return this.activeConversation;
 			}
+		},
+		created() {
+			// 添加调试信息
+			console.log('=================== 调试信息开始 ===================');
+			console.log('完整的 Vuex store:', this.$store);
+			console.log('Vuex store状态:', this.$store.state);
+			
+			if (this.$store.state.user) {
+				console.log('user模块状态:', this.$store.state.user);
+				
+				if (this.$store.state.user.aiChat) {
+					console.log('aiChat模块状态:', this.$store.state.user.aiChat);
+					
+					if (this.$store.state.user.aiChat.aiChat) {
+						console.log('内层 aiChat:', this.$store.state.user.aiChat.aiChat);
+						console.log('内层 aiChat conversations:', this.$store.state.user.aiChat.aiChat.conversations);
+					} else {
+						console.error('无法访问内层 aiChat!');
+						console.log('aiChat 模块完整内容:', JSON.stringify(this.$store.state.user.aiChat));
+					}
+				} else {
+					console.error('无法访问 aiChat 模块!');
+				}
+			} else {
+				console.error('无法访问 user 模块!');
+			}
+			
+			console.log('组件计算的 conversations:', this.conversations);
+			console.log('组件计算的 historySummaries:', this.historySummaries);
+			console.log('组件计算的 currentChatId:', this.currentChatId);
+			console.log('=================== 调试信息结束 ===================');
 		},
 		methods: {
+			...mapActions({
+				setActiveConversation: 'user/aiChat/setCurrentChat',
+				deleteConversation: 'user/aiChat/deleteChat'
+			}),
+			
 			/**
 			 * @description 获取对话模式的中文标签
 			 * @param {String} mode - 对话模式
@@ -83,6 +163,13 @@
 			 * @param {String} chatId - 聊天ID
 			 */
 			loadChatHistory(chatId) {
+				// 通过 Vuex action 设置当前活跃的对话
+				this.setActiveConversation(chatId);
+				
+				// 如果需要加载完整对话内容，还可以添加这个 action 调用
+				// this.$store.dispatch('user/aiChat/loadChat', chatId);
+				
+				// 通知父组件
 				this.$emit('loadChat', chatId);
 			},
 			
@@ -99,6 +186,9 @@
 				}
 				
 				console.log('删除历史记录:', chatId);
+				// 通过 Vuex action 删除对话
+				this.deleteConversation(chatId);
+				// 通知父组件
 				this.$emit('deleteChat', chatId);
 			},
 			
