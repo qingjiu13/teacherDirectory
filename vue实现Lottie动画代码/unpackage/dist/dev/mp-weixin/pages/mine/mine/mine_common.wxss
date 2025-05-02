@@ -121,7 +121,9 @@
 }
 .certification-row {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
+  gap: 8px;
 }
 .tag {
   font-size: 12px;

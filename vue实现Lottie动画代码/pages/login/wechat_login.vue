@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import { Navigator } from '../../router/Router';
+import { Navigator, IndexRoutes } from '../../router/Router';
 import { mapState } from 'vuex';
 
 export default {
@@ -181,7 +181,7 @@ export default {
     toHome() {
       // 如果已经注册过，则跳转到主页
       if (this.isRegistered) {
-        Navigator.toIndex();
+        Navigator.redirectTo(IndexRoutes.INDEX);
       } else {
         // 如果未注册过，使用原有的跳转逻辑
         Navigator.toLogin();

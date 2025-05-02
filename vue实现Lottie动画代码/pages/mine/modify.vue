@@ -133,7 +133,6 @@ export default {
 			storeWechatNumber: state => state.wechatNumber,
 			storePhoneNumber: state => state.phoneNumber,
 			storePassword: state => state.password,
-			storeUserRole: state => state.userInfo.role
 		}),
 		...mapGetters('user/baseInfo', [
 			'profile',

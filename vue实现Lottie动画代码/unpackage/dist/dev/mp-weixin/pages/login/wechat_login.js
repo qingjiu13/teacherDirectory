@@ -77,7 +77,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      */
     toHome() {
       if (this.isRegistered) {
-        router_Router.Navigator.toIndex();
+        router_Router.Navigator.redirectTo(router_Router.IndexRoutes.INDEX);
       } else {
         router_Router.Navigator.toLogin();
       }

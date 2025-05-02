@@ -3,30 +3,32 @@ const state = {
   // 用户基本身份信息
   id: "1566454",
   avatar: "/static/image/tab-bar/default_avatar.png",
-  name: "",
-  gender: "",
-  selfIntroduction: "",
-  wechatNumber: "",
-  phoneNumber: "",
-  password: "",
+  name: "张三",
+  gender: "男",
+  selfIntroduction: "我是一个热爱学习的人",
+  wechatNumber: "1234567890",
+  phoneNumber: "1234567890",
+  password: "123456",
   isRegistered: true,
   // 是否注册过
+  campusAmbassador: 1,
+  // 是否为校园大使
   userInfo: {
     certificate: 0,
     //是否认证，0为未认证，1为已认证
     role: "学生",
     //学生或老师
-    school: "",
+    school: "北京大学",
     //学校
-    major: "",
+    major: "计算机科学与技术",
     //专业
-    targetSchool: "",
+    targetSchool: "清华大学",
     //目标学校
-    targetMajor: "",
+    targetMajor: "计算机科学与技术",
     //目标专业
-    studentGrade: "",
+    studentGrade: "大三",
     //学生年级
-    teacherGrade: "",
+    teacherGrade: "研一",
     //老师年级
     teacherScore: 0
     //老师考研成绩

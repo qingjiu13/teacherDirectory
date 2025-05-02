@@ -41,9 +41,6 @@ const _sfc_main = common_vendor.defineComponent({
     },
     storePassword: (state = null) => {
       return state.password;
-    },
-    storeUserRole: (state = null) => {
-      return state.userInfo.role;
     }
   }))), common_vendor.mapGetters("user/baseInfo", [
     "profile",
@@ -74,7 +71,7 @@ const _sfc_main = common_vendor.defineComponent({
     initUserInfo() {
       return common_vendor.__awaiter(this, void 0, void 0, function* () {
         try {
-          common_vendor.index.__f__("log", "at pages/mine/modify.vue:170", "初始化用户信息...");
+          common_vendor.index.__f__("log", "at pages/mine/modify.vue:169", "初始化用户信息...");
           this.userInfo = {
             avatar: this.storeAvatar || "",
             nickname: this.storeName || "",
@@ -84,10 +81,10 @@ const _sfc_main = common_vendor.defineComponent({
             wechat: this.storeWechatNumber || "",
             password: this.storePassword || "未设置"
           };
-          common_vendor.index.__f__("log", "at pages/mine/modify.vue:183", "从store获取的用户信息:", this.userInfo);
+          common_vendor.index.__f__("log", "at pages/mine/modify.vue:182", "从store获取的用户信息:", this.userInfo);
           this.originalData = UTS.JSON.parse(UTS.JSON.stringify(this.userInfo));
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/modify.vue:188", "获取用户信息失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/modify.vue:187", "获取用户信息失败", error);
           common_vendor.index.showToast({
             title: "获取用户信息失败",
             icon: "none"
@@ -140,7 +137,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
         try {
           this.updating = true;
-          common_vendor.index.__f__("log", "at pages/mine/modify.vue:250", "开始保存用户资料...");
+          common_vendor.index.__f__("log", "at pages/mine/modify.vue:249", "开始保存用户资料...");
           const profileData = new UTSJSONObject({
             avatar: this.userInfo.avatar,
             nickname: this.userInfo.nickname,
@@ -154,7 +151,7 @@ const _sfc_main = common_vendor.defineComponent({
             password: this.userInfo.password
             // 添加password字段到更新数据中
           });
-          common_vendor.index.__f__("log", "at pages/mine/modify.vue:267", "要更新的用户资料:", profileData);
+          common_vendor.index.__f__("log", "at pages/mine/modify.vue:266", "要更新的用户资料:", profileData);
           this.UPDATE_USER_PROFILE(profileData);
           common_vendor.index.showToast({
             title: "保存成功",
@@ -165,7 +162,7 @@ const _sfc_main = common_vendor.defineComponent({
             common_vendor.index.navigateBack();
           }, 1500);
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/mine/modify.vue:286", "保存失败", error);
+          common_vendor.index.__f__("error", "at pages/mine/modify.vue:285", "保存失败", error);
           common_vendor.index.showToast({
             title: error.message || "保存失败",
             icon: "none"

@@ -9,8 +9,9 @@
             <text class="login-text" @click="handleClick">{{ userData.name || storeName || '登录' }}</text>
           </view>
           <!-- 是否认证 -->
-          <view class="certification-row" v-if="storeUserInfo.role === '老师'">
+          <view class="certification-row" v-if="storeRole === '老师'">
             <text class="tag">{{ storeCertificate === 1 ? '已认证' : '未认证' }}</text>
+            <text class="tag" v-if="storeCampusAmbassador">{{'校园大使'}}</text>
           </view>
           <!--学校专业-->
           <view class="school-major-row">
@@ -28,7 +29,7 @@
     <!-- 菜单列表 -->
     <view class="menu-list">
       <!-- 老师特有功能菜单 -->
-      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
+      <view v-if="storeRole === '老师'" class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
         <view class="icon-circle info">
           <text class="icon-text">⏱</text>
         </view>
@@ -52,7 +53,7 @@
       </view>
       
       <!-- 老师特有菜单项：资质认证 -->
-      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="toQualification">
+      <view v-if="storeRole === '老师'" class="menu-item" @click="toQualification">
         <view class="icon-circle info">
           <text class="icon-text">📃</text>
         </view>
@@ -60,7 +61,7 @@
       </view>
       
       <!-- 老师特有菜单项：我的钱包 -->
-      <view v-if="storeUserInfo.role === '老师'" class="menu-item" @click="toWallet">
+      <view v-if="storeRole === '老师'" class="menu-item" @click="toWallet">
         <view class="icon-circle warning">
           <text class="icon-text">💰</text>
         </view>
@@ -118,13 +119,11 @@ export default {
       storeAvatar: state => state.avatar,
       storeName: state => state.name,
       storeGender: state => state.gender,
-      storeSelfIntroduction: state => state.selfIntroduction,
-      storeWechatNumber: state => state.wechatNumber,
-      storePhoneNumber: state => state.phoneNumber,
-      storeUserInfo: state => state.userInfo,
+      storeRole: state => state.userInfo?.role || '学生',
       storeCertificate: state => state.certificate,
-      storeSchool: state => state.userInfo.school,
-      storeMajor: state => state.userInfo.major,
+      storeSchool: state => state.userInfo?.school || '',
+      storeMajor: state => state.userInfo?.major || '',
+      storeCampusAmbassador: state => state.campusAmbassador
     })
   },
   
@@ -190,7 +189,7 @@ export default {
         id: this.storeId,
         name: this.storeName,
         avatar: this.storeAvatar,
-        role: this.storeUserInfo.role
+        role: this.storeRole
       });
       
       // 如果store有数据，直接使用
@@ -199,10 +198,7 @@ export default {
           id: this.storeId,
           avatar: this.storeAvatar,
           name: this.storeName,
-          gender: this.storeGender,
-          selfIntroduction: this.storeSelfIntroduction,
-          wechatNumber: this.storeWechatNumber,
-          phoneNumber: this.storePhoneNumber
+          gender: this.storeGender
         };
         this.isLoggedIn = true;
         console.log('从store初始化userData成功:', this.userData);
@@ -221,7 +217,7 @@ export default {
         // 直接使用store.dispatch
         if (this.$store) {
           await this.$store.dispatch('user/baseInfo/updateRole', role);
-          console.log('角色更新成功, 新角色:', this.storeUserInfo.role);
+          console.log('角色更新成功, 新角色:', this.storeRole);
         } else {
           console.warn('$store不可用，直接使用本地存储');
           uni.setStorageSync('userRole', role);
@@ -263,10 +259,7 @@ export default {
               id: result.id || '',
               avatar: result.avatar || '',
               name: result.name || result.nickname || '',
-              gender: result.gender || '',
-              selfIntroduction: result.selfIntroduction || result.introduction || '',
-              wechatNumber: result.wechatNumber || result.wechat || '',
-              phoneNumber: result.phoneNumber || result.phone || ''
+              gender: result.gender || ''
             };
             this.isLoggedIn = !!this.userData.name;
             
@@ -298,7 +291,13 @@ export default {
       const localUserData = uni.getStorageSync('userData');
       if (localUserData) {
         try {
-          this.userData = JSON.parse(localUserData);
+          const parsedData = JSON.parse(localUserData);
+          this.userData = {
+            id: parsedData.id || '',
+            avatar: parsedData.avatar || '',
+            name: parsedData.name || '',
+            gender: parsedData.gender || ''
+          };
           this.isLoggedIn = !!this.userData.name;
           console.log('从userData恢复成功:', this.userData);
         } catch (e) {
@@ -312,7 +311,12 @@ export default {
         if (baseInfo) {
           try {
             const parsedInfo = JSON.parse(baseInfo);
-            this.userData = { ...parsedInfo };
+            this.userData = { 
+              id: parsedInfo.id || '',
+              avatar: parsedInfo.avatar || '',
+              name: parsedInfo.name || '',
+              gender: parsedInfo.gender || ''
+            };
             this.isLoggedIn = !!this.userData.name;
             console.log('从userBaseInfo恢复成功:', this.userData);
           } catch (e) {
@@ -335,8 +339,6 @@ export default {
         Navigator.toWechatLogin();
       }
     },
-    
-    
     
     /**
      * @description 页面跳转方法
@@ -528,7 +530,9 @@ export default {
 }
 .certification-row {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
+  gap: 8px;
 }
 .tag {
   font-size: 12px;
