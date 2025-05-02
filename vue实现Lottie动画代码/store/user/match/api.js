@@ -3,7 +3,7 @@
  * @module store/user/match/api
  */
 
-import { MATCH_API_BASE_URL, USER_TEACHER_DETAIL_URL } from '../../../api/index';
+import { MATCH_API_BASE_URL, USER_TEACHER_DETAIL_URL } from '../API.js';
 
 /**
  * 获取匹配的教师列表

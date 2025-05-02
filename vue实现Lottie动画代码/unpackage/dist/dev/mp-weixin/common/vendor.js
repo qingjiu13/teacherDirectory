@@ -15943,4 +15943,5 @@ exports.sr = sr;
 exports.t = t;
 exports.unref = unref;
 exports.useStore = useStore;
+exports.watch = watch;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

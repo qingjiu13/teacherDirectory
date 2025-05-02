@@ -1,6 +1,7 @@
 <template>
-	<view v-if="visible" class="loading-overlay">
+	<view v-show="visible" class="loading-overlay">
 		<c-lottie
+			ref="lottieRef"
 			:src="src"
 			width="300rpx"
 			height="300rpx"
@@ -11,7 +12,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useLottieReady } from './useLottieReady.js'
 
 const props = defineProps({
 	src: {
@@ -27,6 +29,17 @@ const props = defineProps({
 const visible = ref(false)
 
 /**
+ * Lottie组件引用
+ * @type {import('vue').Ref<any>}
+ */
+const lottieRef = ref(null)
+
+/**
+ * 使用Lottie准备状态钩子
+ */
+const { isReady } = useLottieReady(lottieRef)
+
+/**
  * 显示加载动画
  */
 const show = () => {
@@ -40,10 +53,18 @@ const hide = () => {
 	visible.value = false
 }
 
+/**
+ * 组件挂载时确保Lottie组件正确初始化
+ */
+onMounted(() => {
+	console.log('加载动画组件已挂载')
+})
+
 // 暴露方法给父组件
 defineExpose({
 	show,
-	hide
+	hide,
+	isReady
 })
 </script>
 

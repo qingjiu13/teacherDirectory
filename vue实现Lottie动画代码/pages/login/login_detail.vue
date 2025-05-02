@@ -6,7 +6,25 @@
       <view class="form-notice">
         <text class="notice-text">以下信息为选填项，您可以选择填写您想提供的信息</text>
       </view>
-
+      <!-- Nickname -->
+      <view class="form-row">
+        <view class="label-container">
+          <text class="form-label">昵称</text>
+        </view>
+        <input class="form-input" type="text" v-model="formData.nickname" placeholder="请输入昵称" />
+      </view>
+      <!--avatar-->
+      <view class="form-row">
+        <view class="label-container">
+          <text class="form-label">头像</text>
+        </view>
+        <view class="avatar-upload-container" @click="uploadAvatar">
+          <image class="form-avatar" :src="formData.avatar" mode="aspectFill"></image>
+          <view class="avatar-upload-mask">
+            <text class="upload-text">点击更换</text>
+          </view>
+        </view>
+      </view>
       <!-- 普通学校和专业筛选框 - 仅学生显示 -->
       <block v-if="userRole === '学生'">
         <!-- School - 使用单输入筛选框 -->
@@ -163,10 +181,14 @@ export default {
   onLoad() {
     this.loadUniversityData();
     this.initSchoolAndMajorSearch();
+    // 加载用户信息
+    this.initUserInfo();
   },
   data() {
     return {
       formData: {
+        nickname: '', // 用户昵称
+        avatar: '/static/image/tab-bar/default_avatar.png', // 默认头像
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,  // 目标学校索引
@@ -186,6 +208,8 @@ export default {
       graduateStore: null, // 研究生数据状态
       schoolStore: null, // 本科学校数据状态
       majorStore: null, // 本科专业数据状态
+      token: '', // 用户token
+      userId: '', // 用户ID
     };
   },
   computed: {
@@ -240,7 +264,124 @@ export default {
   },
   methods: {
     // 使用mapMutations映射UPDATE_USER_INFO方法
-    ...mapMutations('user/baseInfo', ['UPDATE_USER_INFO']),
+    ...mapMutations('user/baseInfo', ['UPDATE_USER_INFO', 'SET_USER_INFO']),
+    
+    /**
+     * @description 初始化用户信息
+     */
+    initUserInfo() {
+      // 获取token和userId
+      this.token = uni.getStorageSync('token') || '';
+      this.userId = uni.getStorageSync('userId') || '';
+      
+      if (!this.token) {
+        // 如果没有token，可能需要重新登录
+        uni.showToast({
+          title: '请先登录',
+          icon: 'none',
+          complete: () => {
+            setTimeout(() => {
+              Navigator.redirectTo('/pages/login/wechat_login');
+            }, 1500);
+          }
+        });
+        return;
+      }
+      
+      // 如果有已存储的用户信息，显示它们
+      const storedNickname = uni.getStorageSync('nickname') || '';
+      const storedAvatar = uni.getStorageSync('avatar') || '';
+      
+      if (storedNickname) {
+        this.formData.nickname = storedNickname;
+      }
+      
+      if (storedAvatar) {
+        this.formData.avatar = storedAvatar;
+      }
+      
+      // 如果需要，可以尝试从后端获取最新的用户信息
+      this.fetchUserProfile();
+    },
+    
+    /**
+     * @description 从后端获取用户信息
+     */
+    fetchUserProfile() {
+      if (!this.token || !this.userId) return;
+      
+      uni.request({
+        url: `http://localhost:8080/users/profile/${this.userId}`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${this.token}`
+        },
+        success: (res) => {
+          if (res.statusCode === 200 && res.data) {
+            const userData = res.data;
+            
+            // 更新表单数据
+            if (userData.nickname) {
+              this.formData.nickname = userData.nickname;
+              uni.setStorageSync('nickname', userData.nickname);
+            }
+            
+            if (userData.avatar) {
+              this.formData.avatar = userData.avatar;
+              uni.setStorageSync('avatar', userData.avatar);
+            }
+            
+            // 更新Vuex状态
+            this.SET_USER_INFO({
+              id: userData.id || this.userId,
+              name: userData.nickname || this.formData.nickname,
+              avatar: userData.avatar || this.formData.avatar,
+              isRegistered: 1
+            });
+            
+            console.log('用户信息已更新');
+          }
+        },
+        fail: (err) => {
+          console.error('获取用户信息失败', err);
+        }
+      });
+    },
+    
+    /**
+     * @description 上传头像
+     */
+    uploadAvatar() {
+      uni.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          const tempFilePaths = res.tempFilePaths;
+          
+          // 显示加载中
+          uni.showLoading({
+            title: '上传中...'
+          });
+          
+          // 预览选择的图片
+          this.formData.avatar = tempFilePaths[0];
+          
+          // 真实环境中，这里应该调用上传API
+          // 模拟上传完成
+          setTimeout(() => {
+            uni.hideLoading();
+            uni.showToast({
+              title: '头像已更新',
+              icon: 'success'
+            });
+            
+            // 存储到本地以便下次显示
+            uni.setStorageSync('avatar', tempFilePaths[0]);
+          }, 1000);
+        }
+      });
+    },
     
     /**
      * @description 初始化学校和专业搜索引擎
@@ -517,6 +658,13 @@ export default {
         // 使用mapMutations映射的方法更新用户信息
         this.UPDATE_USER_INFO(this.pendingUserInfo);
         
+        // 提交到后端
+        this.submitToBackend(this.pendingUserInfo);
+        
+        // 本地存储用户昵称和头像，方便下次加载
+        uni.setStorageSync('nickname', this.pendingUserInfo.userInfo.nickname);
+        uni.setStorageSync('avatar', this.pendingUserInfo.userInfo.avatar);
+        
         // 提示成功
         uni.showToast({
           title: '信息保存成功',
@@ -538,12 +686,26 @@ export default {
      */
     submitForm() {
       try {
+        // 检查必填信息
+        if (!this.formData.nickname.trim()) {
+          uni.showToast({
+            title: '请输入昵称',
+            icon: 'none'
+          });
+          return;
+        }
+        
         // 从Vuex获取角色，无需本地存储
         const currentRole = this.userRole;
         
         // 构建用户信息对象，与state.js中的结构保持一致
         const userInfo = {
-
+          // 顶级字段更新
+          id: this.userId || uni.getStorageSync('userId'), // 保持ID不变
+          name: this.formData.nickname, // 使用昵称更新name字段
+          avatar: this.formData.avatar, // 更新头像
+          isRegistered: 1, // 标记为已注册
+          
           userInfo: {
             // 保留证书状态
             certificate: this.$store.state.user.baseInfo.userInfo.certificate,
@@ -553,7 +715,10 @@ export default {
             studentGrade: (currentRole === '学生' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : this.userStudentGrade,
             teacherGrade: (currentRole === '老师' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : this.userTeacherGrade,
             // 保留原有的考研成绩
-            teacherScore: this.$store.state.user.baseInfo.userInfo.teacherScore
+            teacherScore: this.$store.state.user.baseInfo.userInfo.teacherScore,
+            // 新增昵称和头像
+            nickname: this.formData.nickname,
+            avatar: this.formData.avatar
           }
         };
         
@@ -574,6 +739,13 @@ export default {
         // 学生角色直接提交信息，使用mapMutations映射的方法
         this.UPDATE_USER_INFO(userInfo);
         
+        // 提交到后端
+        this.submitToBackend(userInfo);
+        
+        // 本地存储用户昵称和头像，方便下次加载
+        uni.setStorageSync('nickname', this.formData.nickname);
+        uni.setStorageSync('avatar', this.formData.avatar);
+        
         // 提示成功
         uni.showToast({
           title: '信息保存成功',
@@ -591,6 +763,83 @@ export default {
           icon: 'none'
         });
       }
+    },
+    
+    /**
+     * @description 提交用户信息到后端
+     * @param {Object} userInfo - 用户信息对象
+     */
+    submitToBackend(userInfo) {
+      // 确保有token
+      if (!this.token) {
+        console.error('没有token，无法提交用户信息');
+        return;
+      }
+      
+      // 显示加载中
+      uni.showLoading({
+        title: '提交中...'
+      });
+      
+      // 构造提交的数据
+      const submitData = {
+        id: userInfo.id, // 包含用户ID
+        nickname: userInfo.userInfo.nickname,
+        name: userInfo.name, // 使用顶级name字段
+        avatar: userInfo.avatar, // 使用顶级avatar字段
+        school: userInfo.userInfo.school,
+        major: userInfo.userInfo.major,
+        grade: userInfo.userInfo.role === '学生' ? userInfo.userInfo.studentGrade : userInfo.userInfo.teacherGrade
+      };
+      
+      // 如果是学生，添加目标学校和专业
+      if (userInfo.userInfo.role === '学生') {
+        submitData.targetSchool = userInfo.userInfo.targetSchool;
+        submitData.targetMajor = userInfo.userInfo.targetMajor;
+      }
+      
+      // 发送请求到后端
+      uni.request({
+        url: 'http://localhost:8080/users/profile/update',
+        method: 'POST',
+        header: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json'
+        },
+        data: submitData,
+        success: (res) => {
+          console.log('用户信息提交成功', res);
+          uni.hideLoading();
+          
+          // 如果后端返回了更新后的用户信息，更新本地存储
+          if (res.data && res.data.user) {
+            const user = res.data.user;
+            
+            // 更新Vuex状态
+            const updateData = {
+              id: user.id || userInfo.id,
+              name: user.name || userInfo.name,
+              avatar: user.avatar || userInfo.avatar
+            };
+            
+            // 更新Vuex
+            this.UPDATE_USER_INFO(updateData);
+            
+            // 更新本地存储
+            uni.setStorageSync('userId', updateData.id);
+            uni.setStorageSync('nickname', updateData.name);
+            uni.setStorageSync('avatar', updateData.avatar);
+          }
+        },
+        fail: (err) => {
+          console.error('用户信息提交失败', err);
+          uni.hideLoading();
+          uni.showToast({
+            title: '网络异常，信息已本地保存',
+            icon: 'none'
+          });
+        }
+      });
     },
 
     /**
@@ -766,6 +1015,12 @@ export default {
   margin-left: 10rpx;
 }
 
+.required-tag {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  margin-left: 10rpx;
+}
+
 .form-input {
   width: 100%;
   height: 80rpx;
@@ -822,6 +1077,40 @@ export default {
   color: #fff;
   font-size: 32rpx;
   border-radius: 45rpx;
+}
+
+/* 头像上传相关样式 */
+.avatar-upload-container {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 10rpx 0;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.form-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.avatar-upload-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload-text {
+  color: #fff;
+  font-size: 22rpx;
 }
 
 /* 协议浮窗样式 */

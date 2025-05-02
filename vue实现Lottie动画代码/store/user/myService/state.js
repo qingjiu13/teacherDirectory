@@ -9,6 +9,7 @@ export default {
             id: '',
             typeName: '',
             price: 0,
+            courseCount: 0,
             description: '',
             image: '',
             duration: 0,

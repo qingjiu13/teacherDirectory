@@ -14,60 +14,87 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       showPrivacyModal: false
     };
   },
-  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState("user/baseInfo", ["isRegistered"]))),
+  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState("user/baseInfo", ["isRegistered", "id", "avatar", "name", "phoneNumber"]))),
   onLoad() {
     this.checkLoginStatus();
   },
-  methods: new UTSJSONObject({
+  methods: new UTSJSONObject(Object.assign(Object.assign(Object.assign({}, common_vendor.mapMutations("user/baseInfo", ["SET_USER_INFO"])), common_vendor.mapActions("user/baseInfo", ["updateUserInfo"])), {
     // 检查登录状态
     checkLoginStatus() {
-      const userInfo = common_vendor.index.getStorageSync("userInfo");
       const token = common_vendor.index.getStorageSync("token");
-      if (userInfo && token) {
-        this.userInfo = userInfo;
+      if (token && this.isRegistered) {
         this.hasLogin = true;
+        this.userInfo = {
+          nickName: this.name,
+          avatarUrl: this.avatar
+        };
       }
     },
-    // 获取用户信息
-    onGetUserInfo(e = null) {
-      if (e.detail.errMsg === "getUserInfo:ok") {
-        this.userInfo = e.detail.userInfo;
-        this.loginWithWechat();
-      } else {
-        common_vendor.index.showToast({
-          title: "您已拒绝授权",
-          icon: "none"
-        });
-      }
-    },
-    // 微信登录
-    loginWithWechat() {
+    /**
+     * 微信登录方法
+     * @returns {void}
+     */
+    onWxLogin() {
       common_vendor.index.showLoading({
         title: "登录中..."
       });
       common_vendor.index.login(new UTSJSONObject({
         provider: "weixin",
-        success: (loginRes) => {
-          setTimeout(() => {
-            common_vendor.index.hideLoading();
-            const token = "mock_token_" + Date.now();
-            common_vendor.index.setStorageSync("token", token);
-            common_vendor.index.setStorageSync("userInfo", this.userInfo);
-            this.hasLogin = true;
-            common_vendor.index.showToast({
-              title: "登录成功",
-              icon: "success"
-            });
-            this.toHome();
-          }, 1500);
+        success: (res) => {
+          return common_vendor.__awaiter(this, void 0, void 0, function* () {
+            try {
+              const result = yield common_vendor.index.request({
+                method: "POST",
+                url: "http://localhost:8080/users/auth/wechat",
+                data: new UTSJSONObject({
+                  code: res.code
+                })
+              });
+              common_vendor.index.__f__("log", "at pages/login/wechat_login.vue:149", result);
+              if (result.statusCode === 200 && result.data) {
+                common_vendor.index.setStorageSync("token", result.data.token);
+                if (result.data.userId) {
+                  common_vendor.index.setStorageSync("userId", result.data.userId);
+                  this.SET_USER_INFO(new UTSJSONObject({
+                    id: result.data.userId,
+                    isRegistered: 1
+                    // 标记为已注册
+                  }));
+                }
+                common_vendor.index.hideLoading();
+                common_vendor.index.showToast({
+                  title: "登录成功",
+                  icon: "success",
+                  duration: 1500
+                });
+                this.hasLogin = true;
+                setTimeout(() => {
+                  router_Router.Navigator.redirectTo("/pages/login/login_detail");
+                }, 1500);
+              } else {
+                common_vendor.index.hideLoading();
+                common_vendor.index.showToast({
+                  title: "登录失败，请重试",
+                  icon: "none"
+                });
+              }
+            } catch (error) {
+              common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:191", "登录请求失败", error);
+              common_vendor.index.hideLoading();
+              common_vendor.index.showToast({
+                title: "登录失败，请重试",
+                icon: "none"
+              });
+            }
+          });
         },
         fail: (err) => {
+          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:200", "微信登录失败", err);
           common_vendor.index.hideLoading();
           common_vendor.index.showToast({
-            title: "登录失败",
+            title: "登录失败，请重试",
             icon: "none"
           });
-          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:172", "微信登录失败:", err);
         }
       }));
     },
@@ -76,11 +103,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      * @returns {void}
      */
     toHome() {
-      if (this.isRegistered) {
-        router_Router.Navigator.redirectTo(router_Router.IndexRoutes.INDEX);
-      } else {
-        router_Router.Navigator.toLogin();
-      }
+      router_Router.Navigator.redirectTo(router_Router.IndexRoutes.INDEX);
     },
     /**
      * 显示用户协议弹窗
@@ -108,7 +131,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
         this.showPrivacyModal = false;
       }
     }
-  })
+  }))
 }));
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -121,7 +144,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: !$data.hasLogin
   }, !$data.hasLogin ? {
     f: common_assets._imports_1,
-    g: common_vendor.o((...args) => $options.onGetUserInfo && $options.onGetUserInfo(...args))
+    g: common_vendor.o((...args) => $options.onWxLogin && $options.onWxLogin(...args))
   } : {
     h: common_vendor.o((...args) => $options.toHome && $options.toHome(...args))
   }, {

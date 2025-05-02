@@ -15,10 +15,13 @@ const _sfc_main = common_vendor.defineComponent({
   onLoad() {
     this.loadUniversityData();
     this.initSchoolAndMajorSearch();
+    this.initUserInfo();
   },
   data() {
     return {
       formData: new UTSJSONObject({
+        nickname: "",
+        avatar: "/static/image/tab-bar/default_avatar.png",
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,
@@ -38,8 +41,10 @@ const _sfc_main = common_vendor.defineComponent({
       // 分离筛选器状态
       graduateStore: null,
       schoolStore: null,
-      majorStore: null
-      // 本科专业数据状态
+      majorStore: null,
+      token: "",
+      userId: ""
+      // 用户ID
     };
   },
   computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
@@ -108,7 +113,97 @@ const _sfc_main = common_vendor.defineComponent({
       return this.schoolStore.getters.filteredData(this.schoolStore.state);
     }
   })),
-  methods: Object.assign(Object.assign({}, common_vendor.mapMutations("user/baseInfo", ["UPDATE_USER_INFO"])), {
+  methods: Object.assign(Object.assign({}, common_vendor.mapMutations("user/baseInfo", ["UPDATE_USER_INFO", "SET_USER_INFO"])), {
+    /**
+     * @description 初始化用户信息
+     */
+    initUserInfo() {
+      this.token = common_vendor.index.getStorageSync("token") || "";
+      this.userId = common_vendor.index.getStorageSync("userId") || "";
+      if (!this.token) {
+        common_vendor.index.showToast({
+          title: "请先登录",
+          icon: "none",
+          complete: () => {
+            setTimeout(() => {
+              router_Router.Navigator.redirectTo("/pages/login/wechat_login");
+            }, 1500);
+          }
+        });
+        return null;
+      }
+      const storedNickname = common_vendor.index.getStorageSync("nickname") || "";
+      const storedAvatar = common_vendor.index.getStorageSync("avatar") || "";
+      if (storedNickname) {
+        this.formData.nickname = storedNickname;
+      }
+      if (storedAvatar) {
+        this.formData.avatar = storedAvatar;
+      }
+      this.fetchUserProfile();
+    },
+    /**
+     * @description 从后端获取用户信息
+     */
+    fetchUserProfile() {
+      if (!this.token || !this.userId)
+        return null;
+      common_vendor.index.request({
+        url: `http://localhost:8080/users/profile/${this.userId}`,
+        method: "GET",
+        header: new UTSJSONObject({
+          "Authorization": `Bearer ${this.token}`
+        }),
+        success: (res) => {
+          if (res.statusCode === 200 && res.data) {
+            const userData = res.data;
+            if (userData.nickname) {
+              this.formData.nickname = userData.nickname;
+              common_vendor.index.setStorageSync("nickname", userData.nickname);
+            }
+            if (userData.avatar) {
+              this.formData.avatar = userData.avatar;
+              common_vendor.index.setStorageSync("avatar", userData.avatar);
+            }
+            this.SET_USER_INFO(new UTSJSONObject({
+              id: userData.id || this.userId,
+              name: userData.nickname || this.formData.nickname,
+              avatar: userData.avatar || this.formData.avatar,
+              isRegistered: 1
+            }));
+            common_vendor.index.__f__("log", "at pages/login/login_detail.vue:342", "用户信息已更新");
+          }
+        },
+        fail: (err) => {
+          common_vendor.index.__f__("error", "at pages/login/login_detail.vue:346", "获取用户信息失败", err);
+        }
+      });
+    },
+    /**
+     * @description 上传头像
+     */
+    uploadAvatar() {
+      common_vendor.index.chooseImage(new UTSJSONObject({
+        count: 1,
+        sizeType: ["compressed"],
+        sourceType: ["album", "camera"],
+        success: (res) => {
+          const tempFilePaths = res.tempFilePaths;
+          common_vendor.index.showLoading({
+            title: "上传中..."
+          });
+          this.formData.avatar = tempFilePaths[0];
+          setTimeout(() => {
+            common_vendor.index.hideLoading();
+            common_vendor.index.showToast({
+              title: "头像已更新",
+              icon: "success"
+            });
+            common_vendor.index.setStorageSync("avatar", tempFilePaths[0]);
+          }, 1e3);
+        }
+      }));
+    },
     /**
      * @description 初始化学校和专业搜索引擎
      */
@@ -186,7 +281,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
       }), keyword);
       this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:343", `学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:484", `学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
     },
     /**
      * @description 处理专业搜索输入
@@ -199,22 +294,22 @@ const _sfc_main = common_vendor.defineComponent({
         }
       }), keyword);
       this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:362", `专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:503", `专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
     },
     /**
      * @description 处理目标学校搜索输入 - 使用研究生学校搜索引擎
      * @param {String} keyword - 搜索关键词
      */
     handleTargetSchoolSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:370", "处理学校搜索:", keyword);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:511", "处理学校搜索:", keyword);
       if (!keyword || keyword.trim() === "") {
         const allSchools = Object.keys(this.graduateStore.schools).slice(0, 50);
         this.targetSchoolList = allSchools;
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:376", "关键词为空，显示前50所学校");
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:517", "关键词为空，显示前50所学校");
         return null;
       }
       if (!this.graduateStore.schoolFuse) {
-        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:382", "Fuse搜索引擎未初始化，强制重新初始化中...");
+        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:523", "Fuse搜索引擎未初始化，强制重新初始化中...");
         components_combobox_graduate_school_major.GraduateStore.actions.reinitializeSearch(new UTSJSONObject({
           commit: (mutation = null, payload = null) => {
             components_combobox_graduate_school_major.GraduateStore.mutations[mutation](this.graduateStore, payload);
@@ -224,10 +319,10 @@ const _sfc_main = common_vendor.defineComponent({
       }
       components_combobox_graduate_school_major.GraduateStore.mutations.setSchoolKeyword(this.graduateStore, keyword);
       const filteredSchools = components_combobox_graduate_school_major.GraduateStore.getters.filteredSchoolList(this.graduateStore);
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:397", "过滤后的学校列表:", filteredSchools);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:538", "过滤后的学校列表:", filteredSchools);
       this.targetSchoolList = filteredSchools;
       this.$nextTick(() => {
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:405", `最终显示学校数量: ${filteredSchools.length}`);
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:546", `最终显示学校数量: ${filteredSchools.length}`);
         if (this.$refs.targetSchoolDropdown) {
           this.$refs.targetSchoolDropdown.$forceUpdate();
         }
@@ -238,27 +333,27 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} keyword - 搜索关键词
      */
     handleTargetMajorSearch(keyword = null) {
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:419", "处理专业搜索:", keyword);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:560", "处理专业搜索:", keyword);
       if (!this.graduateStore.selectedSchool) {
-        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:423", "未选择学校，专业搜索无效");
+        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:564", "未选择学校，专业搜索无效");
         return null;
       }
       if (!keyword || keyword.trim() === "") {
         const allMajors = this.graduateStore.schools[this.graduateStore.selectedSchool] || [];
         this.targetMajorList = allMajors.slice(0, 20);
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:431", "关键词为空，显示前20个专业");
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:572", "关键词为空，显示前20个专业");
         return null;
       }
       if (!this.graduateStore.majorFuse) {
-        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:437", "专业搜索引擎未初始化，重新初始化中...");
+        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:578", "专业搜索引擎未初始化，重新初始化中...");
         components_combobox_graduate_school_major.GraduateStore.mutations.setSelectedSchool(this.graduateStore, this.graduateStore.selectedSchool);
       }
       components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(this.graduateStore, keyword);
       const filteredMajors = components_combobox_graduate_school_major.GraduateStore.getters.filteredMajorList(this.graduateStore);
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:447", "过滤后的专业列表:", filteredMajors);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:588", "过滤后的专业列表:", filteredMajors);
       this.targetMajorList = filteredMajors;
       this.$nextTick(() => {
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:455", `最终显示专业数量: ${filteredMajors.length}`);
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:596", `最终显示专业数量: ${filteredMajors.length}`);
         if (this.$refs.targetMajorDropdown) {
           this.$refs.targetMajorDropdown.$forceUpdate();
         }
@@ -281,9 +376,9 @@ const _sfc_main = common_vendor.defineComponent({
     loadUniversityData() {
       try {
         this.initGraduateData();
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:484", "成功加载学校数据");
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:625", "成功加载学校数据");
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:486", "加载大学数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:627", "加载大学数据失败:", error);
         const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
         this.schoolList = defaultSchools;
         this.targetSchoolList = defaultSchools;
@@ -306,6 +401,9 @@ const _sfc_main = common_vendor.defineComponent({
     confirmAgreement() {
       if (this.pendingUserInfo) {
         this.UPDATE_USER_INFO(this.pendingUserInfo);
+        this.submitToBackend(this.pendingUserInfo);
+        common_vendor.index.setStorageSync("nickname", this.pendingUserInfo.userInfo.nickname);
+        common_vendor.index.setStorageSync("avatar", this.pendingUserInfo.userInfo.avatar);
         common_vendor.index.showToast({
           title: "信息保存成功",
           icon: "success"
@@ -321,8 +419,20 @@ const _sfc_main = common_vendor.defineComponent({
      */
     submitForm() {
       try {
+        if (!this.formData.nickname.trim()) {
+          common_vendor.index.showToast({
+            title: "请输入昵称",
+            icon: "none"
+          });
+          return null;
+        }
         const currentRole = this.userRole;
         const userInfo = new UTSJSONObject({
+          // 顶级字段更新
+          id: this.userId || common_vendor.index.getStorageSync("userId"),
+          name: this.formData.nickname,
+          avatar: this.formData.avatar,
+          isRegistered: 1,
           userInfo: new UTSJSONObject({
             // 保留证书状态
             certificate: this.$store.state.user.baseInfo.userInfo.certificate,
@@ -332,7 +442,10 @@ const _sfc_main = common_vendor.defineComponent({
             studentGrade: currentRole === "学生" && this.formData.gradeIndex >= 0 ? this.gradeList[this.formData.gradeIndex] : this.userStudentGrade,
             teacherGrade: currentRole === "老师" && this.formData.gradeIndex >= 0 ? this.gradeList[this.formData.gradeIndex] : this.userTeacherGrade,
             // 保留原有的考研成绩
-            teacherScore: this.$store.state.user.baseInfo.userInfo.teacherScore
+            teacherScore: this.$store.state.user.baseInfo.userInfo.teacherScore,
+            // 新增昵称和头像
+            nickname: this.formData.nickname,
+            avatar: this.formData.avatar
           })
         });
         if (currentRole === "学生") {
@@ -345,6 +458,9 @@ const _sfc_main = common_vendor.defineComponent({
           return null;
         }
         this.UPDATE_USER_INFO(userInfo);
+        this.submitToBackend(userInfo);
+        common_vendor.index.setStorageSync("nickname", this.formData.nickname);
+        common_vendor.index.setStorageSync("avatar", this.formData.avatar);
         common_vendor.index.showToast({
           title: "信息保存成功",
           icon: "success"
@@ -353,12 +469,71 @@ const _sfc_main = common_vendor.defineComponent({
           router_Router.Navigator.toIndex();
         }, 1500);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:588", "提交表单时出错:", error);
+        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:760", "提交表单时出错:", error);
         common_vendor.index.showToast({
           title: "保存失败，请重试",
           icon: "none"
         });
       }
+    },
+    /**
+     * @description 提交用户信息到后端
+     * @param {Object} userInfo - 用户信息对象
+     */
+    submitToBackend(userInfo = null) {
+      if (!this.token) {
+        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:775", "没有token，无法提交用户信息");
+        return null;
+      }
+      common_vendor.index.showLoading({
+        title: "提交中..."
+      });
+      const submitData = new UTSJSONObject({
+        id: userInfo.id,
+        nickname: userInfo.userInfo.nickname,
+        name: userInfo.name,
+        avatar: userInfo.avatar,
+        school: userInfo.userInfo.school,
+        major: userInfo.userInfo.major,
+        grade: userInfo.userInfo.role === "学生" ? userInfo.userInfo.studentGrade : userInfo.userInfo.teacherGrade
+      });
+      if (userInfo.userInfo.role === "学生") {
+        submitData.targetSchool = userInfo.userInfo.targetSchool;
+        submitData.targetMajor = userInfo.userInfo.targetMajor;
+      }
+      common_vendor.index.request({
+        url: "http://localhost:8080/users/profile/update",
+        method: "POST",
+        header: new UTSJSONObject({
+          "Authorization": `Bearer ${this.token}`,
+          "Content-Type": "application/json"
+        }),
+        data: submitData,
+        success: (res) => {
+          common_vendor.index.__f__("log", "at pages/login/login_detail.vue:811", "用户信息提交成功", res);
+          common_vendor.index.hideLoading();
+          if (res.data && res.data.user) {
+            const user = res.data.user;
+            const updateData = new UTSJSONObject({
+              id: user.id || userInfo.id,
+              name: user.name || userInfo.name,
+              avatar: user.avatar || userInfo.avatar
+            });
+            this.UPDATE_USER_INFO(updateData);
+            common_vendor.index.setStorageSync("userId", updateData.id);
+            common_vendor.index.setStorageSync("nickname", updateData.name);
+            common_vendor.index.setStorageSync("avatar", updateData.avatar);
+          }
+        },
+        fail: (err) => {
+          common_vendor.index.__f__("error", "at pages/login/login_detail.vue:835", "用户信息提交失败", err);
+          common_vendor.index.hideLoading();
+          common_vendor.index.showToast({
+            title: "网络异常，信息已本地保存",
+            icon: "none"
+          });
+        }
+      });
     },
     /**
      * @description 验证表单内容 - 所有字段均为选填，无需验证
@@ -374,26 +549,26 @@ const _sfc_main = common_vendor.defineComponent({
       try {
         this.graduateStore = UTS.JSON.parse(UTS.JSON.stringify(components_combobox_graduate_school_major.GraduateStore.state));
         if (!this.graduateStore.schools) {
-          common_vendor.index.__f__("error", "at pages/login/login_detail.vue:615", "研究生学校数据不完整");
+          common_vendor.index.__f__("error", "at pages/login/login_detail.vue:864", "研究生学校数据不完整");
           throw new Error("学校数据结构不完整");
         }
         components_combobox_graduate_school_major.GraduateStore.mutations.initSchoolFuse(this.graduateStore);
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:621", "Fuse引擎初始化状态:", !!this.graduateStore.schoolFuse);
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:870", "Fuse引擎初始化状态:", !!this.graduateStore.schoolFuse);
         if (this.graduateStore.schoolFuse) {
-          common_vendor.index.__f__("log", "at pages/login/login_detail.vue:625", "Fuse配置验证:", new UTSJSONObject({
+          common_vendor.index.__f__("log", "at pages/login/login_detail.vue:874", "Fuse配置验证:", new UTSJSONObject({
             keys: this.graduateStore.schoolFuse._docs[0] ? Object.keys(this.graduateStore.schoolFuse._docs[0]) : "未知",
             ignoreLocation: this.graduateStore.schoolFuse.options.ignoreLocation,
             threshold: this.graduateStore.schoolFuse.options.threshold
           }));
         } else {
-          common_vendor.index.__f__("error", "at pages/login/login_detail.vue:631", "Fuse.js搜索引擎初始化失败");
+          common_vendor.index.__f__("error", "at pages/login/login_detail.vue:880", "Fuse.js搜索引擎初始化失败");
         }
         const graduateSchools = Object.keys(this.graduateStore.schools).slice(0, 50);
         this.targetSchoolList = graduateSchools;
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:638", "初始化考研数据成功");
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:887", "初始化考研数据成功");
         return true;
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:641", "初始化考研数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/login/login_detail.vue:890", "初始化考研数据失败:", error);
         const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
         this.targetSchoolList = defaultSchools;
         return false;
@@ -404,7 +579,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @param {String} school - 变更后的学校名称
      */
     handleSchoolChange(school = null) {
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:655", "学校变更事件:", school);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:904", "学校变更事件:", school);
       if (!school) {
         this.resetMajorSelection();
         return null;
@@ -416,10 +591,10 @@ const _sfc_main = common_vendor.defineComponent({
       }), school);
       if (this.graduateStore.schools[school]) {
         this.targetMajorList = this.graduateStore.schools[school].slice(0, 30);
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:673", `已加载 ${school} 的专业列表，共 ${this.targetMajorList.length} 个`);
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:922", `已加载 ${school} 的专业列表，共 ${this.targetMajorList.length} 个`);
       } else {
         this.resetMajorSelection();
-        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:676", `${school} 没有关联的专业数据`);
+        common_vendor.index.__f__("warn", "at pages/login/login_detail.vue:925", `${school} 没有关联的专业数据`);
       }
     },
     /**
@@ -439,9 +614,9 @@ const _sfc_main = common_vendor.defineComponent({
         },
         state: this.graduateStore
       }));
-      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:700", "Fuse引擎强制重新初始化完成，状态:", !!this.graduateStore.schoolFuse);
+      common_vendor.index.__f__("log", "at pages/login/login_detail.vue:949", "Fuse引擎强制重新初始化完成，状态:", !!this.graduateStore.schoolFuse);
       if (this.graduateStore.schoolFuse) {
-        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:704", "重新初始化后的Fuse配置:", new UTSJSONObject({
+        common_vendor.index.__f__("log", "at pages/login/login_detail.vue:953", "重新初始化后的Fuse配置:", new UTSJSONObject({
           threshold: this.graduateStore.schoolFuse.options.threshold,
           ignoreLocation: this.graduateStore.schoolFuse.options.ignoreLocation,
           items: this.graduateStore.schoolFuse._docs.length
@@ -460,12 +635,16 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: _ctx.userRole === "学生"
+    a: $data.formData.nickname,
+    b: common_vendor.o(($event) => $data.formData.nickname = $event.detail.value),
+    c: $data.formData.avatar,
+    d: common_vendor.o((...args) => $options.uploadAvatar && $options.uploadAvatar(...args)),
+    e: _ctx.userRole === "学生"
   }, _ctx.userRole === "学生" ? {
-    b: common_vendor.sr("schoolDropdown", "5ca72b3d-0"),
-    c: common_vendor.o($options.handleSchoolSelect),
-    d: common_vendor.o($options.handleSchoolSearch),
-    e: common_vendor.p({
+    f: common_vendor.sr("schoolDropdown", "5ca72b3d-0"),
+    g: common_vendor.o($options.handleSchoolSelect),
+    h: common_vendor.o($options.handleSchoolSearch),
+    i: common_vendor.p({
       componentType: "undergraduate",
       choiceIndex: $data.formData.schoolIndex,
       choiceList: $data.schoolList,
@@ -473,10 +652,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       mode: "search",
       searchPlaceholder: "输入学校名称"
     }),
-    f: common_vendor.sr("majorDropdown", "5ca72b3d-1"),
-    g: common_vendor.o($options.handleMajorSelect),
-    h: common_vendor.o($options.handleMajorSearch),
-    i: common_vendor.p({
+    j: common_vendor.sr("majorDropdown", "5ca72b3d-1"),
+    k: common_vendor.o($options.handleMajorSelect),
+    l: common_vendor.o($options.handleMajorSearch),
+    m: common_vendor.p({
       componentType: "undergraduate",
       choiceIndex: $data.formData.majorIndex,
       choiceList: $data.majorList,
@@ -485,19 +664,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       searchPlaceholder: "输入专业名称"
     })
   } : {}, {
-    j: common_vendor.o($options.handleGradeSelect),
-    k: common_vendor.p({
+    n: common_vendor.o($options.handleGradeSelect),
+    o: common_vendor.p({
       choiceIndex: $data.formData.gradeIndex,
       choiceList: $options.gradeList,
       defaultText: "请选择年级",
       mode: "select"
     }),
-    l: common_vendor.t(_ctx.userRole === "学生" ? "目标学校" : "就读学校"),
-    m: common_vendor.sr("targetSchoolDropdown", "5ca72b3d-3"),
-    n: common_vendor.o($options.handleTargetSchoolSelect),
-    o: common_vendor.o($options.handleTargetSchoolSearch),
-    p: common_vendor.o($options.handleSchoolChange),
-    q: common_vendor.p({
+    p: common_vendor.t(_ctx.userRole === "学生" ? "目标学校" : "就读学校"),
+    q: common_vendor.sr("targetSchoolDropdown", "5ca72b3d-3"),
+    r: common_vendor.o($options.handleTargetSchoolSelect),
+    s: common_vendor.o($options.handleTargetSchoolSearch),
+    t: common_vendor.o($options.handleSchoolChange),
+    v: common_vendor.p({
       componentType: "graduateSchool",
       choiceIndex: $data.formData.targetSchoolIndex,
       choiceList: $data.targetSchoolList,
@@ -507,12 +686,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       enablePagination: true,
       pageSize: 10
     }),
-    r: common_vendor.t(_ctx.userRole === "学生" ? "目标专业" : "就读专业"),
-    s: common_vendor.sr("targetMajorDropdown", "5ca72b3d-4"),
-    t: common_vendor.o($options.handleTargetMajorSelect),
-    v: common_vendor.o($options.handleTargetMajorSearch),
-    w: common_vendor.o($options.resetMajorSelection),
-    x: common_vendor.p({
+    w: common_vendor.t(_ctx.userRole === "学生" ? "目标专业" : "就读专业"),
+    x: common_vendor.sr("targetMajorDropdown", "5ca72b3d-4"),
+    y: common_vendor.o($options.handleTargetMajorSelect),
+    z: common_vendor.o($options.handleTargetMajorSearch),
+    A: common_vendor.o($options.resetMajorSelection),
+    B: common_vendor.p({
       componentType: "graduateMajor",
       choiceIndex: $data.formData.targetMajorIndex,
       choiceList: $data.targetMajorList,
@@ -524,15 +703,15 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       enablePagination: true,
       pageSize: 10
     }),
-    y: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
-    z: $data.showAgreementModal
+    C: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
+    D: $data.showAgreementModal
   }, $data.showAgreementModal ? {
-    A: common_vendor.o((...args) => $options.confirmAgreement && $options.confirmAgreement(...args)),
-    B: common_vendor.o(() => {
+    E: common_vendor.o((...args) => $options.confirmAgreement && $options.confirmAgreement(...args)),
+    F: common_vendor.o(() => {
     }),
-    C: common_vendor.o((...args) => $options.closeModal && $options.closeModal(...args))
+    G: common_vendor.o((...args) => $options.closeModal && $options.closeModal(...args))
   } : {}, {
-    D: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    H: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-5ca72b3d"]]);

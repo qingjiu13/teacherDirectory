@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-	import { ref, onMounted, provide } from 'vue'
+	import { ref, onMounted, provide, nextTick } from 'vue'
 	import LoadingOverlay from '@/components/loading-animation/loading.vue'
 	import store from './store/index.js';
 	import { onLaunch, onShow, onHide } from '@dcloudio/uni-app';
@@ -17,15 +17,32 @@
 	// 提供全局loading状态控制
 	const isLoading = ref(false)
 	
-	// 全局加载控制方法
+	/**
+	 * 显示全局加载动画
+	 */
 	const showGlobalLoading = () => {
 		isLoading.value = true
-		loadingRef.value?.show?.()
+		if (loadingRef.value) {
+			loadingRef.value.show()
+		} else {
+			console.warn('加载组件引用未就绪')
+			// 等待下一个DOM更新周期再试一次
+			nextTick(() => {
+				loadingRef.value?.show?.()
+			})
+		}
 	}
 	
+	/**
+	 * 隐藏全局加载动画
+	 */
 	const hideGlobalLoading = () => {
 		isLoading.value = false
-		loadingRef.value?.hide?.()
+		if (loadingRef.value) {
+			loadingRef.value.hide()
+		} else {
+			console.warn('加载组件引用未就绪')
+		}
 	}
 	
 	// 提供全局加载状态
@@ -39,6 +56,22 @@
 	onMounted(() => {
 		const app = getApp()
 		app.globalData = app.globalData || {}
+		
+		// 确保组件引用已经存在
+		if (loadingRef.value) {
+			console.log('加载组件引用已就绪')
+		} else {
+			console.warn('加载组件引用尚未就绪，下一个时钟周期中检查')
+			// 给DOM留出时间渲染
+			setTimeout(() => {
+				if (loadingRef.value) {
+					console.log('加载组件引用现在已就绪')
+				} else {
+					console.error('加载组件引用仍未就绪')
+				}
+			}, 100)
+		}
+		
 		app.globalData.$loading = {
 			show: showGlobalLoading,
 			hide: hideGlobalLoading

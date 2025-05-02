@@ -13,7 +13,7 @@ export default {
     wechatNumber: '1234567890',
     phoneNumber: '1234567890',
     password: '123456',
-    isRegistered: true, // 是否注册过
+    isRegistered: 0, // 是否注册过
     campusAmbassador: 1, // 是否为校园大使
     userInfo:{    
         certificate: 0,//是否认证，0为未认证，1为已认证

@@ -21,9 +21,11 @@
       </view>
       
       <!-- 微信登录按钮 -->
-      <button class="login-btn" open-type="getUserInfo" @getuserinfo="onGetUserInfo" v-if="!hasLogin">
-        <image class="wechat-icon" src="/static/image/tab-bar/default_avatar.png"></image>
-        <text>微信一键登录</text>
+      <button class="login-btn" @click="onWxLogin" v-if="!hasLogin">
+        <view class="btn-content">
+          <image class="wechat-icon" src="/static/image/tab-bar/default_avatar.png"></image>
+          <text class="login-text">微信一键登录</text>
+        </view>
       </button>
       
       <!-- 已登录状态 -->
@@ -84,7 +86,7 @@
 
 <script>
 import { Navigator, IndexRoutes } from '../../router/Router';
-import { mapState } from 'vuex';
+import { mapState, mapMutations, mapActions } from 'vuex';
 
 export default {
   data() {
@@ -95,81 +97,112 @@ export default {
         avatarUrl: ''
       },
       showAgreementModal: false,
-      showPrivacyModal: false
+      showPrivacyModal: false,
     }
   },
   computed: {
-    ...mapState('user/baseInfo', ['isRegistered'])
+    ...mapState('user/baseInfo', ['isRegistered', 'id', 'avatar', 'name', 'phoneNumber'])
   },
   onLoad() {
     this.checkLoginStatus();
   },
   methods: {
+    ...mapMutations('user/baseInfo', ['SET_USER_INFO']),
+    ...mapActions('user/baseInfo', ['updateUserInfo']),
+    
     // 检查登录状态
     checkLoginStatus() {
-      const userInfo = uni.getStorageSync('userInfo');
       const token = uni.getStorageSync('token');
       
-      if (userInfo && token) {
-        this.userInfo = userInfo;
+      if (token && this.isRegistered) {
         this.hasLogin = true;
+        
+        // 从Vuex获取用户信息
+        this.userInfo = {
+          nickName: this.name,
+          avatarUrl: this.avatar
+        };
       }
     },
     
-    // 获取用户信息
-    onGetUserInfo(e) {
-      if (e.detail.errMsg === 'getUserInfo:ok') {
-        // 用户授权成功
-        this.userInfo = e.detail.userInfo;
-        this.loginWithWechat();
-      } else {
-        // 用户拒绝授权
-        uni.showToast({
-          title: '您已拒绝授权',
-          icon: 'none'
-        });
-      }
-    },
-    
-    // 微信登录
-    loginWithWechat() {
+    /**
+     * 微信登录方法
+     * @returns {void}
+     */
+    onWxLogin() {
       uni.showLoading({
         title: '登录中...'
       });
       
-      // 这里替换为你的实际登录逻辑
-      // 1. 调用微信登录接口获取code
       uni.login({
         provider: 'weixin',
-        success: (loginRes) => {
-          // 2. 将code发送到你的后端服务器获取token
-          // 这里模拟一个登录请求
-          setTimeout(() => {
-            uni.hideLoading();
-            
-            // 模拟登录成功
-            const token = 'mock_token_' + Date.now();
-            uni.setStorageSync('token', token);
-            uni.setStorageSync('userInfo', this.userInfo);
-            
-            this.hasLogin = true;
-            
-            uni.showToast({
-              title: '登录成功',
-              icon: 'success'
+        success: async (res) => {
+          try {
+            const result = await uni.request({
+              method: "POST",
+              url: "http://localhost:8080/users/auth/wechat",
+              data: {
+                code: res.code
+              }
             });
             
-            // 登录成功后跳转页面
-            this.toHome();
-          }, 1500);
+            console.log(result);
+            
+            // 检查请求是否成功
+            if (result.statusCode === 200 && result.data) {
+              // 存储token到本地
+              uni.setStorageSync('token', result.data.token);
+              
+              // 存储用户ID
+              if (result.data.userId) {
+                uni.setStorageSync('userId', result.data.userId);
+                
+                // 使用Vuex mutation更新用户ID
+                this.SET_USER_INFO({
+                  id: result.data.userId,
+                  isRegistered: 1 // 标记为已注册
+                });
+              }
+              
+              uni.hideLoading();
+              
+              // 提示登录成功
+              uni.showToast({
+                title: '登录成功',
+                icon: 'success',
+                duration: 1500
+              });
+              
+              // 设置登录状态
+              this.hasLogin = true;
+              
+              // 跳转到信息完善页面
+              setTimeout(() => {
+                Navigator.redirectTo('/pages/login/login_detail');
+              }, 1500);
+            } else {
+              uni.hideLoading();
+              uni.showToast({
+                title: '登录失败，请重试',
+                icon: 'none'
+              });
+            }
+          } catch (error) {
+            console.error('登录请求失败', error);
+            uni.hideLoading();
+            uni.showToast({
+              title: '登录失败，请重试',
+              icon: 'none'
+            });
+          }
         },
         fail: (err) => {
+          console.error('微信登录失败', err);
           uni.hideLoading();
           uni.showToast({
-            title: '登录失败',
+            title: '登录失败，请重试',
             icon: 'none'
           });
-          console.error('微信登录失败:', err);
         }
       });
     },
@@ -179,13 +212,7 @@ export default {
      * @returns {void}
      */
     toHome() {
-      // 如果已经注册过，则跳转到主页
-      if (this.isRegistered) {
-        Navigator.redirectTo(IndexRoutes.INDEX);
-      } else {
-        // 如果未注册过，使用原有的跳转逻辑
-        Navigator.toLogin();
-      }
+      Navigator.redirectTo(IndexRoutes.INDEX);
     },
     
     /**
@@ -294,9 +321,7 @@ export default {
       background: linear-gradient(to right, #07C160, #09BB07);
       color: #fff;
       font-size: 32rpx;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      padding: 0;
       border: none;
       box-shadow: 0 10rpx 20rpx rgba(7, 193, 96, 0.3);
       
@@ -304,11 +329,24 @@ export default {
         background: linear-gradient(to right, #1989fa, #3194fa);
         box-shadow: 0 10rpx 20rpx rgba(25, 137, 250, 0.3);
       }
+
+      .btn-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+      }
       
       .wechat-icon {
         width: 40rpx;
         height: 40rpx;
         margin-right: 15rpx;
+      }
+
+      .login-text {
+        display: inline-block;
       }
     }
     

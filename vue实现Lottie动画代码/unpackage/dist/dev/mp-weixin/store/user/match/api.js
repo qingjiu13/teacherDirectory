@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
-const api_index = require("../../../api/index.js");
+const store_user_API = require("../API.js");
 const getMatchTeachers = async (params = {}) => {
   try {
     const queryParams = new URLSearchParams();
@@ -9,7 +9,7 @@ const getMatchTeachers = async (params = {}) => {
         queryParams.append(key, value);
       }
     });
-    const url = `${api_index.MATCH_API_BASE_URL}${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+    const url = `${store_user_API.MATCH_API_BASE_URL}${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
@@ -25,7 +25,7 @@ const getTeacherDetail = async (teacherId) => {
     if (!teacherId) {
       throw new Error("教师ID不能为空");
     }
-    const url = `${api_index.USER_TEACHER_DETAIL_URL}?id=${teacherId}`;
+    const url = `${store_user_API.USER_TEACHER_DETAIL_URL}?id=${teacherId}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
