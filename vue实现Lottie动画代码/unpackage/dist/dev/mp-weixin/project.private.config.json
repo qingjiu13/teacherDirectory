@@ -3,15 +3,14 @@
   "projectname": "vue%25E5%25AE%259E%25E7%258E%25B0Lottie%25E5%258A%25A8%25E7%2594%25BB%25E4%25BB%25A3%25E7%25A0%2581",
   "setting": {
     "compileHotReLoad": true,
-    "urlCheck": false,
-    "bigPackageSizeSupport": true
+    "urlCheck": false
   },
   "condition": {
     "miniprogram": {
       "list": [
         {
-          "name": "pages/login/login",
-          "pathName": "pages/login/wechat_login",
+          "name": "pages/match/match",
+          "pathName": "pages/match/match",
           "query": "",
           "launchMode": "default",
           "scene": null

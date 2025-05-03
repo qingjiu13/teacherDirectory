@@ -16,7 +16,7 @@ const getMatchTeachers = async (params = {}) => {
     }
     return await response.json();
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/user/match/api.js:46", "获取匹配教师列表失败:", error);
+    common_vendor.index.__f__("error", "at store/user/match/api.js:47", "获取匹配教师列表失败:", error);
     throw error;
   }
 };
@@ -32,7 +32,7 @@ const getTeacherDetail = async (teacherId) => {
     }
     return await response.json();
   } catch (error) {
-    common_vendor.index.__f__("error", "at store/user/match/api.js:80", "获取教师详情失败:", error);
+    common_vendor.index.__f__("error", "at store/user/match/api.js:81", "获取教师详情失败:", error);
     throw error;
   }
 };

@@ -191,7 +191,11 @@
           <view class="card-right">
             <button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
           </view>
+          <view class="price-tag-container" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
+            <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时</view>
+          </view>
         </view>
+        
         
         <view class="empty-state" v-if="matchTeachers.length === 0 && !isLoading">
           <text>暂无匹配的老师信息</text>
@@ -212,6 +216,7 @@ import { useStore } from 'vuex'
 import { Navigator } from '@/router/Router.js'
 import ChoiceSelected from '../../components/combobox/combobox'
 import GraduateStore from '../../components/combobox/graduate_school_major.js'
+
 
 // 初始化 store
 const store = useStore()
@@ -261,12 +266,10 @@ const tabLabelMap = {
   other: '其他科目'
 }
 
-/**
- * 从Vuex获取匹配的老师列表
- */
 const matchTeachers = computed(() => {
   return store.state.user.match.matchList || []
 })
+
 
 // 表单数据 - 由于只是临时UI状态，仍使用本地状态管理
 const formData = reactive({
@@ -297,6 +300,56 @@ const politicsOptions = ref(['政治必修', '政治选修'])
 const otherOptions = ref(['经济学', '管理学', '教育学', '历史学'])
 const sortOptions = ref(['综合评分从高到低', '价格从低到高', '价格从高到低', '最新发布'])
 
+
+
+
+/**
+ * 获取教师一对一课程的每小时价格
+ * @param {Array} matchTeachers - 匹配的教师列表
+ * @returns {Object} - 包含每小时价格信息的对象
+ */
+const oneToOneMatchPrice = (matchTeachers) => {
+  const result = {};
+  
+  if (!matchTeachers || !Array.isArray(matchTeachers)) {
+    return result;
+  }
+  
+  matchTeachers.forEach(teacher => {
+    // 查找一对一课程服务
+    const oneToOneService = teacher.service?.find(
+      service => service.type?.typename === '一对一课程'
+    );
+    
+    if (oneToOneService) {
+      // 提取价格中的数字部分
+      const priceValue = parseFloat(oneToOneService.price.replace(/[^0-9.]/g, ''));
+      
+      // 提取小时数中的数字部分
+      const hourValue = parseFloat(
+        oneToOneService.type.fulllength.hours.replace(/[^0-9.]/g, '')
+      );
+      
+      // 提取分钟数中的数字部分
+      const minuteValue = parseFloat(
+        oneToOneService.type.fulllength.minutes.replace(/[^0-9.]/g, '')
+      );
+      
+      // 计算总小时数
+      const totalHours = hourValue + (minuteValue / 60);
+      
+      // 计算每小时价格
+      if (totalHours > 0) {
+        result[teacher.id] = {
+          name: teacher.name,
+          hourlyPrice: (priceValue / totalHours).toFixed(2)
+        };
+      }
+    }
+  });
+  
+  return result;
+};
 
 
 /**
@@ -503,7 +556,7 @@ const handleTargetSchoolSelect = (index, school) => {
   formData.targetSchoolIndex = index
   formData.targetSchool = school
   
-  // 使用Vuex的actions更新学校选择
+  // 更新学校选择
   store.dispatch('user/match/updateSchoolList', school)
   
   // 更新专业列表
@@ -520,7 +573,7 @@ const handleTargetMajorSelect = (index, major) => {
   formData.targetMajorIndex = index
   formData.targetMajor = major
   
-  // 使用Vuex的actions更新专业选择
+  // 更新专业选择
   store.dispatch('user/match/updateProfessionalList', major)
   
   // 如果选择了专业课，则清空非专业课选择（互斥逻辑）
@@ -531,7 +584,7 @@ const handleTargetMajorSelect = (index, major) => {
     formData.politicsIndex = -1
     formData.otherIndex = -1
     
-    // 清空非专业课筛选状态 - 使用Vuex的actions重置非专业课筛选
+    // 清空非专业课筛选状态
     store.dispatch('user/match/updateNonProfessionalList', {
       math: '',
       english: '',
@@ -594,7 +647,7 @@ const handleSortSelect = (index) => {
   // 直接更新到正式表单数据
   formData.sortIndex = index
   
-  // 更新排序方式 - 使用Vuex的actions更新排序模式
+  // 更新排序方式
   const sortValue = index >= 0 ? sortOptions.value[index] : ''
   store.dispatch('user/match/updateSortMode', sortValue)
   
@@ -610,7 +663,7 @@ const resetSchoolFilter = () => {
   formData.targetSchoolIndex = -1
   formData.targetSchool = ''
   
-  // 使用Vuex的actions重置学校筛选
+  // 重置学校筛选
   store.dispatch('user/match/updateSchoolList', '')
   
   // 应用筛选
@@ -625,7 +678,7 @@ const resetProfessionalFilter = () => {
   formData.targetMajorIndex = -1
   formData.targetMajor = ''
   
-  // 使用Vuex的actions重置专业课筛选
+  // 重置专业课筛选
   store.dispatch('user/match/updateProfessionalList', '')
   
   // 应用筛选
@@ -642,7 +695,7 @@ const resetNonProfessionalFilter = () => {
   formData.politicsIndex = -1
   formData.otherIndex = -1
   
-  // 使用Vuex的actions重置非专业课筛选
+  // 重置非专业课筛选
   store.dispatch('user/match/updateNonProfessionalList', {
     math: '',
     english: '',
@@ -664,7 +717,7 @@ const resetSortFilter = () => {
   // 直接重置排序相关筛选数据
   formData.sortIndex = -1
   
-  // 重置排序方式 - 使用Vuex的actions重置排序模式
+  // 重置排序方式
   store.dispatch('user/match/updateSortMode', '')
   
   // 应用筛选
@@ -672,12 +725,12 @@ const resetSortFilter = () => {
 }
 
 /**
- * 应用所有筛选条件 - 触发Vuex的获取匹配老师列表action
+ * 应用所有筛选条件 - 触发获取匹配老师列表action
  */
 const applyFilters = () => {
   isLoading.value = true
   
-  // 使用Vuex的actions获取筛选后的老师列表
+  // 获取筛选后的老师列表
   store.dispatch('user/match/fetchMatchTeachers')
     .finally(() => {
       isLoading.value = false
@@ -707,7 +760,7 @@ const loadMoreTeachers = () => {
   if (isLoading.value) return
   isLoading.value = true
   
-  // 使用Vuex的actions加载更多老师
+  // 加载更多老师
   store.dispatch('user/match/loadMoreTeachers')
     .finally(() => {
       isLoading.value = false
@@ -832,7 +885,7 @@ const handleChoiceSelect = (key, index) => {
     formData.targetMajorIndex = -1
     formData.targetMajor = ''
     
-    // 清空专业课筛选状态 - 使用Vuex的actions重置专业课筛选
+    // 清空专业课筛选状态
     store.dispatch('user/match/updateProfessionalList', '')
   }
   
@@ -873,7 +926,6 @@ onMounted(() => {
   
   // 从Vuex store获取教师列表数据 - 初始化加载
   store.dispatch('user/match/fetchMatchTeachers')
-  
 })
 </script>
 
@@ -1160,6 +1212,27 @@ onMounted(() => {
   width: fit-content;
   /* 或者可以使用 min-width: fit-content; */
 }
+
+.price-tag-container {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1;
+}
+
+.price-tag {
+  font-size: 13px;
+  color: #ff6b00;
+  background-color: rgba(255, 107, 0, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}
+
 .card-right {
   position: absolute;
   top: 18px;

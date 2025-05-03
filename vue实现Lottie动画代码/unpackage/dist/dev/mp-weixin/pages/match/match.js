@@ -27,17 +27,12 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       new UTSJSONObject({ key: "politics", label: "政治" }),
       new UTSJSONObject({ key: "other", label: "其他" })
     ];
-    const tabLabelMap = new UTSJSONObject(
-      {
-        math: "考研数学",
-        english: "考研英语",
-        politics: "考研政治",
-        other: "其他科目"
-      }
-      /**
-       * 从Vuex获取匹配的老师列表
-       */
-    );
+    const tabLabelMap = new UTSJSONObject({
+      math: "考研数学",
+      english: "考研英语",
+      politics: "考研政治",
+      other: "其他科目"
+    });
     const matchTeachers = common_vendor.computed(() => {
       return store.state.user.match.matchList || [];
     });
@@ -63,6 +58,32 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const politicsOptions = common_vendor.ref(["政治必修", "政治选修"]);
     const otherOptions = common_vendor.ref(["经济学", "管理学", "教育学", "历史学"]);
     const sortOptions = common_vendor.ref(["综合评分从高到低", "价格从低到高", "价格从高到低", "最新发布"]);
+    const oneToOneMatchPrice = (matchTeachers2 = null) => {
+      const result = new UTSJSONObject({});
+      if (!matchTeachers2 || !Array.isArray(matchTeachers2)) {
+        return result;
+      }
+      matchTeachers2.forEach((teacher = null) => {
+        var _a;
+        const oneToOneService = (_a = teacher.service) === null || _a === void 0 ? void 0 : _a.find((service = null) => {
+          var _a2;
+          return ((_a2 = service.type) === null || _a2 === void 0 ? void 0 : _a2.typename) === "一对一课程";
+        });
+        if (oneToOneService) {
+          const priceValue = parseFloat(oneToOneService.price.replace(/[^0-9.]/g, ""));
+          const hourValue = parseFloat(oneToOneService.type.fulllength.hours.replace(/[^0-9.]/g, ""));
+          const minuteValue = parseFloat(oneToOneService.type.fulllength.minutes.replace(/[^0-9.]/g, ""));
+          const totalHours = hourValue + minuteValue / 60;
+          if (totalHours > 0) {
+            result[teacher.id] = new UTSJSONObject({
+              name: teacher.name,
+              hourlyPrice: (priceValue / totalHours).toFixed(2)
+            });
+          }
+        }
+      });
+      return result;
+    };
     const isActive = (key = null) => {
       if (key === "school") {
         return !!store.state.user.match.schoolList;
@@ -196,9 +217,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           components_combobox_graduate_school_major.GraduateStore.mutations.initSchoolFuse(graduateStore.value);
           const schools = Object.keys(graduateStore.value.schools).slice(0, 50);
           targetSchoolList.value = schools;
-          common_vendor.index.__f__("log", "at pages/match/match.vue:488", "初始化研究生学校专业数据成功");
+          common_vendor.index.__f__("log", "at pages/match/match.vue:541", "初始化研究生学校专业数据成功");
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/match/match.vue:490", "初始化研究生学校专业数据失败:", error);
+          common_vendor.index.__f__("error", "at pages/match/match.vue:543", "初始化研究生学校专业数据失败:", error);
           targetSchoolList.value = ["北京大学", "清华大学", "复旦大学"];
         }
       });
@@ -535,7 +556,11 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             h: common_vendor.o(($event = null) => {
               return handleCommunicate(teacher.id);
             }, teacher.id || index),
-            i: teacher.id || index
+            i: oneToOneMatchPrice(matchTeachers.value)[teacher.id]
+          }), oneToOneMatchPrice(matchTeachers.value)[teacher.id] ? new UTSJSONObject({
+            j: common_vendor.t(oneToOneMatchPrice(matchTeachers.value)[teacher.id].hourlyPrice)
+          }) : new UTSJSONObject({}), new UTSJSONObject({
+            k: teacher.id || index
           }));
         }),
         F: matchTeachers.value.length === 0 && !isLoading.value

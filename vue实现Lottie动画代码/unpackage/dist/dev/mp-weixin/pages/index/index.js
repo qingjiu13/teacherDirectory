@@ -25,7 +25,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       setTimeout(() => {
         cLottieRef.value.call("stop");
         navigateToMatch();
-      }, 5e3);
+      }, 1e3);
     };
     const navigateToMatch = () => {
       router_Router.Navigator.toMatch();

@@ -44,7 +44,7 @@ const matchAnimation = () => {
   setTimeout(() => {
     cLottieRef.value.call('stop')
     navigateToMatch()
-  }, 5000)
+  }, 1000)
 }
 /**
  * 导航到匹配页面

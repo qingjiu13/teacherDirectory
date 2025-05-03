@@ -254,6 +254,24 @@
   width: fit-content;
   /* 或者可以使用 min-width: fit-content; */
 }
+.price-tag-container.data-v-d5601611 {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1;
+}
+.price-tag.data-v-d5601611 {
+  font-size: 13px;
+  color: #ff6b00;
+  background-color: rgba(255, 107, 0, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}
 .card-right.data-v-d5601611 {
   position: absolute;
   top: 18px;
