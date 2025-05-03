@@ -10,7 +10,6 @@ export default {
     name: '张三',
     gender: '男',
     selfIntroduction: '我是一个热爱学习的人',
-    wechatNumber: '1234567890',
     phoneNumber: '1234567890',
     password: '123456',
     isLogin: 0, // 是否登录，0为未登录，1为已登录
