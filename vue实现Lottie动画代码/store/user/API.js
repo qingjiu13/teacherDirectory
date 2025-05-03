@@ -32,12 +32,14 @@ export const BALANCE_GET_BALANCE_URL = 'http://localhost:8080/balance/getBalance
 // withdrawal API配置：余额提现
 export const BALANCE_WITHDRAWAL_URL = 'http://localhost:8080/balance/withdrawal';
 
-// wetherSignIn API配置：登录状态检查
+// wetherSignIn API配置：判断是否注册过
 export const LOGIN_WETHER_SIGN_IN_URL = 'http://localhost:8080/login/wetherSignIn';
 
 // login API配置：用户登录
 export const LOGIN_URL = 'http://localhost:8080/login/login';
 
+// SignIn API配置：用户注册
+export const LOGIN_SIGN_IN_URL = 'http://localhost:8080/login/SignIn';
 
 // auto API配置：自动资格认证
 export const QUALIFICATION_AUTO_URL = 'http://localhost:8080/qualification/anto';
