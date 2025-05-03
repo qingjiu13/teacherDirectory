@@ -3,25 +3,22 @@
     
           <!-- 表单内容 -->
     <view class="form-card">
-      <view class="form-notice">
-        <text class="notice-text">以下信息为选填项，您可以选择填写您想提供的信息</text>
-      </view>
-      <!-- Nickname -->
+      <!-- Gender -->
       <view class="form-row">
         <view class="label-container">
-          <text class="form-label">昵称</text>
+          <text class="form-label">性别</text>
+          <text class="optional-tag">(选填)</text>
         </view>
-        <input class="form-input" type="text" v-model="formData.nickname" placeholder="请输入昵称" />
-      </view>
-      <!--avatar-->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">头像</text>
-        </view>
-        <view class="avatar-upload-container" @click="uploadAvatar">
-          <image class="form-avatar" :src="formData.avatar" mode="aspectFill"></image>
-          <view class="avatar-upload-mask">
-            <text class="upload-text">点击更换</text>
+        <view class="radio-group">
+          <view class="radio-item-row">
+            <view class="radio-option" @click="formData.gender = '男'">
+              <radio :checked="formData.gender === '男'" color="#007AFF" />
+              <text class="option-text">男</text>
+            </view>
+            <view class="radio-option" @click="formData.gender = '女'">
+              <radio :checked="formData.gender === '女'" color="#007AFF" />
+              <text class="option-text">女</text>
+            </view>
           </view>
         </view>
       </view>
@@ -978,18 +975,7 @@ export default {
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
-.form-notice {
-  background-color: #f8f8f8;
-  border-radius: 8rpx;
-  padding: 20rpx;
-  margin-bottom: 30rpx;
-}
 
-.notice-text {
-  font-size: 26rpx;
-  color: #666;
-  line-height: 1.4;
-}
 
 .label-container {
   display: flex;

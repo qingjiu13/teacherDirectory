@@ -38,11 +38,6 @@ export const LOGIN_WETHER_SIGN_IN_URL = 'http://localhost:8080/login/wetherSignI
 // login API配置：用户登录
 export const LOGIN_URL = 'http://localhost:8080/login/login';
 
-// teacherSignIn API配置：教师登录
-export const LOGIN_TEACHER_SIGN_IN_URL = 'http://localhost:8080/login/teacherSignIn';
-
-// studentSignIn API配置：学生登录
-export const LOGIN_STUDENT_SIGN_IN_URL = 'http://localhost:8080/login/studentSignIn';
 
 // auto API配置：自动资格认证
 export const QUALIFICATION_AUTO_URL = 'http://localhost:8080/qualification/anto';

@@ -1,12 +1,6 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
-const { questionAI, getConversationHistory, getConversationDetail, deleteConversationHistory } = {
-  // 这里可以替换为真实API实现
-  questionAI: (params) => Promise.resolve({ success: true, data: "", chatId: params.chatId || "new-chat-id" }),
-  getConversationHistory: () => Promise.resolve({ success: true, data: [] }),
-  getConversationDetail: (params) => Promise.resolve({ success: true, data: { id: params.conversationId, messages: [] } }),
-  deleteConversationHistory: () => Promise.resolve({ success: true })
-};
+const store_user_APIroute_AIchat_api = require("../APIroute/AIchat_api.js");
 const actions = {
   /**
    * 设置当前活跃的聊天会话
@@ -26,20 +20,16 @@ const actions = {
    * @returns {Promise<Object>} 返回请求结果
    */
   async sendQuestion({ commit, state }, payload) {
-    var _a;
+    var _a, _b;
     try {
-      const contextInfo = payload.contextInfo || {
-        mode: state.aiChat.chatMode,
-        userSchool: state.aiChat.userInfo.school,
-        userMajor: state.aiChat.userInfo.major
+      const messageData = {
+        content: payload.question,
+        chatMode: ((_a = payload.contextInfo) == null ? void 0 : _a.mode) || state.aiChat.chatMode,
+        conversationId: payload.chatId || state.aiChat.activeConversation
       };
-      const response = await questionAI({
-        question: payload.question,
-        contextInfo,
-        chatId: payload.chatId || state.aiChat.activeConversation
-      });
-      if (response.success && response.chatId) {
-        commit("UPDATE_CURRENT_CONVERSATION", response.chatId);
+      const response = await store_user_APIroute_AIchat_api.sendMessageToAI(messageData);
+      if (response.success) {
+        commit("UPDATE_CURRENT_CONVERSATION", response.conversationId);
         const newMessage = {
           id: `msg-${Date.now()}`,
           type: "user",
@@ -49,11 +39,11 @@ const actions = {
         const aiResponse = {
           id: `msg-${Date.now() + 1}`,
           type: "ai",
-          content: response.data,
+          content: response.aiResponse,
           timestamp: (/* @__PURE__ */ new Date()).toISOString()
         };
         const currentChat = state.aiChat.conversations.find(
-          (conv) => conv.id === response.chatId
+          (conv) => conv.id === response.conversationId
         );
         if (currentChat) {
           const updatedChat = {
@@ -64,7 +54,7 @@ const actions = {
           commit("UPDATE_CONVERSATION_DETAIL", updatedChat);
         } else {
           const newChat = {
-            id: response.chatId,
+            id: response.conversationId,
             abstract: payload.question.substring(0, 30) + (payload.question.length > 30 ? "..." : ""),
             chatMode: state.aiChat.chatMode,
             createdAt: (/* @__PURE__ */ new Date()).toISOString(),
@@ -75,41 +65,17 @@ const actions = {
         }
       }
       return {
-        success: true,
-        data: response.data,
-        chatId: response.chatId
+        success: response.success,
+        data: response.aiResponse,
+        chatId: response.conversationId,
+        message: response.message
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:103", "AI问答出错:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:101", "AI问答出错:", error);
       return {
         success: false,
         error: error.error || error,
-        message: ((_a = error.error) == null ? void 0 : _a.message) || "请求失败"
-      };
-    }
-  },
-  /**
-   * 获取用户的对话历史记录列表
-   * @param {Object} context - Vuex上下文
-   * @returns {Promise<Object>} 返回请求结果
-   */
-  async getHistoryChats({ commit }) {
-    var _a;
-    try {
-      const response = await getConversationHistory({});
-      if (response.success) {
-        commit("UPDATE_CONVERSATIONS_LIST", response.data);
-      }
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:131", "获取历史记录失败:", error);
-      return {
-        success: false,
-        error: error.error || error,
-        message: ((_a = error.error) == null ? void 0 : _a.message) || "获取历史记录失败"
+        message: ((_b = error.error) == null ? void 0 : _b.message) || "请求失败"
       };
     }
   },
@@ -122,18 +88,22 @@ const actions = {
   async loadChat({ commit }, conversationId) {
     var _a;
     try {
-      const response = await getConversationDetail({
-        conversationId
-      });
+      const response = await store_user_APIroute_AIchat_api.getConversationDetail(conversationId);
       if (response.success) {
-        commit("UPDATE_CONVERSATION_DETAIL", response.data);
+        const conversationData = {
+          id: conversationId,
+          messages: response.messages,
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+          // 其他会话详情字段...
+        };
+        commit("UPDATE_CONVERSATION_DETAIL", conversationData);
       }
       return {
-        success: true,
-        data: response.data
+        success: response.success,
+        data: response.messages
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:162", "加载对话详情失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:140", "加载对话详情失败:", error);
       return {
         success: false,
         error: error.error || error,
@@ -172,7 +142,7 @@ const actions = {
       }
       return { success: true };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:209", "保存对话失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:187", "保存对话失败:", error);
       return {
         success: false,
         message: "保存对话失败"
@@ -188,9 +158,7 @@ const actions = {
   async deleteChat({ commit, state }, conversationId) {
     var _a;
     try {
-      const response = await deleteConversationHistory({
-        conversationId
-      });
+      const response = await store_user_APIroute_AIchat_api.deleteConversation(conversationId);
       if (response.success) {
         commit("DELETE_CONVERSATION", conversationId);
         if (state.aiChat.activeConversation === conversationId) {
@@ -199,14 +167,39 @@ const actions = {
       }
       return {
         success: response.success,
-        message: response.success ? "删除成功" : "删除失败"
+        message: response.message || (response.success ? "删除成功" : "删除失败")
       };
     } catch (error) {
-      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:245", "删除对话失败:", error);
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:221", "删除对话失败:", error);
       return {
         success: false,
         error: error.error || error,
         message: ((_a = error.error) == null ? void 0 : _a.message) || "删除对话失败"
+      };
+    }
+  },
+  /**
+   * 获取对话历史列表
+   * @param {Object} context - Vuex上下文
+   * @returns {Promise<Object>} 返回请求结果
+   */
+  async loadConversationHistory({ commit }) {
+    var _a;
+    try {
+      const response = await store_user_APIroute_AIchat_api.getConversationHistory();
+      if (response.success && response.conversations) {
+        commit("SET_CONVERSATIONS", response.conversations);
+      }
+      return {
+        success: response.success,
+        data: response.conversations
+      };
+    } catch (error) {
+      common_vendor.index.__f__("error", "at store/user/ai-chat/actions.js:250", "获取对话历史失败:", error);
+      return {
+        success: false,
+        error: error.error || error,
+        message: ((_a = error.error) == null ? void 0 : _a.message) || "获取对话历史失败"
       };
     }
   }

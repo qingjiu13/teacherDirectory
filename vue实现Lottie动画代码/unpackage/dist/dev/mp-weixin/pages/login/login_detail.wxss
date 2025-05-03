@@ -34,17 +34,6 @@
   padding: 30rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
 }
-.form-notice.data-v-5ca72b3d {
-  background-color: #f8f8f8;
-  border-radius: 8rpx;
-  padding: 20rpx;
-  margin-bottom: 30rpx;
-}
-.notice-text.data-v-5ca72b3d {
-  font-size: 26rpx;
-  color: #666;
-  line-height: 1.4;
-}
 .label-container.data-v-5ca72b3d {
   display: flex;
   flex-direction: row;

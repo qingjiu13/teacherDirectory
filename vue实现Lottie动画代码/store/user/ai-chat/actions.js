@@ -3,14 +3,13 @@
  * @module store/user/ai-chat/actions
  */
 
-// 直接导入API
-const { questionAI, getConversationHistory, getConversationDetail, deleteConversationHistory } = {
-    // 这里可以替换为真实API实现
-    questionAI: (params) => Promise.resolve({ success: true, data: '', chatId: params.chatId || 'new-chat-id' }),
-    getConversationHistory: () => Promise.resolve({ success: true, data: [] }),
-    getConversationDetail: (params) => Promise.resolve({ success: true, data: { id: params.conversationId, messages: [] } }),
-    deleteConversationHistory: () => Promise.resolve({ success: true })
-};
+// 导入真实API实现
+import { 
+    sendMessageToAI, 
+    getConversationHistory, 
+    getConversationDetail as fetchConversationDetail, 
+    deleteConversation 
+} from '../APIroute/AIchat_api.js';
 
 export default {
     /**
@@ -33,22 +32,20 @@ export default {
      */
     async sendQuestion({ commit, state }, payload) {
         try {
-            // 构建上下文信息
-            const contextInfo = payload.contextInfo || {
-                mode: state.aiChat.chatMode,
-                userSchool: state.aiChat.userInfo.school,
-                userMajor: state.aiChat.userInfo.major
+            // 构建消息数据
+            const messageData = {
+                content: payload.question,
+                chatMode: payload.contextInfo?.mode || state.aiChat.chatMode,
+                conversationId: payload.chatId || state.aiChat.activeConversation
             };
             
-            const response = await questionAI({
-                question: payload.question,
-                contextInfo: contextInfo,
-                chatId: payload.chatId || state.aiChat.activeConversation
-            });
+            // 调用真实API
+            const response = await sendMessageToAI(messageData);
             
-            // 如果API返回新的chatId，则更新当前会话ID
-            if (response.success && response.chatId) {
-                commit('UPDATE_CURRENT_CONVERSATION', response.chatId);
+            // 如果API调用成功
+            if (response.success) {
+                // 更新当前会话ID
+                commit('UPDATE_CURRENT_CONVERSATION', response.conversationId);
                 
                 // 在本地保存问答记录
                 const newMessage = {
@@ -61,13 +58,13 @@ export default {
                 const aiResponse = {
                     id: `msg-${Date.now() + 1}`,
                     type: 'ai',
-                    content: response.data,
+                    content: response.aiResponse,
                     timestamp: new Date().toISOString()
                 };
                 
                 // 查找当前对话
                 const currentChat = state.aiChat.conversations.find(
-                    conv => conv.id === response.chatId
+                    conv => conv.id === response.conversationId
                 );
                 
                 if (currentChat) {
@@ -82,7 +79,7 @@ export default {
                 } else {
                     // 创建新对话
                     const newChat = {
-                        id: response.chatId,
+                        id: response.conversationId,
                         abstract: payload.question.substring(0, 30) + (payload.question.length > 30 ? '...' : ''),
                         chatMode: state.aiChat.chatMode,
                         createdAt: new Date().toISOString(),
@@ -95,9 +92,10 @@ export default {
             }
             
             return {
-                success: true,
-                data: response.data,
-                chatId: response.chatId
+                success: response.success,
+                data: response.aiResponse,
+                chatId: response.conversationId,
+                message: response.message
             };
         } catch (error) {
             console.error('AI问答出错:', error);
@@ -108,34 +106,7 @@ export default {
             };
         }
     },
-    
-    /**
-     * 获取用户的对话历史记录列表
-     * @param {Object} context - Vuex上下文
-     * @returns {Promise<Object>} 返回请求结果
-     */
-    async getHistoryChats({ commit }) {
-        try {
-            const response = await getConversationHistory({});
-            
-            if (response.success) {
-                // 更新对话历史列表
-                commit('UPDATE_CONVERSATIONS_LIST', response.data);
-            }
-            
-            return {
-                success: true,
-                data: response.data
-            };
-        } catch (error) {
-            console.error('获取历史记录失败:', error);
-            return {
-                success: false,
-                error: error.error || error,
-                message: error.error?.message || '获取历史记录失败'
-            };
-        }
-    },
+
     
     /**
      * 加载特定对话的完整内容
@@ -145,18 +116,25 @@ export default {
      */
     async loadChat({ commit }, conversationId) {
         try {
-            const response = await getConversationDetail({
-                conversationId: conversationId
-            });
+            // 调用真实API获取会话详情
+            const response = await fetchConversationDetail(conversationId);
             
             if (response.success) {
+                // 构建会话数据结构
+                const conversationData = {
+                    id: conversationId,
+                    messages: response.messages,
+                    updatedAt: new Date().toISOString()
+                    // 其他会话详情字段...
+                };
+                
                 // 更新对话详情并设置为当前活跃对话
-                commit('UPDATE_CONVERSATION_DETAIL', response.data);
+                commit('UPDATE_CONVERSATION_DETAIL', conversationData);
             }
             
             return {
-                success: true,
-                data: response.data
+                success: response.success,
+                data: response.messages
             };
         } catch (error) {
             console.error('加载对话详情失败:', error);
@@ -222,10 +200,8 @@ export default {
      */
     async deleteChat({ commit, state }, conversationId) {
         try {
-            // 调用API从后端删除对话
-            const response = await deleteConversationHistory({
-                conversationId: conversationId
-            });
+            // 调用真实API从后端删除对话
+            const response = await deleteConversation(conversationId);
             
             if (response.success) {
                 // 从本地会话列表中移除
@@ -239,7 +215,7 @@ export default {
             
             return { 
                 success: response.success,
-                message: response.success ? '删除成功' : '删除失败'
+                message: response.message || (response.success ? '删除成功' : '删除失败')
             };
         } catch (error) {
             console.error('删除对话失败:', error);
@@ -247,6 +223,35 @@ export default {
                 success: false,
                 error: error.error || error,
                 message: error.error?.message || '删除对话失败'
+            };
+        }
+    },
+    
+    /**
+     * 获取对话历史列表
+     * @param {Object} context - Vuex上下文
+     * @returns {Promise<Object>} 返回请求结果
+     */
+    async loadConversationHistory({ commit }) {
+        try {
+            // 调用真实API获取对话历史
+            const response = await getConversationHistory();
+            
+            if (response.success && response.conversations) {
+                // 更新会话列表
+                commit('SET_CONVERSATIONS', response.conversations);
+            }
+            
+            return {
+                success: response.success,
+                data: response.conversations
+            };
+        } catch (error) {
+            console.error('获取对话历史失败:', error);
+            return {
+                success: false,
+                error: error.error || error,
+                message: error.error?.message || '获取对话历史失败'
             };
         }
     }

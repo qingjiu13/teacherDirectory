@@ -81,6 +81,53 @@
         </view>
       </view>
     </view>
+    
+    <!-- 微信授权弹窗（底部弹出） -->
+    <view class="auth-popup" :class="{'auth-popup-show': showAuthPopup}">
+      <view class="auth-popup-mask" @click="cancelAuth"></view>
+      <view class="auth-popup-content">
+        <view class="auth-popup-header">
+          <text class="auth-popup-title">{{authPopupTitle}}</text>
+          <text class="auth-popup-close" @click="cancelAuth">×</text>
+        </view>
+        
+        <!-- 头像授权步骤 -->
+        <view class="auth-step" v-if="authStep === 'avatar'">
+          <view class="avatar-preview">
+            <image class="avatar-image" :src="tempUserInfo.avatarUrl || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
+          </view>
+          <view class="auth-desc">请选择您的头像</view>
+          <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
+            选择头像
+          </button>
+          <button class="auth-next-btn" @click="goToNicknameStep" :disabled="!tempUserInfo.avatarUrl">下一步</button>
+        </view>
+        
+        <!-- 昵称授权步骤 -->
+        <view class="auth-step" v-if="authStep === 'nickname'">
+          <view class="nickname-input-wrap">
+            <text class="input-label">昵称</text>
+            <input class="nickname-input" type="nickname" placeholder="请输入您的昵称" :value="tempUserInfo.nickName" @blur="onInputNickname" />
+          </view>
+          <button class="auth-next-btn" @click="goToPhoneStep" :disabled="!tempUserInfo.nickName">下一步</button>
+        </view>
+        
+        <!-- 手机号授权步骤 -->
+        <view class="auth-step" v-if="authStep === 'phone'">
+          <view class="phone-auth-desc">
+            <view class="phone-icon">📱</view>
+            <view class="phone-text">授权获取手机号</view>
+            <view class="phone-tip">应用将获取您微信绑定的手机号</view>
+          </view>
+          <button class="phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
+            一键授权手机号
+          </button>
+          <view class="phone-skip" @click="skipPhoneAuth">
+            <text>暂不授权</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -98,10 +145,32 @@ export default {
       },
       showAgreementModal: false,
       showPrivacyModal: false,
+      // 新增授权相关数据
+      showAuthPopup: false,
+      authStep: 'avatar', // 'avatar', 'nickname', 'phone'
+      tempUserInfo: {
+        nickName: '',
+        avatarUrl: '',
+        phoneNumber: ''
+      },
+      wxLoginCode: '', // 存储微信登录的code
     }
   },
   computed: {
-    ...mapState('user/baseInfo', ['isRegistered', 'id', 'avatar', 'name', 'phoneNumber'])
+    ...mapState('user/baseInfo', ['isRegistered', 'id', 'avatar', 'name', 'phoneNumber']),
+    
+    /**
+     * 根据当前授权步骤返回弹窗标题
+     * @returns {string} 弹窗标题
+     */
+    authPopupTitle() {
+      const titles = {
+        'avatar': '选择头像',
+        'nickname': '设置昵称',
+        'phone': '绑定手机号'
+      };
+      return titles[this.authStep] || '微信授权';
+    }
   },
   onLoad() {
     this.checkLoginStatus();
@@ -126,7 +195,7 @@ export default {
     },
     
     /**
-     * 微信登录方法
+     * 微信登录方法 - 更新为新流程
      * @returns {void}
      */
     onWxLogin() {
@@ -136,62 +205,18 @@ export default {
       
       uni.login({
         provider: 'weixin',
-        success: async (res) => {
-          try {
-            const result = await uni.request({
-              method: "POST",
-              url: "http://localhost:8080/users/auth/wechat",
-              data: {
-                code: res.code
-              }
-            });
+        success: (res) => {
+          uni.hideLoading();
+          if (res.code) {
+            // 保存code用于后续请求
+            this.wxLoginCode = res.code;
             
-            console.log(result);
-            
-            // 检查请求是否成功
-            if (result.statusCode === 200 && result.data) {
-              // 存储token到本地
-              uni.setStorageSync('token', result.data.token);
-              
-              // 存储用户ID
-              if (result.data.userId) {
-                uni.setStorageSync('userId', result.data.userId);
-                
-                // 使用Vuex mutation更新用户ID
-                this.SET_USER_INFO({
-                  id: result.data.userId,
-                  isRegistered: 1 // 标记为已注册
-                });
-              }
-              
-              uni.hideLoading();
-              
-              // 提示登录成功
-              uni.showToast({
-                title: '登录成功',
-                icon: 'success',
-                duration: 1500
-              });
-              
-              // 设置登录状态
-              this.hasLogin = true;
-              
-              // 跳转到信息完善页面
-              setTimeout(() => {
-                Navigator.redirectTo('/pages/login/login_detail');
-              }, 1500);
-            } else {
-              uni.hideLoading();
-              uni.showToast({
-                title: '登录失败，请重试',
-                icon: 'none'
-              });
-            }
-          } catch (error) {
-            console.error('登录请求失败', error);
-            uni.hideLoading();
+            // 显示授权弹窗
+            this.showAuthPopup = true;
+            this.authStep = 'avatar';
+          } else {
             uni.showToast({
-              title: '登录失败，请重试',
+              title: '微信登录失败，请重试',
               icon: 'none'
             });
           }
@@ -205,6 +230,159 @@ export default {
           });
         }
       });
+    },
+    
+    /**
+     * 处理用户选择头像事件
+     * @param {Object} e - 微信返回的头像信息
+     */
+    onChooseAvatar(e) {
+      if (e.detail && e.detail.avatarUrl) {
+        this.tempUserInfo.avatarUrl = e.detail.avatarUrl;
+      }
+    },
+    
+    /**
+     * 处理用户输入昵称事件
+     * @param {Object} e - 输入事件对象
+     */
+    onInputNickname(e) {
+      this.tempUserInfo.nickName = e.detail.value;
+    },
+    
+    /**
+     * 进入昵称设置步骤
+     */
+    goToNicknameStep() {
+      this.authStep = 'nickname';
+    },
+    
+    /**
+     * 进入手机号授权步骤
+     */
+    goToPhoneStep() {
+      this.authStep = 'phone';
+    },
+    
+    /**
+     * 获取微信绑定手机号
+     * @param {Object} e - 微信返回的加密数据
+     */
+    getPhoneNumber(e) {
+      if (e.detail.errMsg === 'getPhoneNumber:ok') {
+        // 准备提交所有用户信息到后端
+        this.submitUserInfo({
+          code: this.wxLoginCode,
+          encryptedData: e.detail.encryptedData,
+          iv: e.detail.iv,
+          avatarUrl: this.tempUserInfo.avatarUrl,
+          nickName: this.tempUserInfo.nickName
+        });
+      } else {
+        uni.showToast({
+          title: '未授权手机号，请重试',
+          icon: 'none'
+        });
+      }
+    },
+    
+    /**
+     * 跳过手机号授权
+     */
+    skipPhoneAuth() {
+      // 只提交头像和昵称
+      this.submitUserInfo({
+        code: this.wxLoginCode,
+        avatarUrl: this.tempUserInfo.avatarUrl,
+        nickName: this.tempUserInfo.nickName
+      });
+    },
+    
+    /**
+     * 提交用户信息到后端
+     * @param {Object} data - 要提交的用户数据
+     */
+    async submitUserInfo(data) {
+      uni.showLoading({
+        title: '提交中...'
+      });
+      
+      try {
+        const result = await uni.request({
+          method: "POST",
+          url: "http://localhost:8080/users/auth/wechat/profile",
+          data: data
+        });
+        
+        if (result.statusCode === 200 && result.data) {
+          // 存储token到本地
+          uni.setStorageSync('token', result.data.token);
+          
+          // 存储用户信息
+          if (result.data.userId) {
+            uni.setStorageSync('userId', result.data.userId);
+            
+            // 使用Vuex更新用户信息
+            this.SET_USER_INFO({
+              id: result.data.userId,
+              isRegistered: 1,
+              name: this.tempUserInfo.nickName,
+              avatar: this.tempUserInfo.avatarUrl,
+              phoneNumber: result.data.phoneNumber || ''
+            });
+            
+            // 更新本地显示的用户信息
+            this.userInfo = {
+              nickName: this.tempUserInfo.nickName,
+              avatarUrl: this.tempUserInfo.avatarUrl
+            };
+          }
+          
+          uni.hideLoading();
+          
+          // 提示登录成功
+          uni.showToast({
+            title: '登录成功',
+            icon: 'success',
+            duration: 1500
+          });
+          
+          // 设置登录状态并关闭弹窗
+          this.hasLogin = true;
+          this.showAuthPopup = false;
+          
+          // 延迟跳转
+          setTimeout(() => {
+            Navigator.redirectTo(IndexRoutes.INDEX);
+          }, 1500);
+        } else {
+          uni.hideLoading();
+          uni.showToast({
+            title: '登录失败，请重试',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('提交用户信息失败', error);
+        uni.hideLoading();
+        uni.showToast({
+          title: '登录失败，请重试',
+          icon: 'none'
+        });
+      }
+    },
+    
+    /**
+     * 取消授权，关闭弹窗
+     */
+    cancelAuth() {
+      this.showAuthPopup = false;
+      this.wxLoginCode = '';
+      this.tempUserInfo = {
+        nickName: '',
+        avatarUrl: '',
+        phoneNumber: ''
+      };
     },
     
     /**
@@ -446,5 +624,177 @@ export default {
       padding: 0;
     }
   }
+  
+  // 新增授权弹窗样式
+  .auth-popup {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+    
+    &.auth-popup-show {
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    .auth-popup-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .auth-popup-content {
+      position: relative;
+      background-color: #fff;
+      border-radius: 24rpx 24rpx 0 0;
+      padding: 30rpx;
+      
+      .auth-popup-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        padding-bottom: 30rpx;
+        border-bottom: 1px solid #f0f0f0;
+        
+        .auth-popup-title {
+          font-size: 32rpx;
+          font-weight: bold;
+          color: #333;
+        }
+        
+        .auth-popup-close {
+          position: absolute;
+          right: 0;
+          top: 0;
+          font-size: 40rpx;
+          color: #999;
+          padding: 10rpx;
+        }
+      }
+    }
+  }
+  
+  // 头像选择步骤样式
+  .auth-step {
+    padding: 40rpx 0;
+    
+    .avatar-preview {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30rpx;
+      
+      .avatar-image {
+        width: 160rpx;
+        height: 160rpx;
+        border-radius: 50%;
+        border: 4rpx solid #f0f0f0;
+      }
+    }
+    
+    .auth-desc {
+      text-align: center;
+      font-size: 28rpx;
+      color: #666;
+      margin-bottom: 30rpx;
+    }
+    
+    .avatar-btn {
+      width: 100%;
+      height: 90rpx;
+      line-height: 90rpx;
+      border-radius: 45rpx;
+      background-color: #07C160;
+      color: #fff;
+      font-size: 32rpx;
+      margin-bottom: 30rpx;
+    }
+    
+    .auth-next-btn {
+      width: 100%;
+      height: 90rpx;
+      line-height: 90rpx;
+      border-radius: 45rpx;
+      background-color: #1989fa;
+      color: #fff;
+      font-size: 32rpx;
+      
+      &[disabled] {
+        background-color: #cccccc;
+        color: #ffffff;
+        opacity: 0.6;
+      }
+    }
+    
+    // 昵称输入样式
+    .nickname-input-wrap {
+      margin-bottom: 40rpx;
+      
+      .input-label {
+        display: block;
+        font-size: 28rpx;
+        color: #333;
+        margin-bottom: 20rpx;
+      }
+      
+      .nickname-input {
+        width: 100%;
+        height: 90rpx;
+        border: 1px solid #e5e5e5;
+        border-radius: 8rpx;
+        padding: 0 20rpx;
+        font-size: 28rpx;
+      }
+    }
+    
+    // 手机号授权样式
+    .phone-auth-desc {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 40rpx;
+      
+      .phone-icon {
+        font-size: 60rpx;
+        margin-bottom: 20rpx;
+      }
+      
+      .phone-text {
+        font-size: 32rpx;
+        font-weight: bold;
+        margin-bottom: 10rpx;
+      }
+      
+      .phone-tip {
+        font-size: 24rpx;
+        color: #999;
+      }
+    }
+    
+    .phone-btn {
+      width: 100%;
+      height: 90rpx;
+      line-height: 90rpx;
+      border-radius: 45rpx;
+      background-color: #07C160;
+      color: #fff;
+      font-size: 32rpx;
+      margin-bottom: 20rpx;
+    }
+    
+    .phone-skip {
+      text-align: center;
+      font-size: 28rpx;
+      color: #999;
+      padding: 20rpx;
+    }
+  }
 }
-</style>
+</style> 
