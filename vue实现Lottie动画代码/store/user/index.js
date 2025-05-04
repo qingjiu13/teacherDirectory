@@ -10,6 +10,7 @@ import baseInfo from './baseInfo'
 import chat from './chat'
 import match from './match'
 import aiChat from './ai-chat'
+import unloadFile from './unloadFile'
 
 /**
  * 用户模块配置
@@ -24,6 +25,7 @@ export default {
         chat,
         match,
         aiChat,
+        unloadFile
     }
 }
 

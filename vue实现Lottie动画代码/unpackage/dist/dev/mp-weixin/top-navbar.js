@@ -1,28 +1,69 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   name: "top-navbar",
+  props: {
+    // 用户角色
+    userRole: new UTSJSONObject({
+      type: String,
+      default: "student"
+    }),
+    // 导航栏高度
+    navHeight: new UTSJSONObject({
+      type: Number,
+      default: 60
+    }),
+    // 自定义标签页
+    customTabs: new UTSJSONObject({
+      type: Array,
+      default: null
+    })
+  },
   data() {
     return {
-      tabs: [
+      studentTabs: [
         new UTSJSONObject({ name: "待预约", id: "tab1" }),
-        new UTSJSONObject({ name: "已预约", id: "tab2" }),
+        new UTSJSONObject({ name: "待开始", id: "tab2" }),
+        new UTSJSONObject({ name: "已完成", id: "tab3" })
+      ],
+      teacherTabs: [
+        new UTSJSONObject({ name: "待接受", id: "tab1" }),
+        new UTSJSONObject({ name: "进行中", id: "tab2" }),
         new UTSJSONObject({ name: "已完成", id: "tab3" })
       ],
       currentTab: 0
     };
   },
+  computed: new UTSJSONObject({
+    // 根据角色或自定义标签返回显示的标签列表
+    tabList() {
+      if (this.customTabs) {
+        return this.customTabs;
+      }
+      return this.userRole === "teacher" ? this.teacherTabs : this.studentTabs;
+    }
+  }),
   methods: new UTSJSONObject({
     // 切换Tab
     switchTab(index = null) {
       this.currentTab = index;
       this.$emit("change", index);
+    },
+    // 重置Tab
+    resetTab() {
+      this.currentTab = 0;
     }
-  })
-}));
+  }),
+  watch: {
+    // 监听角色变化，重置标签页
+    userRole() {
+      this.resetTab();
+    }
+  }
+});
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.f($data.tabs, (tab, index, i0) => {
+    a: common_vendor.f($options.tabList, (tab, index, i0) => {
       return {
         a: common_vendor.t(tab.name),
         b: common_vendor.sei("tab-" + index, "view"),

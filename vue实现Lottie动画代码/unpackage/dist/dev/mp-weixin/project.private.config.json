@@ -10,8 +10,8 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/login/wechat_login",
-          "pathName": "pages/login/wechat_login",
+          "name": "pages/mine/service",
+          "pathName": "pages/mine/service",
           "query": "",
           "launchMode": "default",
           "scene": null

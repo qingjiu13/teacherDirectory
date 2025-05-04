@@ -9,10 +9,11 @@
   font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 }
 .page-content {
-  padding: 30rpx;
+  padding: 10rpx 30rpx;
 }
 .course-list {
-  height: calc(100vh - 180rpx);
+  height: calc(100vh - 130rpx);
+  margin-top: 5rpx;
 }
 
 /* 已选择日期信息样式 */
@@ -21,8 +22,8 @@
   flex-direction: row;
   align-items: center;
   background-color: #ffffff;
-  margin: 20rpx 0;
-  padding: 25rpx;
+  margin: 10rpx 0;
+  padding: 20rpx;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
   border-left: 8rpx solid #3a86ff;
@@ -52,111 +53,90 @@
 /* 课程项目样式 */
 .course-item {
   display: flex;
+  flex-direction: row;
   background-color: #ffffff;
-  padding: 30rpx;
+  height: 250rpx;
+  padding: 20rpx;
   margin-bottom: 25rpx;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
-  border-bottom: 3px solid #eaeef5;
-  transition: all 0.3s ease;
+  position: relative;
 }
-.course-item:active {
-  transform: scale(0.98);
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+.avatar-container {
+  margin-right: 20rpx;
 }
-.course-img {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 12rpx;
-  margin-right: 25rpx;
-  border: 1px solid #e5e9f2;
-  background-color: #f7f9fc;
+.avatar-circle {
+  width: 130rpx;
+  height: 130rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+.avatar-text {
+  font-size: 46rpx;
+  color: #666666;
 }
 .course-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  padding-top: 0;
 }
 .course-name {
-  font-size: 34rpx;
+  font-size: 38rpx;
   color: #2c3e50;
   font-weight: bold;
-  margin-bottom: 12rpx;
-  line-height: 1.4;
+  margin-bottom: 8rpx;
+  line-height: 1.1;
+  text-align: left;
 }
-.course-teacher {
-  font-size: 28rpx;
+.course-teacher, .course-type, .course-lessons {
+  font-size: 26rpx;
   color: #5d6b89;
-  margin-bottom: 10rpx;
-  display: flex;
-  align-items: center;
+  margin-bottom: 4rpx;
+  line-height: 1.2;
+  text-align: left;
+  padding: 2rpx 0;
 }
-.course-teacher::before {
-  content: "";
-  display: inline-block;
-  width: 6rpx;
-  height: 6rpx;
-  background-color: #5d6b89;
-  border-radius: 50%;
-  margin-right: 8rpx;
+.price-container, .price-label, .course-price {
+  /* 删除这些样式 */
+  display: none;
 }
-.course-time {
-  font-size: 28rpx;
-  color: #5d6b89;
-  margin-bottom: 10rpx;
-  display: flex;
-  align-items: center;
-}
-.course-time::before {
-  content: "";
-  display: inline-block;
-  width: 6rpx;
-  height: 6rpx;
-  background-color: #5d6b89;
-  border-radius: 50%;
-  margin-right: 8rpx;
-}
-.course-price {
-  font-size: 36rpx;
-  color: #ff5a5f;
-  font-weight: bold;
-}
-.reserve-btn {
-  background: linear-gradient(135deg, #3a86ff, #4361ee);
-  color: white;
-  border-radius: 40rpx;
-  padding: 0 35rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  font-size: 28rpx;
+.reserve-btn, .view-feedback-btn {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  border-radius: 30rpx;
+  padding: 0 25rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
   font-weight: 500;
-  align-self: center;
-  box-shadow: 0 6rpx 12rpx rgba(67, 97, 238, 0.2);
-}
-.cancel-btn {
-  background: linear-gradient(135deg, #ff5a5f, #ff8a8e);
+  background-color: #999999;
   color: white;
-  border-radius: 40rpx;
-  padding: 0 35rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  font-size: 28rpx;
-  font-weight: 500;
-  align-self: center;
-  box-shadow: 0 6rpx 12rpx rgba(255, 90, 95, 0.2);
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
 }
-.review-btn {
-  background: linear-gradient(135deg, #ff9e00, #ffb347);
-  color: white;
-  border-radius: 40rpx;
-  padding: 0 35rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  font-size: 28rpx;
+.confirm-class-btn, .modify-time-btn {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  border-radius: 30rpx;
+  padding: 0 25rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
   font-weight: 500;
-  align-self: center;
-  box-shadow: 0 6rpx 12rpx rgba(255, 158, 0, 0.2);
+  background-color: #999999;
+  color: white;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+.confirm-class-btn {
+  position: absolute !important;
+  left: 20rpx !important;
+  right: auto !important;
 }
 .empty-tip {
   display: flex;
@@ -165,4 +145,11 @@
   color: #8c9db5;
   font-size: 30rpx;
   font-weight: 500;
+}
+.tab-container {
+  flex-direction: row;
+  height: 60rpx; /* 进一步降低高度 */
+  background-color: #ffffff;
+  border-bottom-width: 1rpx;
+  border-bottom-color: #eeeeee;
 }

@@ -4,14 +4,16 @@ const router_Router = require("../../../router/Router.js");
 const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   data() {
     return {
-      userRole: "teacher",
+      userRole: "student",
       userName: "",
       userData: new UTSJSONObject({}),
       isLoggedIn: false,
       // Tab栏配置
       currentTab: 0,
-      tabs: ["待支付", "已完成", "已取消"],
-      teacherTabs: ["待确认", "进行中", "已完成"],
+      tabs: ["待支付", "已支付", "已完成", "已取消"],
+      // 老师tab配置
+      teacherCurrentTab: 0,
+      teacherTabs: ["待服务", "已完成", "已取消"],
       // 学生订单列表
       orders: [
         new UTSJSONObject({
@@ -19,21 +21,24 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
           time: "2024-03-20 14:30",
           status: "待支付",
           title: "课程A - 一对一辅导",
-          price: "299.00"
+          price: "299.00",
+          teacherName: "张老师"
         }),
         new UTSJSONObject({
           id: "1002",
           time: "2024-03-19 10:15",
           status: "已完成",
           title: "课程B - 小组课程",
-          price: "199.00"
+          price: "199.00",
+          teacherName: "李老师"
         }),
         new UTSJSONObject({
           id: "1003",
           time: "2024-03-18 16:45",
           status: "已取消",
           title: "课程C - 专项训练",
-          price: "399.00"
+          price: "399.00",
+          teacherName: "王老师"
         })
       ],
       // 教师订单列表
@@ -106,7 +111,11 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   onShow() {
     this.$nextTick(() => {
       this.loadUserData();
-      common_vendor.index.getStorageSync("userRole");
+      const storedUserRole = common_vendor.index.getStorageSync("userRole");
+      if (storedUserRole && storedUserRole !== this.userRole) {
+        this.userRole = storedUserRole;
+        this.loadOrderData();
+      }
     });
   },
   methods: new UTSJSONObject({
@@ -127,7 +136,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
               common_vendor.index.setStorageSync("userRole", this.userData.role);
             }
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/mine/order/order_common.vue:350", "解析用户信息失败:", e);
+            common_vendor.index.__f__("error", "at pages/mine/order/order_common.vue:387", "解析用户信息失败:", e);
           }
         }
       } else {
@@ -140,14 +149,18 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      * @description 加载订单数据
      */
     loadOrderData() {
-      common_vendor.index.__f__("log", "at pages/mine/order/order_common.vue:367", `加载${this.userRole}角色的订单数据`);
+      common_vendor.index.__f__("log", "at pages/mine/order/order_common.vue:404", `加载${this.userRole}角色的订单数据`);
     },
     /**
      * @description 切换标签页
      * @param {Number} index 标签索引
      */
     switchTab(index = null) {
-      this.currentTab = index;
+      if (this.userRole === "teacher") {
+        this.teacherCurrentTab = index;
+      } else {
+        this.currentTab = index;
+      }
     },
     /**
      * @description 取消订单
@@ -266,78 +279,83 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   var _a, _b, _c, _d, _e, _f, _g;
   return common_vendor.e({
-    a: common_vendor.f($data.tabs, (tab, index, i0) => {
+    a: $data.userRole === "student"
+  }, $data.userRole === "student" ? {
+    b: common_vendor.f($data.tabs, (tab, index, i0) => {
       return {
         a: common_vendor.t(tab),
         b: index,
         c: $data.currentTab === index ? 1 : "",
         d: common_vendor.o(($event) => $options.switchTab(index), index)
       };
-    }),
-    b: $data.userRole === "student"
+    })
+  } : {}, {
+    c: $data.userRole === "teacher"
+  }, $data.userRole === "teacher" ? {
+    d: common_vendor.f($data.teacherTabs, (tab, index, i0) => {
+      return {
+        a: common_vendor.t(tab),
+        b: index,
+        c: $data.teacherCurrentTab === index ? 1 : "",
+        d: common_vendor.o(($event) => $options.switchTab(index), index)
+      };
+    })
+  } : {}, {
+    e: $data.userRole === "student"
   }, $data.userRole === "student" ? {
-    c: common_vendor.f($data.orders, (order, index, i0) => {
+    f: common_vendor.f($data.orders, (order, index, i0) => {
       return common_vendor.e({
-        a: common_vendor.t(order.time),
-        b: common_vendor.t(order.status),
-        c: common_vendor.t(order.title),
-        d: common_vendor.t(order.price)
+        a: common_vendor.t(order.title),
+        b: common_vendor.t(order.teacherName || "暂无"),
+        c: common_vendor.t(order.price)
       }, $data.currentTab === 0 ? {
-        e: common_vendor.o(($event) => $options.cancelOrder(order), index)
+        d: common_vendor.o(($event) => $options.cancelOrder(order), index)
       } : {}, $data.currentTab === 0 ? {
-        f: common_vendor.o(($event) => $options.payOrder(order), index)
+        e: common_vendor.o(($event) => $options.payOrder(order), index)
       } : {}, $data.currentTab === 1 ? {
-        g: common_vendor.o(($event) => $options.goToAppraise(order), index)
-      } : {}, $data.currentTab === 1 ? {
-        h: common_vendor.o(($event) => $options.viewDetail(order), index)
+        f: common_vendor.o(($event) => $options.cancelOrder(order), index)
       } : {}, $data.currentTab === 2 ? {
-        i: common_vendor.o(($event) => $options.deleteOrder(order), index)
-      } : {}, {
-        j: index
-      });
-    }),
-    d: $data.currentTab === 0,
-    e: $data.currentTab === 0,
-    f: $data.currentTab === 1,
-    g: $data.currentTab === 1,
-    h: $data.currentTab === 2
-  } : {
-    i: common_vendor.f($data.teacherOrders, (order, index, i0) => {
-      return common_vendor.e({
-        a: common_vendor.t(order.time),
-        b: common_vendor.t(order.status),
-        c: common_vendor.t(order.title),
-        d: common_vendor.t(order.price),
-        e: common_vendor.t(order.studentName)
-      }, $data.currentTab === 0 ? {
-        f: common_vendor.o(($event) => $options.confirmOrder(order), index)
-      } : {}, $data.currentTab === 1 ? {
-        g: common_vendor.o(($event) => $options.viewDetail(order), index)
-      } : {}, $data.currentTab === 2 ? {
-        h: common_vendor.o(($event) => $options.deleteOrder(order), index)
+        g: common_vendor.o(($event) => _ctx.abnormalAppeal(order), index)
+      } : {}, $data.currentTab === 3 ? {
+        h: common_vendor.o(($event) => $options.payOrder(order), index)
       } : {}, {
         i: index
       });
     }),
-    j: $data.currentTab === 0,
-    k: $data.currentTab === 1,
-    l: $data.currentTab === 2
+    g: $data.currentTab === 0,
+    h: $data.currentTab === 0,
+    i: $data.currentTab === 1,
+    j: $data.currentTab === 2,
+    k: $data.currentTab === 3
+  } : {
+    l: common_vendor.f($data.teacherOrders, (order, index, i0) => {
+      return common_vendor.e({
+        a: common_vendor.t(order.title),
+        b: common_vendor.t(order.studentName),
+        c: common_vendor.t(order.price)
+      }, $data.teacherCurrentTab === 0 ? {
+        d: common_vendor.o(($event) => $options.cancelOrder(order), index)
+      } : {}, {
+        e: index
+      });
+    }),
+    m: $data.teacherCurrentTab === 0
   }, {
-    m: $data.showCancelModal
+    n: $data.showCancelModal
   }, $data.showCancelModal ? {
-    n: common_vendor.o(($event) => $data.showCancelModal = false),
-    o: common_vendor.o((...args) => $options.confirmCancel && $options.confirmCancel(...args))
+    o: common_vendor.o(($event) => $data.showCancelModal = false),
+    p: common_vendor.o((...args) => $options.confirmCancel && $options.confirmCancel(...args))
   } : {}, {
-    p: $data.showPayModal
+    q: $data.showPayModal
   }, $data.showPayModal ? {
-    q: common_vendor.t((_a = $data.currentOrder) == null ? void 0 : _a.price),
-    r: common_vendor.t($data.paymentMethods[$data.selectedPayment].icon),
-    s: common_vendor.n($data.paymentMethods[$data.selectedPayment].type),
-    t: common_vendor.t($data.paymentMethods[$data.selectedPayment].name),
-    v: $data.isPaymentDropdownOpen ? 1 : "",
+    r: common_vendor.t((_a = $data.currentOrder) == null ? void 0 : _a.price),
+    s: common_vendor.t($data.paymentMethods[$data.selectedPayment].icon),
+    t: common_vendor.n($data.paymentMethods[$data.selectedPayment].type),
+    v: common_vendor.t($data.paymentMethods[$data.selectedPayment].name),
     w: $data.isPaymentDropdownOpen ? 1 : "",
-    x: common_vendor.o((...args) => $options.togglePaymentDropdown && $options.togglePaymentDropdown(...args)),
-    y: common_vendor.f($data.paymentMethods, (method, index, i0) => {
+    x: $data.isPaymentDropdownOpen ? 1 : "",
+    y: common_vendor.o((...args) => $options.togglePaymentDropdown && $options.togglePaymentDropdown(...args)),
+    z: common_vendor.f($data.paymentMethods, (method, index, i0) => {
       return common_vendor.e({
         a: common_vendor.t(method.icon),
         b: common_vendor.n(method.type),
@@ -349,33 +367,33 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         g: common_vendor.o(($event) => $options.selectPayment(index), index)
       });
     }),
-    z: $data.isPaymentDropdownOpen ? 1 : "",
-    A: common_vendor.o(($event) => $data.showPayModal = false),
-    B: common_vendor.o((...args) => $options.confirmPay && $options.confirmPay(...args))
+    A: $data.isPaymentDropdownOpen ? 1 : "",
+    B: common_vendor.o(($event) => $data.showPayModal = false),
+    C: common_vendor.o((...args) => $options.confirmPay && $options.confirmPay(...args))
   } : {}, {
-    C: $data.showDetailModal
+    D: $data.showDetailModal
   }, $data.showDetailModal ? common_vendor.e({
-    D: common_vendor.t((_b = $data.currentOrder) == null ? void 0 : _b.time),
-    E: common_vendor.t((_c = $data.currentOrder) == null ? void 0 : _c.title),
-    F: common_vendor.t((_d = $data.currentOrder) == null ? void 0 : _d.price),
-    G: common_vendor.t((_e = $data.currentOrder) == null ? void 0 : _e.status),
-    H: $data.userRole === "teacher" && ((_f = $data.currentOrder) == null ? void 0 : _f.studentName)
+    E: common_vendor.t((_b = $data.currentOrder) == null ? void 0 : _b.time),
+    F: common_vendor.t((_c = $data.currentOrder) == null ? void 0 : _c.title),
+    G: common_vendor.t((_d = $data.currentOrder) == null ? void 0 : _d.price),
+    H: common_vendor.t((_e = $data.currentOrder) == null ? void 0 : _e.status),
+    I: $data.userRole === "teacher" && ((_f = $data.currentOrder) == null ? void 0 : _f.studentName)
   }, $data.userRole === "teacher" && ((_g = $data.currentOrder) == null ? void 0 : _g.studentName) ? {
-    I: common_vendor.t($data.currentOrder.studentName)
+    J: common_vendor.t($data.currentOrder.studentName)
   } : {}, {
-    J: common_vendor.o((...args) => $options.closeDetailModal && $options.closeDetailModal(...args))
+    K: common_vendor.o((...args) => $options.closeDetailModal && $options.closeDetailModal(...args))
   }) : {}, {
-    K: $data.showDeleteModal
+    L: $data.showDeleteModal
   }, $data.showDeleteModal ? {
-    L: common_vendor.o(($event) => $data.showDeleteModal = false),
-    M: common_vendor.o((...args) => $options.confirmDelete && $options.confirmDelete(...args))
+    M: common_vendor.o(($event) => $data.showDeleteModal = false),
+    N: common_vendor.o((...args) => $options.confirmDelete && $options.confirmDelete(...args))
   } : {}, {
-    N: $data.showConfirmOrderModal
+    O: $data.showConfirmOrderModal
   }, $data.showConfirmOrderModal ? {
-    O: common_vendor.o(($event) => $data.showConfirmOrderModal = false),
-    P: common_vendor.o((...args) => $options.confirmOrderAction && $options.confirmOrderAction(...args))
+    P: common_vendor.o(($event) => $data.showConfirmOrderModal = false),
+    Q: common_vendor.o((...args) => $options.confirmOrderAction && $options.confirmOrderAction(...args))
   } : {}, {
-    Q: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    R: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

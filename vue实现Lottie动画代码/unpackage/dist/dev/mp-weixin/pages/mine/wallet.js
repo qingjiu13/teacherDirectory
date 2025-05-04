@@ -319,46 +319,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.t($data.walletInfo.balance || "0.00"),
     b: common_vendor.o((...args) => $options.showIncomeDetail && $options.showIncomeDetail(...args)),
-    c: common_vendor.o((...args) => $options.showIncomeDetail && $options.showIncomeDetail(...args)),
-    d: !$data.recentTransactions.length
-  }, !$data.recentTransactions.length ? {
-    e: common_vendor.p({
-      d: "M30 55C43.8071 55 55 43.8071 55 30C55 16.1929 43.8071 5 30 5C16.1929 5 5 16.1929 5 30C5 43.8071 16.1929 55 30 55Z",
-      stroke: "#E0E6F1",
-      ["stroke-width"]: "2"
-    }),
-    f: common_vendor.p({
-      d: "M20 30H40M30 20V40",
-      stroke: "#E0E6F1",
-      ["stroke-width"]: "2",
-      ["stroke-linecap"]: "round"
-    }),
-    g: common_vendor.p({
-      xmlns: "http://www.w3.org/2000/svg",
-      width: "60",
-      height: "60",
-      viewBox: "0 0 60 60",
-      fill: "none"
-    })
-  } : {
-    h: common_vendor.f($data.recentTransactions, (item, index, i0) => {
-      return {
-        a: common_vendor.t(item.type === "income" ? "收" : "支"),
-        b: common_vendor.n(item.type),
-        c: common_vendor.t(item.title),
-        d: common_vendor.t(item.time),
-        e: common_vendor.t(item.type === "income" ? "+" : "-"),
-        f: common_vendor.t(item.amount),
-        g: common_vendor.n(item.type),
-        h: index
-      };
-    })
-  }, {
-    i: common_vendor.o((...args) => $options.withdraw && $options.withdraw(...args)),
-    j: $data.showDetailPopup
+    c: common_vendor.o((...args) => $options.withdraw && $options.withdraw(...args)),
+    d: $data.showDetailPopup
   }, $data.showDetailPopup ? common_vendor.e({
-    k: common_vendor.o((...args) => $options.hideIncomeDetail && $options.hideIncomeDetail(...args)),
-    l: common_vendor.f($data.filterOptions, (item, index, i0) => {
+    e: common_vendor.o((...args) => $options.hideIncomeDetail && $options.hideIncomeDetail(...args)),
+    f: common_vendor.f($data.filterOptions, (item, index, i0) => {
       return {
         a: common_vendor.t(item),
         b: index,
@@ -366,9 +331,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         d: common_vendor.o(($event) => $options.setFilter(index), index)
       };
     }),
-    m: $data.incomeList.length > 0
+    g: $data.incomeList.length > 0
   }, $data.incomeList.length > 0 ? common_vendor.e({
-    n: common_vendor.f($options.groupedIncomeList, (group, month, i0) => {
+    h: common_vendor.f($options.groupedIncomeList, (group, month, i0) => {
       return {
         a: common_vendor.t(month),
         b: common_vendor.t($options.calculateMonthTotal(group)),
@@ -385,22 +350,22 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         d: month
       };
     }),
-    o: $data.loading
+    i: $data.loading
   }, $data.loading ? {} : $data.noMore ? {} : {}, {
-    p: $data.noMore
+    j: $data.noMore
   }) : {
-    q: common_vendor.p({
+    k: common_vendor.p({
       d: "M40 70C56.5685 70 70 56.5685 70 40C70 23.4315 56.5685 10 40 10C23.4315 10 10 23.4315 10 40C10 56.5685 23.4315 70 40 70Z",
       stroke: "#E0E6F1",
       ["stroke-width"]: "2"
     }),
-    r: common_vendor.p({
+    l: common_vendor.p({
       d: "M30 40H50M40 30V50",
       stroke: "#E0E6F1",
       ["stroke-width"]: "2",
       ["stroke-linecap"]: "round"
     }),
-    s: common_vendor.p({
+    m: common_vendor.p({
       xmlns: "http://www.w3.org/2000/svg",
       width: "80",
       height: "80",
@@ -408,21 +373,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       fill: "none"
     })
   }, {
-    t: common_vendor.o((...args) => $options.loadMoreIncome && $options.loadMoreIncome(...args)),
-    v: common_vendor.o((...args) => $options.hideIncomeDetail && $options.hideIncomeDetail(...args))
+    n: common_vendor.o((...args) => $options.loadMoreIncome && $options.loadMoreIncome(...args)),
+    o: common_vendor.o((...args) => $options.hideIncomeDetail && $options.hideIncomeDetail(...args))
   }) : {}, {
-    w: $data.showWithdrawPopup
+    p: $data.showWithdrawPopup
   }, $data.showWithdrawPopup ? common_vendor.e({
-    x: common_vendor.o((...args) => $options.hideWithdraw && $options.hideWithdraw(...args)),
-    y: common_vendor.o([($event) => $data.withdrawAmount = $event.detail.value, (...args) => $options.validateAmount && $options.validateAmount(...args)]),
-    z: $data.withdrawAmount,
-    A: common_vendor.t($data.walletInfo.balance),
-    B: common_vendor.o((...args) => $options.setMaxAmount && $options.setMaxAmount(...args)),
-    C: $data.amountError
+    q: common_vendor.o((...args) => $options.hideWithdraw && $options.hideWithdraw(...args)),
+    r: common_vendor.o([($event) => $data.withdrawAmount = $event.detail.value, (...args) => $options.validateAmount && $options.validateAmount(...args)]),
+    s: $data.withdrawAmount,
+    t: common_vendor.t($data.walletInfo.balance),
+    v: common_vendor.o((...args) => $options.setMaxAmount && $options.setMaxAmount(...args)),
+    w: $data.amountError
   }, $data.amountError ? {
-    D: common_vendor.t($data.amountError)
+    x: common_vendor.t($data.amountError)
   } : {}, {
-    E: common_vendor.f($data.withdrawMethods, (method, index, i0) => {
+    y: common_vendor.f($data.withdrawMethods, (method, index, i0) => {
       return common_vendor.e({
         a: common_vendor.t(method.shortName),
         b: common_vendor.n(method.type),
@@ -435,11 +400,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         h: common_vendor.o(($event) => $options.selectMethod(index), index)
       });
     }),
-    F: !$options.canWithdraw ? 1 : "",
-    G: common_vendor.o((...args) => $options.confirmWithdraw && $options.confirmWithdraw(...args)),
-    H: common_vendor.o((...args) => $options.hideWithdraw && $options.hideWithdraw(...args))
+    z: !$options.canWithdraw ? 1 : "",
+    A: common_vendor.o((...args) => $options.confirmWithdraw && $options.confirmWithdraw(...args)),
+    B: common_vendor.o((...args) => $options.hideWithdraw && $options.hideWithdraw(...args))
   }) : {}, {
-    I: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    C: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

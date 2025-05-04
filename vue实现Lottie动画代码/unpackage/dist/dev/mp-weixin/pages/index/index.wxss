@@ -1,6 +1,45 @@
 @import "../../uvue.wxss";
 :host{display:flex;flex-direction:column}
 
+.container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f8f8;
+  z-index: 999;
+}
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 8rpx solid #f3f3f3;
+  border-top: 8rpx solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+@keyframes spin {
+0% { transform: rotate(0deg);
+}
+100% { transform: rotate(360deg);
+}
+}
+.loading-text {
+  font-size: 28rpx;
+  color: #666;
+}
 .page-container {
   position: relative;
   width: 100%;

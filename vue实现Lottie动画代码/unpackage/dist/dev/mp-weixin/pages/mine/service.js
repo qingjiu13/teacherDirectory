@@ -242,9 +242,8 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o((...args) => $options.goBack && $options.goBack(...args)),
-    b: common_vendor.o((...args) => $options.handleAddService && $options.handleAddService(...args)),
-    c: common_vendor.f($data.services, (service, index, i0) => {
+    a: common_vendor.o((...args) => $options.handleAddService && $options.handleAddService(...args)),
+    b: common_vendor.f($data.services, (service, index, i0) => {
       return {
         a: `url(${service.imageUrl})`,
         b: common_vendor.t(service.name),
@@ -258,21 +257,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         i: common_vendor.o(($event) => $options.showServiceDetail(index), service.id)
       };
     }),
-    d: $data.selectedService
+    c: $data.selectedService
   }, $data.selectedService ? {
-    e: common_vendor.o((...args) => $options.hideServiceDetail && $options.hideServiceDetail(...args)),
-    f: `url(${$data.selectedService.imageUrl})`,
-    g: common_vendor.t($data.selectedService.name),
-    h: common_vendor.t($data.selectedService.price),
-    i: common_vendor.t($data.selectedService.description),
-    j: $data.isDetailExpanded ? 1 : ""
+    d: common_vendor.o((...args) => $options.hideServiceDetail && $options.hideServiceDetail(...args)),
+    e: `url(${$data.selectedService.imageUrl})`,
+    f: common_vendor.t($data.selectedService.name),
+    g: common_vendor.t($data.selectedService.price),
+    h: common_vendor.t($data.selectedService.description),
+    i: $data.isDetailExpanded ? 1 : ""
   } : {}, {
-    k: $data.overlayVisible
+    j: $data.overlayVisible
   }, $data.overlayVisible ? {
-    l: common_vendor.o((...args) => $options.hideServiceDetail && $options.hideServiceDetail(...args))
+    k: common_vendor.o((...args) => $options.hideServiceDetail && $options.hideServiceDetail(...args))
   } : {}, {
-    m: common_vendor.sr("loadingRef", "d7d562ac-0"),
-    n: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    l: common_vendor.sr("loadingRef", "d7d562ac-0"),
+    m: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

@@ -2,6 +2,9 @@
  * @description 应用配置
  */
 
+// uploadFile API配置：上传文件
+export const UPLOAD_FILE_URL = 'http://localhost:8080/user/myService/uploadFile';
+
 // API配置
 export const API_BASE_URL = 'http://localhost:8080';
 
@@ -13,6 +16,15 @@ export const MATCH_API_BASE_URL = 'http://localhost:8080/match/match';
 
 // teacherDetails API配置：加载老师详细信息
 export const USER_TEACHER_DETAIL_URL = 'http://localhost:8080/user/teacherDetails';
+
+// myService API配置：我的服务
+export const USER_MY_SERVICE_URL = 'http://localhost:8080/user/myService';
+
+// myService_Newbuilt API配置：我的服务
+export const USER_MY_SERVICE_NEWBUILT_URL = 'http://localhost:8080/user/myService_Newbuilt';
+
+// myService_delete API配置：我的服务
+export const USER_MY_SERVICE_DELETE_URL = 'http://localhost:8080/user/myService_delete';
 
 // getUserInfo API配置：拉取默认信息
 export const USER_GET_USER_INFO_URL = 'http://localhost:8080/user/getUserInfo';
