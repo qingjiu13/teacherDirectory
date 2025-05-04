@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "服务设置",
-  "usingComponents": {
-    "loading": "../../components/loading-animation/loading"
-  }
-}
