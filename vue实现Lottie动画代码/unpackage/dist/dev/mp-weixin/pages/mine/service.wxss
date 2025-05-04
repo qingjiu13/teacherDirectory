@@ -1,0 +1,268 @@
+@import "../../uvue.wxss";
+:host{display:flex;flex-direction:column}
+
+/* 服务容器 */
+.service-container {
+  padding: 30rpx;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+/* 头部 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0rpx;
+  padding: 35rpx 0;
+  position: relative;
+  height: 50rpx;
+}
+/* 添加按钮 */
+.add-btn {
+  display: flex;
+  align-items: center;
+  
+  padding: 8rpx 20rpx;
+  border-radius: 25rpx;
+  background-color: #f0f0f0;
+ 
+  transition: all 0.3s ease;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24rpx;
+}
+/* 添加按钮点击效果 */
+.add-btn:active {
+  transform: translateY(-50%) scale(0.96);
+}
+/* 添加按钮图标 */
+.plus {
+  margin-right: 6rpx;
+  font-weight: bold;
+}
+/* 服务列表 */
+.service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+  padding-top: 10rpx;
+}
+/* 服务卡片 */
+.service-card {
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 25rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+/* 选中服务卡片 */
+.active-card {
+  border-left: 6rpx solid #4A6FE3;
+  transform: translateX(5rpx);
+}
+/* 服务信息 */
+.service-info {
+  display: flex;
+}
+/* 头像框 */
+.service-thumb {
+  position: ralative;
+  top:20px; 
+  width: 150rpx;
+  height: 150rpx;
+  background-color: #f0f0f0;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 25rpx;
+}
+/* 服务名称和价格容器 */
+.service-details {
+margin-top: -100rpx;
+min-height: 200rpx;
+  flex: 1;
+  overflow: hidden;
+}
+/* 服务名称 */
+.service-name {
+  position:relative;
+bottom:5rpx;
+left:300rpx;
+  font-size: 45rpx;
+  font-weight: 600;
+  margin-bottom: 15rpx;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 服务价格 */
+.service-price {
+  position:relative;
+  left:300rpx;
+  font-size: 40rpx;
+  color: #0f0000;
+  font-weight: 500;
+}
+/* 操作按键容器 */
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  width: 800rpx;
+  gap: 15rpx;
+  flex-shrink: 0;
+  margin-left: 20rpx;
+}
+/* 修改按钮 */
+.edit-btn {
+  position: relative;
+  left: 380rpx;
+  padding: 8rpx 20rpx;
+  background-color: #c9ccd4;
+  border-radius: 25rpx;
+  font-size: 40rpx;
+  color: #070101a9;
+  transition: all 0.3s ease;
+}
+/* 删除按钮 */
+.delete-btn {
+  position: relative;
+  left:380rpx;
+  padding: 8rpx 20rpx;
+  background-color: #c9ccd4;
+  border-radius: 25rpx;
+  font-size: 40rpx;
+  color: #090202;
+  transition: all 0.3s ease;
+}
+.edit-btn:active {
+  background-color: #e0e7fc;
+}
+.delete-btn:active {
+  background-color: #ffd6d6;
+}
+/* 服务详情卡片 */
+.service-detail-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -45%) scale(0.95);
+  width: 85%;
+  max-height: 80vh;
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx 30rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow-y: auto;
+  opacity: 0;
+  transition: all 0.3s ease;
+  visibility: hidden;
+}
+/* 服务详情卡片展开 */
+.detail-card-expanded {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+/* 服务详情卡片关闭按钮 */
+.detail-close-btn {
+  position: absolute;
+  top: 15rpx;
+  right: 20rpx;
+  font-size: 40rpx;
+  color: #999;
+  height: 60rpx;
+  width: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+/* 服务详情卡片头像 */
+.detail-thumb {
+  width: 180rpx;
+  height: 180rpx;
+  background-color: #f0f0f0;
+  border-radius: 12rpx;
+  margin: 0 auto 25rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+/* 服务详情卡片信息 */
+.detail-info {
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #f2f5fd;
+}
+/* 服务详情卡片名称 */
+.detail-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 15rpx;
+  color: #333;
+}
+/* 服务详情卡片价格 */
+.detail-price {
+  font-size: 32rpx;
+  color: #4A6FE3;
+  text-align: center;
+  font-weight: 500;
+}
+/* 服务详情卡片描述 */
+.detail-description {
+  font-size: 28rpx;
+  color: #333;
+  margin-top: 20rpx;
+}
+/* 服务详情卡片描述标题 */
+.description-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 15rpx;
+  color: #333;
+}
+/* 服务详情卡片描述内容 */
+.description-content {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20rpx;
+}
+/* 服务详情卡片图片占位符 */
+.detail-image-placeholder {
+  width: 100%;
+  height: 240rpx;
+  background-color: #f7f7f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20rpx;
+  border-radius: 12rpx;
+  border: 2rpx dashed #ddd;
+}
+/* 服务详情卡片图片图标 */
+.image-icon {
+  font-size: 60rpx;
+  color: #ccc;
+}
+/* 服务详情卡片遮罩层 */
+.detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+}

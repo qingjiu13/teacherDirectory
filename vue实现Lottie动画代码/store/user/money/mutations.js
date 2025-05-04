@@ -4,13 +4,5 @@
  */
 
 export default {
-    SET_BALANCE(state, amount) {
-        state.balance = amount;
-    },
-    SET_WITHDRAW_AMOUNT(state, amount) {
-        state.withdrawAmount = amount;
-    },
-    SET_WITHDRAW_METHOD(state, method) {
-        state.withdrawMethod = method;
-    }
+    // 这里放置mutations方法
 }; 
