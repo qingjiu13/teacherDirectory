@@ -1,0 +1,34 @@
+@import "../../uvue.wxss";
+:host{display:flex;flex-direction:column}
+
+.container.data-v-e4e4508d {
+  padding: 40rpx;
+}
+.title.data-v-e4e4508d {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 60rpx;
+}
+.card.data-v-e4e4508d {
+  border: 1px solid #ccc;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 40rpx;
+  background-color: #fff;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+.card-content.data-v-e4e4508d {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.card-image.data-v-e4e4508d {
+  width: 140rpx;
+  height: 140rpx;
+  background-color: #f0f0f0;
+  border-radius: 10rpx;
+  margin-right: 30rpx;
+}
+.card-text.data-v-e4e4508d {
+  font-size: 32rpx;
+}
