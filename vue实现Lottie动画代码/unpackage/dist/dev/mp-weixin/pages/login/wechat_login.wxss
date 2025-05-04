@@ -249,17 +249,6 @@
 .login-container .auth-step.data-v-ff132c6c {
   padding: 40rpx 0;
 }
-.login-container .auth-step .avatar-preview.data-v-ff132c6c {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 30rpx;
-}
-.login-container .auth-step .avatar-preview .avatar-image.data-v-ff132c6c {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 50%;
-  border: 4rpx solid #f0f0f0;
-}
 .login-container .auth-step .auth-desc.data-v-ff132c6c {
   text-align: center;
   font-size: 28rpx;

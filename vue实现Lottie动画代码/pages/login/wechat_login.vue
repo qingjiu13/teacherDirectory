@@ -93,21 +93,18 @@
         
         <!-- 头像授权步骤 -->
         <view class="auth-step" v-if="authStep === 'avatar'">
-          <view class="avatar-preview">
-            <image class="avatar-image" :src="tempUserInfo.avatarUrl || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
-          </view>
           <view class="auth-desc">请选择您的头像</view>
           <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
             选择头像
           </button>
-          <button class="auth-next-btn" @click="goToNicknameStep" :disabled="!tempUserInfo.avatarUrl">下一步</button>
+          <button class="auth-next-btn" @click="goToNicknameStep">跳过</button>
         </view>
         
         <!-- 昵称授权步骤 -->
         <view class="auth-step" v-if="authStep === 'nickname'">
           <view class="nickname-input-wrap">
             <text class="input-label">昵称</text>
-            <input class="nickname-input" type="nickname" placeholder="请输入您的昵称" :value="tempUserInfo.nickName" @blur="onInputNickname" />
+            <input class="nickname-input" type="nickname" placeholder="请输入您的昵称" :value="tempUserInfo.nickName" @input="onInputNickname" />
           </view>
           <button class="auth-next-btn" @click="goToPhoneStep" :disabled="!tempUserInfo.nickName">下一步</button>
         </view>
@@ -239,6 +236,11 @@ export default {
     onChooseAvatar(e) {
       if (e.detail && e.detail.avatarUrl) {
         this.tempUserInfo.avatarUrl = e.detail.avatarUrl;
+        // 同时更新顶部头像显示
+        this.userInfo.avatarUrl = e.detail.avatarUrl;
+        
+        // 自动跳转到昵称步骤
+        this.goToNicknameStep();
       }
     },
     
@@ -248,6 +250,8 @@ export default {
      */
     onInputNickname(e) {
       this.tempUserInfo.nickName = e.detail.value;
+      // 同时更新顶部昵称显示
+      this.userInfo.nickName = e.detail.value;
     },
     
     /**
@@ -685,19 +689,6 @@ export default {
   // 头像选择步骤样式
   .auth-step {
     padding: 40rpx 0;
-    
-    .avatar-preview {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 30rpx;
-      
-      .avatar-image {
-        width: 160rpx;
-        height: 160rpx;
-        border-radius: 50%;
-        border: 4rpx solid #f0f0f0;
-      }
-    }
     
     .auth-desc {
       text-align: center;

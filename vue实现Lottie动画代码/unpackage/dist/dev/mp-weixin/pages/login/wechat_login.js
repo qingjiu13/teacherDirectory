@@ -77,7 +77,7 @@ const _sfc_main = common_vendor.defineComponent({
           }
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:225", "微信登录失败", err);
+          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:222", "微信登录失败", err);
           common_vendor.index.hideLoading();
           common_vendor.index.showToast({
             title: "登录失败，请重试",
@@ -93,6 +93,8 @@ const _sfc_main = common_vendor.defineComponent({
     onChooseAvatar(e = null) {
       if (e.detail && e.detail.avatarUrl) {
         this.tempUserInfo.avatarUrl = e.detail.avatarUrl;
+        this.userInfo.avatarUrl = e.detail.avatarUrl;
+        this.goToNicknameStep();
       }
     },
     /**
@@ -101,6 +103,7 @@ const _sfc_main = common_vendor.defineComponent({
      */
     onInputNickname(e = null) {
       this.tempUserInfo.nickName = e.detail.value;
+      this.userInfo.nickName = e.detail.value;
     },
     /**
      * 进入昵称设置步骤
@@ -194,7 +197,7 @@ const _sfc_main = common_vendor.defineComponent({
             });
           }
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:366", "提交用户信息失败", error);
+          common_vendor.index.__f__("error", "at pages/login/wechat_login.vue:370", "提交用户信息失败", error);
           common_vendor.index.hideLoading();
           common_vendor.index.showToast({
             title: "登录失败，请重试",
@@ -286,25 +289,23 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     v: common_vendor.o((...args) => $options.cancelAuth && $options.cancelAuth(...args)),
     w: $data.authStep === "avatar"
   }, $data.authStep === "avatar" ? {
-    x: $data.tempUserInfo.avatarUrl || "/static/image/tab-bar/default_avatar.png",
-    y: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args)),
-    z: common_vendor.o((...args) => $options.goToNicknameStep && $options.goToNicknameStep(...args)),
-    A: !$data.tempUserInfo.avatarUrl
+    x: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args)),
+    y: common_vendor.o((...args) => $options.goToNicknameStep && $options.goToNicknameStep(...args))
   } : {}, {
-    B: $data.authStep === "nickname"
+    z: $data.authStep === "nickname"
   }, $data.authStep === "nickname" ? {
-    C: $data.tempUserInfo.nickName,
-    D: common_vendor.o((...args) => $options.onInputNickname && $options.onInputNickname(...args)),
-    E: common_vendor.o((...args) => $options.goToPhoneStep && $options.goToPhoneStep(...args)),
-    F: !$data.tempUserInfo.nickName
+    A: $data.tempUserInfo.nickName,
+    B: common_vendor.o((...args) => $options.onInputNickname && $options.onInputNickname(...args)),
+    C: common_vendor.o((...args) => $options.goToPhoneStep && $options.goToPhoneStep(...args)),
+    D: !$data.tempUserInfo.nickName
   } : {}, {
-    G: $data.authStep === "phone"
+    E: $data.authStep === "phone"
   }, $data.authStep === "phone" ? {
-    H: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args)),
-    I: common_vendor.o((...args) => $options.skipPhoneAuth && $options.skipPhoneAuth(...args))
+    F: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args)),
+    G: common_vendor.o((...args) => $options.skipPhoneAuth && $options.skipPhoneAuth(...args))
   } : {}, {
-    J: $data.showAuthPopup ? 1 : "",
-    K: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    H: $data.showAuthPopup ? 1 : "",
+    I: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-ff132c6c"]]);
