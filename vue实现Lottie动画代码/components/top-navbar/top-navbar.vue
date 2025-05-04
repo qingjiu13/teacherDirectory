@@ -7,7 +7,7 @@
 			:scroll-with-animation="true"
 		>
 			<view 
-				v-for="(tab, index) in tabs" 
+				v-for="(tab, index) in tabList" 
 				:key="index"
 				:id="'tab-' + index"
 				class="tab-item"
@@ -35,21 +35,63 @@
 <script>
 	export default {
 		name:"top-navbar",
+		props: {
+			// 用户角色
+			userRole: {
+				type: String,
+				default: 'student'
+			},
+			// 导航栏高度
+			navHeight: {
+				type: Number,
+				default: 60
+			},
+			// 自定义标签页
+			customTabs: {
+				type: Array,
+				default: null
+			}
+		},
 		data() {
 			return {
-				tabs: [
+				studentTabs: [
 					{ name: '待预约', id: 'tab1' },
-					{ name: '已预约', id: 'tab2' },
+					{ name: '待开始', id: 'tab2' },
+					{ name: '已完成', id: 'tab3' }
+				],
+				teacherTabs: [
+					{ name: '待接受', id: 'tab1' },
+					{ name: '进行中', id: 'tab2' },
 					{ name: '已完成', id: 'tab3' }
 				],
 				currentTab: 0
 			};
+		},
+		computed: {
+			// 根据角色或自定义标签返回显示的标签列表
+			tabList() {
+				if (this.customTabs) {
+					return this.customTabs;
+				}
+				
+				return this.userRole === 'teacher' ? this.teacherTabs : this.studentTabs;
+			}
 		},
 		methods: {
 			// 切换Tab
 			switchTab(index) {
 				this.currentTab = index;
 				this.$emit('change', index);
+			},
+			// 重置Tab
+			resetTab() {
+				this.currentTab = 0;
+			}
+		},
+		watch: {
+			// 监听角色变化，重置标签页
+			userRole() {
+				this.resetTab();
 			}
 		}
 	}
@@ -67,28 +109,30 @@
 	display: flex;
 	flex-direction: row;
 	background-color: #ffffff;
-	padding: 25rpx 0;
+	padding: 5rpx 0 0 0;
 	position: sticky;
 	top: 0;
 	z-index: 100;
 	white-space: nowrap;
 	width: 100%;
-	border-bottom: 2rpx solid #e5e9f2;
+	border-bottom: none;
 	justify-content: center;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
+	box-shadow: none;
+	height: 60rpx;
 }
 
 .tab-item {
 	display: inline-block;
-	padding: 15rpx 35rpx;
+	padding: 4rpx 30rpx;
 	text-align: center;
-	font-size: 30rpx;
+	font-size: 28rpx;
 	color: #5d6b89;
 	position: relative;
 	flex-shrink: 0;
-	margin: 0 30rpx;
-	border-radius: 40rpx;
+	margin: 0 25rpx;
+	border-radius: 30rpx;
 	transition: all 0.3s ease;
+	line-height: 1.5;
 }
 
 .tab-item.active {
@@ -98,23 +142,16 @@
 }
 
 .tab-item.active::after {
-	content: '';
-	position: absolute;
-	bottom: -16rpx;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 48rpx;
-	height: 5rpx;
-	background-color: #3a86ff;
-	border-radius: 6rpx;
+	display: none;
 }
 
 .content-container {
 	flex: 1;
 	width: 100%;
+	margin-top: 0;
 }
 
 .tab-content {
-	padding: 20rpx;
+	padding: 0;
 }
 </style>

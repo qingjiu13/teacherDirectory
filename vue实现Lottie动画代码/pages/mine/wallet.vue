@@ -15,36 +15,7 @@
 			</view>
 		</view>
 		
-		<!-- 交易记录卡片 -->
-		<view class="transaction-card">
-			<view class="card-header">
-				<text class="header-title">最近交易</text>
-				<text class="view-all" @click="showIncomeDetail">查看全部</text>
-			</view>
-			
-			<view class="transaction-empty" v-if="!recentTransactions.length">
-				<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" fill="none">
-					<path d="M30 55C43.8071 55 55 43.8071 55 30C55 16.1929 43.8071 5 30 5C16.1929 5 5 16.1929 5 30C5 43.8071 16.1929 55 30 55Z" stroke="#E0E6F1" stroke-width="2"/>
-					<path d="M20 30H40M30 20V40" stroke="#E0E6F1" stroke-width="2" stroke-linecap="round"/>
-				</svg>
-				<text>暂无交易记录</text>
-			</view>
-			
-			<view class="transaction-list" v-else>
-				<view class="transaction-item" v-for="(item, index) in recentTransactions" :key="index">
-					<view class="transaction-icon" :class="item.type">
-						<text class="icon-text">{{item.type === 'income' ? '收' : '支'}}</text>
-					</view>
-					<view class="transaction-info">
-						<view class="transaction-title">{{item.title}}</view>
-						<view class="transaction-time">{{item.time}}</view>
-					</view>
-					<view class="transaction-amount" :class="item.type">
-						<text>{{item.type === 'income' ? '+' : '-'}}{{item.amount}}</text>
-					</view>
-				</view>
-			</view>
-		</view>
+		<!-- 交易记录卡片 - 已移除 -->
 		
 		<!-- 提现按钮 -->
 		<view class="withdraw-btn" @click="withdraw">提现</view>
