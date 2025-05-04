@@ -1,89 +1,184 @@
 <template>
   <view class="container">
-    <top-navbar @change="onTabChange">
-      <template v-slot:page1>
-        <view class="page-content">
-          <view class="selected-date-info" v-if="selectedDate">
-            <text class="date-info-title">已选择日期：</text>
-            <text class="date-info-content">{{selectedDate}}</text>
-            <button class="reset-btn" @click="resetDateSelection">重选</button>
-          </view>
-          
-          <scroll-view class="course-list" scroll-y>
-            <view v-for="(item, index) in pendingCourses" :key="index" class="course-item">
-              <image class="course-img" :src="item.image || '/static/images/default_avatar.png'" mode="aspectFill"></image>
-              <view class="course-info">
-                <text class="course-name">{{item.name}}</text>
-                <text class="course-teacher">讲师: {{item.teacher}}</text>
-                <text class="course-time">时间: {{item.time}}</text>
-                <text class="course-price">¥{{item.price}}</text>
-              </view>
-              <button class="reserve-btn" @click="handleReserve(index)">预约</button>
+    <!-- 学生界面 -->
+    <block v-if="userRole === 'student'">
+      <top-navbar @change="onTabChange" :navHeight="60" :userRole="userRole">
+        <template v-slot:page1>
+          <view class="page-content">
+            <view class="selected-date-info" v-if="selectedDate">
+              <text class="date-info-title">已选择日期：</text>
+              <text class="date-info-content">{{selectedDate}}</text>
+              <button class="reset-btn" @click="resetDateSelection">重选</button>
             </view>
-            <view v-if="pendingCourses.length === 0" class="empty-tip">
-              <text>暂无待预约课程</text>
-            </view>
-          </scroll-view>
-          
-          <!-- 日历选择器（弹出式） -->
-          <uni-calendar 
-            ref="calendar"
-            :insert="false"
-            :start-date="getToday()"
-            :end-date="getNextMonth()"
-            @confirm="onCalendarConfirm"
-          />
-        </view>
-      </template>
-      
-      <template v-slot:page2>
-        <!-- 已预约页面 -->
-        <view class="page-content">
-          <scroll-view class="course-list" scroll-y>
-            <view v-for="(item, index) in reservedCourses" :key="index" class="course-item">
-              <image class="course-img" :src="item.image || '/static/images/default_avatar.png'" mode="aspectFill"></image>
-              <view class="course-info">
-                <text class="course-name">{{item.name}}</text>
-                <text class="course-teacher">讲师: {{item.teacher}}</text>
-                <text class="course-time">预约时间: {{item.reservedTime}}</text>
-                <text class="course-price">¥{{item.price}}</text>
-              </view>
-              <button class="cancel-btn" @click="cancelReservation(index)">取消预约</button>
-            </view>
-            <view v-if="reservedCourses.length === 0" class="empty-tip">
-              <text>暂无已预约课程</text>
-            </view>
-          </scroll-view>
-        </view>
-      </template>
-      
-      <template v-slot:page3>
-        <!-- 已完成页面 -->
-        <view class="page-content">
-          <scroll-view class="course-list" scroll-y>
-            <view v-for="(item, index) in completedCourses" :key="index" class="course-item">
-              <image class="course-img" :src="item.image || '/static/images/default_avatar.png'" mode="aspectFill"></image>
-              <view class="course-info">
-                <text class="course-name">{{item.name}}</text>
-                <text class="course-teacher">讲师: {{item.teacher}}</text>
-                <text class="course-time">完成时间: {{item.completedTime}}</text>
-                <text class="course-price">¥{{item.price}}</text>
-                <view class="rating" v-if="item.rating">
-                  <text class="rating-text">评分: </text>
-                  <text class="rating-star" v-for="i in 5" :key="i">
-                    {{i <= item.rating ? '★' : '☆'}}
-                  </text>
+            
+            <scroll-view class="course-list" scroll-y>
+              <view v-for="(item, index) in pendingCourses" :key="index" class="course-item">
+                <view class="avatar-container">
+                  <view class="avatar-circle">
+                    <text class="avatar-text">人</text>
+                  </view>
                 </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.name}}</text>
+                  <text class="course-teacher">服务老师：{{item.teacher}}</text>
+                  <text class="course-type">服务类型：一对一课程</text>
+                  <text class="course-lessons">课程节数：第2节/共10节</text>
+                </view>
+                <button class="reserve-btn" @click="handleReserve(index)">提醒预约</button>
               </view>
-              <button class="review-btn" @click="goToAppraise(item)">评价</button>
-            </view>
-            <view v-if="completedCourses.length === 0" class="empty-tip">
-              <text>暂无已完成课程</text>
-            </view>
-          </scroll-view>
-        </view>
-      </template>
-    </top-navbar>
+              <view v-if="pendingCourses.length === 0" class="empty-tip">
+                <text>暂无待预约课程</text>
+              </view>
+            </scroll-view>
+            
+            <!-- 日历选择器（弹出式） -->
+            <uni-calendar 
+              ref="calendar"
+              :insert="false"
+              :start-date="getToday()"
+              :end-date="getNextMonth()"
+              @confirm="onCalendarConfirm"
+            />
+          </view>
+        </template>
+        
+        <template v-slot:page2>
+          <!-- 已预约页面 -->
+          <view class="page-content">
+            <scroll-view class="course-list" scroll-y>
+              <view v-for="(item, index) in reservedCourses" :key="index" class="course-item">
+                <view class="avatar-container">
+                  <view class="avatar-circle">
+                    <text class="avatar-text">人</text>
+                  </view>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.name}}</text>
+                  <text class="course-teacher">服务老师：{{item.teacher}}</text>
+                  <text class="course-type">服务类型：一对一课程</text>
+                  <text class="course-lessons">预约时间：{{item.reservedTime}}</text>
+                </view>
+                <button class="modify-time-btn" @click="modifyReservationTime(index)">修改时间</button>
+              </view>
+              <view v-if="reservedCourses.length === 0" class="empty-tip">
+                <text>暂无已预约课程</text>
+              </view>
+            </scroll-view>
+          </view>
+        </template>
+        
+        <template v-slot:page3>
+          <!-- 已完成页面 -->
+          <view class="page-content">
+            <scroll-view class="course-list" scroll-y>
+              <view v-for="(item, index) in completedCourses" :key="index" class="course-item">
+                <view class="avatar-container">
+                  <view class="avatar-circle">
+                    <text class="avatar-text">人</text>
+                  </view>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.name}}</text>
+                  <text class="course-teacher">服务老师：{{item.teacher}}</text>
+                  <text class="course-type">服务类型：一对一课程</text>
+                  <text class="course-lessons">完成时间：{{item.completedTime}}</text>
+                  <view class="rating" v-if="item.rating">
+                    <text class="rating-text">评分: </text>
+                    <text class="rating-star" v-for="i in 5" :key="i">
+                      {{i <= item.rating ? '★' : '☆'}}
+                    </text>
+                  </view>
+                </view>
+                <button class="view-feedback-btn" @click="viewFeedback(item)">查看回放</button>
+              </view>
+              <view v-if="completedCourses.length === 0" class="empty-tip">
+                <text>暂无已完成课程</text>
+              </view>
+            </scroll-view>
+          </view>
+        </template>
+      </top-navbar>
+    </block>
+
+    <!-- 老师界面 -->
+    <block v-else>
+      <top-navbar @change="onTeacherTabChange" :navHeight="60" :userRole="userRole">
+        <template v-slot:page1>
+          <view class="page-content">
+            <scroll-view class="course-list" scroll-y>
+              <view v-for="(item, index) in teacherPendingCourses" :key="index" class="course-item">
+                <view class="avatar-container">
+                  <view class="avatar-circle">
+                    <text class="avatar-text">人</text>
+                  </view>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.name}}</text>
+                  <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
+                  <text class="course-type">服务类型：一对一课程</text>
+                  <text class="course-lessons">课程节数：第2节/共10节</text>
+                </view>
+                <button class="reserve-btn" @click="acceptCourse(index)">接受预约</button>
+              </view>
+              <view v-if="teacherPendingCourses.length === 0" class="empty-tip">
+                <text>暂无待接受课程</text>
+              </view>
+            </scroll-view>
+          </view>
+        </template>
+        
+        <template v-slot:page2>
+          <!-- 老师-进行中课程 -->
+          <view class="page-content">
+            <scroll-view class="course-list" scroll-y>
+              <view v-for="(item, index) in teacherActiveCourses" :key="index" class="course-item">
+                <view class="avatar-container">
+                  <view class="avatar-circle">
+                    <text class="avatar-text">人</text>
+                  </view>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.name}}</text>
+                  <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
+                  <text class="course-type">服务类型：一对一课程</text>
+                  <text class="course-lessons">上课时间：{{item.classTime}}</text>
+                </view>
+                <button class="confirm-class-btn" @click="completeClass(index)">确认下课</button>
+                <button class="modify-time-btn" @click="rescheduleClass(index)">修改时间</button>
+              </view>
+              <view v-if="teacherActiveCourses.length === 0" class="empty-tip">
+                <text>暂无进行中课程</text>
+              </view>
+            </scroll-view>
+          </view>
+        </template>
+        
+        <template v-slot:page3>
+          <!-- 老师-已完成课程 -->
+          <view class="page-content">
+            <scroll-view class="course-list" scroll-y>
+              <view v-for="(item, index) in teacherCompletedCourses" :key="index" class="course-item">
+                <view class="avatar-container">
+                  <view class="avatar-circle">
+                    <text class="avatar-text">人</text>
+                  </view>
+                </view>
+                <view class="course-info">
+                  <text class="course-name">{{item.name}}</text>
+                  <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
+                  <text class="course-type">服务类型：一对一课程</text>
+                  <text class="course-lessons">完成时间：{{item.completedTime}}</text>
+                </view>
+                <button class="view-feedback-btn" @click="viewClassFeedback(item)">查看回放</button>
+              </view>
+              <view v-if="teacherCompletedCourses.length === 0" class="empty-tip">
+                <text>暂无已完成课程</text>
+              </view>
+            </scroll-view>
+          </view>
+        </template>
+      </top-navbar>
+    </block>
   </view>
 </template>
 
@@ -98,6 +193,7 @@ export default {
   data() {
     return {
       currentTab: 0,
+      teacherCurrentTab: 0,
       // 更具体的时间段选择
       timeSlots: [
         { period: '上午', slots: ['08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00'] },
@@ -174,7 +270,8 @@ export default {
           teacher: "黄老师",
           price: 399,
           completedTime: "2023-12-10 15:00",
-          image: "/static/images/default_avatar.png"
+          image: "/static/images/default_avatar.png",
+          replayUrl: "https://meeting.tencent.com/v2/cloud-record/share?id=5fcc0283-6d70-4b56-8710-5ef9318c475b&from=3"
         },
         {
           id: 8,
@@ -182,20 +279,166 @@ export default {
           teacher: "周老师",
           price: 499,
           completedTime: "2023-12-15 09:00",
-          image: "/static/images/default_avatar.png"
+          image: "/static/images/default_avatar.png",
+          replayUrl: "https://meeting.tencent.com/v2/cloud-record/share?id=7e9f8d62-34a1-4b12-9f80-5c31d9b52ec8&from=3"
         }
       ],
       currentCourseIndex: null,
-      selectedDate: null
+      selectedDate: null,
+      userRole: 'student', // 默认为学生角色
+      userName: '',
+      userData: {},
+      isLoggedIn: false,
+      teacherPendingCourses: [],
+      teacherActiveCourses: [],
+      teacherCompletedCourses: []
     };
   },
-  onLoad() {
-    // 初始化页面数据，可以从服务器获取
+  onLoad(options) {
+    console.log('课程页面 onLoad', options);
+    
+    // 初始化页面数据
+    this.loadUserData();
+    
+    // 使用全局状态或传递的参数确定角色
+    const globalData = getApp().globalData;
+    const storedUserRole = uni.getStorageSync('userRole');
+    
+    // 优先使用全局状态中的角色
+    if (globalData && globalData.userRole) {
+      this.userRole = globalData.userRole;
+      console.log('使用全局角色状态:', this.userRole);
+    }
+    // 其次使用存储的角色
+    else if (storedUserRole) {
+      this.userRole = storedUserRole;
+      // 同步到全局状态
+      if (globalData) {
+        globalData.userRole = this.userRole;
+      }
+      console.log('使用存储的角色:', this.userRole);
+    }
+    
+    // 加载对应角色的数据
     this.loadCourseData();
   },
+  onShow() {
+    console.log('课程页面 onShow, 当前角色:', this.userRole);
+    
+    // 检查全局状态
+    const globalData = getApp().globalData;
+    if (globalData && globalData.userRole && globalData.userRole !== this.userRole) {
+      console.log('全局角色变更:', globalData.userRole);
+      const previousRole = this.userRole;
+      this.userRole = globalData.userRole;
+      
+      // 如果角色发生变化，重置相关状态并更新存储
+      if (previousRole !== this.userRole) {
+        this.resetRoleRelatedState();
+        uni.setStorageSync('userRole', this.userRole);
+        this.loadCourseData();
+      }
+    }
+    
+    // 如果本地存储的角色与当前不一致，则以本地存储为准
+    const storedUserRole = uni.getStorageSync('userRole');
+    if (storedUserRole && storedUserRole !== this.userRole) {
+      console.log('存储角色与当前不一致, 存储:', storedUserRole, '当前:', this.userRole);
+      const previousRole = this.userRole;
+      this.userRole = storedUserRole;
+      
+      // 同步到全局状态
+      if (globalData) {
+        globalData.userRole = this.userRole;
+      }
+      
+      // 如果角色发生变化，重置相关状态
+      if (previousRole !== this.userRole) {
+        this.resetRoleRelatedState();
+        this.loadCourseData();
+      }
+    }
+  },
+  // 页面卸载时保存状态
+  onUnload() {
+    console.log('课程页面 onUnload, 保存当前角色:', this.userRole);
+    // 确保角色信息被持久化
+    uni.setStorageSync('userRole', this.userRole);
+    
+    // 同步到全局状态
+    const globalData = getApp().globalData;
+    if (globalData) {
+      globalData.userRole = this.userRole;
+    }
+  },
   methods: {
-    // 处理顶部导航栏组件的标签切换事件
+    /**
+     * @description 加载用户数据
+     */
+    loadUserData() {
+      // 检查登录状态
+      const token = uni.getStorageSync('token');
+      this.isLoggedIn = !!token;
+      
+      if (this.isLoggedIn) {
+        // 获取用户信息
+        const userInfo = uni.getStorageSync('userInfo');
+        if (userInfo) {
+          try {
+            this.userData = typeof userInfo === 'string' ? JSON.parse(userInfo) : userInfo;
+            this.userName = this.userData.nickname || '用户';
+            
+            // 如果存储中有用户角色，使用存储的角色
+            const previousRole = this.userRole;
+            if (this.userData.role) {
+              // 更新当前角色
+              this.userRole = this.userData.role;
+              console.log('从用户数据中设置角色:', this.userRole);
+              
+              // 同步更新到storage
+              uni.setStorageSync('userRole', this.userData.role);
+              
+              // 同步到全局状态
+              const globalData = getApp().globalData;
+              if (globalData) {
+                globalData.userRole = this.userRole;
+              }
+              
+              // 如果角色发生变化，重置相关状态
+              if (previousRole !== this.userRole) {
+                this.resetRoleRelatedState();
+              }
+            }
+          } catch (e) {
+            console.error('解析用户信息失败:', e);
+          }
+        }
+      } else {
+        this.userData = {};
+        this.userName = '';
+        
+        // 注意：这里不再自动重置为学生角色
+        // 而是保持当前角色不变，避免意外重置
+        console.log('未登录，保持当前角色:', this.userRole);
+      }
+    },
+    
+    // 重置与角色相关的状态
+    resetRoleRelatedState() {
+      console.log('重置角色相关状态');
+      if (this.userRole === 'student') {
+        this.currentTab = 0;
+      } else {
+        this.teacherCurrentTab = 0;
+      }
+      this.selectedDate = null;
+      this.selectedTimeSlot = '';
+      this.selectedTimePeriod = '';
+    },
+    
+    // 处理顶部导航栏组件的标签切换事件 - 学生
     onTabChange(index) {
+      console.log('学生模式标签切换:', index);
       this.currentTab = index;
       
       // 重置时间选择
@@ -298,38 +541,82 @@ export default {
       });
     },
     
-    // 取消预约
-    cancelReservation(index) {
+    // 完成课程时添加回放链接
+    completeClass(index) {
+      const course = this.teacherActiveCourses[index];
+      
+      // 先让用户输入回放链接
       uni.showModal({
-        title: '确认取消',
-        content: '确定要取消此预约吗？',
+        title: '添加课程回放',
+        editable: true,
+        placeholderText: '请输入课程回放链接 (可选)',
         success: (res) => {
-          if (res.confirm) {
-            // 将取消的课程移回待预约列表
-            const canceledCourse = this.reservedCourses[index];
-            this.pendingCourses.push({
-              ...canceledCourse,
-              time: canceledCourse.reservedTime.split(' ')[1]
-            });
-            
-            // 从已预约列表中删除
-            this.reservedCourses.splice(index, 1);
-            
-            uni.showToast({ 
-              title: '已取消预约',
-              icon: 'success',
-              duration: 2000
-            });
+          let replayUrl = '';
+          if (res.confirm && res.content) {
+            replayUrl = res.content;
           }
+          
+          // 再确认完成课程
+          uni.showModal({
+            title: '确认下课',
+            content: `确定完成${course.studentName}的${course.name}课程吗？`,
+            success: (confirmRes) => {
+              if (confirmRes.confirm) {
+                // 将课程从进行中移动到已完成
+                this.teacherCompletedCourses.push({
+                  ...course,
+                  completedTime: new Date().toISOString().split('T')[0],
+                  replayUrl: replayUrl
+                });
+                
+                // 从进行中列表中删除
+                this.teacherActiveCourses.splice(index, 1);
+                
+                uni.showToast({
+                  title: '课程已完成',
+                  icon: 'success',
+                  duration: 2000
+                });
+              }
+            }
+          });
         }
       });
     },
     
-    // 跳转到评价页面
-    goToAppraise(course) {
-      uni.navigateTo({
-        url: `/pages/mine/order/appraise/appraise?courseId=${course.id}&courseName=${course.name}&teacherName=${course.teacher}&price=${course.price}`
-      });
+    // 修改预约时间
+    modifyReservationTime(index) {
+      this.currentCourseIndex = index;
+      
+      // 如果已经选择了日期，则显示时间选择弹窗
+      if (this.selectedDate) {
+        this.showTimeSelectionDialog();
+      } else {
+        // 显示日历选择器
+        this.$refs.calendar.open();
+      }
+    },
+    
+    // 查看回访/回放
+    viewFeedback(course) {
+      if (course.replayUrl) {
+        // 如果有回放URL，跳转到回放页面
+        uni.showModal({
+          title: '查看回放',
+          content: '是否跳转到课程回放网页？',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到外部链接
+              this.openExternalLink(course.replayUrl);
+            }
+          }
+        });
+      } else {
+        // 默认跳转到评价页面
+        uni.navigateTo({
+          url: `/pages/mine/order/appraise/appraise?courseId=${course.id}&courseName=${course.name}&teacherName=${course.teacher}&price=${course.price}`
+        });
+      }
     },
     
     // 获取今天的日期
@@ -349,8 +636,224 @@ export default {
     // 加载课程数据
     loadCourseData() {
       // 真实环境中可以从服务器获取数据
-      console.log('加载课程数据');
-    }
+      console.log('加载课程数据，当前角色:', this.userRole);
+      
+      // 根据用户角色加载不同的数据
+      if (this.userRole === 'teacher') {
+        console.log('加载老师课程数据');
+        this.initTeacherData();
+        
+        // 确保使用老师的标签页索引
+        this.teacherCurrentTab = 0;
+      } else {
+        console.log('加载学生课程数据');
+        // 为学生角色初始化数据（如果需要的话）
+        // 这里使用的是已有的默认数据，如果需要可以添加initStudentData方法
+        
+        // 确保使用学生的标签页索引
+        this.currentTab = 0;
+      }
+    },
+
+    // 处理老师界面的导航栏切换事件
+    onTeacherTabChange(index) {
+      console.log('老师模式标签切换:', index);
+      this.teacherCurrentTab = index;
+      
+      // 触发必要的数据加载或UI更新
+      if (index === 0) {
+        // 待接受课程
+        console.log('切换到老师-待接受课程标签');
+      } else if (index === 1) {
+        // 进行中课程
+        console.log('切换到老师-进行中课程标签');
+      } else if (index === 2) {
+        // 已完成课程
+        console.log('切换到老师-已完成课程标签');
+      }
+    },
+    
+    // 初始化教师数据
+    initTeacherData() {
+      console.log('初始化教师数据');
+      
+      // 模拟从服务器获取教师相关数据
+      this.teacherPendingCourses = [
+        {
+          id: 101,
+          name: "考研政治精讲班",
+          studentName: "张同学",
+          price: 399,
+          image: "/static/images/default_avatar.png"
+        },
+        {
+          id: 102,
+          name: "考研数学基础班",
+          studentName: "李同学",
+          price: 499,
+          image: "/static/images/default_avatar.png"
+        }
+      ];
+      
+      this.teacherActiveCourses = [
+        {
+          id: 103,
+          name: "考研英语词汇班",
+          studentName: "王同学",
+          price: 349,
+          classTime: "2023-12-20 15:00",
+          image: "/static/images/default_avatar.png"
+        }
+      ];
+      
+      this.teacherCompletedCourses = [
+        {
+          id: 104,
+          name: "计算机专业课辅导",
+          studentName: "赵同学",
+          price: 549,
+          completedTime: "2023-12-10",
+          image: "/static/images/default_avatar.png",
+          replayUrl: "https://meeting.tencent.com/v2/cloud-record/share?id=9a0c7f38-5e12-4d1d-a53e-94ed126aa3bb&from=3"
+        }
+      ];
+    },
+    
+    // 实现老师界面的各个功能方法
+    acceptCourse(index) {
+      const course = this.teacherPendingCourses[index];
+      uni.showModal({
+        title: '接受预约',
+        content: `确定接受${course.studentName}的${course.name}课程预约吗？`,
+        success: (res) => {
+          if (res.confirm) {
+            // 将课程从待接受移动到进行中
+            this.teacherActiveCourses.push({
+              ...course,
+              classTime: this.getRandomFutureTime()
+            });
+            
+            // 从待接受列表中删除
+            this.teacherPendingCourses.splice(index, 1);
+            
+            uni.showToast({
+              title: '已接受预约',
+              icon: 'success',
+              duration: 2000
+            });
+          }
+        }
+      });
+    },
+    
+    rescheduleClass(index) {
+      const course = this.teacherActiveCourses[index];
+      uni.showModal({
+        title: '调整时间',
+        content: `当前时间：${course.classTime}\n是否需要重新安排时间？`,
+        success: (res) => {
+          if (res.confirm) {
+            // 模拟调整时间逻辑
+            const newTime = this.getRandomFutureTime();
+            this.teacherActiveCourses[index].classTime = newTime;
+            
+            uni.showToast({
+              title: '时间已调整',
+              icon: 'success',
+              duration: 2000
+            });
+          }
+        }
+      });
+    },
+    
+    viewClassFeedback(item) {
+      if (item.replayUrl) {
+        // 如果有回放URL，跳转到回放页面
+        uni.showModal({
+          title: '查看回放',
+          content: '是否跳转到课程回放网页？',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到外部链接
+              this.openExternalLink(item.replayUrl);
+            }
+          }
+        });
+      } else {
+        // 默认显示评价内容
+        uni.showModal({
+          title: '学生评价',
+          content: `${item.studentName}对本课程的评价：\n非常棒的课程，讲解清晰，收获很多！`,
+          showCancel: false
+        });
+      }
+    },
+    
+    // 生成随机未来时间（辅助方法）
+    getRandomFutureTime() {
+      const now = new Date();
+      // 随机1-7天内的某个时间
+      const futureDate = new Date(now.getTime() + (1 + Math.floor(Math.random() * 7)) * 24 * 60 * 60 * 1000);
+      const year = futureDate.getFullYear();
+      const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+      const day = String(futureDate.getDate()).padStart(2, '0');
+      const hours = ['09', '10', '14', '15', '16', '19', '20'][Math.floor(Math.random() * 7)];
+      const minutes = ['00', '30'][Math.floor(Math.random() * 2)];
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    },
+    
+    // 通用方法：打开外部链接（兼容多端）
+    openExternalLink(url) {
+      // 根据平台不同使用不同的方式打开外部链接
+      // #ifdef APP-PLUS
+      // APP环境下使用plus打开外部浏览器
+      plus.runtime.openURL(url);
+      // #endif
+      
+      // #ifdef H5
+      // H5环境下使用window.open
+      window.open(url, '_blank');
+      // #endif
+      
+      // #ifdef MP-WEIXIN || MP-ALIPAY || MP-BAIDU || MP-TOUTIAO || MP-QQ
+      // 小程序环境下使用uni.navigateTo跳转到web-view页面
+      uni.navigateTo({
+        url: `/pages/webview/webview?url=${encodeURIComponent(url)}`
+      });
+      // #endif
+      
+      // 其他环境
+      console.log('跳转到外部链接:', url);
+    },
+
+    // 确认下课
+    confirmClassEnd(index) {
+      uni.showModal({
+        title: '确认下课',
+        content: '确定要确认下课吗？',
+        success: (res) => {
+          if (res.confirm) {
+            // 将课程状态修改为已完成
+            const completedCourse = this.reservedCourses[index];
+            this.completedCourses.push({
+              ...completedCourse,
+              completedTime: new Date().toISOString().split('T')[0]
+            });
+            
+            // 从已预约列表中删除
+            this.reservedCourses.splice(index, 1);
+            
+            uni.showToast({ 
+              title: '已确认下课',
+              icon: 'success',
+              duration: 2000
+            });
+          }
+        }
+      });
+    },
   }
 };
 </script>
@@ -365,11 +868,12 @@ export default {
 }
 
 .page-content {
-  padding: 30rpx;
+  padding: 10rpx 30rpx;
 }
 
 .course-list {
-  height: calc(100vh - 180rpx);
+  height: calc(100vh - 130rpx);
+  margin-top: 5rpx;
 }
 
 /* 已选择日期信息样式 */
@@ -378,8 +882,8 @@ export default {
   flex-direction: row;
   align-items: center;
   background-color: #ffffff;
-  margin: 20rpx 0;
-  padding: 25rpx;
+  margin: 10rpx 0;
+  padding: 20rpx;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
   border-left: 8rpx solid #3a86ff;
@@ -412,123 +916,100 @@ export default {
 /* 课程项目样式 */
 .course-item {
   display: flex;
+  flex-direction: row;
   background-color: #ffffff;
-  padding: 30rpx;
+  height: 250rpx;
+  padding: 20rpx;
   margin-bottom: 25rpx;
   border-radius: 16rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
-  border-bottom: 3px solid #eaeef5;
-  transition: all 0.3s ease;
+  position: relative;
 }
 
-.course-item:active {
-  transform: scale(0.98);
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+.avatar-container {
+  margin-right: 20rpx;
 }
 
-.course-img {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 12rpx;
-  margin-right: 25rpx;
-  border: 1px solid #e5e9f2;
-  background-color: #f7f9fc;
+.avatar-circle {
+  width: 130rpx;
+  height: 130rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.avatar-text {
+  font-size: 46rpx;
+  color: #666666;
 }
 
 .course-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  padding-top: 0;
 }
 
 .course-name {
-  font-size: 34rpx;
+  font-size: 38rpx;
   color: #2c3e50;
   font-weight: bold;
-  margin-bottom: 12rpx;
-  line-height: 1.4;
+  margin-bottom: 8rpx;
+  line-height: 1.1;
+  text-align: left;
 }
 
-.course-teacher {
-  font-size: 28rpx;
+.course-teacher, .course-type, .course-lessons {
+  font-size: 26rpx;
   color: #5d6b89;
-  margin-bottom: 10rpx;
-  display: flex;
-  align-items: center;
+  margin-bottom: 4rpx;
+  line-height: 1.2;
+  text-align: left;
+  padding: 2rpx 0;
 }
 
-.course-teacher::before {
-  content: "";
-  display: inline-block;
-  width: 6rpx;
-  height: 6rpx;
-  background-color: #5d6b89;
-  border-radius: 50%;
-  margin-right: 8rpx;
+.price-container, .price-label, .course-price {
+  /* 删除这些样式 */
+  display: none;
 }
 
-.course-time {
-  font-size: 28rpx;
-  color: #5d6b89;
-  margin-bottom: 10rpx;
-  display: flex;
-  align-items: center;
-}
-
-.course-time::before {
-  content: "";
-  display: inline-block;
-  width: 6rpx;
-  height: 6rpx;
-  background-color: #5d6b89;
-  border-radius: 50%;
-  margin-right: 8rpx;
-}
-
-.course-price {
-  font-size: 36rpx;
-  color: #ff5a5f;
-  font-weight: bold;
-}
-
-.reserve-btn {
-  background: linear-gradient(135deg, #3a86ff, #4361ee);
-  color: white;
-  border-radius: 40rpx;
-  padding: 0 35rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  font-size: 28rpx;
+.reserve-btn, .view-feedback-btn {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  border-radius: 30rpx;
+  padding: 0 25rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
   font-weight: 500;
-  align-self: center;
-  box-shadow: 0 6rpx 12rpx rgba(67, 97, 238, 0.2);
+  background-color: #999999;
+  color: white;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
-.cancel-btn {
-  background: linear-gradient(135deg, #ff5a5f, #ff8a8e);
-  color: white;
-  border-radius: 40rpx;
-  padding: 0 35rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  font-size: 28rpx;
+.confirm-class-btn, .modify-time-btn {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  border-radius: 30rpx;
+  padding: 0 25rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
   font-weight: 500;
-  align-self: center;
-  box-shadow: 0 6rpx 12rpx rgba(255, 90, 95, 0.2);
+  background-color: #999999;
+  color: white;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
-.review-btn {
-  background: linear-gradient(135deg, #ff9e00, #ffb347);
-  color: white;
-  border-radius: 40rpx;
-  padding: 0 35rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  font-size: 28rpx;
-  font-weight: 500;
-  align-self: center;
-  box-shadow: 0 6rpx 12rpx rgba(255, 158, 0, 0.2);
+.confirm-class-btn {
+  position: absolute !important;
+  left: 20rpx !important;
+  right: auto !important;
 }
 
 .empty-tip {
@@ -538,5 +1019,13 @@ export default {
   color: #8c9db5;
   font-size: 30rpx;
   font-weight: 500;
+}
+
+.tab-container {
+  flex-direction: row;
+  height: 60rpx; /* 进一步降低高度 */
+  background-color: #ffffff;
+  border-bottom-width: 1rpx;
+  border-bottom-color: #eeeeee;
 }
 </style>    

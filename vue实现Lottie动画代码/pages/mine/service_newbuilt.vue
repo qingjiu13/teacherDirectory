@@ -1,18 +1,12 @@
 <template>
-  <view class="service-edit-container">
-    <!-- 顶部导航 -->
-    <view class="header">
-      <view class="back-btn" @click="goBack">
-        <text>←</text>
-      </view>
-    </view>
-    
+  <view>
     <!-- 表单区域 -->
     <view class="form-container">
-      <!-- 服务类型 -->
-      <view class="form-item">
-        <view class="form-label">服务类型</view>
-        <view class="combobox-container">
+      <!-- 服务类型和节数在一行 -->
+      <view class="row-container">
+        <!-- 服务类型 -->
+        <view class="form-item1">
+          <view class="form-label">服务类型</view>
           <choice-selected
             :choiceIndex="selectedServiceTypeIndex"
             :choiceList="serviceTypes"
@@ -20,16 +14,131 @@
             @onChoiceClick="handleServiceTypeSelect"
           ></choice-selected>
         </view>
+        
+        <!-- 节数 (一对一课程) -->
+        <view class="form-item1" v-if="selectedServiceType === '一对一课程'">
+          <view class="form-label"></view>
+          <choice-selected
+          class="combobox-container"
+            :choiceIndex="selectedLessonsIndex"
+            :choiceList="lessonOptions"
+            :defaultText="'请选择节数'"
+            @onChoiceClick="handleLessonsSelect"
+          ></choice-selected>
+        </view>
+        
+        <!-- 课时 (一对多课程) -->
+        <view class="form-item1" v-if="selectedServiceType === '一对多课程'">
+          <view class="form-label"></view>
+          <choice-selected
+            class="combobox-container"
+            :choiceIndex="selectedLessonsIndex"
+            :choiceList="lessonOptions"
+            :defaultText="'请选择节数'"
+            @onChoiceClick="handleLessonsSelect"
+          ></choice-selected>
+        </view>
       </view>
       
-      <!-- 课程时长 -->
-      <view class="form-item" v-if="showDuration">
-        <view class="form-label">单次课程时长 (选择学习资料不显示)</view>
-        <input 
-          class="form-input" 
-          type="text" 
-          placeholder="按照min填写，如45min~" 
-          v-model="duration"
+      <!-- 一对一课程专用字段 -->
+      <block v-if="selectedServiceType === '一对一课程'">
+        <!-- 课程总时长 -->
+        <view class="row-container">
+          <!-- 小时 -->
+          <view class="form-item1">
+            <view class="form-label">课程总时长</view>
+            <choice-selected
+              :choiceIndex="selectedHoursIndex"
+              :choiceList="hourOptions"
+              :defaultText="'小时'"
+              @onChoiceClick="handleHoursSelect"
+            ></choice-selected>
+          </view>
+          
+          <!-- 分钟 -->
+          <view class="form-item1">
+            <view class="form-label"></view> 
+            <choice-selected
+              class="combobox-container"
+              :choiceIndex="selectedMinutesIndex"
+              :choiceList="minuteOptions"
+              :defaultText="'分钟'"
+              @onChoiceClick="handleMinutesSelect"
+            ></choice-selected>
+          </view>
+        </view>
+        
+        <!-- 服务名称 -->
+        <view class="form-item">
+          <view class="form-label">服务名称</view>
+          <input 
+            class="form-input" 
+            type="text" 
+            placeholder="请填写" 
+            v-model="serviceName"
+          />
+        </view>
+      </block>
+      
+      <!-- 一对多课程专用字段 -->
+      <block v-if="selectedServiceType === '一对多课程'">
+        <!-- 课程总时长 -->
+        <view class="row-container">
+          <!-- 小时 -->
+          <view class="form-item1">
+            <view class="form-label">课程总时长</view>
+            <choice-selected
+              :choiceIndex="selectedMultiHoursIndex"
+              :choiceList="hourOptions"
+              :defaultText="'小时'"
+              @onChoiceClick="handleMultiHoursSelect"
+            ></choice-selected>
+          </view>
+          
+          <!-- 分钟 -->
+          <view class="form-item1">
+            <view class="form-label"></view> 
+            <choice-selected
+            class="combobox-container"
+              :choiceIndex="selectedMultiMinutesIndex"
+              :choiceList="minuteOptions"
+              :defaultText="'分钟'"
+              @onChoiceClick="handleMultiMinutesSelect"
+            ></choice-selected>
+          </view>
+        </view>
+        
+        <!-- 课程人数 -->
+        <view class="form-item">
+          <view class="form-label">课程人数</view>
+          <choice-selected
+            :choiceIndex="selectedPersonCountIndex"
+            :choiceList="personCountOptions"
+            :defaultText="'请选择课程人数'"
+            @onChoiceClick="handlePersonCountSelect"
+          ></choice-selected>
+        </view>
+        
+        <!-- 服务名称 -->
+        <view class="form-item">
+          <view class="form-label">服务名称</view>
+          <input 
+            class="form-input" 
+            type="text" 
+            placeholder="请填写" 
+            v-model="multiServiceName"
+          />
+        </view>
+      </block>
+      
+      <!-- 学习资料类型字段 -->
+      <view class="form-item" v-if="selectedServiceType === '学习资料'">
+        <view class="form-label">课程数量</view>
+        <input
+          class="form-input"
+          type="number"
+          placeholder="请输入课程数量"
+          v-model.number="coursequantity"
         />
       </view>
       
@@ -65,8 +174,8 @@
     
     <!-- 底部按钮 -->
     <view class="submit-btn" @click="submitForm">
-      <text>提交信息/完成修改</text>
-      <text class="lightning-icon">⚡</text>
+      <text v-if="mode === 'add'">提交信息</text>
+      <text v-else>完成修改</text>
     </view>
     
     <!-- 加载动画组件 -->
@@ -90,21 +199,11 @@ export default {
       selectedServiceType: '',
       selectedServiceTypeIndex: -1,
       serviceTypes: [
-        '考研全年VIP班',
-        '考研政治精讲班',
-        '考研英语强化班',
-        '专业课一对一定制',
-        '考研数学基础班',
-        '考研复试指导班',
-        '考研暑期集训营',
-        '考研考前冲刺班',
-        '考研专业课资料包',
-        '考研院校专业选择指导',
         '一对一课程',
-        '小组课程',
-        '学习资料',
-        '专业辅导'
+       '一对多课程',
+       '学习资料'
       ],
+      coursequantity: '',
       showServiceTypeDropdown: false,
       duration: '',
       description: '',
@@ -112,7 +211,25 @@ export default {
       files: [],
       showDuration: true,
       showAttachment: false,
-      originalService: null // 保存原始服务数据
+      originalService: null, // 保存原始服务数据
+      
+      // 一对一课程相关数据
+      serviceName: '',
+      selectedLessonsIndex: -1,
+      lessonOptions: ['1', '2', '3', '4', '5', '6', '7', '8','9','10'],
+      selectedHoursIndex: -1,
+      hourOptions: ['1', '2', '3', '4', '5', '6', '8', '10'],
+      selectedMinutesIndex: -1,
+      minuteOptions: ['0', '15', '30', '45'],
+      
+      // 一对多课程相关数据
+      selectedMultiLessonsIndex: -1,
+      multiLessonOptions: ['1', '2', '3', '4', '5', '6', '7', '20'],
+      selectedMultiHoursIndex: -1,
+      selectedMultiMinutesIndex: -1,
+      multiServiceName: '',
+      selectedPersonCountIndex: -1,
+      personCountOptions: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
     }
   },
   onLoad(options) {
@@ -151,10 +268,52 @@ export default {
       // 设置描述
       this.description = serviceData.description || ''
       
-      // 设置持续时间（如果有）
-      this.duration = serviceData.duration || ''
+      // 根据服务类型设置不同的字段
+      if (this.selectedServiceType === '一对一课程') {
+        // 设置服务名称
+        this.serviceName = serviceData.serviceName || ''
+        
+        // 设置节数
+        if (serviceData.lessons) {
+          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => l === serviceData.lessons.toString())
+        }
+        
+        // 解析总时长的小时和分钟
+        if (serviceData.totalDuration) {
+          const match = serviceData.totalDuration.match(/(\d+)小时(\d+)分钟/)
+          if (match) {
+            this.selectedHoursIndex = this.hourOptions.findIndex(h => h === match[1])
+            this.selectedMinutesIndex = this.minuteOptions.findIndex(m => m === match[2])
+          }
+        }
+      } else if (this.selectedServiceType === '一对多课程') {
+        // 设置服务名称
+        this.multiServiceName = serviceData.serviceName || ''
+        
+        // 设置课时
+        if (serviceData.lessons) {
+          this.selectedMultiLessonsIndex = this.multiLessonOptions.findIndex(l => l === serviceData.lessons.toString())
+        }
+        
+        // 解析总时长的小时和分钟
+        if (serviceData.totalDuration) {
+          const match = serviceData.totalDuration.match(/(\d+)小时(\d+)分钟/)
+          if (match) {
+            this.selectedMultiHoursIndex = this.hourOptions.findIndex(h => h === match[1])
+            this.selectedMultiMinutesIndex = this.minuteOptions.findIndex(m => m === match[2])
+          }
+        }
+        
+        // 设置课程人数
+        if (serviceData.personCount) {
+          this.selectedPersonCountIndex = this.personCountOptions.findIndex(p => p === serviceData.personCount.toString())
+        }
+      } else {
+        // 学习资料类型
+        this.coursequantity = serviceData.coursequantity || ''
+      }
       
-      // 根据服务类型决定是否显示某些表单项
+      // 更新表单字段显示
       this.updateFormFields()
     },
     goBack() {
@@ -166,6 +325,27 @@ export default {
       
       // 更新表单字段显示
       this.updateFormFields()
+    },
+    handleLessonsSelect(index) {
+      this.selectedLessonsIndex = index
+    },
+    handleHoursSelect(index) {
+      this.selectedHoursIndex = index
+    },
+    handleMinutesSelect(index) {
+      this.selectedMinutesIndex = index
+    },
+    handleMultiLessonsSelect(index) {
+      this.selectedMultiLessonsIndex = index
+    },
+    handleMultiHoursSelect(index) {
+      this.selectedMultiHoursIndex = index
+    },
+    handleMultiMinutesSelect(index) {
+      this.selectedMultiMinutesIndex = index
+    },
+    handlePersonCountSelect(index) {
+      this.selectedPersonCountIndex = index
     },
     updateFormFields() {
       // 根据服务类型显示或隐藏某些表单项
@@ -199,13 +379,83 @@ export default {
         return
       }
       
-      if (this.showDuration && !this.duration) {
-        uni.showToast({
-          title: '请填写课程时长',
-          icon: 'none'
-        })
-        this.$refs.loadingRef.hide()
-        return
+      // 一对一课程的特殊验证
+      if (this.selectedServiceType === '一对一课程') {
+        if (this.selectedLessonsIndex === -1) {
+          uni.showToast({
+            title: '请选择课程节数',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+        
+        if (this.selectedHoursIndex === -1 || this.selectedMinutesIndex === -1) {
+          uni.showToast({
+            title: '请选择课程时长',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+        
+        if (!this.serviceName) {
+          uni.showToast({
+            title: '请填写服务名称',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+      } 
+      // 一对多课程的特殊验证
+      else if (this.selectedServiceType === '一对多课程') {
+        if (this.selectedMultiLessonsIndex === -1) {
+          uni.showToast({
+            title: '请选择课时',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+        
+        if (this.selectedMultiHoursIndex === -1 || this.selectedMultiMinutesIndex === -1) {
+          uni.showToast({
+            title: '请选择课程时长',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+        
+        if (!this.multiServiceName) {
+          uni.showToast({
+            title: '请填写服务名称',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+        
+        if (this.selectedPersonCountIndex === -1) {
+          uni.showToast({
+            title: '请选择课程人数',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
+      } 
+      // 学习资料类型验证
+      else if (this.selectedServiceType === '学习资料') {
+        if (!this.coursequantity) {
+          uni.showToast({
+            title: '请填写课程数量',
+            icon: 'none'
+          })
+          this.$refs.loadingRef.hide()
+          return
+        }
       }
       
       if (!this.price) {
@@ -222,9 +472,26 @@ export default {
         name: this.selectedServiceType,
         price: this.price.startsWith('¥') ? this.price : '¥' + this.price,
         description: this.description || `这是一个${this.selectedServiceType}服务`,
-        duration: this.duration,
         checked: false,
         imageUrl: this.files.length > 0 ? this.files[0] : '/static/images/kaoyan' + Math.floor(Math.random() * 4 + 1) + '.jpg'
+      }
+      
+      // 为一对一课程添加特殊字段
+      if (this.selectedServiceType === '一对一课程') {
+        serviceData.serviceName = this.serviceName
+        serviceData.lessons = this.lessonOptions[this.selectedLessonsIndex]
+        serviceData.totalDuration = `${this.hourOptions[this.selectedHoursIndex]}小时${this.minuteOptions[this.selectedMinutesIndex]}分钟`
+      } 
+      // 为一对多课程添加特殊字段
+      else if (this.selectedServiceType === '一对多课程') {
+        serviceData.serviceName = this.multiServiceName
+        serviceData.lessons = this.multiLessonOptions[this.selectedMultiLessonsIndex]
+        serviceData.totalDuration = `${this.hourOptions[this.selectedMultiHoursIndex]}小时${this.minuteOptions[this.selectedMultiMinutesIndex]}分钟`
+        serviceData.personCount = this.personCountOptions[this.selectedPersonCountIndex]
+      } 
+      // 其他服务类型
+      else {
+        serviceData.coursequantity = this.coursequantity
       }
       
       // 根据模式执行不同操作
@@ -358,6 +625,7 @@ export default {
 </script>
 
 <style>
+/* 服务编辑容器 */
 .service-edit-container {
   padding: 30rpx;
   background-color: #f5f7fa;
@@ -366,59 +634,7 @@ export default {
   flex-direction: column;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40rpx;
-  padding: 20rpx 0;
-  position: relative;
-  height: 90rpx;
-}
-
-.back-btn {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 76rpx;
-  height: 76rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #4A6FE3, #7E57C2);
-  border-radius: 50%;
-  box-shadow: 0 6rpx 16rpx rgba(74, 111, 227, 0.3);
-  z-index: 10;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.back-btn::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #7E57C2, #4A6FE3);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 50%;
-}
-
-.back-btn:active {
-  transform: translateY(-50%) scale(0.92);
-  box-shadow: 0 3rpx 10rpx rgba(74, 111, 227, 0.2);
-}
-
-.back-btn:active::after {
-  opacity: 1;
-}
-
+/* 表单容器 */
 .form-container {
   flex: 1;
   display: flex;
@@ -426,24 +642,69 @@ export default {
   gap: 30rpx;
 }
 
-.form-item {
+/* 一行布局容器 */
+.row-container {
   display: flex;
-  flex-direction: column;
-  position: relative;
+  flex-direction: row;
+  gap: 20rpx; /* 减小元素间距 */
+  margin-bottom: 20rpx;
 }
 
-.form-label {
+.one-to-one-container{
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+/* 特殊对齐的两行 */
+.form-item1 {
+  display: flex;
+  flex-direction: column;
+  width: 48%;
+}
+/* 标准表单项保持垂直布局 */
+.form-item {
+  display: flex;  
+  flex-direction: column;
+  position: relative;
+  margin-bottom: 15rpx;
+  width: 100%;
+}
+
+/* 表单标签 */
+.form-label, .coursequantity {
   font-size: 30rpx;
   font-weight: 500;
   color: #333;
   margin-bottom: 16rpx;
 }
 
+/* 表单选择器容器 */
 .combobox-container {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 40%;
 }
 
-.form-input, .form-select {
+/* 课程时长容器 */
+.duration-container {
+  display: flex;
+  gap: 16rpx;
+  justify-content: space-between;
+}
+
+/* 课程时长项 */
+.duration-item {
+  width: 40%;
+  max-width: 340rpx;
+}
+
+/* 课时和分钟定位 */
+.combobox-container{
+  position: relative;
+  top: 37rpx;
+}
+/* 表单输入框 */
+.form-input, .form-select{
   height: 90rpx;
   background-color: #fff;
   border-radius: 10rpx;
@@ -453,6 +714,7 @@ export default {
   border: 2rpx solid #eee;
 }
 
+/* 表单文本域 */
 .form-textarea {
   height: 200rpx;
   background-color: #fff;
@@ -464,6 +726,7 @@ export default {
   width: calc(100% - 44rpx);
 }
 
+/* 附件上传区域 */
 .upload-area {
   width: 140rpx;
   height: 140rpx;
@@ -476,15 +739,17 @@ export default {
   border: 2rpx solid #ddd;
 }
 
+/* 附件上传图标 */
 .plus-icon {
   font-size: 72rpx;
   color: #ddd;
   font-weight: 300;
 }
 
+/* 提交按钮 */
 .submit-btn {
   height: 90rpx;
-  background: linear-gradient(135deg, #4A6FE3, #7E57C2);
+  background:#494747;
   border-radius: 45rpx;
   display: flex;
   align-items: center;
@@ -493,18 +758,33 @@ export default {
   font-size: 32rpx;
   font-weight: 500;
   margin-top: 60rpx;
-  box-shadow: 0 6rpx 16rpx rgba(74, 111, 227, 0.3);
   position: relative;
   transition: all 0.3s ease;
 }
 
+/* 提交按钮点击效果 */  
 .submit-btn:active {
   transform: scale(0.98);
   box-shadow: 0 3rpx 10rpx rgba(74, 111, 227, 0.2);
 }
 
+/* 提交按钮图标 */
 .lightning-icon {
   margin-left: 10rpx;
   font-size: 32rpx;
+}
+
+.side-by-side-container {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.duration-hours {
+  flex: 1;
+}
+
+.duration-minutes {
+  flex: 1;
 }
 </style>

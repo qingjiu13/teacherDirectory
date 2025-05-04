@@ -2,9 +2,9 @@
   <view class="service-container">
     <!-- 顶部导航 -->
     <view class="header">
-      <view class="back-btn" @click="goBack">
+      <!-- <view class="back-btn" @click="goBack">
         <text>←</text>
-      </view>
+      </view> -->
       <view class="add-btn" @click="handleAddService">
         <text class="plus">+</text>
         <text>新增</text>
@@ -370,73 +370,31 @@ export default {
 </script>
 
 <style>
+/* 服务容器 */
 .service-container {
   padding: 30rpx;
   background-color: #f5f7fa;
   min-height: 100vh;
 }
-
+/* 头部 */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40rpx;
+  margin-bottom: 0rpx;
   padding: 35rpx 0;
   position: relative;
-  height: 90rpx;
+  height: 50rpx;
 }
-
-.back-btn {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 76rpx;
-  height: 76rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #4A6FE3, #7E57C2);
-  border-radius: 50%;
-  box-shadow: 0 6rpx 16rpx rgba(74, 111, 227, 0.3);
-  z-index: 10;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.back-btn::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #7E57C2, #4A6FE3);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  border-radius: 50%;
-}
-
-.back-btn:active {
-  transform: translateY(-50%) scale(0.92);
-  box-shadow: 0 3rpx 10rpx rgba(74, 111, 227, 0.2);
-}
-
-.back-btn:active::after {
-  opacity: 1;
-}
-
+/* 添加按钮 */
 .add-btn {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #4A6FE3, #7E57C2);
+  
   padding: 8rpx 20rpx;
   border-radius: 25rpx;
-  color: #fff;
-  box-shadow: 0 4rpx 10rpx rgba(74, 111, 227, 0.3);
+  background-color: #f0f0f0;
+ 
   transition: all 0.3s ease;
   position: absolute;
   right: 0;
@@ -444,23 +402,23 @@ export default {
   transform: translateY(-50%);
   font-size: 24rpx;
 }
-
+/* 添加按钮点击效果 */
 .add-btn:active {
   transform: translateY(-50%) scale(0.96);
 }
-
+/* 添加按钮图标 */
 .plus {
   margin-right: 6rpx;
   font-weight: bold;
 }
-
+/* 服务列表 */
 .service-list {
   display: flex;
   flex-direction: column;
   gap: 30rpx;
   padding-top: 10rpx;
 }
-
+/* 服务卡片 */
 .service-card {
   background-color: #fff;
   border-radius: 20rpx;
@@ -468,20 +426,21 @@ export default {
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
 }
-
+/* 选中服务卡片 */
 .active-card {
   border-left: 6rpx solid #4A6FE3;
   transform: translateX(5rpx);
 }
-
+/* 服务信息 */  
 .service-info {
   display: flex;
-  align-items: center;
 }
-
+/* 头像框 */
 .service-thumb {
-  width: 120rpx;
-  height: 120rpx;
+  position: ralative;
+  top:20px; 
+  width: 150rpx;
+  height: 150rpx;
   background-color: #f0f0f0;
   border-radius: 12rpx;
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.08);
@@ -489,14 +448,19 @@ export default {
   flex-shrink: 0;
   margin-right: 25rpx;
 }
-
+/* 服务名称和价格容器 */
 .service-details {
+margin-top: -100rpx;
+min-height: 200rpx;
   flex: 1;
   overflow: hidden;
 }
-
+/* 服务名称 */
 .service-name {
-  font-size: 36rpx;
+  position:relative;
+bottom:5rpx;
+left:300rpx;
+  font-size: 45rpx;
   font-weight: 600;
   margin-bottom: 15rpx;
   color: #333;
@@ -504,35 +468,43 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
+/* 服务价格 */
 .service-price {
-  font-size: 30rpx;
-  color: #4A6FE3;
+  position:relative;
+  left:300rpx;
+  font-size: 40rpx;
+  color: #0f0000;
   font-weight: 500;
 }
-
+/* 操作按键容器 */
 .action-buttons {
   display: flex;
+  flex-direction: row;
+  width: 800rpx;
   gap: 15rpx;
   flex-shrink: 0;
   margin-left: 20rpx;
 }
-
+/* 修改按钮 */
 .edit-btn {
+  position: relative;
+  left: 380rpx;
   padding: 8rpx 20rpx;
-  background-color: #f2f5fd;
+  background-color: #c9ccd4;
   border-radius: 25rpx;
-  font-size: 24rpx;
-  color: #4A6FE3;
+  font-size: 40rpx;
+  color: #070101a9;
   transition: all 0.3s ease;
 }
-
+/* 删除按钮 */
 .delete-btn {
+  position: relative;
+  left:380rpx;
   padding: 8rpx 20rpx;
-  background-color: #fff0f0;
+  background-color: #c9ccd4;
   border-radius: 25rpx;
-  font-size: 24rpx;
-  color: #ff4d4f;
+  font-size: 40rpx;
+  color: #090202;
   transition: all 0.3s ease;
 }
 
@@ -543,7 +515,7 @@ export default {
 .delete-btn:active {
   background-color: #ffd6d6;
 }
-
+/* 服务详情卡片 */
 .service-detail-card {
   position: fixed;
   top: 50%;
@@ -561,13 +533,13 @@ export default {
   transition: all 0.3s ease;
   visibility: hidden;
 }
-
+/* 服务详情卡片展开 */
 .detail-card-expanded {
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
   visibility: visible;
 }
-
+/* 服务详情卡片关闭按钮 */
 .detail-close-btn {
   position: absolute;
   top: 15rpx;
@@ -581,7 +553,7 @@ export default {
   justify-content: center;
   z-index: 10;
 }
-
+/* 服务详情卡片头像 */
 .detail-thumb {
   width: 180rpx;
   height: 180rpx;
@@ -591,13 +563,13 @@ export default {
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
-
+/* 服务详情卡片信息 */  
 .detail-info {
   margin-bottom: 30rpx;
   padding-bottom: 20rpx;
   border-bottom: 2rpx solid #f2f5fd;
 }
-
+/* 服务详情卡片名称 */
 .detail-name {
   font-size: 36rpx;
   font-weight: 600;
@@ -605,20 +577,20 @@ export default {
   margin-bottom: 15rpx;
   color: #333;
 }
-
+/* 服务详情卡片价格 */
 .detail-price {
   font-size: 32rpx;
   color: #4A6FE3;
   text-align: center;
   font-weight: 500;
 }
-
+/* 服务详情卡片描述 */  
 .detail-description {
   font-size: 28rpx;
   color: #333;
   margin-top: 20rpx;
 }
-
+/* 服务详情卡片描述标题 */
 .description-title {
   display: block;
   font-size: 32rpx;
@@ -626,7 +598,7 @@ export default {
   margin-bottom: 15rpx;
   color: #333;
 }
-
+/* 服务详情卡片描述内容 */
 .description-content {
   display: block;
   font-size: 28rpx;
@@ -634,7 +606,7 @@ export default {
   line-height: 1.6;
   margin-bottom: 20rpx;
 }
-
+/* 服务详情卡片图片占位符 */
 .detail-image-placeholder {
   width: 100%;
   height: 240rpx;
@@ -646,12 +618,12 @@ export default {
   border-radius: 12rpx;
   border: 2rpx dashed #ddd;
 }
-
+/* 服务详情卡片图片图标 */
 .image-icon {
   font-size: 60rpx;
   color: #ccc;
 }
-
+/* 服务详情卡片遮罩层 */  
 .detail-overlay {
   position: fixed;
   top: 0;

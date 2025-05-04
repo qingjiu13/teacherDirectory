@@ -217,7 +217,6 @@ import { Navigator } from '@/router/Router.js'
 import ChoiceSelected from '../../components/combobox/combobox'
 import GraduateStore from '../../components/combobox/graduate_school_major.js'
 
-
 // 初始化 store
 const store = useStore()
 
@@ -269,7 +268,6 @@ const tabLabelMap = {
 const matchTeachers = computed(() => {
   return store.state.user.match.matchList || []
 })
-
 
 // 表单数据 - 由于只是临时UI状态，仍使用本地状态管理
 const formData = reactive({
