@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "研师录",
-  "usingComponents": {
-    "c-lottie": "../../uni_modules/c-lottie/components/c-lottie/c-lottie",
-    "tab-bar": "../../components/tab-bar/tab-bar"
-  }
-}

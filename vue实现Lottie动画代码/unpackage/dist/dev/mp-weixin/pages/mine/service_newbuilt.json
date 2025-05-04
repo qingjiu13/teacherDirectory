@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "新建服务",
-  "usingComponents": {
-    "loading": "../../components/loading-animation/loading",
-    "choice-selected": "../../components/combobox/combobox"
-  }
-}
