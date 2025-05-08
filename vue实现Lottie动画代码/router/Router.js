@@ -264,7 +264,7 @@ export const Navigator = {
 	/**
 	 * @description 跳转到新建服务页面
 	 */
-	toService() {
+	toServiceNewBuilt() {
 		this.navigateTo(MineRoutes.SERVICE_NEWBUILT);
 	},
 	
@@ -298,7 +298,7 @@ export const Navigator = {
 };
 
 /**
- * @description 默认导出路由与导航工具
+ * @description 默认导出路由导与航工具
  */
 export default {
 	// 路由分类

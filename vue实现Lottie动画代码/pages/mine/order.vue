@@ -316,10 +316,16 @@ export default {
   padding: 10rpx 30rpx;
   font-size: 24rpx;
   border-radius: 30rpx;
+  background-color: #ffffff;
 }
 
 .pay-btn {
   background-color: #007AFF;
+  color: #ffffff;
+}
+
+.pay-btn:active {
+  background-color: #0062cc;
   color: #ffffff;
 }
 
@@ -329,9 +335,19 @@ export default {
   border: 1rpx solid #007AFF;
 }
 
+.review-btn:active {
+  background-color: #f0f0f0;
+  color: #007AFF;
+}
+
 .cancel-btn {
   background-color: #ffffff;
   color: #999;
   border: 1rpx solid #999;
+}
+
+.cancel-btn:active {
+  background-color: #f0f0f0;
+  color: #999;
 }
 </style> 

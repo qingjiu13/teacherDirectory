@@ -23,7 +23,7 @@
         <view class="service-info">
           <view class="service-thumb" :style="{ backgroundImage: `url(${service.imageUrl})`, backgroundSize: 'cover' }"></view>
           <view class="service-details">
-            <view class="service-name">{{ service.name }}</view>
+            <view class="service-name">{{ service.serviceName || service.name }}</view>
             <view class="service-price">{{ service.price }}</view>
           </view>
           <view class="action-buttons" @click.stop>
@@ -38,7 +38,7 @@
         <view class="detail-close-btn" @click="hideServiceDetail">×</view>
         <view class="detail-thumb" :style="{ backgroundImage: `url(${selectedService.imageUrl})`, backgroundSize: 'cover' }"></view>
         <view class="detail-info">
-          <view class="detail-name">{{ selectedService.name }}</view>
+          <view class="detail-name">{{ selectedService.serviceName || selectedService.name }}</view>
           <view class="detail-price">{{ selectedService.price }}</view>
         </view>
         <view class="detail-description">

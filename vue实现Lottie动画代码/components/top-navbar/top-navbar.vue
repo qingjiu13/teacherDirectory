@@ -60,8 +60,8 @@
 					{ name: '已完成', id: 'tab3' }
 				],
 				teacherTabs: [
-					{ name: '待接受', id: 'tab1' },
-					{ name: '进行中', id: 'tab2' },
+					{ name: '待预约', id: 'tab1' },
+					{ name: '待开始', id: 'tab2' },
 					{ name: '已完成', id: 'tab3' }
 				],
 				currentTab: 0
