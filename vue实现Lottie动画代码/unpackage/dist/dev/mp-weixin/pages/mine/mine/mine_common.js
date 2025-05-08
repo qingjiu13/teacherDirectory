@@ -270,6 +270,9 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
      */
     toSubscribe() {
       router_Router.Navigator.toSubscribe();
+    },
+    toService() {
+      router_Router.Navigator.toService();
     }
   })
 }));
@@ -300,7 +303,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     m: _ctx.storeRole === "老师"
   }, _ctx.storeRole === "老师" ? {
-    n: common_vendor.o(($event) => $options.navigateTo(_ctx.MineRoutes.SERVICE))
+    n: common_vendor.o((...args) => $options.toService && $options.toService(...args))
   } : {}, {
     o: common_vendor.o((...args) => $options.toOrderCommon && $options.toOrderCommon(...args)),
     p: common_vendor.o((...args) => $options.toCourse && $options.toCourse(...args)),

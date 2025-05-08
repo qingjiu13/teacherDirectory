@@ -31,49 +31,76 @@
 }
 .order-item {
   background-color: #ffffff;
+  height: 300rpx;
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 20rpx;
 }
-.order-header {
-  flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 20rpx;
-}
-.order-time {
-  font-size: 24rpx;
-  color: #999999;
-}
-.order-status {
-  font-size: 24rpx;
-  color: #007AFF;
-}
 .order-content {
+  flex-direction: row;
+  align-items: center;
   margin-bottom: 20rpx;
+}
+.avatar-container {
+  margin-right: 20rpx;
+}
+.avatar-circle {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  justify-content: center;
+  align-items: center;
+}
+.avatar-text {
+  font-size: 36rpx;
+  color: #666666;
+}
+.order-info {
+  flex: 1;
+  padding-right: 20rpx;
 }
 .order-title {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #333333;
+  font-weight: 500;
   margin-bottom: 10rpx;
 }
-.order-price {
-  font-size: 32rpx;
-  color: #FF6B6B;
-  font-weight: bold;
-}
-.order-student {
-  font-size: 24rpx;
+.order-teacher, .order-student, .order-type {
+  font-size: 26rpx;
   color: #666666;
+  margin-bottom: 6rpx;
+}
+.order-price-container {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  height: 40rpx;
   margin-top: 10rpx;
+  z-index: 10;
+}
+.order-price-label {
+  font-size: 28rpx;
+  color: #333333;
+}
+.order-price {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: bold;
 }
 .order-footer {
   flex-direction: row;
   justify-content: flex-end;
+  margin-top: 10rpx;
 }
 .button-group {
+  width: 800rpx;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
+  margin-top: 20rpx;
 }
 .cancel-btn, .pay-btn, .confirm-btn {
   padding: 0 20rpx;
@@ -83,6 +110,8 @@
   font-size: 22rpx;
 }
 .cancel-btn {
+  position: relative;
+  right: 400rpx;
   background-color: #ffffff;
   color: #666666;
   border-width: 1rpx;

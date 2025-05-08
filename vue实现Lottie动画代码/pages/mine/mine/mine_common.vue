@@ -29,7 +29,7 @@
     <!-- 菜单列表 -->
     <view class="menu-list">
       <!-- 老师特有功能菜单 -->
-      <view v-if="storeRole === '老师'" class="menu-item" @click="navigateTo(MineRoutes.SERVICE)">
+      <view v-if="storeRole === '老师'" class="menu-item" @click="toService">
         <view class="icon-circle info">
           <text class="icon-text">⏱</text>
         </view>
@@ -388,6 +388,9 @@ export default {
      */
     toSubscribe() {
       Navigator.toSubscribe();
+    },
+    toService() {
+      Navigator.toService();
     }
   }
 }

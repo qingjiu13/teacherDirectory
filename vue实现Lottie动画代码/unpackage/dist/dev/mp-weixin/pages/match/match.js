@@ -217,9 +217,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           components_combobox_graduate_school_major.GraduateStore.mutations.initSchoolFuse(graduateStore.value);
           const schools = Object.keys(graduateStore.value.schools).slice(0, 50);
           targetSchoolList.value = schools;
-          common_vendor.index.__f__("log", "at pages/match/match.vue:541", "初始化研究生学校专业数据成功");
+          common_vendor.index.__f__("log", "at pages/match/match.vue:539", "初始化研究生学校专业数据成功");
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/match/match.vue:543", "初始化研究生学校专业数据失败:", error);
+          common_vendor.index.__f__("error", "at pages/match/match.vue:541", "初始化研究生学校专业数据失败:", error);
           targetSchoolList.value = ["北京大学", "清华大学", "复旦大学"];
         }
       });
