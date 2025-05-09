@@ -2,10 +2,6 @@
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const components_combobox_graduate_school_major = require("../../components/combobox/graduate_school_major.js");
-if (!Math) {
-  common_vendor.unref(ChoiceSelected)();
-}
-const ChoiceSelected = () => "../../components/combobox/combobox.js";
 const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "match",
   setup(__props) {
@@ -48,7 +44,6 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       otherIndex: -1,
       // 排序方式
       sortIndex: -1
-      // 排序方式索引
     }));
     const targetSchoolList = common_vendor.ref([]);
     const targetMajorList = common_vendor.ref([]);
@@ -58,6 +53,10 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const politicsOptions = common_vendor.ref(["政治必修", "政治选修"]);
     const otherOptions = common_vendor.ref(["经济学", "管理学", "教育学", "历史学"]);
     const sortOptions = common_vendor.ref(["综合评分从高到低", "价格从低到高", "价格从高到低", "最新发布"]);
+    const schoolInput = common_vendor.ref("");
+    const majorInput = common_vendor.ref("");
+    const filteredSchoolList = common_vendor.ref([]);
+    const filteredMajorList = common_vendor.ref([]);
     const oneToOneMatchPrice = (matchTeachers2 = null) => {
       const result = new UTSJSONObject({});
       if (!matchTeachers2 || !Array.isArray(matchTeachers2)) {
@@ -65,9 +64,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }
       matchTeachers2.forEach((teacher = null) => {
         var _a;
-        const oneToOneService = (_a = teacher.service) === null || _a === void 0 ? void 0 : _a.find((service = null) => {
+        const oneToOneService = (_a = teacher.service) === null || _a === void 0 ? null : _a.find((service = null) => {
           var _a2;
-          return ((_a2 = service.type) === null || _a2 === void 0 ? void 0 : _a2.typename) === "一对一课程";
+          return ((_a2 = service.type) === null || _a2 === void 0 ? null : _a2.typename) === "一对一课程";
         });
         if (oneToOneService) {
           const priceValue = parseFloat(oneToOneService.price.replace(/[^0-9.]/g, ""));
@@ -111,68 +110,80 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       syncStateToForm(key);
     };
     const syncStateToForm = (key = null) => {
-      switch (key) {
-        case "school":
-          if (store.state.user.match.schoolList) {
-            formData.targetSchool = store.state.user.match.schoolList;
-            const schoolIndex = targetSchoolList.value.findIndex((school) => {
-              return school === formData.targetSchool;
-            });
-            formData.targetSchoolIndex = schoolIndex >= 0 ? schoolIndex : -1;
+      if (key === "school") {
+        const schoolList = store.state.user.match.schoolList;
+        schoolInput.value = schoolList || "";
+        if (schoolList) {
+          formData.targetSchool = schoolList;
+          const idx = filteredSchoolList.value.findIndex((s) => {
+            return s === schoolList;
+          });
+          if (idx >= 0) {
+            formData.targetSchoolIndex = idx;
           }
-          break;
-        case "professional":
-          if (store.state.user.match.professionalList) {
-            formData.targetMajor = store.state.user.match.professionalList;
-            const majorIndex = targetMajorList.value.findIndex((major) => {
-              return major === formData.targetMajor;
-            });
-            formData.targetMajorIndex = majorIndex >= 0 ? majorIndex : -1;
+        }
+        updateFilteredSchoolList();
+      }
+      if (key === "professional") {
+        const professionalList = store.state.user.match.professionalList;
+        majorInput.value = professionalList || "";
+        if (professionalList) {
+          formData.targetMajor = professionalList;
+          const idx = filteredMajorList.value.findIndex((m) => {
+            return m === professionalList;
+          });
+          if (idx >= 0) {
+            formData.targetMajorIndex = idx;
           }
-          break;
-        case "nonProfessional":
-          const nonProfList = store.state.user.match.nonProfessionalList;
-          formData.mathIndex = -1;
-          formData.englishIndex = -1;
-          formData.politicsIndex = -1;
-          formData.otherIndex = -1;
-          activeNonProTab.value = "";
-          if (nonProfList.math) {
-            const mathIndex = mathOptions.value.findIndex((item) => {
-              return item === nonProfList.math;
-            });
-            formData.mathIndex = mathIndex >= 0 ? mathIndex : -1;
+        }
+        updateFilteredMajorList();
+      }
+      if (key === "nonProfessional") {
+        const nonProfList = store.state.user.match.nonProfessionalList;
+        if (nonProfList.math) {
+          const idx = mathOptions.value.findIndex((opt) => {
+            return opt === nonProfList.math;
+          });
+          if (idx >= 0) {
+            formData.mathIndex = idx;
             activeNonProTab.value = "math";
-          } else if (nonProfList.english) {
-            const englishIndex = englishOptions.value.findIndex((item) => {
-              return item === nonProfList.english;
-            });
-            formData.englishIndex = englishIndex >= 0 ? englishIndex : -1;
+          }
+        } else if (nonProfList.english) {
+          const idx = englishOptions.value.findIndex((opt) => {
+            return opt === nonProfList.english;
+          });
+          if (idx >= 0) {
+            formData.englishIndex = idx;
             activeNonProTab.value = "english";
-          } else if (nonProfList.politics) {
-            const politicsIndex = politicsOptions.value.findIndex((item) => {
-              return item === nonProfList.politics;
-            });
-            formData.politicsIndex = politicsIndex >= 0 ? politicsIndex : -1;
+          }
+        } else if (nonProfList.politics) {
+          const idx = politicsOptions.value.findIndex((opt) => {
+            return opt === nonProfList.politics;
+          });
+          if (idx >= 0) {
+            formData.politicsIndex = idx;
             activeNonProTab.value = "politics";
-          } else if (nonProfList.other) {
-            const otherIndex = otherOptions.value.findIndex((item) => {
-              return item === nonProfList.other;
-            });
-            formData.otherIndex = otherIndex >= 0 ? otherIndex : -1;
+          }
+        } else if (nonProfList.other) {
+          const idx = otherOptions.value.findIndex((opt) => {
+            return opt === nonProfList.other;
+          });
+          if (idx >= 0) {
+            formData.otherIndex = idx;
             activeNonProTab.value = "other";
           }
-          break;
-        case "sort":
-          if (store.state.user.match.sortMode) {
-            const sortIndex = sortOptions.value.findIndex((item) => {
-              return item === store.state.user.match.sortMode;
-            });
-            formData.sortIndex = sortIndex >= 0 ? sortIndex : -1;
-          } else {
-            formData.sortIndex = -1;
+        }
+      }
+      if (key === "sort") {
+        const sortMode = store.state.user.match.sortMode;
+        if (sortMode) {
+          const idx = sortOptions.value.findIndex((opt) => {
+            return opt === sortMode;
+          });
+          if (idx >= 0) {
+            formData.sortIndex = idx;
           }
-          break;
+        }
       }
     };
     const onPopupClose = () => {
@@ -191,7 +202,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           }
         }), school);
         if (graduateStore.value.schools[school]) {
-          targetMajorList.value = graduateStore.value.schools[school].slice(0, 20);
+          graduateStore.value.schools[school].length;
+          targetMajorList.value = graduateStore.value.schools[school].slice(0, 100);
           if (store.state.user.match.professionalList) {
             const savedMajor = store.state.user.match.professionalList;
             const majorIndex = targetMajorList.value.findIndex((major) => {
@@ -217,24 +229,147 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           components_combobox_graduate_school_major.GraduateStore.mutations.initSchoolFuse(graduateStore.value);
           const schools = Object.keys(graduateStore.value.schools).slice(0, 50);
           targetSchoolList.value = schools;
-          common_vendor.index.__f__("log", "at pages/match/match.vue:539", "初始化研究生学校专业数据成功");
         } catch (error) {
-          common_vendor.index.__f__("error", "at pages/match/match.vue:541", "初始化研究生学校专业数据失败:", error);
           targetSchoolList.value = ["北京大学", "清华大学", "复旦大学"];
         }
       });
     };
-    const handleTargetSchoolSelect = (index = null, school = null) => {
-      formData.targetSchoolIndex = index;
-      formData.targetSchool = school;
-      store.dispatch("user/match/updateSchoolList", school);
-      handleSchoolChange(school);
+    const onSchoolInput = (e = null) => {
+      const keyword = e.detail.value || schoolInput.value;
+      components_combobox_graduate_school_major.GraduateStore.mutations.setSchoolKeyword(graduateStore.value, keyword);
+      if (!keyword) {
+        formData.targetSchoolIndex = -1;
+        formData.targetSchool = "";
+        majorInput.value = "";
+        formData.targetMajorIndex = -1;
+        formData.targetMajor = "";
+      }
+      updateFilteredSchoolList();
     };
-    const handleTargetMajorSelect = (index = null, major = null) => {
-      formData.targetMajorIndex = index;
+    const onMajorInput = (e = null) => {
+      if (!formData.targetSchool)
+        return null;
+      const keyword = e.detail.value || majorInput.value;
+      components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, keyword);
+      if (!keyword) {
+        formData.targetMajorIndex = -1;
+        formData.targetMajor = "";
+      }
+      updateFilteredMajorList(keyword);
+    };
+    const updateFilteredSchoolList = () => {
+      filteredSchoolList.value = components_combobox_graduate_school_major.GraduateStore.getters.filteredSchoolList(graduateStore.value);
+    };
+    const updateFilteredMajorList = (forceKeyword = null) => {
+      var _a;
+      if (!formData.targetSchool) {
+        filteredMajorList.value = [];
+        return null;
+      }
+      components_combobox_graduate_school_major.GraduateStore.mutations.setSelectedSchool(graduateStore.value, formData.targetSchool);
+      const currentKeyword = forceKeyword !== void 0 ? forceKeyword : graduateStore.value.majorKeyword || "";
+      if (forceKeyword && forceKeyword !== graduateStore.value.majorKeyword) {
+        components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, forceKeyword);
+      }
+      let originalMajorList = [];
+      if (currentKeyword) {
+        const originalKeyword = graduateStore.value.majorKeyword;
+        components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, currentKeyword);
+        originalMajorList = components_combobox_graduate_school_major.GraduateStore.getters.filteredMajorList(graduateStore.value);
+        if (originalKeyword !== currentKeyword) {
+          components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, originalKeyword);
+        }
+      } else {
+        originalMajorList = ((_a = graduateStore.value.schools[formData.targetSchool]) === null || _a === void 0 ? null : _a.slice(0, 100)) || [];
+      }
+      filteredMajorList.value = originalMajorList;
+      if (!currentKeyword) {
+        customSortMajorList();
+      } else {
+        ensureSelectedMajorVisible();
+      }
+    };
+    const ensureSelectedMajorVisible = () => {
+      if (!formData.targetMajor || !filteredMajorList.value.length) {
+        return null;
+      }
+      const index = filteredMajorList.value.findIndex((major) => {
+        return major === formData.targetMajor;
+      });
+      if (index === -1) {
+        filteredMajorList.value.unshift(formData.targetMajor);
+      } else if (index > 0) {
+        const selectedMajor = filteredMajorList.value.splice(index, 1)[0];
+        filteredMajorList.value.unshift(selectedMajor);
+      }
+    };
+    const customSortMajorList = () => {
+      if (!filteredMajorList.value || filteredMajorList.value.length === 0) {
+        return null;
+      }
+      filteredMajorList.value.sort((a, b) => {
+        if (a === formData.targetMajor)
+          return -1;
+        if (b === formData.targetMajor)
+          return 1;
+        if (formData.targetSchool === "同济大学") {
+          const aHasComputer = a.includes("计算") || a.includes("软件") || a.includes("信息") || a.includes("通信");
+          const bHasComputer = b.includes("计算") || b.includes("软件") || b.includes("信息") || b.includes("通信");
+          if (aHasComputer && !bHasComputer)
+            return -1;
+          if (!aHasComputer && bHasComputer)
+            return 1;
+        }
+        return a.localeCompare(b, "zh-CN");
+      });
+    };
+    const selectSchoolTemp = (idx = null, school = null) => {
+      formData.targetSchoolIndex = idx;
+      formData.targetSchool = school;
+      schoolInput.value = school;
+    };
+    const confirmSchoolFilter = () => {
+      store.dispatch("user/match/updateSchoolList", formData.targetSchool);
+      if (formData.targetSchool) {
+        handleSchoolChange(formData.targetSchool);
+      } else {
+        majorInput.value = "";
+        formData.targetMajorIndex = -1;
+        formData.targetMajor = "";
+        updateFilteredMajorList();
+      }
+      applyFilters();
+      showPopup.value = false;
+      currentOption.value = "";
+    };
+    const selectMajorTemp = (idx = null, major = null) => {
+      formData.targetMajorIndex = idx;
       formData.targetMajor = major;
-      store.dispatch("user/match/updateProfessionalList", major);
-      if (major) {
+      majorInput.value = major;
+    };
+    const prepareProfessionalFilter = () => {
+      if (!formData.targetMajor && majorInput.value && filteredMajorList.value.length > 0) {
+        const keyword = majorInput.value;
+        let searchResults = [];
+        if (keyword) {
+          const originalKeyword = graduateStore.value.majorKeyword;
+          components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, keyword);
+          searchResults = components_combobox_graduate_school_major.GraduateStore.getters.filteredMajorList(graduateStore.value);
+          components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, originalKeyword);
+        }
+        if (searchResults.length > 0) {
+          formData.targetMajor = searchResults[0];
+        } else {
+          formData.targetMajor = filteredMajorList.value[0];
+        }
+        formData.targetMajorIndex = 0;
+        majorInput.value = formData.targetMajor;
+      }
+      return formData.targetMajor;
+    };
+    const confirmProfessionalFilter = () => {
+      const selectedMajor = prepareProfessionalFilter();
+      if (selectedMajor) {
         formData.mathIndex = -1;
         formData.englishIndex = -1;
         formData.politicsIndex = -1;
@@ -246,73 +381,85 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           other: ""
         }));
       }
+      store.dispatch("user/match/updateProfessionalList", selectedMajor);
+      if (graduateStore.value) {
+        components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, "");
+      }
       applyFilters();
+      showPopup.value = false;
+      currentOption.value = "";
     };
-    const handleTargetSchoolSearch = (keyword = null) => {
-      if (!keyword || keyword.trim() === "") {
-        const allSchools = Object.keys(graduateStore.value.schools).slice(0, 50);
-        targetSchoolList.value = allSchools;
+    const getChoiceIndex = (key = null) => {
+      switch (key) {
+        case "math":
+          return formData.mathIndex;
+        case "english":
+          return formData.englishIndex;
+        case "politics":
+          return formData.politicsIndex;
+        case "other":
+          return formData.otherIndex;
+        default:
+          return -1;
+      }
+    };
+    const handleChoiceSelect = (key = null, index = null) => {
+      if (key === "math" && formData.mathIndex === index || key === "english" && formData.englishIndex === index || key === "politics" && formData.politicsIndex === index || key === "other" && formData.otherIndex === index) {
+        formData.mathIndex = -1;
+        formData.englishIndex = -1;
+        formData.politicsIndex = -1;
+        formData.otherIndex = -1;
         return null;
       }
-      components_combobox_graduate_school_major.GraduateStore.mutations.setSchoolKeyword(graduateStore.value, keyword);
-      const filteredSchools = components_combobox_graduate_school_major.GraduateStore.getters.filteredSchoolList(graduateStore.value);
-      targetSchoolList.value = filteredSchools;
-    };
-    const handleTargetMajorSearch = (keyword = null) => {
-      if (!graduateStore.value.selectedSchool) {
-        return null;
-      }
-      if (!keyword || keyword.trim() === "") {
-        const allMajors = graduateStore.value.schools[graduateStore.value.selectedSchool] || [];
-        targetMajorList.value = allMajors.slice(0, 20);
-        return null;
-      }
-      components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, keyword);
-      const filteredMajors = components_combobox_graduate_school_major.GraduateStore.getters.filteredMajorList(graduateStore.value);
-      targetMajorList.value = filteredMajors;
-    };
-    const handleSortSelect = (index = null) => {
-      formData.sortIndex = index;
-      const sortValue = index >= 0 ? sortOptions.value[index] : "";
-      store.dispatch("user/match/updateSortMode", sortValue);
-      applyFilters();
-    };
-    const resetSchoolFilter = () => {
-      formData.targetSchoolIndex = -1;
-      formData.targetSchool = "";
-      store.dispatch("user/match/updateSchoolList", "");
-      applyFilters();
-    };
-    const resetProfessionalFilter = () => {
-      formData.targetMajorIndex = -1;
-      formData.targetMajor = "";
-      store.dispatch("user/match/updateProfessionalList", "");
-      applyFilters();
-    };
-    const resetNonProfessionalFilter = () => {
       formData.mathIndex = -1;
       formData.englishIndex = -1;
       formData.politicsIndex = -1;
       formData.otherIndex = -1;
-      store.dispatch("user/match/updateNonProfessionalList", new UTSJSONObject({
-        math: "",
-        english: "",
-        politics: "",
-        other: ""
-      }));
-      activeNonProTab.value = "";
-      applyFilters();
+      switch (key) {
+        case "math":
+          formData.mathIndex = index;
+          break;
+        case "english":
+          formData.englishIndex = index;
+          break;
+        case "politics":
+          formData.politicsIndex = index;
+          break;
+        case "other":
+          formData.otherIndex = index;
+          break;
+      }
     };
-    const resetSortFilter = () => {
-      formData.sortIndex = -1;
-      store.dispatch("user/match/updateSortMode", "");
-      applyFilters();
-    };
-    const applyFilters = () => {
-      isLoading.value = true;
-      store.dispatch("user/match/fetchMatchTeachers").finally(() => {
-        isLoading.value = false;
+    const confirmNonProfessionalFilter = () => {
+      const updateObj = new UTSJSONObject({
+        math: formData.mathIndex >= 0 ? mathOptions.value[formData.mathIndex] : "",
+        english: formData.englishIndex >= 0 ? englishOptions.value[formData.englishIndex] : "",
+        politics: formData.politicsIndex >= 0 ? politicsOptions.value[formData.politicsIndex] : "",
+        other: formData.otherIndex >= 0 ? otherOptions.value[formData.otherIndex] : ""
       });
+      store.dispatch("user/match/updateNonProfessionalList", updateObj);
+      if (formData.mathIndex >= 0 || formData.englishIndex >= 0 || formData.politicsIndex >= 0 || formData.otherIndex >= 0) {
+        formData.targetMajorIndex = -1;
+        formData.targetMajor = "";
+        store.dispatch("user/match/updateProfessionalList", "");
+      }
+      applyFilters();
+      showPopup.value = false;
+      currentOption.value = "";
+    };
+    const handleSortSelect = (index = null) => {
+      if (formData.sortIndex === index) {
+        formData.sortIndex = -1;
+      } else {
+        formData.sortIndex = index;
+      }
+    };
+    const confirmSortFilter = () => {
+      const sortValue = formData.sortIndex >= 0 ? sortOptions.value[formData.sortIndex] : "";
+      store.dispatch("user/match/updateSortMode", sortValue);
+      applyFilters();
+      showPopup.value = false;
+      currentOption.value = "";
     };
     const viewTeacherDetail = (teacherId = null) => {
       router_Router.Navigator.toTeacher(teacherId);
@@ -349,75 +496,14 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           return [];
       }
     };
-    const getChoiceIndex = (key = null) => {
-      switch (key) {
-        case "math":
-          return formData.mathIndex;
-        case "english":
-          return formData.englishIndex;
-        case "politics":
-          return formData.politicsIndex;
-        case "other":
-          return formData.otherIndex;
-        default:
-          return -1;
-      }
-    };
-    const handleChoiceSelect = (key = null, index = null) => {
-      formData.mathIndex = -1;
-      formData.englishIndex = -1;
-      formData.politicsIndex = -1;
-      formData.otherIndex = -1;
-      switch (key) {
-        case "math":
-          formData.mathIndex = index;
-          store.dispatch("user/match/updateNonProfessionalList", new UTSJSONObject({
-            math: index >= 0 ? mathOptions.value[index] : "",
-            english: "",
-            politics: "",
-            other: ""
-          }));
-          break;
-        case "english":
-          formData.englishIndex = index;
-          store.dispatch("user/match/updateNonProfessionalList", new UTSJSONObject({
-            math: "",
-            english: index >= 0 ? englishOptions.value[index] : "",
-            politics: "",
-            other: ""
-          }));
-          break;
-        case "politics":
-          formData.politicsIndex = index;
-          store.dispatch("user/match/updateNonProfessionalList", new UTSJSONObject({
-            math: "",
-            english: "",
-            politics: index >= 0 ? politicsOptions.value[index] : "",
-            other: ""
-          }));
-          break;
-        case "other":
-          formData.otherIndex = index;
-          store.dispatch("user/match/updateNonProfessionalList", new UTSJSONObject({
-            math: "",
-            english: "",
-            politics: "",
-            other: index >= 0 ? otherOptions.value[index] : ""
-          }));
-          break;
-      }
-      if (index >= 0) {
-        formData.targetMajorIndex = -1;
-        formData.targetMajor = "";
-        store.dispatch("user/match/updateProfessionalList", "");
-      }
-      applyFilters();
+    const applyFilters = () => {
+      isLoading.value = true;
+      store.dispatch("user/match/fetchMatchTeachers").finally(() => {
+        isLoading.value = false;
+      });
     };
     const filterSummary = common_vendor.computed(() => {
-      const summary = new UTSJSONObject(
-        {}
-        // 学校筛选摘要
-      );
+      const summary = new UTSJSONObject({});
       summary.school = store.state.user.match.schoolList || "";
       summary.professional = store.state.user.match.professionalList || "";
       const nonProfList = store.state.user.match.nonProfessionalList;
@@ -434,8 +520,36 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       summary.sort = store.state.user.match.sortMode || "";
       return summary;
     });
+    const resetSchoolFilter = () => {
+      schoolInput.value = "";
+      formData.targetSchoolIndex = -1;
+      formData.targetSchool = "";
+      majorInput.value = "";
+      formData.targetMajorIndex = -1;
+      formData.targetMajor = "";
+      updateFilteredSchoolList();
+    };
+    const resetProfessionalFilter = () => {
+      majorInput.value = "";
+      formData.targetMajorIndex = -1;
+      formData.targetMajor = "";
+      store.dispatch("user/match/updateProfessionalList", "");
+      if (formData.targetSchool && graduateStore.value) {
+        components_combobox_graduate_school_major.GraduateStore.mutations.setMajorKeyword(graduateStore.value, "");
+      }
+      updateFilteredMajorList();
+    };
     common_vendor.onMounted(() => {
-      initGraduateData();
+      initGraduateData().then(() => {
+        var _a;
+        updateFilteredSchoolList();
+        updateFilteredMajorList();
+        const selectedSchool = store.state.user.match.schoolList;
+        if (selectedSchool && ((_a = graduateStore.value) === null || _a === void 0 ? null : _a.schools[selectedSchool])) {
+          const majors = graduateStore.value.schools[selectedSchool].slice(0, 100);
+          targetMajorList.value = majors;
+        }
+      });
       store.dispatch("user/match/fetchMatchTeachers");
     });
     return (_ctx = null, _cache = null) => {
@@ -462,48 +576,62 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         d: showPopup.value
       }), showPopup.value ? common_vendor.e(new UTSJSONObject({
         e: currentOption.value === "school"
-      }), currentOption.value === "school" ? new UTSJSONObject({
-        f: common_vendor.sr("targetSchoolDropdown", "d5601611-0"),
-        g: common_vendor.o(handleTargetSchoolSelect),
-        h: common_vendor.o(handleTargetSchoolSearch),
-        i: common_vendor.o(handleSchoolChange),
-        j: common_vendor.p(new UTSJSONObject({
-          componentType: "graduateSchool",
-          choiceIndex: formData.targetSchoolIndex,
-          choiceList: targetSchoolList.value,
-          defaultText: "请选择学校",
-          mode: "search",
-          defaultSearchValue: filterSummary.value.school,
-          searchPlaceholder: "输入学校名称",
-          enablePagination: true,
-          pageSize: 10
-        })),
-        k: common_vendor.o(resetSchoolFilter)
+      }), currentOption.value === "school" ? common_vendor.e(new UTSJSONObject({
+        f: common_vendor.o([($event = null) => {
+          return schoolInput.value = $event.detail.value;
+        }, onSchoolInput]),
+        g: common_vendor.o(() => {
+        }),
+        h: schoolInput.value,
+        i: schoolInput.value
+      }), schoolInput.value ? new UTSJSONObject({
+        j: common_vendor.o(resetSchoolFilter)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        l: currentOption.value === "professional"
-      }), currentOption.value === "professional" ? new UTSJSONObject({
-        m: common_vendor.sr("targetMajorDropdown", "d5601611-1"),
-        n: common_vendor.o(handleTargetMajorSelect),
-        o: common_vendor.o(handleTargetMajorSearch),
-        p: common_vendor.o(resetMajorSelection),
-        q: common_vendor.p(new UTSJSONObject({
-          componentType: "graduateMajor",
-          choiceIndex: formData.targetMajorIndex,
-          choiceList: targetMajorList.value,
-          parentValue: formData.targetSchool,
-          isLinkage: true,
-          defaultText: formData.targetSchool ? "请选择专业" : "请先选择学校",
-          mode: "search",
-          defaultSearchValue: filterSummary.value.professional,
-          searchPlaceholder: "输入专业名称",
-          enablePagination: true,
-          pageSize: 10
-        })),
-        r: common_vendor.o(resetProfessionalFilter)
+        k: common_vendor.f(filteredSchoolList.value, (school = null, idx = null, i0 = null) => {
+          return new UTSJSONObject({
+            a: common_vendor.t(school),
+            b: school,
+            c: idx === formData.targetSchoolIndex ? 1 : "",
+            d: common_vendor.o(($event = null) => {
+              return selectSchoolTemp(idx, school);
+            }, school)
+          });
+        }),
+        l: common_vendor.o(confirmSchoolFilter),
+        m: common_vendor.o(() => {
+        })
+      })) : new UTSJSONObject({}), new UTSJSONObject({
+        n: currentOption.value === "professional"
+      }), currentOption.value === "professional" ? common_vendor.e(new UTSJSONObject({
+        o: formData.targetSchool ? "请输入专业名称" : "请先选择学校",
+        p: !formData.targetSchool,
+        q: common_vendor.o([($event = null) => {
+          return majorInput.value = $event.detail.value;
+        }, onMajorInput]),
+        r: common_vendor.o(() => {
+        }),
+        s: majorInput.value,
+        t: majorInput.value
+      }), majorInput.value ? new UTSJSONObject({
+        v: common_vendor.o(resetProfessionalFilter)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        s: currentOption.value === "nonProfessional"
+        w: common_vendor.f(filteredMajorList.value, (major = null, idx = null, i0 = null) => {
+          return new UTSJSONObject({
+            a: common_vendor.t(major),
+            b: major,
+            c: idx === formData.targetMajorIndex ? 1 : "",
+            d: common_vendor.o(($event = null) => {
+              return selectMajorTemp(idx, major);
+            }, major)
+          });
+        }),
+        x: common_vendor.o(confirmProfessionalFilter),
+        y: common_vendor.o(() => {
+        })
+      })) : new UTSJSONObject({}), new UTSJSONObject({
+        z: currentOption.value === "nonProfessional"
       }), currentOption.value === "nonProfessional" ? new UTSJSONObject({
-        t: common_vendor.f(nonProTabs, (tab = null, k0 = null, i0 = null) => {
+        A: common_vendor.f(nonProTabs, (tab = null, k0 = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(tab.label),
             b: tab.key,
@@ -513,8 +641,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, tab.key)
           });
         }),
-        v: common_vendor.t(tabLabelMap[activeNonProTab.value]),
-        w: common_vendor.f(getChoiceList(activeNonProTab.value), (option = null, index = null, i0 = null) => {
+        B: common_vendor.t(tabLabelMap[activeNonProTab.value]),
+        C: common_vendor.f(getChoiceList(activeNonProTab.value), (option = null, index = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(option),
             b: index,
@@ -524,24 +652,29 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, index)
           });
         }),
-        x: common_vendor.o(resetNonProfessionalFilter),
-        y: common_vendor.o(() => {
+        D: common_vendor.o(confirmNonProfessionalFilter),
+        E: common_vendor.o(() => {
         })
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        z: currentOption.value === "sort"
+        F: currentOption.value === "sort"
       }), currentOption.value === "sort" ? new UTSJSONObject({
-        A: common_vendor.o(handleSortSelect),
-        B: common_vendor.p(new UTSJSONObject({
-          choiceIndex: formData.sortIndex,
-          choiceList: sortOptions.value,
-          defaultText: "请选择排序方式",
-          mode: "select"
-        })),
-        C: common_vendor.o(resetSortFilter)
+        G: common_vendor.f(sortOptions.value, (option = null, index = null, i0 = null) => {
+          return new UTSJSONObject({
+            a: common_vendor.t(option),
+            b: index,
+            c: index === formData.sortIndex ? 1 : "",
+            d: common_vendor.o(($event = null) => {
+              return handleSortSelect(index);
+            }, index)
+          });
+        }),
+        H: common_vendor.o(confirmSortFilter),
+        I: common_vendor.o(() => {
+        })
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        D: common_vendor.o(onPopupClose)
+        J: common_vendor.o(onPopupClose)
       })) : new UTSJSONObject({}), new UTSJSONObject({
-        E: common_vendor.f(matchTeachers.value, (teacher = null, index = null, i0 = null) => {
+        K: common_vendor.f(matchTeachers.value, (teacher = null, index = null, i0 = null) => {
           return common_vendor.e(new UTSJSONObject({
             a: teacher.avatar || "/static/image/tab-bar/default_avatar.png",
             b: common_vendor.o(($event = null) => {
@@ -563,13 +696,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             k: teacher.id || index
           }));
         }),
-        F: matchTeachers.value.length === 0 && !isLoading.value
+        L: matchTeachers.value.length === 0 && !isLoading.value
       }), matchTeachers.value.length === 0 && !isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        G: isLoading.value
+        M: isLoading.value
       }), isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        H: common_vendor.sei("step2", "scroll-view"),
-        I: common_vendor.o(loadMoreTeachers),
-        J: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+        N: common_vendor.sei("step2", "scroll-view"),
+        O: common_vendor.o(loadMoreTeachers),
+        P: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
       }));
       return __returned__;
     };

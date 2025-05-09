@@ -17,7 +17,7 @@ const _sfc_main = common_vendor.defineComponent({
       // 用于存储原始数据以便对比变更
     };
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
+  computed: Object.assign(Object.assign(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
     storeId: (state = null) => {
       return state.id;
     },
@@ -53,7 +53,7 @@ const _sfc_main = common_vendor.defineComponent({
         return false;
       return UTS.JSON.stringify(this.userInfo) !== UTS.JSON.stringify(this.originalData);
     }
-  })),
+  }),
   onLoad() {
     this.initUserInfo();
   },

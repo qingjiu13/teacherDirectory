@@ -7,26 +7,26 @@ const _sfc_main = common_vendor.defineComponent({
     MessageItem
   },
   props: {
-    messages: new UTSJSONObject({
+    messages: {
       type: Array,
       default: () => {
         return [];
       }
-    }),
-    emptyText: new UTSJSONObject({
+    },
+    emptyText: {
       type: String,
       default: "您可以开始提问了..."
-    }),
-    aiTitle: new UTSJSONObject({
+    },
+    aiTitle: {
       type: String,
       default: "研师录AI"
-    }),
-    autoScrollId: new UTSJSONObject({
+    },
+    autoScrollId: {
       type: String,
       default: ""
-    })
+    }
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 处理滚动到顶部事件
      * @param {Object} e - 事件对象
@@ -49,7 +49,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.$emit("updateAutoScrollId", "msg-" + (this.messages.length - 1));
       }
     }
-  })
+  }
 });
 if (!Array) {
   const _component_message_item = common_vendor.resolveComponent("message-item");

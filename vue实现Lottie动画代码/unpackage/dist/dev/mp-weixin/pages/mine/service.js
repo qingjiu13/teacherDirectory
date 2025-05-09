@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const Loading = () => "../../components/loading-animation/loading.js";
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   components: {
     Loading
   },
@@ -130,7 +130,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     common_vendor.index.$off("serviceAdded", this.handleServiceAdded);
     common_vendor.index.$off("serviceEdited", this.handleServiceEdited);
   },
-  methods: new UTSJSONObject({
+  methods: {
     goBack() {
       common_vendor.index.navigateBack();
     },
@@ -234,8 +234,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
         this.overlayVisible = false;
       }, 300);
     }
-  })
-}));
+  }
+});
 if (!Array) {
   const _component_loading = common_vendor.resolveComponent("loading");
   _component_loading();

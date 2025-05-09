@@ -3,8 +3,8 @@ const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const store_index = require("../../store/index.js");
 const common_assets = require("../../common/assets.js");
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
-  methods: new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
+  methods: {
     /**
      * 选择用户身份并更新到Vuex中
      * @param {string} identity - 用户身份类型 ('student'或'teacher')
@@ -22,8 +22,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
         });
       }
     }
-  })
-}));
+  }
+});
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_assets._imports_1,

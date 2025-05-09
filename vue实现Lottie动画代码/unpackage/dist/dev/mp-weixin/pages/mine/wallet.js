@@ -72,7 +72,7 @@ const _sfc_main = common_vendor.defineComponent({
     this.getWalletInfo();
     this.getRecentTransactions();
   },
-  methods: new UTSJSONObject({
+  methods: {
     // 返回上一页
     goBack() {
       common_vendor.index.navigateBack();
@@ -308,7 +308,7 @@ const _sfc_main = common_vendor.defineComponent({
           return "其";
       }
     }
-  })
+  }
 });
 if (!Array) {
   const _component_path = common_vendor.resolveComponent("path");

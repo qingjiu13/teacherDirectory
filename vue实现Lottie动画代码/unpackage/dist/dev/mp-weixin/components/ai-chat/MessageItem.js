@@ -3,34 +3,34 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "MessageItem",
   props: {
-    role: new UTSJSONObject({
+    role: {
       type: String,
       default: "user",
       validator: (value = null) => {
         return ["user", "AI", "system"].includes(value);
       }
-    }),
-    content: new UTSJSONObject({
+    },
+    content: {
       type: String,
       default: ""
-    }),
-    status: new UTSJSONObject({
+    },
+    status: {
       type: String,
       default: "sent",
       validator: (value = null) => {
         return ["sending", "sent", "error"].includes(value);
       }
-    }),
-    streaming: new UTSJSONObject({
+    },
+    streaming: {
       type: Boolean,
       default: false
-    }),
-    aiTitle: new UTSJSONObject({
+    },
+    aiTitle: {
       type: String,
       default: "研师录AI"
-    })
+    }
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * @description 获取消息类型（小写），用于CSS类名
      * @returns {String} 消息类型
@@ -38,15 +38,15 @@ const _sfc_main = common_vendor.defineComponent({
     messageType() {
       return this.role === "AI" ? "ai" : this.role;
     }
-  }),
-  methods: new UTSJSONObject({
+  },
+  methods: {
     /**
      * @description 重试发送消息
      */
     onRetry() {
       this.$emit("retry");
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

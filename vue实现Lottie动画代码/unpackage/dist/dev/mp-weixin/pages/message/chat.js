@@ -14,7 +14,7 @@ const _sfc_main = common_vendor.defineComponent({
       ]
     };
   },
-  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapGetters("user/match", ["teacherInfo"]))),
+  computed: Object.assign({}, common_vendor.mapGetters("user/match", ["teacherInfo"])),
   onLoad(options) {
     if (options.userId) {
       this.teacherId = options.userId;

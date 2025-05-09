@@ -35098,17 +35098,38 @@ const GraduateStore = {
       if (schoolName) {
         const majors = state.schools[schoolName] || [];
         const majorItems = majors.map((major) => {
+          let shortNames = [];
+          if (major.includes("学")) {
+            const subjectName = major.split("学")[0];
+            if (subjectName.length >= 2) {
+              shortNames.push(subjectName);
+            }
+          }
+          if (major.includes("（") || major.includes("(")) {
+            const mainMajor = major.split(/[（(]/)[0];
+            if (mainMajor.length >= 2) {
+              shortNames.push(mainMajor);
+            }
+          }
           return {
             name: major,
-            // 为专业添加额外的搜索字段
+            // 原始专业名称
+            short: shortNames.join(" "),
+            // 可能的简称组合
             display: major
+            // 显示名称
           };
         });
         state.majorFuse = new common_vendor.Fuse(majorItems, {
-          keys: ["name", "display"],
+          keys: [
+            { name: "name", weight: 0.7 },
+            // 完整专业名称权重最高
+            { name: "short", weight: 0.3 }
+            // 简称权重次之
+          ],
           // Fuse配置 - 专业搜索
-          threshold: 0.6,
-          // 非常宽松的阈值，允许更多模糊匹配
+          threshold: 0.5,
+          // 中等宽松的阈值，平衡精确度和召回率
           includeScore: true,
           // 包含分数以便排序
           shouldSort: true,
@@ -35116,17 +35137,18 @@ const GraduateStore = {
           minMatchCharLength: 1,
           // 最小匹配长度
           ignoreLocation: true,
-          // 忽略位置限制，更宽松
+          // 忽略位置限制，适合中文
           findAllMatches: true,
           // 找到所有匹配项
-          useExtendedSearch: true,
-          // 使用扩展搜索
-          distance: 1e3,
-          // 大的距离值
+          useExtendedSearch: false,
+          // 不使用扩展搜索语法
+          distance: 500,
+          // 降低距离值，让匹配更精确
           location: 0,
           includeMatches: true
           // 包含匹配详细信息
         });
+        common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:76", "专业搜索引擎初始化完成，包含专业:", majorItems.length);
       }
     },
     setMajorKeyword(state, keyword) {
@@ -35173,7 +35195,7 @@ const GraduateStore = {
         includeMatches: true
         // 包含匹配详细信息
       });
-      common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:90", "搜索引擎初始化完成，包含学校:", schoolItems.length);
+      common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:117", "搜索引擎初始化完成，包含学校:", schoolItems.length);
     }
   },
   getters: {
@@ -35187,9 +35209,9 @@ const GraduateStore = {
       }
       let keyword = state.schoolKeyword.trim();
       const results = state.schoolFuse.search(keyword);
-      common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:113", "Fuse原始结果:", keyword, results.length);
+      common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:140", "Fuse原始结果:", keyword, results.length);
       if (results.length > 0) {
-        common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:117", "前5个结果:", results.slice(0, 5).map((r) => ({
+        common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:144", "前5个结果:", results.slice(0, 5).map((r) => ({
           name: r.item.name,
           score: r.score,
           matches: r.matches
@@ -35210,8 +35232,30 @@ const GraduateStore = {
       if (!state.majorFuse) {
         this.mutations.setSelectedSchool(state, state.selectedSchool);
       }
-      const results = state.majorFuse.search(state.majorKeyword.trim());
-      return results.map((result) => result.item.name);
+      let keyword = state.majorKeyword.trim();
+      const results = state.majorFuse.search(keyword);
+      common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:182", "专业搜索结果数量:", results.length, "关键词:", keyword);
+      if (results.length > 0) {
+        common_vendor.index.__f__("log", "at components/combobox/graduate_school_major.js:186", "专业搜索前5个结果:", results.slice(0, 5).map((r) => ({
+          name: r.item.name,
+          score: r.score,
+          matches: r.matches ? r.matches.map((m) => m.key) : "N/A"
+        })));
+      }
+      const exactMatch = [];
+      const beginsWith = [];
+      const otherMatches = [];
+      results.forEach((result) => {
+        const major = result.item.name;
+        if (major.toLowerCase() === keyword.toLowerCase()) {
+          exactMatch.push(major);
+        } else if (major.toLowerCase().startsWith(keyword.toLowerCase())) {
+          beginsWith.push(major);
+        } else {
+          otherMatches.push(major);
+        }
+      });
+      return [...exactMatch, ...beginsWith, ...otherMatches];
     },
     // 获取匹配度最高的学校（用于自动选择）
     bestMatchedSchool(state, getters) {

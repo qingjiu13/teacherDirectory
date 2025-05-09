@@ -6151,14 +6151,17 @@ function setUniElementRef(ins, ref2, id, opts, tagType) {
 function hasIdProp(_ctx) {
   return _ctx.$.propsOptions && _ctx.$.propsOptions[0] && "id" in _ctx.$.propsOptions[0];
 }
+function getVirtualHostId(_ctx) {
+  return _ctx.virtualHostId;
+}
 function hasVirtualHostId(_ctx) {
-  return _ctx.virtualHostId !== "";
+  return !!getVirtualHostId(_ctx);
 }
 function genIdWithVirtualHost(_ctx, idBinding) {
   if (!hasVirtualHostId(_ctx) || hasIdProp(_ctx)) {
     return idBinding;
   }
-  return _ctx.virtualHostId;
+  return getVirtualHostId(_ctx);
 }
 function genUniElementId(_ctx, idBinding, genId) {
   return genIdWithVirtualHost(_ctx, idBinding) || genId || "";
@@ -7168,11 +7171,29 @@ function getOSInfo(system, platform) {
     osName = platform;
     osVersion = system;
   } else {
-    osName = system.split(" ")[0] || "";
+    osName = system.split(" ")[0] || platform;
     osVersion = system.split(" ")[1] || "";
   }
+  osName = osName.toLocaleLowerCase();
+  switch (osName) {
+    case "harmony":
+    case "ohos":
+    case "openharmony":
+      osName = "harmonyos";
+      break;
+    case "iphone os":
+      osName = "ios";
+      break;
+    case "mac":
+    case "darwin":
+      osName = "macos";
+      break;
+    case "windows_nt":
+      osName = "windows";
+      break;
+  }
   return {
-    osName: osName.toLocaleLowerCase(),
+    osName,
     osVersion
   };
 }
@@ -7193,9 +7214,9 @@ function populateParameters(fromRes, toRes) {
     appVersion: "1.0.0",
     appVersionCode: "100",
     appLanguage: getAppLanguage(hostLanguage),
-    uniCompileVersion: "4.57",
-    uniCompilerVersion: "4.57",
-    uniRuntimeVersion: "4.57",
+    uniCompileVersion: "4.64",
+    uniCompilerVersion: "4.64",
+    uniRuntimeVersion: "4.64",
     uniPlatform: "mp-weixin",
     deviceBrand,
     deviceModel: model,
@@ -7223,8 +7244,8 @@ function populateParameters(fromRes, toRes) {
   };
   {
     try {
-      parameters.uniCompilerVersionCode = parseFloat("4.57");
-      parameters.uniRuntimeVersionCode = parseFloat("4.57");
+      parameters.uniCompilerVersionCode = parseFloat("4.64");
+      parameters.uniRuntimeVersionCode = parseFloat("4.64");
     } catch (error) {
     }
   }
@@ -7351,14 +7372,14 @@ const getAppBaseInfo = {
       appLanguage: getAppLanguage(hostLanguage),
       isUniAppX: true,
       uniPlatform: "mp-weixin",
-      uniCompileVersion: "4.57",
-      uniCompilerVersion: "4.57",
-      uniRuntimeVersion: "4.57"
+      uniCompileVersion: "4.64",
+      uniCompilerVersion: "4.64",
+      uniRuntimeVersion: "4.64"
     };
     {
       try {
-        parameters.uniCompilerVersionCode = parseFloat("4.57");
-        parameters.uniRuntimeVersionCode = parseFloat("4.57");
+        parameters.uniCompilerVersionCode = parseFloat("4.64");
+        parameters.uniRuntimeVersionCode = parseFloat("4.64");
       } catch (error) {
       }
     }
@@ -7672,6 +7693,91 @@ function tryConnectSocket(host2, port, id) {
     });
   });
 }
+const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
+const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
+  methods[type] = console[type].bind(console);
+  return methods;
+}, {});
+let sendError = null;
+const errorQueue = /* @__PURE__ */ new Set();
+const errorExtra = {};
+function sendErrorMessages(errors) {
+  if (sendError == null) {
+    errors.forEach((error) => {
+      errorQueue.add(error);
+    });
+    return;
+  }
+  const data2 = errors.map((err) => {
+    if (typeof err === "string") {
+      return err;
+    }
+    const isPromiseRejection = err && "promise" in err && "reason" in err;
+    const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
+    if (isPromiseRejection) {
+      err = err.reason;
+    }
+    if (err instanceof Error && err.stack) {
+      if (err.message && !err.stack.includes(err.message)) {
+        return `${prefix}${err.message}
+${err.stack}`;
+      }
+      return `${prefix}${err.stack}`;
+    }
+    if (typeof err === "object" && err !== null) {
+      try {
+        return prefix + JSON.stringify(err);
+      } catch (err2) {
+        return prefix + String(err2);
+      }
+    }
+    return prefix + String(err);
+  }).filter(Boolean);
+  if (data2.length > 0) {
+    sendError(JSON.stringify(Object.assign({
+      type: "error",
+      data: data2
+    }, errorExtra)));
+  }
+}
+function setSendError(value2, extra = {}) {
+  sendError = value2;
+  Object.assign(errorExtra, extra);
+  if (value2 != null && errorQueue.size > 0) {
+    const errors = Array.from(errorQueue);
+    errorQueue.clear();
+    sendErrorMessages(errors);
+  }
+}
+function initOnError() {
+  function onError2(error) {
+    try {
+      if (typeof PromiseRejectionEvent !== "undefined" && error instanceof PromiseRejectionEvent && error.reason instanceof Error && error.reason.message && error.reason.message.includes(`Cannot create property 'errMsg' on string 'taskId`)) {
+        return;
+      }
+      if (true) {
+        originalConsole.error(error);
+      }
+      sendErrorMessages([error]);
+    } catch (err) {
+      originalConsole.error(err);
+    }
+  }
+  if (typeof index.onError === "function") {
+    index.onError(onError2);
+  }
+  if (typeof index.onUnhandledRejection === "function") {
+    index.onUnhandledRejection(onError2);
+  }
+  return function offError2() {
+    if (typeof index.offError === "function") {
+      index.offError(onError2);
+    }
+    if (typeof index.offUnhandledRejection === "function") {
+      index.offUnhandledRejection(onError2);
+    }
+  };
+}
 function formatMessage(type, args) {
   try {
     return {
@@ -7704,7 +7810,16 @@ function formatArg(arg, depth = 0) {
     case "boolean":
       return formatBoolean(arg);
     case "object":
-      return formatObject(arg, depth);
+      try {
+        return formatObject(arg, depth);
+      } catch (e2) {
+        return {
+          type: "object",
+          value: {
+            properties: []
+          }
+        };
+      }
     case "undefined":
       return formatUndefined();
     case "function":
@@ -7850,13 +7965,20 @@ function formatObject(value2, depth) {
       }
     }
   }
+  let entries = Object.entries(value2);
+  if (isHarmonyBuilderParams(value2)) {
+    entries = entries.filter(([key]) => key !== "modifier" && key !== "nodeContent");
+  }
   return {
     type: "object",
     className,
     value: {
-      properties: Object.entries(value2).map((entry) => formatObjectProperty(entry[0], entry[1], depth + 1))
+      properties: entries.map((entry) => formatObjectProperty(entry[0], entry[1], depth + 1))
     }
   };
+}
+function isHarmonyBuilderParams(value2) {
+  return value2.modifier && value2.modifier._attribute && value2.nodeContent;
 }
 function isComponentPublicInstance(value2) {
   return value2.$ && isComponentInternalInstance(value2.$);
@@ -7935,10 +8057,11 @@ function formatMapEntry(value2, depth) {
     value: formatArg(value2[1], depth)
   };
 }
-const CONSOLE_TYPES = ["log", "warn", "error", "info", "debug"];
 let sendConsole = null;
 const messageQueue = [];
 const messageExtra = {};
+const EXCEPTION_BEGIN_MARK = "---BEGIN:EXCEPTION---";
+const EXCEPTION_END_MARK = "---END:EXCEPTION---";
 function sendConsoleMessages(messages) {
   if (sendConsole == null) {
     messageQueue.push(...messages);
@@ -7958,10 +8081,6 @@ function setSendConsole(value2, extra = {}) {
     sendConsoleMessages(messages);
   }
 }
-const originalConsole = /* @__PURE__ */ CONSOLE_TYPES.reduce((methods, type) => {
-  methods[type] = console[type].bind(console);
-  return methods;
-}, {});
 const atFileRegex = /^\s*at\s+[\w/./-]+:\d+$/;
 function rewriteConsole() {
   function wrapConsole(type) {
@@ -7975,6 +8094,18 @@ function rewriteConsole() {
       }
       {
         originalConsole[type](...originalArgs);
+      }
+      if (type === "error" && args.length === 1) {
+        const arg = args[0];
+        if (typeof arg === "string" && arg.startsWith(EXCEPTION_BEGIN_MARK)) {
+          const startIndex = EXCEPTION_BEGIN_MARK.length;
+          const endIndex = arg.length - EXCEPTION_END_MARK.length;
+          sendErrorMessages([arg.slice(startIndex, endIndex)]);
+          return;
+        } else if (arg instanceof Error) {
+          sendErrorMessages([arg]);
+          return;
+        }
       }
       sendConsoleMessages([formatMessage(type, args)]);
     };
@@ -8020,87 +8151,10 @@ function isConsoleWritable() {
   console.log = value2;
   return isWritable;
 }
-let sendError = null;
-const errorQueue = /* @__PURE__ */ new Set();
-const errorExtra = {};
-function sendErrorMessages(errors) {
-  if (sendError == null) {
-    errors.forEach((error) => {
-      errorQueue.add(error);
-    });
-    return;
-  }
-  const data2 = errors.map((err) => {
-    const isPromiseRejection = err && "promise" in err && "reason" in err;
-    const prefix = isPromiseRejection ? "UnhandledPromiseRejection: " : "";
-    if (isPromiseRejection) {
-      err = err.reason;
-    }
-    if (err instanceof Error && err.stack) {
-      if (err.message && !err.stack.includes(err.message)) {
-        return `${prefix}${err.message}
-${err.stack}`;
-      }
-      return `${prefix}${err.stack}`;
-    }
-    if (typeof err === "object" && err !== null) {
-      try {
-        return prefix + JSON.stringify(err);
-      } catch (err2) {
-        return prefix + String(err2);
-      }
-    }
-    return prefix + String(err);
-  }).filter(Boolean);
-  if (data2.length > 0) {
-    sendError(JSON.stringify(Object.assign({
-      type: "error",
-      data: data2
-    }, errorExtra)));
-  }
-}
-function setSendError(value2, extra = {}) {
-  sendError = value2;
-  Object.assign(errorExtra, extra);
-  if (value2 != null && errorQueue.size > 0) {
-    const errors = Array.from(errorQueue);
-    errorQueue.clear();
-    sendErrorMessages(errors);
-  }
-}
-function initOnError() {
-  function onError2(error) {
-    try {
-      if (typeof PromiseRejectionEvent !== "undefined" && error instanceof PromiseRejectionEvent && error.reason instanceof Error && error.reason.message && error.reason.message.includes(`Cannot create property 'errMsg' on string 'taskId`)) {
-        return;
-      }
-      if (true) {
-        originalConsole.error(error);
-      }
-      sendErrorMessages([error]);
-    } catch (err) {
-      originalConsole.error(err);
-    }
-  }
-  if (typeof index.onError === "function") {
-    index.onError(onError2);
-  }
-  if (typeof index.onUnhandledRejection === "function") {
-    index.onUnhandledRejection(onError2);
-  }
-  return function offError2() {
-    if (typeof index.offError === "function") {
-      index.offError(onError2);
-    }
-    if (typeof index.offUnhandledRejection === "function") {
-      index.offUnhandledRejection(onError2);
-    }
-  };
-}
 function initRuntimeSocketService() {
-  const hosts = "100.81.1.13,127.0.0.1";
+  const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_VkBFiU";
+  const id = "mp-weixin_5rlI11";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -8116,13 +8170,19 @@ function initRuntimeSocketService() {
         restoreError();
         restoreConsole();
         originalConsole.error(wrapError("开发模式下日志通道建立 socket 连接失败。"));
-        originalConsole.error(wrapError("如果是小程序平台，请勾选不校验合法域名配置。"));
+        {
+          originalConsole.error(wrapError("小程序平台，请勾选不校验合法域名配置。"));
+        }
         originalConsole.error(wrapError("如果是运行到真机，请确认手机与电脑处于同一网络。"));
         return false;
       }
-      initMiniProgramGlobalFlag();
+      {
+        initMiniProgramGlobalFlag();
+      }
       socket.onClose(() => {
-        originalConsole.error(wrapError("开发模式下日志通道 socket 连接关闭，请在 HBuilderX 中重新运行。"));
+        {
+          originalConsole.error(wrapError("开发模式下日志通道 socket 连接关闭，请在 HBuilderX 中重新运行。"));
+        }
         restoreError();
         restoreConsole();
       });
@@ -8600,6 +8660,9 @@ function initUTSJSONObjectProperties(obj) {
   }
   Object.defineProperties(obj, propertyDescriptorMap);
 }
+function getRealDefaultValue(defaultValue) {
+  return defaultValue === void 0 ? null : defaultValue;
+}
 let UTSJSONObject$1 = class UTSJSONObject2 {
   static keys(obj) {
     return Object.keys(obj);
@@ -8687,7 +8750,7 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
   }
   _getValue(keyPath, defaultValue) {
     const keyPathArr = this._resolveKeyPath(keyPath);
-    const realDefaultValue = defaultValue === void 0 ? null : defaultValue;
+    const realDefaultValue = getRealDefaultValue(defaultValue);
     if (keyPathArr.length === 0) {
       return realDefaultValue;
     }
@@ -8695,7 +8758,11 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
     for (let i2 = 0; i2 < keyPathArr.length; i2++) {
       const key = keyPathArr[i2];
       if (value2 instanceof Object) {
-        value2 = key in value2 ? value2[key] : realDefaultValue;
+        if (key in value2) {
+          value2 = value2[key];
+        } else {
+          return realDefaultValue;
+        }
       } else {
         return realDefaultValue;
       }
@@ -8709,46 +8776,52 @@ let UTSJSONObject$1 = class UTSJSONObject2 {
     this[key] = value2;
   }
   getAny(key, defaultValue) {
-    return this._getValue(key, defaultValue);
+    const realDefaultValue = getRealDefaultValue(defaultValue);
+    return this._getValue(key, realDefaultValue);
   }
   getString(key, defaultValue) {
-    const value2 = this._getValue(key, defaultValue);
+    const realDefaultValue = getRealDefaultValue(defaultValue);
+    const value2 = this._getValue(key, realDefaultValue);
     if (typeof value2 === "string") {
       return value2;
     } else {
-      return null;
+      return realDefaultValue;
     }
   }
   getNumber(key, defaultValue) {
-    const value2 = this._getValue(key, defaultValue);
+    const realDefaultValue = getRealDefaultValue(defaultValue);
+    const value2 = this._getValue(key, realDefaultValue);
     if (typeof value2 === "number") {
       return value2;
     } else {
-      return null;
+      return realDefaultValue;
     }
   }
   getBoolean(key, defaultValue) {
-    const boolean = this._getValue(key, defaultValue);
+    const realDefaultValue = getRealDefaultValue(defaultValue);
+    const boolean = this._getValue(key, realDefaultValue);
     if (typeof boolean === "boolean") {
       return boolean;
     } else {
-      return null;
+      return realDefaultValue;
     }
   }
   getJSON(key, defaultValue) {
-    let value2 = this._getValue(key, defaultValue);
+    const realDefaultValue = getRealDefaultValue(defaultValue);
+    let value2 = this._getValue(key, realDefaultValue);
     if (value2 instanceof Object) {
       return value2;
     } else {
-      return null;
+      return realDefaultValue;
     }
   }
   getArray(key, defaultValue) {
-    let value2 = this._getValue(key, defaultValue);
+    const realDefaultValue = getRealDefaultValue(defaultValue);
+    let value2 = this._getValue(key, realDefaultValue);
     if (value2 instanceof Array) {
       return value2;
     } else {
-      return null;
+      return realDefaultValue;
     }
   }
   toMap() {

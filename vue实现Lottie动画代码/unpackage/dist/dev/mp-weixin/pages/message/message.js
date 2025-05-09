@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const TabBar = () => "../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   components: {
     TabBar
   },
@@ -12,14 +12,14 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
   },
   onLoad() {
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 加载消息列表
      */
     loadMessages() {
     }
-  })
-}));
+  }
+});
 if (!Array) {
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
   _component_TabBar();

@@ -20,7 +20,7 @@ const _sfc_main = common_vendor.defineComponent({
       })
     };
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters("user/match", ["teacherInfo"])), {
+  computed: Object.assign(Object.assign({}, common_vendor.mapGetters("user/match", ["teacherInfo"])), {
     /**
     * @description 获取老师的服务列表
     * @returns {Array} 服务列表
@@ -31,7 +31,7 @@ const _sfc_main = common_vendor.defineComponent({
       }
       return this.teacherData.service || [];
     }
-  })),
+  }),
   onLoad(options) {
     this.teacherId = options.id || "";
     if (!this.teacherId) {
@@ -53,7 +53,7 @@ const _sfc_main = common_vendor.defineComponent({
     }
     this.isLoading = false;
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 切换标签页
      * @param {String} tab - 标签名称
@@ -73,7 +73,7 @@ const _sfc_main = common_vendor.defineComponent({
         router_Router.Navigator.toChat(this.teacherId);
       }, 800);
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

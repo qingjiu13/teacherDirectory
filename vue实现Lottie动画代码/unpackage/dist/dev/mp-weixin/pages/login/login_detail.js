@@ -47,7 +47,7 @@ const _sfc_main = common_vendor.defineComponent({
       // 用户ID
     };
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
+  computed: Object.assign(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
     userRole: (state = null) => {
       return state.userInfo.role;
     },
@@ -112,7 +112,7 @@ const _sfc_main = common_vendor.defineComponent({
         return [];
       return this.schoolStore.getters.filteredData(this.schoolStore.state);
     }
-  })),
+  }),
   methods: Object.assign(Object.assign({}, common_vendor.mapMutations("user/baseInfo", ["UPDATE_USER_INFO", "SET_USER_INFO"])), {
     /**
      * @description 初始化用户信息

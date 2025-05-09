@@ -4,20 +4,20 @@ const _sfc_main = common_vendor.defineComponent({
   name: "top-navbar",
   props: {
     // 用户角色
-    userRole: new UTSJSONObject({
+    userRole: {
       type: String,
       default: "student"
-    }),
+    },
     // 导航栏高度
-    navHeight: new UTSJSONObject({
+    navHeight: {
       type: Number,
       default: 60
-    }),
+    },
     // 自定义标签页
-    customTabs: new UTSJSONObject({
+    customTabs: {
       type: Array,
       default: null
-    })
+    }
   },
   data() {
     return {
@@ -34,7 +34,7 @@ const _sfc_main = common_vendor.defineComponent({
       currentTab: 0
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     // 根据角色或自定义标签返回显示的标签列表
     tabList() {
       if (this.customTabs) {
@@ -42,8 +42,8 @@ const _sfc_main = common_vendor.defineComponent({
       }
       return this.userRole === "teacher" ? this.teacherTabs : this.studentTabs;
     }
-  }),
-  methods: new UTSJSONObject({
+  },
+  methods: {
     // 切换Tab
     switchTab(index = null) {
       this.currentTab = index;
@@ -53,7 +53,7 @@ const _sfc_main = common_vendor.defineComponent({
     resetTab() {
       this.currentTab = 0;
     }
-  }),
+  },
   watch: {
     // 监听角色变化，重置标签页
     userRole() {

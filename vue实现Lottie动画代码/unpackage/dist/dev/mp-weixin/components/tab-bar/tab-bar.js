@@ -3,10 +3,10 @@ const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const _sfc_main = common_vendor.defineComponent({
   props: {
-    pageName: new UTSJSONObject({
+    pageName: {
       type: String,
       default: "index"
-    })
+    }
   },
   data() {
     return {
@@ -42,7 +42,7 @@ const _sfc_main = common_vendor.defineComponent({
       })
     };
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 获取页面对应的图标路径
      * @param {string} page - 页面名称
@@ -108,7 +108,7 @@ const _sfc_main = common_vendor.defineComponent({
         common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:146", "Tab切换失败:", e);
       }
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {

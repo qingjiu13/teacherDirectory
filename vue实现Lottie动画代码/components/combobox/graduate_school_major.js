@@ -24,29 +24,56 @@ export default {
       if (schoolName) {
         const majors = state.schools[schoolName] || []
         
-        // 为每个专业增加可能的简称和拼音首字母
+        // 为专业数据增加扩展属性以提高搜索准确性
         const majorItems = majors.map(major => {
+          // 提取专业简称和关键词
+          let shortNames = []
+          
+          // 如果专业名称中包含"学"字，可能是某种学科
+          if (major.includes('学')) {
+            // 提取学科名称，例如"计算机科学" -> "计算机"
+            const subjectName = major.split('学')[0]
+            if (subjectName.length >= 2) {
+              shortNames.push(subjectName)
+            }
+          }
+          
+          // 处理带有方向描述的专业名称
+          if (major.includes('（') || major.includes('(')) {
+            // 提取主专业名称，例如"软件工程（人工智能方向）" -> "软件工程"
+            const mainMajor = major.split(/[（(]/)[0]
+            if (mainMajor.length >= 2) {
+              shortNames.push(mainMajor)
+            }
+          }
+          
           return {
-            name: major,
-            // 为专业添加额外的搜索字段
-            display: major
+            name: major,           // 原始专业名称
+            short: shortNames.join(' '), // 可能的简称组合
+            display: major         // 显示名称
           }
         })
         
+        // 创建增强型Fuse实例
         state.majorFuse = new Fuse(majorItems, {
-          keys: ['name', 'display'],
+          keys: [
+            { name: 'name', weight: 0.7 },   // 完整专业名称权重最高
+            { name: 'short', weight: 0.3 }   // 简称权重次之
+          ],
           // Fuse配置 - 专业搜索
-          threshold: 0.6,          // 非常宽松的阈值，允许更多模糊匹配
+          threshold: 0.5,          // 中等宽松的阈值，平衡精确度和召回率
           includeScore: true,      // 包含分数以便排序
           shouldSort: true,        // 确保按相关性排序
           minMatchCharLength: 1,   // 最小匹配长度
-          ignoreLocation: true,    // 忽略位置限制，更宽松
+          ignoreLocation: true,    // 忽略位置限制，适合中文
           findAllMatches: true,    // 找到所有匹配项
-          useExtendedSearch: true, // 使用扩展搜索
-          distance: 1000,          // 大的距离值
+          useExtendedSearch: false, // 不使用扩展搜索语法
+          distance: 500,           // 降低距离值，让匹配更精确
           location: 0,
           includeMatches: true     // 包含匹配详细信息
         })
+        
+        console.log('专业搜索引擎初始化完成，包含专业:', majorItems.length)
       }
     },
     
@@ -135,18 +162,60 @@ export default {
       
       const majors = state.schools[state.selectedSchool] || []
       
+      // 如果没有搜索关键词，返回原始列表
       if (!state.majorKeyword) {
         return majors
       }
       
+      // 如果 Fuse 未初始化，立即初始化
       if (!state.majorFuse) {
-        // 如果 Fuse 未初始化，立即初始化
         this.mutations.setSelectedSchool(state, state.selectedSchool)
       }
 
-      // 使用 Fuse.js 搜索并排序
-      const results = state.majorFuse.search(state.majorKeyword.trim())
-      return results.map(result => result.item.name)
+      // 优化关键词处理，移除多余空格
+      let keyword = state.majorKeyword.trim()
+      
+      // 使用 Fuse.js 搜索并按相关性排序
+      const results = state.majorFuse.search(keyword)
+      
+      // 打印搜索相关信息（调试用）
+      console.log('专业搜索结果数量:', results.length, '关键词:', keyword)
+      
+      if (results.length > 0) {
+        // 输出前5个结果及其分数，帮助调试
+        console.log('专业搜索前5个结果:', results.slice(0, 5).map(r => ({
+          name: r.item.name, 
+          score: r.score,
+          matches: r.matches ? r.matches.map(m => m.key) : 'N/A'
+        })))
+      }
+      
+      // 应用自定义排序策略
+      // 1. 精确匹配优先显示在最前面
+      // 2. 其次是以关键词开头的专业
+      // 3. 然后按Fuse分数排序（分数越低越相关）
+      const exactMatch = []
+      const beginsWith = []
+      const otherMatches = []
+      
+      results.forEach(result => {
+        const major = result.item.name
+        // 精确匹配
+        if (major.toLowerCase() === keyword.toLowerCase()) {
+          exactMatch.push(major)
+        } 
+        // 以关键词开头的匹配
+        else if (major.toLowerCase().startsWith(keyword.toLowerCase())) {
+          beginsWith.push(major)
+        } 
+        // 其他匹配结果
+        else {
+          otherMatches.push(major)
+        }
+      })
+      
+      // 组合搜索结果，确保保持各自的相关性排序
+      return [...exactMatch, ...beginsWith, ...otherMatches]
     },
     
     // 获取匹配度最高的学校（用于自动选择）

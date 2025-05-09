@@ -26,7 +26,7 @@ const _sfc_main = common_vendor.defineComponent({
       // 页面滚动监听器
     };
   },
-  props: new UTSJSONObject({
+  props: {
     choiceIndex: {
       type: Number,
       default: -1
@@ -90,7 +90,7 @@ const _sfc_main = common_vendor.defineComponent({
       type: String,
       default: ""
     }
-  }),
+  },
   created() {
     dropdownInstances.push(this);
     common_vendor.index.$on("page-scroll", this.handlePageScroll);
@@ -105,7 +105,7 @@ const _sfc_main = common_vendor.defineComponent({
       clearTimeout(this.searchTimer);
     }
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * @description 获取当前页的选项列表
      * @returns {Array} 分页后的选项列表
@@ -118,7 +118,7 @@ const _sfc_main = common_vendor.defineComponent({
       const endIndex = this.currentPage * this.pageSize;
       return this.choiceList.slice(startIndex, endIndex);
     }
-  }),
+  },
   watch: {
     choiceIndex(newVal = null) {
       if (newVal >= 0 && newVal < this.choiceList.length) {

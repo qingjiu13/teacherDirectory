@@ -10,44 +10,44 @@ const _sfc_main = common_vendor.defineComponent({
   },
   emits: ["close", "confirm", "change", "monthSwitch"],
   props: {
-    date: new UTSJSONObject({
+    date: {
       type: String,
       default: ""
-    }),
-    selected: new UTSJSONObject({
+    },
+    selected: {
       type: Array,
       default() {
         return [];
       }
-    }),
-    lunar: new UTSJSONObject({
+    },
+    lunar: {
       type: Boolean,
       default: false
-    }),
-    startDate: new UTSJSONObject({
+    },
+    startDate: {
       type: String,
       default: ""
-    }),
-    endDate: new UTSJSONObject({
+    },
+    endDate: {
       type: String,
       default: ""
-    }),
-    range: new UTSJSONObject({
+    },
+    range: {
       type: Boolean,
       default: false
-    }),
-    insert: new UTSJSONObject({
+    },
+    insert: {
       type: Boolean,
       default: true
-    }),
-    showMonth: new UTSJSONObject({
+    },
+    showMonth: {
       type: Boolean,
       default: true
-    }),
-    clearDate: new UTSJSONObject({
+    },
+    clearDate: {
       type: Boolean,
       default: true
-    })
+    }
   },
   data() {
     return {
@@ -58,7 +58,7 @@ const _sfc_main = common_vendor.defineComponent({
       aniMaskShow: false
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * for i18n
      */
@@ -92,7 +92,7 @@ const _sfc_main = common_vendor.defineComponent({
     SUNText() {
       return t("uni-calender.SUN");
     }
-  }),
+  },
   watch: {
     date(newVal = null) {
       this.init(newVal);
@@ -121,7 +121,7 @@ const _sfc_main = common_vendor.defineComponent({
     }));
     this.init(this.date);
   },
-  methods: new UTSJSONObject({
+  methods: {
     // 取消穿透
     clean() {
     },
@@ -261,7 +261,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.weeks = this.cale.weeks;
       this.nowDate = this.cale.getInfo(date);
     }
-  })
+  }
 });
 if (!Array) {
   const _component_calendar_item = common_vendor.resolveComponent("calendar-item");

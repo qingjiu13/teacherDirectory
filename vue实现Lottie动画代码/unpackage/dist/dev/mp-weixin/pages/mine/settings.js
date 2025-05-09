@@ -2,7 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const router_Router = require("../../router/Router.js");
 const store_index = require("../../store/index.js");
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   data() {
     return {
       isLoggedIn: false,
@@ -10,17 +10,17 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       // 角色切换中状态
     };
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapGetters(new UTSJSONObject({
+  computed: Object.assign(Object.assign({}, common_vendor.mapGetters(new UTSJSONObject({
     isTeacher: "user/baseInfo/isTeacher",
     userRole: "user/baseInfo/userRole",
     profile: "user/baseInfo/profile"
   }))), { isStudent() {
     return !this.isTeacher;
-  } })),
+  } }),
   onLoad() {
     this.isLoggedIn = store_index.store.getters["user/baseInfo/id"] !== "";
   },
-  methods: new UTSJSONObject({
+  methods: {
     // 直接调用store的dispatch方法，替代mapActions
     /**
      * @description 处理修改个人信息
@@ -106,8 +106,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
         }
       }));
     }
-  })
-}));
+  }
+});
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.t(_ctx.isTeacher ? "老师" : "学生"),

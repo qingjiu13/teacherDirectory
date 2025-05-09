@@ -3,7 +3,7 @@ const common_vendor = require("../../../common/vendor.js");
 const router_Router = require("../../../router/Router.js");
 const store_index = require("../../../store/index.js");
 const TabBar = () => "../../../components/tab-bar/tab-bar.js";
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   components: {
     TabBar
   },
@@ -16,7 +16,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       // 显示调试信息
     };
   },
-  computed: new UTSJSONObject(Object.assign({}, common_vendor.mapState("user/baseInfo", new UTSJSONObject({
+  computed: Object.assign({}, common_vendor.mapState("user/baseInfo", {
     storeId: (state = null) => {
       return state.id;
     },
@@ -31,23 +31,23 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     },
     storeRole: (state = null) => {
       var _a;
-      return ((_a = state.userInfo) === null || _a === void 0 ? void 0 : _a.role) || "学生";
+      return ((_a = state.userInfo) === null || _a === void 0 ? null : _a.role) || "学生";
     },
     storeCertificate: (state = null) => {
       return state.certificate;
     },
     storeSchool: (state = null) => {
       var _a;
-      return ((_a = state.userInfo) === null || _a === void 0 ? void 0 : _a.school) || "";
+      return ((_a = state.userInfo) === null || _a === void 0 ? null : _a.school) || "";
     },
     storeMajor: (state = null) => {
       var _a;
-      return ((_a = state.userInfo) === null || _a === void 0 ? void 0 : _a.major) || "";
+      return ((_a = state.userInfo) === null || _a === void 0 ? null : _a.major) || "";
     },
     storeCampusAmbassador: (state = null) => {
       return state.campusAmbassador;
     }
-  })))),
+  })),
   onLoad() {
     return common_vendor.__awaiter(this, void 0, void 0, function* () {
       common_vendor.index.__f__("log", "at pages/mine/mine/mine_common.vue:131", "mine_common.vue onLoad开始执行");
@@ -86,7 +86,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       }
     });
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 从store初始化数据
      */
@@ -274,8 +274,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
     toService() {
       router_Router.Navigator.toService();
     }
-  })
-}));
+  }
+});
 if (!Array) {
   const _component_TabBar = common_vendor.resolveComponent("TabBar");
   _component_TabBar();

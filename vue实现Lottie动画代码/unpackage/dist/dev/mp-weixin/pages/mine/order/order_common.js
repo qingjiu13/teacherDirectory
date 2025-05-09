@@ -1,7 +1,7 @@
 "use strict";
 const common_vendor = require("../../../common/vendor.js");
 const router_Router = require("../../../router/Router.js");
-const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
+const _sfc_main = common_vendor.defineComponent({
   data() {
     return {
       userRole: "student",
@@ -98,14 +98,14 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       ]
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     /**
      * @description 根据用户角色返回不同的Tab标签
      */
     currentTabs() {
       return this.userRole === "teacher" ? this.teacherTabs : this.tabs;
     }
-  }),
+  },
   onLoad() {
   },
   onShow() {
@@ -118,7 +118,7 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       }
     });
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 加载用户数据
      */
@@ -274,8 +274,8 @@ const _sfc_main = common_vendor.defineComponent(new UTSJSONObject({
       });
       this.showConfirmOrderModal = false;
     }
-  })
-}));
+  }
+});
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   var _a, _b, _c, _d, _e, _f, _g;
   return common_vendor.e({

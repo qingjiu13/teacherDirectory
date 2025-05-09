@@ -5,39 +5,39 @@ const t = common_vendor.initVueI18n(uni_modules_uniCalendar_components_uniCalend
 const _sfc_main = common_vendor.defineComponent({
   emits: ["change"],
   props: {
-    weeks: new UTSJSONObject({
+    weeks: {
       type: Object,
       default() {
         return new UTSJSONObject({});
       }
-    }),
-    calendar: new UTSJSONObject({
+    },
+    calendar: {
       type: Object,
       default: () => {
         return new UTSJSONObject({});
       }
-    }),
-    selected: new UTSJSONObject({
+    },
+    selected: {
       type: Array,
       default: () => {
         return [];
       }
-    }),
-    lunar: new UTSJSONObject({
+    },
+    lunar: {
       type: Boolean,
       default: false
-    })
+    }
   },
-  computed: new UTSJSONObject({
+  computed: {
     todayText() {
       return t("uni-calender.today");
     }
-  }),
-  methods: new UTSJSONObject({
+  },
+  methods: {
     choiceDate(weeks = null) {
       this.$emit("change", weeks);
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

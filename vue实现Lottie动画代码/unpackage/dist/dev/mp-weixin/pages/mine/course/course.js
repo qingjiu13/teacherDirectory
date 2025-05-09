@@ -162,7 +162,7 @@ const _sfc_main = common_vendor.defineComponent({
       globalData.userRole = this.userRole;
     }
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 加载用户数据
      */
@@ -517,7 +517,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
       }));
     }
-  })
+  }
 });
 if (!Array) {
   const _easycom_uni_calendar2 = common_vendor.resolveComponent("uni-calendar");

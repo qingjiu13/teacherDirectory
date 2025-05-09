@@ -402,7 +402,7 @@ const _sfc_main = common_vendor.defineComponent({
             this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
             this.saveChatHistory();
           } else {
-            const errorMessage = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "获取回复失败，请稍后重试";
+            const errorMessage = ((_a = response.error) === null || _a === void 0 ? null : _a.message) || response.message || "获取回复失败，请稍后重试";
             this.messages[aiMessageIndex].content = `抱歉，无法获取回复：${errorMessage}`;
             this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
             this.showToast(errorMessage, "none", 3e3);
@@ -552,9 +552,9 @@ const _sfc_main = common_vendor.defineComponent({
                 this.scrollToBottom();
               });
             } else {
-              const errorMsg = ((_a = response.error) === null || _a === void 0 ? void 0 : _a.message) || response.message || "加载对话失败";
+              const errorMsg = ((_a = response.error) === null || _a === void 0 ? null : _a.message) || response.message || "加载对话失败";
               this.showToast(`加载失败: ${errorMsg}`, "none", 3e3);
-              if (((_b = response.error) === null || _b === void 0 ? void 0 : _b.statusCode) >= 500) {
+              if (((_b = response.error) === null || _b === void 0 ? null : _b.statusCode) >= 500) {
                 this.startNewChat();
               }
             }

@@ -3,17 +3,17 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "InputSection",
   props: {
-    isProcessing: new UTSJSONObject({
+    isProcessing: {
       type: Boolean,
       default: false
-    })
+    }
   },
   data() {
     return {
       inputValue: ""
     };
   },
-  methods: new UTSJSONObject({
+  methods: {
     /**
      * @description 发送消息
      */
@@ -24,7 +24,7 @@ const _sfc_main = common_vendor.defineComponent({
       this.$emit("send", this.inputValue.trim());
       this.inputValue = "";
     }
-  })
+  }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {

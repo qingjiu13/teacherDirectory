@@ -41,7 +41,7 @@ const _sfc_main = common_vendor.defineComponent({
   onLoad() {
     this.checkLoginStatus();
   },
-  methods: new UTSJSONObject(Object.assign(Object.assign(Object.assign({}, common_vendor.mapMutations("user/baseInfo", ["SET_USER_INFO"])), common_vendor.mapActions("user/baseInfo", ["updateUserInfo"])), {
+  methods: Object.assign(Object.assign(Object.assign({}, common_vendor.mapMutations("user/baseInfo", ["SET_USER_INFO"])), common_vendor.mapActions("user/baseInfo", ["updateUserInfo"])), {
     // 检查登录状态
     checkLoginStatus() {
       const token = common_vendor.index.getStorageSync("token");
@@ -251,7 +251,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.showPrivacyModal = false;
       }
     }
-  }))
+  })
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

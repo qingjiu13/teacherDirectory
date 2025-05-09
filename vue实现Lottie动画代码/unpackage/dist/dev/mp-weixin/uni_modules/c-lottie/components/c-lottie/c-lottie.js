@@ -3,39 +3,39 @@ const common_vendor = require("../../../../common/vendor.js");
 const uni_modules_cLottie_components_cLottie_js_uuid = require("./js/uuid.js");
 const _sfc_main = common_vendor.defineComponent({
   props: {
-    canvasId: new UTSJSONObject({
+    canvasId: {
       type: String
-    }),
-    width: new UTSJSONObject({
+    },
+    width: {
       type: String,
       default: "750rpx"
-    }),
-    height: new UTSJSONObject({
+    },
+    height: {
       type: String,
       default: "750rpx"
-    }),
-    src: new UTSJSONObject({
+    },
+    src: {
       type: String
-    }),
-    data: new UTSJSONObject({
+    },
+    data: {
       type: String
-    }),
-    autoPlay: new UTSJSONObject({
+    },
+    autoPlay: {
       type: Boolean,
       default: true
-    }),
-    loop: new UTSJSONObject({
+    },
+    loop: {
       type: Boolean,
       default: true
-    }),
-    renderer: new UTSJSONObject({
+    },
+    renderer: {
       type: String,
       default: "canvas"
-    }),
-    isOnChange: new UTSJSONObject({
+    },
+    isOnChange: {
       type: Boolean,
       default: false
-    })
+    }
   },
   emits: ["Complete", "LoopComplete", "EnterFrame", "SegmentStart", "dataReady", "dataFailed"],
   data() {
@@ -43,7 +43,7 @@ const _sfc_main = common_vendor.defineComponent({
       fun: new UTSJSONObject({})
     };
   },
-  computed: new UTSJSONObject({
+  computed: {
     myCanvasId() {
       if (!this.canvasId) {
         return "c" + uni_modules_cLottie_components_cLottie_js_uuid.uuid(18);
@@ -64,13 +64,13 @@ const _sfc_main = common_vendor.defineComponent({
         isOnChange: this.isOnChange
       });
     }
-  }),
+  },
   watch: {
     lottieData() {
       this.render();
     }
   },
-  methods: new UTSJSONObject({
+  methods: {
     call(name = null, args = null) {
       this.fun = new UTSJSONObject({ name, args });
       this.callPlayer(this.fun);
@@ -148,7 +148,7 @@ const _sfc_main = common_vendor.defineComponent({
         this.player[name](args);
       }
     }
-  }),
+  },
   mounted() {
     this.render();
   },

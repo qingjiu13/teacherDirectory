@@ -3,12 +3,12 @@ const common_vendor = require("./common/vendor.js");
 const _sfc_main = common_vendor.defineComponent({
   name: "HistorySidebar",
   props: {
-    visible: new UTSJSONObject({
+    visible: {
       type: Boolean,
       default: false
-    })
+    }
   },
-  computed: new UTSJSONObject(Object.assign(Object.assign({}, common_vendor.mapState(new UTSJSONObject({
+  computed: Object.assign(Object.assign({}, common_vendor.mapState(new UTSJSONObject({
     conversations: (state = null) => {
       try {
         return state.user && state.user.aiChat && state.user.aiChat.aiChat ? state.user.aiChat.aiChat.conversations || [] : [];
@@ -57,7 +57,7 @@ const _sfc_main = common_vendor.defineComponent({
     currentChatId() {
       return this.activeConversation;
     }
-  })),
+  }),
   created() {
     common_vendor.index.__f__("log", "at components/ai-chat/HistorySidebar.vue:112", "=================== 调试信息开始 ===================");
     common_vendor.index.__f__("log", "at components/ai-chat/HistorySidebar.vue:113", "完整的 Vuex store:", this.$store);
