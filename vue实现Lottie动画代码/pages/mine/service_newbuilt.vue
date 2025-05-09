@@ -133,12 +133,12 @@
       
       <!-- 学习资料类型字段 -->
       <view class="form-item" v-if="selectedServiceType === '学习资料'">
-        <view class="form-label">课程数量</view>
+        <view class="form-label">服务名称</view>
         <input
           class="form-input"
-          type="number"
-          placeholder="请输入课程数量"
-          v-model.number="coursequantity"
+          type="text"
+          placeholder="请输入服务名称"
+          v-model="coursequantity"
         />
       </view>
       
@@ -170,6 +170,23 @@
           <text class="plus-icon">+</text>
         </view>
       </view>
+
+      <!-- 封面上传 -->
+      <view class="form-item">
+        <view class="form-label">封面上传</view>
+        <view class="cover-upload-container">
+          <view class="cover-upload-list">
+            <view v-for="(url, index) in coverUrls" :key="index" class="cover-item">
+              <image :src="url" class="cover-preview"></image>
+              <view class="cover-delete" @click.stop="deleteCover(index)">×</view>
+            </view>
+            <view class="cover-upload" @click="chooseCover" v-if="coverUrls.length < 9">
+              <text class="plus-icon">+</text>
+            </view>
+          </view>
+          <text class="upload-tip">最多可上传9张图片</text>
+        </view>
+      </view>
     </view>
     
     <!-- 底部按钮 -->
@@ -196,6 +213,8 @@ export default {
     return {
       mode: 'add', // 默认为添加模式
       serviceId: null, // 当前编辑的服务ID
+      coverUrls: [], // 修改：封面图片URL数组
+      avatarUrl: '', // 新增：头像URL
       selectedServiceType: '',
       selectedServiceTypeIndex: -1,
       serviceTypes: [
@@ -256,7 +275,42 @@ export default {
     uni.$off('serviceEdited', this.handleServiceEdited)
   },
   methods: {
+    chooseAvatar() {
+      uni.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          this.avatarUrl = res.tempFilePaths[0]
+        }
+      })
+    },
+    chooseCover() {
+      const remainCount = 9 - this.coverUrls.length
+      if (remainCount <= 0) {
+        uni.showToast({
+          title: '最多只能上传9张图片',
+          icon: 'none'
+        })
+        return
+      }
+      
+      uni.chooseImage({
+        count: remainCount,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          this.coverUrls = [...this.coverUrls, ...res.tempFilePaths]
+        }
+      })
+    },
+    deleteCover(index) {
+      this.coverUrls.splice(index, 1)
+    },
     fillFormWithServiceData(serviceData) {
+      // 设置封面图片
+      this.coverUrls = serviceData.imageUrls || []
+      
       // 根据服务数据填充表单
       // 设置服务类型
       this.selectedServiceType = serviceData.name || ''
@@ -370,6 +424,15 @@ export default {
       this.$refs.loadingRef.show()
       
       // 表单验证
+      if (this.coverUrls.length === 0) {
+        uni.showToast({
+          title: '请上传封面图片',
+          icon: 'none'
+        })
+        this.$refs.loadingRef.hide()
+        return
+      }
+      
       if (!this.selectedServiceType) {
         uni.showToast({
           title: '请选择服务类型',
@@ -410,14 +473,7 @@ export default {
       } 
       // 一对多课程的特殊验证
       else if (this.selectedServiceType === '一对多课程') {
-        if (this.selectedMultiLessonsIndex === -1) {
-          uni.showToast({
-            title: '请选择课时',
-            icon: 'none'
-          })
-          this.$refs.loadingRef.hide()
-          return
-        }
+      
         
         if (this.selectedMultiHoursIndex === -1 || this.selectedMultiMinutesIndex === -1) {
           uni.showToast({
@@ -473,7 +529,8 @@ export default {
         price: this.price.startsWith('¥') ? this.price : '¥' + this.price,
         description: this.description || `这是一个${this.selectedServiceType}服务`,
         checked: false,
-        imageUrl: this.files.length > 0 ? this.files[0] : '/static/images/kaoyan' + Math.floor(Math.random() * 4 + 1) + '.jpg'
+        imageUrls: this.coverUrls, // 修改：使用封面图片URL数组
+        imageUrl: this.coverUrls[0] // 保持兼容性，使用第一张图片作为主图
       }
       
       // 为一对一课程添加特殊字段
@@ -728,8 +785,8 @@ export default {
 
 /* 附件上传区域 */
 .upload-area {
-  width: 140rpx;
-  height: 140rpx;
+  width: 200rpx;
+  height: 200rpx;
   background-color: #fff;
   border-radius: 10rpx;
   display: flex;
@@ -786,5 +843,70 @@ export default {
 
 .duration-minutes {
   flex: 1;
+}
+
+/* 封面上传区域 */
+.cover-upload-container {
+  width: 100%;
+}
+
+.cover-upload-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 10rpx;
+}
+
+.cover-item {
+  width: 200rpx;
+  height: 200rpx;
+  position: relative;
+  border-radius: 10rpx;
+  overflow: hidden;
+}
+
+.cover-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40rpx;
+  height: 40rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  border-bottom-left-radius: 10rpx;
+}
+
+.cover-upload {
+  width: 200rpx;
+  height: 200rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #ddd;
+}
+
+.upload-tip {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+/* 删除原有的头像上传相关样式 */
+.avatar-upload,
+.avatar-preview,
+.avatar-placeholder {
+  display: none;
 }
 </style>

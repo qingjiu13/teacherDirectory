@@ -111,47 +111,16 @@
     <view class="modal" v-if="showPayModal">
       <view class="modal-content">
         <view class="modal-title">
-          <text>确认支付</text>
+          <text>微信支付</text>
         </view>
         <view class="modal-body">
           <text class="price-text">支付金额：¥{{currentOrder?.price}}</text>
-          <view class="payment-selector">
-            <text class="payment-title">支付方式</text>
-            <view class="payment-dropdown">
-              <view 
-                class="selected-payment"
-                :class="{ 'active': isPaymentDropdownOpen }"
-                @click="togglePaymentDropdown"
-              >
-                <view class="payment-info">
-                  <view class="payment-icon" :class="paymentMethods[selectedPayment].type">
-                    <text class="icon-text">{{ paymentMethods[selectedPayment].icon }}</text>
-                  </view>
-                  <text class="payment-name">{{ paymentMethods[selectedPayment].name }}</text>
-                </view>
-                <text class="dropdown-arrow" :class="{ 'arrow-up': isPaymentDropdownOpen }">▼</text>
+          <view class="payment-wrapper">
+            <view class="payment-info">
+              <view class="payment-icon wechat">
+                <text class="icon-text">微</text>
               </view>
-              
-              <view 
-                class="payment-options"
-                :class="{ 'show': isPaymentDropdownOpen }"
-              >
-                <view 
-                  v-for="(method, index) in paymentMethods" 
-                  :key="index"
-                  class="payment-option"
-                  :class="{ 'selected': selectedPayment === index }"
-                  @click="selectPayment(index)"
-                >
-                  <view class="payment-info">
-                    <view class="payment-icon" :class="method.type">
-                      <text class="icon-text">{{ method.icon }}</text>
-                    </view>
-                    <text class="payment-name">{{ method.name }}</text>
-                  </view>
-                  <text v-if="selectedPayment === index" class="check-icon">✓</text>
-                </view>
-              </view>
+              <text class="payment-name">微信支付</text>
             </view>
           </view>
         </view>
@@ -316,6 +285,9 @@ export default {
       // 当前操作的订单
       currentOrder: null,
       
+      // 微信支付相关
+      wxPayUrl: 'https://api.mch.weixin.qq.com/pay/unifiedorder', // 微信支付统一下单接口
+      
       // 支付方式
       isPaymentDropdownOpen: false,
       selectedPayment: 0,
@@ -471,13 +443,67 @@ export default {
      * @description 确认支付
      */
     confirmPay() {
-      const payMethod = this.paymentMethods[this.selectedPayment].name;
+      uni.showLoading({
+        title: '跳转支付...'
+      });
+      
+      // 调用微信支付接口
+      setTimeout(() => {
+        uni.hideLoading();
+        
+        // 这里是实际项目中调用微信支付的地方
+        console.log('调用微信支付接口，支付地址:', this.wxPayUrl);
+        console.log('订单信息:', this.currentOrder);
+        
+        // 在实际开发中，这里应该调用后端API获取微信支付参数，然后调用微信支付
+        /*
+        uni.requestPayment({
+          provider: 'wxpay',
+          orderInfo: {
+            // 从服务器获取的支付参数
+            appid: 'wx123456789',
+            noncestr: 'noncestr',
+            package: 'Sign=WXPay',
+            partnerid: '10000100',
+            prepayid: 'wx201410272009395522657a690389285100',
+            timestamp: '1414488539',
+            sign: 'C380BEC2BFD727A4B6845133519F3AD6'
+          },
+          success: (res) => {
+            // 支付成功
+            this.paySuccess();
+          },
+          fail: (err) => {
+            // 支付失败
+            this.payFail(err);
+          }
+        });
+        */
+        
+        // 模拟支付成功
+        this.paySuccess();
+      }, 1500);
+    },
+    
+    // 支付成功
+    paySuccess() {
+      this.showPayModal = false;
       uni.showToast({
-        title: `${payMethod}支付成功`,
+        title: '支付成功',
         icon: 'success'
       });
+      // 刷新订单列表
+      this.loadOrders();
+    },
+    
+    // 支付失败
+    payFail(err) {
       this.showPayModal = false;
-      this.isPaymentDropdownOpen = false;
+      uni.showToast({
+        title: '支付失败',
+        icon: 'none'
+      });
+      console.error('支付失败:', err);
     },
     
     /**
@@ -644,18 +670,22 @@ export default {
   align-items: center;
   height: 40rpx;
   margin-top: 10rpx;
-  z-index: 10;
+  z-index: 1;
 }
 
 .order-price-label {
   font-size: 28rpx;
   color: #333333;
+  position: relative;
+  z-index: 1;
 }
 
 .order-price {
   font-size: 30rpx;
   color: #333333;
   font-weight: bold;
+  position: relative;
+  z-index: 1;
 }
 
 .order-footer {
@@ -725,9 +755,10 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0);
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
 
 .modal-content {
@@ -735,6 +766,10 @@ export default {
   background-color: #ffffff;
   border-radius: 16rpx;
   padding: 30rpx;
+  border: 2rpx solid #e0e0e0;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 10000;
 }
 
 .modal-title {
@@ -780,8 +815,12 @@ export default {
 }
 
 .modal-btn.confirm {
-  background-color: #007AFF;
+  background-color: #07C160;
   color: #ffffff;
+}
+
+.modal-btn.confirm:active {
+  background-color: #06ad56;
 }
 
 /* 支付选择器样式 */
@@ -933,5 +972,33 @@ export default {
   line-height: 50rpx;
   border-radius: 25rpx;
   font-size: 22rpx;
+}
+
+/* 支付弹窗样式补充 */
+.price-text {
+  font-size: 36rpx;
+  color: #FF6B6B;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  margin-bottom: 30rpx;
+}
+
+.payment-wrapper {
+  padding: 0 20rpx;
+  margin-bottom: 20rpx;
+}
+
+/* 删除二维码相关样式 */
+.qrcode-container,
+.qrcode-placeholder,
+.qrcode-placeholder text {
+  display: none;
+}
+
+/* 修改确认按钮颜色为微信绿色 */
+.pay-btn, .confirm-btn {
+  background-color: #07C160;
+  color: #ffffff;
 }
 </style>

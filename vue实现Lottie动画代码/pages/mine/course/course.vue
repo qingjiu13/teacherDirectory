@@ -23,8 +23,10 @@
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
                   <text class="course-lessons">课程节数：第2节/共10节</text>
+                  <text v-if="item.isTeacherReservation" class="course-time">老师已选时间：{{item.time}}</text>
                 </view>
-                <button class="reserve-btn" @click="handleReserve(index)">提醒预约</button>
+                <button v-if="item.isTeacherReservation" class="accept-btn" @click="acceptReservation(index)">接受预约</button>
+                <button v-else class="reserve-btn" @click="handleReserve(index)">提醒预约</button>
               </view>
               <view v-if="pendingCourses.length === 0" class="empty-tip">
                 <text>暂无待预约课程</text>
@@ -118,12 +120,21 @@
                   <text class="course-type">服务类型：一对一课程</text>
                   <text class="course-lessons">课程节数：第2节/共10节</text>
                 </view>
-                <button class="reserve-btn" @click="acceptCourse(index)">接受预约</button>
+                <button class="reserve-btn" @click="teacherReserve(index)">发起预约</button>
               </view>
               <view v-if="teacherPendingCourses.length === 0" class="empty-tip">
                 <text>暂无待接受课程</text>
               </view>
             </scroll-view>
+            
+            <!-- 老师端日历选择器 -->
+            <uni-calendar 
+              ref="teacherCalendar"
+              :insert="false"
+              :start-date="getToday()"
+              :end-date="getNextMonth()"
+              @confirm="onTeacherCalendarConfirm"
+            />
           </view>
         </template>
         
@@ -647,8 +658,8 @@ export default {
         this.teacherCurrentTab = 0;
       } else {
         console.log('加载学生课程数据');
-        // 为学生角色初始化数据（如果需要的话）
-        // 这里使用的是已有的默认数据，如果需要可以添加initStudentData方法
+        // 为学生角色初始化数据
+        this.initStudentData();
         
         // 确保使用学生的标签页索引
         this.currentTab = 0;
@@ -719,54 +730,114 @@ export default {
       ];
     },
     
-    // 实现老师界面的各个功能方法
-    acceptCourse(index) {
-      const course = this.teacherPendingCourses[index];
+    // 老师端 - 发起预约
+    teacherReserve(index) {
+      this.currentCourseIndex = index;
+      // 显示日历选择器
+      this.$refs.teacherCalendar.open();
+    },
+    
+    // 老师端 - 日历确认事件
+    onTeacherCalendarConfirm(e) {
+      this.selectedDate = e.fulldate;
+      
+      // 选择日期后立即显示时间选择弹窗
+      this.$nextTick(() => {
+        this.showTeacherTimeSelectionDialog();
+      });
+    },
+    
+    // 老师端 - 显示时间选择弹窗
+    showTeacherTimeSelectionDialog() {
+      // 构建时间段选项
+      const periodOptions = this.timeSlots.map(item => item.period);
+      
+      // 先选择时间段（上午/下午/晚上）
+      uni.showActionSheet({
+        itemList: periodOptions,
+        success: (res) => {
+          this.selectedTimePeriod = periodOptions[res.tapIndex];
+          const selectedPeriod = this.timeSlots[res.tapIndex];
+          
+          // 然后选择具体时间
+          setTimeout(() => {
+            uni.showActionSheet({
+              itemList: selectedPeriod.slots,
+              success: (timeRes) => {
+                this.selectedTimeSlot = selectedPeriod.slots[timeRes.tapIndex];
+                
+                // 选择完时间后显示确认预约弹窗
+                this.confirmTeacherReservation();
+              }
+            });
+          }, 300);
+        }
+      });
+    },
+    
+    // 老师端 - 确认预约
+    confirmTeacherReservation() {
+      const course = this.teacherPendingCourses[this.currentCourseIndex];
+      
+      // 显示确认弹窗
       uni.showModal({
-        title: '接受预约',
-        content: `确定接受${course.studentName}的${course.name}课程预约吗？`,
+        title: '确认发起预约',
+        content: `课程：${course.name}\n学生：${course.studentName}\n日期：${this.selectedDate}\n时间：${this.selectedTimeSlot}`,
         success: (res) => {
           if (res.confirm) {
-            // 将课程从待接受移动到进行中
-            this.teacherActiveCourses.push({
-              ...course,
-              classTime: this.getRandomFutureTime()
-            });
+            // 模拟将预约信息发送给学生
+            this.sendReservationToStudent(course);
             
             // 从待接受列表中删除
-            this.teacherPendingCourses.splice(index, 1);
+            this.teacherPendingCourses.splice(this.currentCourseIndex, 1);
             
             uni.showToast({
-              title: '已接受预约',
+              title: '预约已发送',
               icon: 'success',
               duration: 2000
             });
+            
+            // 重置状态
+            this.currentCourseIndex = null;
+            this.selectedDate = null;
+            this.selectedTimeSlot = '';
+            this.selectedTimePeriod = '';
           }
         }
       });
     },
     
-    rescheduleClass(index) {
-      const course = this.teacherActiveCourses[index];
-      uni.showModal({
-        title: '调整时间',
-        content: `当前时间：${course.classTime}\n是否需要重新安排时间？`,
-        success: (res) => {
-          if (res.confirm) {
-            // 模拟调整时间逻辑
-            const newTime = this.getRandomFutureTime();
-            this.teacherActiveCourses[index].classTime = newTime;
-            
-            uni.showToast({
-              title: '时间已调整',
-              icon: 'success',
-              duration: 2000
-            });
-          }
-        }
+    // 模拟将预约信息发送给学生
+    sendReservationToStudent(course) {
+      // 真实场景中，这里应该是通过API发送预约信息
+      console.log('发送预约信息到学生:', course.studentName);
+      
+      // 模拟更新全局状态或本地存储
+      const globalData = getApp().globalData || {};
+      if (!globalData.studentReservations) {
+        globalData.studentReservations = [];
+      }
+      
+      // 添加新的预约
+      globalData.studentReservations.push({
+        id: Date.now(),
+        name: course.name,
+        teacher: '我', // 当前登录的老师
+        time: `${this.selectedDate} ${this.selectedTimeSlot}`,
+        price: course.price,
+        image: course.image || "/static/images/default_avatar.png",
+        description: `由老师发起的预约：${course.name}`,
+        studentName: course.studentName
+      });
+      
+      // 将课程添加到老师的进行中课程
+      this.teacherActiveCourses.push({
+        ...course,
+        classTime: `${this.selectedDate} ${this.selectedTimeSlot}`
       });
     },
     
+    // 查看回访/回放
     viewClassFeedback(item) {
       if (item.replayUrl) {
         // 如果有回放URL，跳转到回放页面
@@ -847,6 +918,70 @@ export default {
             
             uni.showToast({ 
               title: '已确认下课',
+              icon: 'success',
+              duration: 2000
+            });
+          }
+        }
+      });
+    },
+
+    // 学生数据初始化
+    initStudentData() {
+      console.log('初始化学生数据');
+      
+      // 先加载默认数据
+      // 这里不需要重新初始化pendingCourses，因为已经有默认数据了
+      
+      // 检查全局数据中是否有老师发起的预约
+      const globalData = getApp().globalData || {};
+      if (globalData.studentReservations && globalData.studentReservations.length > 0) {
+        console.log('发现老师发起的预约:', globalData.studentReservations.length);
+        
+        // 将老师发起的预约添加到学生的待预约列表
+        globalData.studentReservations.forEach(reservation => {
+          // 检查是否已存在相同ID的课程，避免重复添加
+          const exists = this.pendingCourses.some(course => course.id === reservation.id);
+          if (!exists) {
+            this.pendingCourses.unshift({
+              id: reservation.id,
+              name: reservation.name,
+              teacher: reservation.teacher,
+              time: reservation.time,
+              price: reservation.price,
+              image: reservation.image,
+              description: reservation.description,
+              isTeacherReservation: true // 标记为老师发起的预约
+            });
+          }
+        });
+        
+        // 处理完后清空全局数据中的预约信息，避免重复显示
+        globalData.studentReservations = [];
+      }
+    },
+
+    // 学生端 - 接受老师发起的预约
+    acceptReservation(index) {
+      const course = this.pendingCourses[index];
+      
+      // 显示确认接受预约的弹窗
+      uni.showModal({
+        title: '接受预约',
+        content: `确认接受${course.teacher}的预约吗？\n课程：${course.name}\n时间：${course.time}`,
+        success: (res) => {
+          if (res.confirm) {
+            // 将预约添加到已预约列表
+            this.reservedCourses.push({
+              ...course,
+              reservedTime: course.time
+            });
+            
+            // 从待预约列表中删除
+            this.pendingCourses.splice(index, 1);
+            
+            uni.showToast({
+              title: '已接受预约',
               icon: 'success',
               duration: 2000
             });
@@ -989,6 +1124,32 @@ export default {
   background-color: #999999;
   color: white;
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.accept-btn {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  border-radius: 30rpx;
+  padding: 0 25rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  background-color: #3a86ff;
+  color: white;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.course-time {
+  font-size: 26rpx;
+  color: #ff7043;
+  font-weight: 500;
+  margin-top: 4rpx;
+  margin-bottom: 4rpx;
+  line-height: 1.2;
+  text-align: left;
+  padding: 2rpx 0;
 }
 
 .confirm-class-btn, .modify-time-btn {
