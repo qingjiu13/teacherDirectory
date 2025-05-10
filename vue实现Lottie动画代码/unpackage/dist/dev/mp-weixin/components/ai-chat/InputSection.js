@@ -32,9 +32,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     b: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
     c: $data.inputValue,
     d: common_vendor.o(($event) => $data.inputValue = $event.detail.value),
-    e: common_vendor.t($props.isProcessing ? "请稍候" : "发送"),
+    e: common_vendor.t($props.isProcessing ? "请稍候" : "确认"),
     f: common_vendor.o((...args) => $options.sendMessage && $options.sendMessage(...args)),
-    g: $props.isProcessing || !$data.inputValue.trim(),
+    g: !$data.inputValue.trim(),
     h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };
 }

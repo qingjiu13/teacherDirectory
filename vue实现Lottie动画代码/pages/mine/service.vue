@@ -54,17 +54,12 @@
     <!-- 半透明背景遮罩 -->
     <view class="detail-overlay" v-if="overlayVisible" @click="hideServiceDetail"></view>
 
-    <!-- 加载动画组件 -->
-    <loading ref="loadingRef" />
   </view>
 </template>
 
 <script>
-import Loading from '@/components/loading-animation/loading.vue'
-
 export default {
   components: {
-    Loading
   },
   data() {
     return {

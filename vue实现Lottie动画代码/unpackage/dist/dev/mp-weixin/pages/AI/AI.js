@@ -3,6 +3,7 @@ const common_vendor = require("../../common/vendor.js");
 const store_index = require("../../store/index.js");
 const ____ = require("../../本科专业.js");
 const components_combobox_undergraduate = require("../../components/combobox/undergraduate.js");
+const common_assets = require("../../common/assets.js");
 const HistorySidebar = () => "../../components/ai-chat/HistorySidebar.js";
 const MessageList = () => "../../components/ai-chat/MessageList.js";
 const ModeSelector = () => "../../components/ai-chat/ModeSelector.js";
@@ -193,10 +194,10 @@ const _sfc_main = common_vendor.defineComponent({
     loadUniversityData() {
       try {
         this.initSchoolAndMajorSearch();
-        common_vendor.index.__f__("log", "at pages/AI/AI.vue:345", "加载大学数据成功");
+        common_vendor.index.__f__("log", "at pages/AI/AI.vue:343", "加载大学数据成功");
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:347", "加载数据失败:", error);
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:348", "错误详情:", error.message, error.stack);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:345", "加载数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:346", "错误详情:", error.message, error.stack);
         const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
         this.schoolList = defaultSchools;
         common_vendor.index.showToast({
@@ -281,7 +282,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
       }), keyword);
       this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
-      common_vendor.index.__f__("log", "at pages/AI/AI.vue:462", `学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
+      common_vendor.index.__f__("log", "at pages/AI/AI.vue:460", `学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
     },
     /**
      * @description 处理专业搜索输入
@@ -294,7 +295,7 @@ const _sfc_main = common_vendor.defineComponent({
         }
       }), keyword);
       this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
-      common_vendor.index.__f__("log", "at pages/AI/AI.vue:481", `专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
+      common_vendor.index.__f__("log", "at pages/AI/AI.vue:479", `专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
     },
     /**
      * @description 切换对话模式
@@ -563,7 +564,7 @@ const _sfc_main = common_vendor.defineComponent({
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/AI/AI.vue:797", "加载对话内容失败:", error);
+        common_vendor.index.__f__("error", "at pages/AI/AI.vue:795", "加载对话内容失败:", error);
         this.toggleLoading(false);
         this.startNewChat();
       }
@@ -660,17 +661,17 @@ const _sfc_main = common_vendor.defineComponent({
 });
 if (!Array) {
   const _easycom_history_sidebar2 = common_vendor.resolveComponent("history-sidebar");
+  const _easycom_mode_selector2 = common_vendor.resolveComponent("mode-selector");
   const _component_ChoiceSelected = common_vendor.resolveComponent("ChoiceSelected");
   const _easycom_message_list2 = common_vendor.resolveComponent("message-list");
-  const _easycom_mode_selector2 = common_vendor.resolveComponent("mode-selector");
   const _component_input_section = common_vendor.resolveComponent("input-section");
-  (_easycom_history_sidebar2 + _component_ChoiceSelected + _easycom_message_list2 + _easycom_mode_selector2 + _component_input_section)();
+  (_easycom_history_sidebar2 + _easycom_mode_selector2 + _component_ChoiceSelected + _easycom_message_list2 + _component_input_section)();
 }
 const _easycom_history_sidebar = () => "../../components/ai-chat/HistorySidebar2.js";
-const _easycom_message_list = () => "../../components/ai-chat/MessageList2.js";
 const _easycom_mode_selector = () => "../../components/ai-chat/ModeSelector2.js";
+const _easycom_message_list = () => "../../components/ai-chat/MessageList2.js";
 if (!Math) {
-  (_easycom_history_sidebar + _easycom_message_list + _easycom_mode_selector)();
+  (_easycom_history_sidebar + _easycom_mode_selector + _easycom_message_list)();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -686,12 +687,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["history-summaries"]: $options.historySummaries,
       ["current-chat-id"]: $data.currentChatId
     }),
-    g: common_vendor.o((...args) => $options.toggleSidebar && $options.toggleSidebar(...args)),
-    h: common_vendor.o((...args) => $options.startNewChat && $options.startNewChat(...args)),
-    i: common_vendor.sr("schoolDropdown", "4e6adde4-1"),
-    j: common_vendor.o($options.handleSchoolSelect),
-    k: common_vendor.o($options.handleSchoolSearch),
-    l: common_vendor.p({
+    g: common_assets._imports_0$1,
+    h: common_vendor.o((...args) => $options.toggleSidebar && $options.toggleSidebar(...args)),
+    i: common_vendor.o($options.switchMode),
+    j: common_vendor.p({
+      ["current-mode"]: $data.currentMode,
+      inNav: true
+    }),
+    k: common_assets._imports_1$1,
+    l: common_vendor.o((...args) => $options.startNewChat && $options.startNewChat(...args)),
+    m: common_vendor.sr("schoolDropdown", "4e6adde4-2"),
+    n: common_vendor.o($options.handleSchoolSelect),
+    o: common_vendor.o($options.handleSchoolSearch),
+    p: common_vendor.p({
       componentType: "undergraduate",
       choiceIndex: $data.schoolIndex,
       choiceList: $data.schoolList,
@@ -699,10 +707,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       mode: "search",
       searchPlaceholder: "输入学校名称"
     }),
-    m: common_vendor.sr("majorDropdown", "4e6adde4-2"),
-    n: common_vendor.o($options.handleMajorSelect),
-    o: common_vendor.o($options.handleMajorSearch),
-    p: common_vendor.p({
+    q: common_vendor.sr("majorDropdown", "4e6adde4-3"),
+    r: common_vendor.o($options.handleMajorSelect),
+    s: common_vendor.o($options.handleMajorSearch),
+    t: common_vendor.p({
       componentType: "undergraduate",
       choiceIndex: $data.majorIndex,
       choiceList: $data.majorList,
@@ -710,29 +718,25 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       mode: "search",
       searchPlaceholder: "输入专业名称"
     }),
-    q: common_vendor.sr("messageList", "4e6adde4-3"),
-    r: common_vendor.o($options.retryMessage),
-    s: common_vendor.o(($event) => $data.autoScrollId = $event),
-    t: common_vendor.p({
+    v: common_vendor.sr("messageList", "4e6adde4-4"),
+    w: common_vendor.o($options.retryMessage),
+    x: common_vendor.o(($event) => $data.autoScrollId = $event),
+    y: common_vendor.p({
       messages: $data.messages,
       ["auto-scroll-id"]: $data.autoScrollId
     }),
-    v: common_vendor.o($options.switchMode),
-    w: common_vendor.p({
-      ["current-mode"]: $data.currentMode
-    }),
-    x: common_vendor.o($options.sendMessage),
-    y: common_vendor.p({
+    z: common_vendor.o($options.sendMessage),
+    A: common_vendor.p({
       ["is-processing"]: $data.isProcessing
     }),
-    z: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
-    A: $data.sidebarVisible ? 1 : "",
-    B: $data.isFullLoading
+    B: common_vendor.o((...args) => $options.onScroll && $options.onScroll(...args)),
+    C: $data.sidebarVisible ? 1 : "",
+    D: $data.isFullLoading
   }, $data.isFullLoading ? {
-    C: common_vendor.t($data.loadingText)
+    E: common_vendor.t($data.loadingText)
   } : {}, {
-    D: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
-    E: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
+    F: common_vendor.sei(common_vendor.gei(_ctx, ""), "view"),
+    G: common_vendor.o((...args) => $options.onPageClick && $options.onPageClick(...args))
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

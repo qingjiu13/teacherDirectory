@@ -141,7 +141,7 @@
 		z-index: 11; /* 提高z-index，确保显示在筛选区域上方 */
 }
 .nav-left {
-		width: 33%;
+		width: 20%;
 		display: flex;
 		align-items: center;
 }
@@ -161,11 +161,20 @@
 .history-btn .iconfont:before {
 		content: "≡"; /* 使用三横线作为菜单图标 */
 }
+	
+	/* 新增图片图标样式 */
+.history-icon {
+		width: 22px;
+		height: 15px;
+		display: block;
+		margin: 0 auto;
+}
 .nav-title {
-		width: 34%;
+		width: 60%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		overflow: hidden;
 }
 .nav-title text {
 		font-size: 36rpx;
@@ -173,23 +182,25 @@
 		font-weight: 500;
 }
 .nav-right {
-		width: 33%;
+		width: 20%;
 		display: flex;
 		justify-content: flex-end;
 		align-items: center;
 }
 .new-chat-btn {
 		padding: 14rpx 28rpx;
-		background-color: #1E90FF;
-		border-radius: 40rpx;
-		box-shadow: 0 2rpx 8rpx rgba(30, 144, 255, 0.3);
+
+
+
 		transition: all 0.3s;
 }
-.new-chat-btn:active {
-		opacity: 0.8;
-		transform: scale(0.98);
-}
-.new-chat-btn text {
-		font-size: 28rpx;
-		color: #fff;
+	
+
+	
+	/* 新增新对话图片图标样式 */
+.new-chat-icon {
+		width: 15px;
+		height: 15px;
+		display: block;
+		margin: 0 auto;
 }

@@ -698,11 +698,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
         }),
         L: matchTeachers.value.length === 0 && !isLoading.value
       }), matchTeachers.value.length === 0 && !isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        M: isLoading.value
-      }), isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        N: common_vendor.sei("step2", "scroll-view"),
-        O: common_vendor.o(loadMoreTeachers),
-        P: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+        M: common_vendor.sei("step2", "scroll-view"),
+        N: common_vendor.o(loadMoreTeachers),
+        O: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
       }));
       return __returned__;
     };

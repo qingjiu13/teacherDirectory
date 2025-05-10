@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("./common/vendor.js");
+const common_assets = require("./common/assets.js");
 const MessageItem = () => "./components/ai-chat/MessageItem.js";
 const _sfc_main = common_vendor.defineComponent({
   name: "MessageList",
@@ -59,7 +60,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $props.messages.length === 0
   }, $props.messages.length === 0 ? {
-    b: common_vendor.t($props.emptyText)
+    b: common_assets._imports_0$3
   } : {
     c: common_vendor.f($props.messages, (msg, index, i0) => {
       return {

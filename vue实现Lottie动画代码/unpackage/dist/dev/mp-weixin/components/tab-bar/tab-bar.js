@@ -28,16 +28,15 @@ const _sfc_main = common_vendor.defineComponent({
           active: "/static/image/tab-bar/default_avatar.png"
         }),
         "AI": new UTSJSONObject({
-          normal: "/static/image/tab-bar/wechat.png",
-          active: "/static/image/tab-bar/default_avatar.png"
+          normal: "/static/image/index/AI.png"
         }),
         "message": new UTSJSONObject({
-          normal: "/static/image/tab-bar/wechat.png",
+          normal: "/static/image/index/messageDown.png",
           active: "/static/image/tab-bar/default_avatar.png"
         }),
         "mine": new UTSJSONObject({
-          normal: "/static/image/tab-bar/wechat.png",
-          active: "/static/image/tab-bar/default_avatar.png"
+          normal: "/static/image/index/mineDown.png",
+          active: "/static/image/index/mineUp.png"
         })
       })
     };
@@ -62,14 +61,14 @@ const _sfc_main = common_vendor.defineComponent({
         return null;
       }
       if (!this.tabRoutes[page]) {
-        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:95", "页面不存在:", page);
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:94", "页面不存在:", page);
         return null;
       }
       try {
         const pages = getCurrentPages();
         const stackDepth = pages.length;
         if (stackDepth >= 8) {
-          common_vendor.index.__f__("warn", "at components/tab-bar/tab-bar.vue:107", "页面栈接近上限，使用reLaunch清空页面栈");
+          common_vendor.index.__f__("warn", "at components/tab-bar/tab-bar.vue:106", "页面栈接近上限，使用reLaunch清空页面栈");
           switch (page) {
             case "index":
               router_Router.Navigator.reLaunch(router_Router.IndexRoutes.INDEX);
@@ -84,7 +83,7 @@ const _sfc_main = common_vendor.defineComponent({
               router_Router.Navigator.reLaunch(router_Router.AIRoutes.AI_SERVER);
               break;
             default:
-              common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:122", "未知的页面类型:", page);
+              common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:121", "未知的页面类型:", page);
           }
           return null;
         }
@@ -102,25 +101,25 @@ const _sfc_main = common_vendor.defineComponent({
             router_Router.Navigator.redirectTo(router_Router.AIRoutes.AI_SERVER);
             break;
           default:
-            common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:143", "未知的页面类型:", page);
+            common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:142", "未知的页面类型:", page);
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:146", "Tab切换失败:", e);
+        common_vendor.index.__f__("error", "at components/tab-bar/tab-bar.vue:145", "Tab切换失败:", e);
       }
     }
   }
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: $options.getIconPath("AI"),
-    b: $props.pageName === "AI" ? 1 : "",
-    c: common_vendor.o(($event) => $options.switchPage("AI")),
-    d: $options.getIconPath("index"),
-    e: $props.pageName === "index" ? 1 : "",
-    f: common_vendor.o(($event) => $options.switchPage("index")),
-    g: $options.getIconPath("message"),
-    h: $props.pageName === "message" ? 1 : "",
-    i: common_vendor.o(($event) => $options.switchPage("message")),
+    a: $options.getIconPath("index"),
+    b: $props.pageName === "index" ? 1 : "",
+    c: common_vendor.o(($event) => $options.switchPage("index")),
+    d: $options.getIconPath("message"),
+    e: $props.pageName === "message" ? 1 : "",
+    f: common_vendor.o(($event) => $options.switchPage("message")),
+    g: $options.getIconPath("AI"),
+    h: $props.pageName === "AI" ? 1 : "",
+    i: common_vendor.o(($event) => $options.switchPage("AI")),
     j: $options.getIconPath("mine"),
     k: $props.pageName === "mine" ? 1 : "",
     l: common_vendor.o(($event) => $options.switchPage("mine")),

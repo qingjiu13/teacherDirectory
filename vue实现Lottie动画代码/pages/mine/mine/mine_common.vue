@@ -13,15 +13,6 @@
             <text class="tag">{{ storeCertificate === 1 ? '已认证' : '未认证' }}</text>
             <text class="tag" v-if="storeCampusAmbassador">{{'校园大使'}}</text>
           </view>
-          <!--学校专业-->
-          <view class="school-major-row">
-            <view v-if="storeSchool">
-              <text class="tag">{{ storeSchool }}</text>
-            </view>
-            <view v-if="storeMajor">
-              <text class="tag">{{ storeMajor }}</text>
-            </view>
-          </view>
         </view>
       </view>
     </view>
@@ -121,8 +112,6 @@ export default {
       storeGender: state => state.gender,
       storeRole: state => state.userInfo?.role || '学生',
       storeCertificate: state => state.certificate,
-      storeSchool: state => state.userInfo?.school || '',
-      storeMajor: state => state.userInfo?.major || '',
       storeCampusAmbassador: state => state.campusAmbassador
     })
   },
@@ -551,12 +540,5 @@ export default {
   white-space: nowrap;
   width: fit-content;
   /* 或者可以使用 min-width: fit-content; */
-}
-
-.school-major-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 8px; /* 标签之间的间距 */
 }
 </style>

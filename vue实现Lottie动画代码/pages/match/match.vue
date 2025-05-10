@@ -152,7 +152,9 @@
                 </view>
               </view>
           </view>
-          <view class="button-container">
+          
+          <!-- 固定位置的确认按钮 -->
+          <view class="fixed-button-container">
             <button class="popup-button confirm-button" @click.stop="confirmNonProfessionalFilter">确认</button>
           </view>
         </view>
@@ -211,7 +213,7 @@
             <button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
           </view>
           <view class="price-tag-container" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
-            <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时</view>
+            <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时起</view>
           </view>
         </view>
         
@@ -219,10 +221,7 @@
           <text>暂无匹配的老师信息</text>
         </view>
         
-        <!-- 加载提示 -->
-        <view class="loading-more" v-if="isLoading">
-          <text>加载中...</text>
-        </view>
+        <!-- 使用全局Lottie动画替代文本加载提示 -->
       </scroll-view>
     </view>
   </view>
@@ -1390,11 +1389,7 @@ onMounted(() => {
   color: #999;
 }
 
-.loading-more {
-  text-align: center;
-  padding: 15px 0;
-  color: #999;
-}
+
 
 /* 弹出层蒙版 */
 .filter-mask {
@@ -1546,5 +1541,16 @@ onMounted(() => {
   background-color: #007AFF;
   color: #ffffff;
   border: none;
+}
+
+/* 固定在选项卡下方的按钮容器 */
+.fixed-button-container {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  z-index: 5;
 }
 </style>

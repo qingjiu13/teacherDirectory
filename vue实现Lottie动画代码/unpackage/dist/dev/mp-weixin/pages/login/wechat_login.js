@@ -255,7 +255,7 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_assets._imports_0,
+    a: common_assets._imports_0$2,
     b: $data.userInfo.avatarUrl || "/static/image/tab-bar/default_avatar.png",
     c: $data.userInfo.nickName
   }, $data.userInfo.nickName ? {
@@ -263,7 +263,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     e: !$data.hasLogin
   }, !$data.hasLogin ? {
-    f: common_assets._imports_1,
+    f: common_assets._imports_1$2,
     g: common_vendor.o((...args) => $options.onWxLogin && $options.onWxLogin(...args))
   } : {
     h: common_vendor.o((...args) => $options.toHome && $options.toHome(...args))

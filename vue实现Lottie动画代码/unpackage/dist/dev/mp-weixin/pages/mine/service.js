@@ -1,10 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const Loading = () => "../../components/loading-animation/loading.js";
 const _sfc_main = common_vendor.defineComponent({
-  components: {
-    Loading
-  },
+  components: {},
   data() {
     return {
       services: [
@@ -203,7 +200,7 @@ const _sfc_main = common_vendor.defineComponent({
       try {
         common_vendor.index.setStorageSync("services", UTS.JSON.stringify(this.services));
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/service.vue:327", "保存服务列表失败", e);
+        common_vendor.index.__f__("error", "at pages/mine/service.vue:322", "保存服务列表失败", e);
       }
     },
     // 从本地存储加载服务列表
@@ -218,7 +215,7 @@ const _sfc_main = common_vendor.defineComponent({
           }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/service.vue:344", "加载服务列表失败", e);
+        common_vendor.index.__f__("error", "at pages/mine/service.vue:339", "加载服务列表失败", e);
       }
     },
     showServiceDetail(index = null) {
@@ -236,17 +233,13 @@ const _sfc_main = common_vendor.defineComponent({
     }
   }
 });
-if (!Array) {
-  const _component_loading = common_vendor.resolveComponent("loading");
-  _component_loading();
-}
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.o((...args) => $options.handleAddService && $options.handleAddService(...args)),
     b: common_vendor.f($data.services, (service, index, i0) => {
       return {
         a: `url(${service.imageUrl})`,
-        b: common_vendor.t(service.name),
+        b: common_vendor.t(service.serviceName || service.name),
         c: common_vendor.t(service.price),
         d: common_vendor.o(($event) => $options.editService(index), service.id),
         e: common_vendor.o(($event) => $options.deleteService(index), service.id),
@@ -261,7 +254,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.selectedService ? {
     d: common_vendor.o((...args) => $options.hideServiceDetail && $options.hideServiceDetail(...args)),
     e: `url(${$data.selectedService.imageUrl})`,
-    f: common_vendor.t($data.selectedService.name),
+    f: common_vendor.t($data.selectedService.serviceName || $data.selectedService.name),
     g: common_vendor.t($data.selectedService.price),
     h: common_vendor.t($data.selectedService.description),
     i: $data.isDetailExpanded ? 1 : ""
@@ -270,8 +263,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.overlayVisible ? {
     k: common_vendor.o((...args) => $options.hideServiceDetail && $options.hideServiceDetail(...args))
   } : {}, {
-    l: common_vendor.sr("loadingRef", "d7d562ac-0"),
-    m: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    l: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

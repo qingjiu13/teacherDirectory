@@ -1,5 +1,6 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const common_assets = require("../../common/assets.js");
 const router_Router = require("../../router/Router.js");
 if (!Array) {
   const _easycom_c_lottie_1 = common_vendor.resolveComponent("c-lottie");
@@ -20,6 +21,7 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     })
   },
   setup(__props) {
+    const animationCache = /* @__PURE__ */ new Map();
     const cLottieRef = common_vendor.ref();
     const animationSrc = common_vendor.ref("");
     const animationLoaded = common_vendor.ref(false);
@@ -30,47 +32,66 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const getAnimationKey = (url = null) => {
       return url.split("/").pop().split(".")[0];
     };
-    const checkCached = (key = null) => {
-      const storageKey = `lottie_${key}`;
+    const isAnimationCached = (url = null) => {
+      return animationCache.has(url);
+    };
+    const getAnimationFromCache = (url = null) => {
+      return UTS.mapGet(animationCache, url) || null;
+    };
+    const saveAnimationToCache = (url = null, data = null) => {
+      animationCache.set(url, data);
       try {
-        const stored = common_vendor.index.getStorageSync(storageKey);
-        return !!stored;
+        const key = `lottie_${getAnimationKey(url)}`;
+        common_vendor.index.setStorageSync(key, data);
+        common_vendor.index.__f__("log", "at pages/index/index.vue:106", "动画数据已保存到本地存储", key);
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:79", "检查缓存状态失败", e);
-        return false;
+        common_vendor.index.__f__("error", "at pages/index/index.vue:108", "保存到本地存储失败", e);
       }
     };
-    const preloadLottieAnimation = (url = null, key = null) => {
-      return common_vendor.__awaiter(this, void 0, void 0, function* () {
-        if (loading.value)
-          return false;
-        loading.value = true;
-        const storageKey = `lottie_${key}`;
-        if (checkCached(key)) {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:98", "动画已缓存，无需预加载");
-          loading.value = false;
+    const restoreAnimationFromStorage = (url = null) => {
+      const key = `lottie_${getAnimationKey(url)}`;
+      try {
+        const data = common_vendor.index.getStorageSync(key);
+        if (data) {
+          animationCache.set(url, data);
+          common_vendor.index.__f__("log", "at pages/index/index.vue:123", "已从本地存储恢复动画数据到缓存", key);
           return true;
         }
-        common_vendor.index.__f__("log", "at pages/index/index.vue:104", "从网络预加载Lottie动画");
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/index/index.vue:127", "从本地存储恢复失败", e);
+      }
+      return false;
+    };
+    const loadAnimationData = (url = null) => {
+      return common_vendor.__awaiter(this, void 0, void 0, function* () {
+        if (loading.value) {
+          common_vendor.index.__f__("log", "at pages/index/index.vue:139", "已有加载任务正在进行");
+          return null;
+        }
+        loading.value = true;
+        if (isAnimationCached(url)) {
+          common_vendor.index.__f__("log", "at pages/index/index.vue:147", "从内存缓存获取动画数据");
+          loading.value = false;
+          return getAnimationFromCache(url);
+        }
+        if (restoreAnimationFromStorage(url)) {
+          common_vendor.index.__f__("log", "at pages/index/index.vue:154", "从本地存储恢复动画数据");
+          loading.value = false;
+          return getAnimationFromCache(url);
+        }
+        common_vendor.index.__f__("log", "at pages/index/index.vue:160", "从网络加载动画数据", url);
         try {
           const data = (yield common_vendor.index.request({
             url,
             method: "GET"
           })).data;
-          try {
-            common_vendor.index.setStorageSync(storageKey, data);
-            common_vendor.index.__f__("log", "at pages/index/index.vue:114", "Lottie动画已缓存到本地");
-            loading.value = false;
-            return true;
-          } catch (e) {
-            common_vendor.index.__f__("error", "at pages/index/index.vue:118", "保存缓存失败", e);
-            loading.value = false;
-            return false;
-          }
-        } catch (e) {
-          common_vendor.index.__f__("error", "at pages/index/index.vue:123", "获取动画文件失败", e);
+          saveAnimationToCache(url, data);
           loading.value = false;
-          return false;
+          return data;
+        } catch (e) {
+          common_vendor.index.__f__("error", "at pages/index/index.vue:173", "网络加载动画数据失败", e);
+          loading.value = false;
+          return null;
         }
       });
     };
@@ -80,16 +101,20 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
           clearTimeout(loadTimeout);
         }
         pageReady.value = false;
-        animationSrc.value = props.src;
-        const animationKey = getAnimationKey(props.src);
-        const isCached = checkCached(animationKey);
-        preloadLottieAnimation(props.src, animationKey);
+        const targetSrc = props.src || defaultSrc;
+        animationSrc.value = targetSrc;
+        loadAnimationData(targetSrc).then((data = null) => {
+          if (data) {
+            common_vendor.index.__f__("log", "at pages/index/index.vue:198", "动画数据加载成功");
+            animationLoaded.value = true;
+          }
+        });
         loadTimeout = setTimeout(() => {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:153", "动画加载超时，强制显示页面");
+          common_vendor.index.__f__("log", "at pages/index/index.vue:205", "动画加载超时，强制显示页面");
           pageReady.value = true;
         }, 3e3);
-        if (isCached) {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:159", "检测到缓存数据，预先设置动画加载状态");
+        if (isAnimationCached(targetSrc)) {
+          common_vendor.index.__f__("log", "at pages/index/index.vue:211", "检测到缓存数据，预先设置动画加载状态");
           animationLoaded.value = true;
           setTimeout(() => {
             pageReady.value = true;
@@ -98,20 +123,20 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       });
     };
     const onDataReady = () => {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:172", "动画数据准备完成，触发dataReady事件");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:224", "动画数据准备完成，触发dataReady事件");
       animationLoaded.value = true;
       if (loadTimeout) {
         clearTimeout(loadTimeout);
         loadTimeout = null;
       }
       setTimeout(() => {
-        common_vendor.index.__f__("log", "at pages/index/index.vue:183", "设置页面为可显示状态");
+        common_vendor.index.__f__("log", "at pages/index/index.vue:235", "设置页面为可显示状态");
         pageReady.value = true;
       }, 100);
     };
     const matchAnimation = () => {
       if (!animationLoaded.value) {
-        common_vendor.index.__f__("log", "at pages/index/index.vue:193", "动画尚未加载完成");
+        common_vendor.index.__f__("log", "at pages/index/index.vue:245", "动画尚未加载完成");
         return null;
       }
       cLottieRef.value.call("play");
@@ -123,43 +148,51 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     const navigateToMatch = () => {
       router_Router.Navigator.toMatch();
     };
+    const cleanup = () => {
+      if (loadTimeout) {
+        clearTimeout(loadTimeout);
+        loadTimeout = null;
+      }
+    };
     common_vendor.onMounted(() => {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:213", "组件挂载，初始化动画");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:275", "组件挂载，初始化动画");
       initAnimation();
     });
     common_vendor.onActivated(() => {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:219", "页面激活");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:281", "页面激活");
       if (!animationSrc.value) {
         initAnimation();
       } else {
         if (!pageReady.value) {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:225", "动画源已存在但页面未准备好，强制显示");
+          common_vendor.index.__f__("log", "at pages/index/index.vue:287", "动画源已存在但页面未准备好，强制显示");
           pageReady.value = true;
         }
       }
     });
+    common_vendor.onBeforeUnmount(() => {
+      cleanup();
+    });
     return (_ctx = null, _cache = null) => {
-      const __returned__ = common_vendor.e(new UTSJSONObject({
-        a: !pageReady.value
-      }), !pageReady.value ? new UTSJSONObject({}) : new UTSJSONObject({
-        b: common_vendor.sr(cLottieRef, "74acbeb4-0", new UTSJSONObject({
+      const __returned__ = {
+        a: common_assets._imports_0,
+        b: common_vendor.sr(cLottieRef, "74acbeb4-0", {
           "k": "cLottieRef"
-        })),
+        }),
         c: common_vendor.o(onDataReady),
-        d: common_vendor.p(new UTSJSONObject({
+        d: common_vendor.p({
           src: animationSrc.value,
           width: "600rpx",
           autoPlay: false,
           height: "600rpx",
           loop: true
-        })),
-        e: common_vendor.o(matchAnimation),
-        f: common_vendor.p(new UTSJSONObject({
+        }),
+        e: common_assets._imports_1,
+        f: common_vendor.o(matchAnimation),
+        g: common_vendor.p({
           pageName: "index"
-        }))
-      }), new UTSJSONObject({
-        g: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
-      }));
+        }),
+        h: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+      };
       return __returned__;
     };
   }

@@ -189,7 +189,7 @@ const Navigator = {
   /**
    * @description 跳转到新建服务页面
    */
-  toService_Newbuilt() {
+  toServiceNewBuilt() {
     this.navigateTo(MineRoutes.SERVICE_NEWBUILT);
   },
   /**

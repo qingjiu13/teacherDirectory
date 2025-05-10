@@ -5,8 +5,8 @@
 			placeholder="请输入您的问题..." 
 			:disabled="isProcessing"
 			@confirm="sendMessage" />
-		<button class="send-button" @click="sendMessage" :disabled="isProcessing || !inputValue.trim()">
-			<text class="send-button-text">{{isProcessing ? '请稍候' : '发送'}}</text>
+		<button class="send-button" @click="sendMessage" :disabled="!inputValue.trim()">
+			<text class="send-button-text">{{isProcessing ? '请稍候' : '确认'}}</text>
 		</button>
 	</view>
 </template>
@@ -66,7 +66,7 @@
 		height: 80rpx;
 		background-color: #ffffff;
 		border: 2rpx solid #ddd;
-		border-radius: 40rpx;
+		border-radius: 8px;
 		padding: 0 30rpx;
 		margin-right: 20rpx;
 		font-size: 28rpx;
@@ -76,9 +76,9 @@
 	.send-button {
 		width: 140rpx;
 		height: 80rpx;
-		background-color: #1E90FF;
+		background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
 		color: #fff;
-		border-radius: 40rpx;
+		border-radius: 8px;
 		display: flex;
 		align-items: center;
 		justify-content: center;

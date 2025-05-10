@@ -1,6 +1,4 @@
 {
   "navigationBarTitleText": "",
-  "usingComponents": {
-    "c-lottie": "../../uni_modules/c-lottie/components/c-lottie/c-lottie"
-  }
+  "usingComponents": {}
 }

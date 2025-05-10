@@ -1,16 +1,16 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
-const Loading = () => "../../components/loading-animation/loading.js";
 const ChoiceSelected = () => "../../components/combobox/combobox.js";
 const _sfc_main = common_vendor.defineComponent({
   components: {
-    Loading,
     ChoiceSelected
   },
   data() {
     return {
       mode: "add",
       serviceId: null,
+      coverUrls: [],
+      avatarUrl: "",
       selectedServiceType: "",
       selectedServiceTypeIndex: -1,
       serviceTypes: [
@@ -61,7 +61,39 @@ const _sfc_main = common_vendor.defineComponent({
     common_vendor.index.$off("serviceEdited", this.handleServiceEdited);
   },
   methods: {
+    chooseAvatar() {
+      common_vendor.index.chooseImage(new UTSJSONObject({
+        count: 1,
+        sizeType: ["compressed"],
+        sourceType: ["album", "camera"],
+        success: (res) => {
+          this.avatarUrl = res.tempFilePaths[0];
+        }
+      }));
+    },
+    chooseCover() {
+      const remainCount = 9 - this.coverUrls.length;
+      if (remainCount <= 0) {
+        common_vendor.index.showToast({
+          title: "最多只能上传9张图片",
+          icon: "none"
+        });
+        return null;
+      }
+      common_vendor.index.chooseImage(new UTSJSONObject({
+        count: remainCount,
+        sizeType: ["compressed"],
+        sourceType: ["album", "camera"],
+        success: (res) => {
+          this.coverUrls = [...this.coverUrls, ...res.tempFilePaths];
+        }
+      }));
+    },
+    deleteCover(index = null) {
+      this.coverUrls.splice(index, 1);
+    },
     fillFormWithServiceData(serviceData = null) {
+      this.coverUrls = serviceData.imageUrls || [];
       this.selectedServiceType = serviceData.name || "";
       this.selectedServiceTypeIndex = this.serviceTypes.findIndex((type) => {
         return type === serviceData.name;
@@ -162,6 +194,14 @@ const _sfc_main = common_vendor.defineComponent({
     },
     submitForm() {
       this.$refs.loadingRef.show();
+      if (this.coverUrls.length === 0) {
+        common_vendor.index.showToast({
+          title: "请上传封面图片",
+          icon: "none"
+        });
+        this.$refs.loadingRef.hide();
+        return null;
+      }
       if (!this.selectedServiceType) {
         common_vendor.index.showToast({
           title: "请选择服务类型",
@@ -196,14 +236,6 @@ const _sfc_main = common_vendor.defineComponent({
           return null;
         }
       } else if (this.selectedServiceType === "一对多课程") {
-        if (this.selectedMultiLessonsIndex === -1) {
-          common_vendor.index.showToast({
-            title: "请选择课时",
-            icon: "none"
-          });
-          this.$refs.loadingRef.hide();
-          return null;
-        }
         if (this.selectedMultiHoursIndex === -1 || this.selectedMultiMinutesIndex === -1) {
           common_vendor.index.showToast({
             title: "请选择课程时长",
@@ -252,7 +284,9 @@ const _sfc_main = common_vendor.defineComponent({
           price: this.price.startsWith("¥") ? this.price : "¥" + this.price,
           description: this.description || `这是一个${this.selectedServiceType}服务`,
           checked: false,
-          imageUrl: this.files.length > 0 ? this.files[0] : "/static/images/kaoyan" + Math.floor(Math.random() * 4 + 1) + ".jpg"
+          imageUrls: this.coverUrls,
+          imageUrl: this.coverUrls[0]
+          // 保持兼容性，使用第一张图片作为主图
         }
         // 为一对一课程添加特殊字段
       );
@@ -303,7 +337,7 @@ const _sfc_main = common_vendor.defineComponent({
           }));
         }, 1500);
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/service_newbuilt.vue:550", "保存服务失败", e);
+        common_vendor.index.__f__("error", "at pages/mine/service_newbuilt.vue:604", "保存服务失败", e);
         this.$refs.loadingRef.hide();
         common_vendor.index.showToast({
           title: "保存失败，请重试",
@@ -352,7 +386,7 @@ const _sfc_main = common_vendor.defineComponent({
           }));
         }, 1500);
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/mine/service_newbuilt.vue:612", "更新服务失败", e);
+        common_vendor.index.__f__("error", "at pages/mine/service_newbuilt.vue:666", "更新服务失败", e);
         this.$refs.loadingRef.hide();
         common_vendor.index.showToast({
           title: "更新失败，请重试",
@@ -361,14 +395,13 @@ const _sfc_main = common_vendor.defineComponent({
       }
     },
     handleServiceEdited(service = null) {
-      common_vendor.index.__f__("log", "at pages/mine/service_newbuilt.vue:621", "Service edited", service);
+      common_vendor.index.__f__("log", "at pages/mine/service_newbuilt.vue:675", "Service edited", service);
     }
   }
 });
 if (!Array) {
   const _component_choice_selected = common_vendor.resolveComponent("choice-selected");
-  const _component_loading = common_vendor.resolveComponent("loading");
-  (_component_choice_selected + _component_loading)();
+  _component_choice_selected();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -439,9 +472,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     z: $data.selectedServiceType === "学习资料"
   }, $data.selectedServiceType === "学习资料" ? {
     A: $data.coursequantity,
-    B: common_vendor.o(common_vendor.m(($event) => $data.coursequantity = $event.detail.value, {
-      number: true
-    }))
+    B: common_vendor.o(($event) => $data.coursequantity = $event.detail.value)
   } : {}, {
     C: $data.description,
     D: common_vendor.o(($event) => $data.description = $event.detail.value),
@@ -451,11 +482,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.showAttachment ? {
     H: common_vendor.o((...args) => $options.chooseFile && $options.chooseFile(...args))
   } : {}, {
-    I: $data.mode === "add"
+    I: common_vendor.f($data.coverUrls, (url, index, i0) => {
+      return {
+        a: url,
+        b: common_vendor.o(($event) => $options.deleteCover(index), index),
+        c: index
+      };
+    }),
+    J: $data.coverUrls.length < 9
+  }, $data.coverUrls.length < 9 ? {
+    K: common_vendor.o((...args) => $options.chooseCover && $options.chooseCover(...args))
+  } : {}, {
+    L: $data.mode === "add"
   }, $data.mode === "add" ? {} : {}, {
-    J: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
-    K: common_vendor.sr("loadingRef", "7b0712fa-8"),
-    L: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    M: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
+    N: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

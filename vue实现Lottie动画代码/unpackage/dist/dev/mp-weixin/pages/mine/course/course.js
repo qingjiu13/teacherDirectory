@@ -110,27 +110,27 @@ const _sfc_main = common_vendor.defineComponent({
     };
   },
   onLoad(options) {
-    common_vendor.index.__f__("log", "at pages/mine/course/course.vue:298", "课程页面 onLoad", options);
+    common_vendor.index.__f__("log", "at pages/mine/course/course.vue:309", "课程页面 onLoad", options);
     this.loadUserData();
     const globalData = getApp().globalData;
     const storedUserRole = common_vendor.index.getStorageSync("userRole");
     if (globalData && globalData.userRole) {
       this.userRole = globalData.userRole;
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:310", "使用全局角色状态:", this.userRole);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:321", "使用全局角色状态:", this.userRole);
     } else if (storedUserRole) {
       this.userRole = storedUserRole;
       if (globalData) {
         globalData.userRole = this.userRole;
       }
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:319", "使用存储的角色:", this.userRole);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:330", "使用存储的角色:", this.userRole);
     }
     this.loadCourseData();
   },
   onShow() {
-    common_vendor.index.__f__("log", "at pages/mine/course/course.vue:326", "课程页面 onShow, 当前角色:", this.userRole);
+    common_vendor.index.__f__("log", "at pages/mine/course/course.vue:337", "课程页面 onShow, 当前角色:", this.userRole);
     const globalData = getApp().globalData;
     if (globalData && globalData.userRole && globalData.userRole !== this.userRole) {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:331", "全局角色变更:", globalData.userRole);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:342", "全局角色变更:", globalData.userRole);
       const previousRole = this.userRole;
       this.userRole = globalData.userRole;
       if (previousRole !== this.userRole) {
@@ -141,7 +141,7 @@ const _sfc_main = common_vendor.defineComponent({
     }
     const storedUserRole = common_vendor.index.getStorageSync("userRole");
     if (storedUserRole && storedUserRole !== this.userRole) {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:346", "存储角色与当前不一致, 存储:", storedUserRole, "当前:", this.userRole);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:357", "存储角色与当前不一致, 存储:", storedUserRole, "当前:", this.userRole);
       const previousRole = this.userRole;
       this.userRole = storedUserRole;
       if (globalData) {
@@ -155,7 +155,7 @@ const _sfc_main = common_vendor.defineComponent({
   },
   // 页面卸载时保存状态
   onUnload() {
-    common_vendor.index.__f__("log", "at pages/mine/course/course.vue:364", "课程页面 onUnload, 保存当前角色:", this.userRole);
+    common_vendor.index.__f__("log", "at pages/mine/course/course.vue:375", "课程页面 onUnload, 保存当前角色:", this.userRole);
     common_vendor.index.setStorageSync("userRole", this.userRole);
     const globalData = getApp().globalData;
     if (globalData) {
@@ -178,7 +178,7 @@ const _sfc_main = common_vendor.defineComponent({
             const previousRole = this.userRole;
             if (this.userData.role) {
               this.userRole = this.userData.role;
-              common_vendor.index.__f__("log", "at pages/mine/course/course.vue:396", "从用户数据中设置角色:", this.userRole);
+              common_vendor.index.__f__("log", "at pages/mine/course/course.vue:407", "从用户数据中设置角色:", this.userRole);
               common_vendor.index.setStorageSync("userRole", this.userData.role);
               const globalData = getApp().globalData;
               if (globalData) {
@@ -189,18 +189,18 @@ const _sfc_main = common_vendor.defineComponent({
               }
             }
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/mine/course/course.vue:413", "解析用户信息失败:", e);
+            common_vendor.index.__f__("error", "at pages/mine/course/course.vue:424", "解析用户信息失败:", e);
           }
         }
       } else {
         this.userData = new UTSJSONObject({});
         this.userName = "";
-        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:422", "未登录，保持当前角色:", this.userRole);
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:433", "未登录，保持当前角色:", this.userRole);
       }
     },
     // 重置与角色相关的状态
     resetRoleRelatedState() {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:428", "重置角色相关状态");
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:439", "重置角色相关状态");
       if (this.userRole === "student") {
         this.currentTab = 0;
       } else {
@@ -212,7 +212,7 @@ const _sfc_main = common_vendor.defineComponent({
     },
     // 处理顶部导航栏组件的标签切换事件 - 学生
     onTabChange(index = null) {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:441", "学生模式标签切换:", index);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:452", "学生模式标签切换:", index);
       this.currentTab = index;
       if (index === 0) {
         this.selectedTimeSlot = "";
@@ -359,31 +359,32 @@ const _sfc_main = common_vendor.defineComponent({
     },
     // 加载课程数据
     loadCourseData() {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:639", "加载课程数据，当前角色:", this.userRole);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:650", "加载课程数据，当前角色:", this.userRole);
       if (this.userRole === "teacher") {
-        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:643", "加载老师课程数据");
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:654", "加载老师课程数据");
         this.initTeacherData();
         this.teacherCurrentTab = 0;
       } else {
-        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:649", "加载学生课程数据");
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:660", "加载学生课程数据");
+        this.initStudentData();
         this.currentTab = 0;
       }
     },
     // 处理老师界面的导航栏切换事件
     onTeacherTabChange(index = null) {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:660", "老师模式标签切换:", index);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:671", "老师模式标签切换:", index);
       this.teacherCurrentTab = index;
       if (index === 0) {
-        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:666", "切换到老师-待接受课程标签");
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:677", "切换到老师-待接受课程标签");
       } else if (index === 1) {
-        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:669", "切换到老师-进行中课程标签");
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:680", "切换到老师-进行中课程标签");
       } else if (index === 2) {
-        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:672", "切换到老师-已完成课程标签");
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:683", "切换到老师-已完成课程标签");
       }
     },
     // 初始化教师数据
     initTeacherData() {
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:678", "初始化教师数据");
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:689", "初始化教师数据");
       this.teacherPendingCourses = [
         {
           id: 101,
@@ -422,44 +423,86 @@ const _sfc_main = common_vendor.defineComponent({
         }
       ];
     },
-    // 实现老师界面的各个功能方法
-    acceptCourse(index = null) {
-      const course = this.teacherPendingCourses[index];
+    // 老师端 - 发起预约
+    teacherReserve(index = null) {
+      this.currentCourseIndex = index;
+      this.$refs.teacherCalendar.open();
+    },
+    // 老师端 - 日历确认事件
+    onTeacherCalendarConfirm(e = null) {
+      this.selectedDate = e.fulldate;
+      this.$nextTick(() => {
+        this.showTeacherTimeSelectionDialog();
+      });
+    },
+    // 老师端 - 显示时间选择弹窗
+    showTeacherTimeSelectionDialog() {
+      const periodOptions = this.timeSlots.map((item) => {
+        return item.period;
+      });
+      common_vendor.index.showActionSheet({
+        itemList: periodOptions,
+        success: (res) => {
+          this.selectedTimePeriod = periodOptions[res.tapIndex];
+          const selectedPeriod = this.timeSlots[res.tapIndex];
+          setTimeout(() => {
+            common_vendor.index.showActionSheet({
+              itemList: selectedPeriod.slots,
+              success: (timeRes) => {
+                this.selectedTimeSlot = selectedPeriod.slots[timeRes.tapIndex];
+                this.confirmTeacherReservation();
+              }
+            });
+          }, 300);
+        }
+      });
+    },
+    // 老师端 - 确认预约
+    confirmTeacherReservation() {
+      const course = this.teacherPendingCourses[this.currentCourseIndex];
       common_vendor.index.showModal(new UTSJSONObject({
-        title: "接受预约",
-        content: `确定接受${course.studentName}的${course.name}课程预约吗？`,
+        title: "确认发起预约",
+        content: `课程：${course.name}
+学生：${course.studentName}
+日期：${this.selectedDate}
+时间：${this.selectedTimeSlot}`,
         success: (res) => {
           if (res.confirm) {
-            this.teacherActiveCourses.push(Object.assign(Object.assign({}, course), { classTime: this.getRandomFutureTime() }));
-            this.teacherPendingCourses.splice(index, 1);
+            this.sendReservationToStudent(course);
+            this.teacherPendingCourses.splice(this.currentCourseIndex, 1);
             common_vendor.index.showToast({
-              title: "已接受预约",
+              title: "预约已发送",
               icon: "success",
               duration: 2e3
             });
+            this.currentCourseIndex = null;
+            this.selectedDate = null;
+            this.selectedTimeSlot = "";
+            this.selectedTimePeriod = "";
           }
         }
       }));
     },
-    rescheduleClass(index = null) {
-      const course = this.teacherActiveCourses[index];
-      common_vendor.index.showModal(new UTSJSONObject({
-        title: "调整时间",
-        content: `当前时间：${course.classTime}
-是否需要重新安排时间？`,
-        success: (res) => {
-          if (res.confirm) {
-            const newTime = this.getRandomFutureTime();
-            this.teacherActiveCourses[index].classTime = newTime;
-            common_vendor.index.showToast({
-              title: "时间已调整",
-              icon: "success",
-              duration: 2e3
-            });
-          }
-        }
+    // 模拟将预约信息发送给学生
+    sendReservationToStudent(course = null) {
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:813", "发送预约信息到学生:", course.studentName);
+      const globalData = getApp().globalData || new UTSJSONObject({});
+      if (!globalData.studentReservations) {
+        globalData.studentReservations = [];
+      }
+      globalData.studentReservations.push(new UTSJSONObject({
+        id: Date.now(),
+        name: course.name,
+        teacher: "我",
+        time: `${this.selectedDate} ${this.selectedTimeSlot}`,
+        price: course.price,
+        image: course.image || "/static/images/default_avatar.png",
+        description: `由老师发起的预约：${course.name}`,
+        studentName: course.studentName
       }));
+      this.teacherActiveCourses.push(Object.assign(Object.assign({}, course), { classTime: `${this.selectedDate} ${this.selectedTimeSlot}` }));
     },
+    // 查看回访/回放
     viewClassFeedback(item = null) {
       if (item.replayUrl) {
         common_vendor.index.showModal(new UTSJSONObject({
@@ -496,7 +539,7 @@ const _sfc_main = common_vendor.defineComponent({
       common_vendor.index.navigateTo({
         url: `/pages/webview/webview?url=${encodeURIComponent(url)}`
       });
-      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:828", "跳转到外部链接:", url);
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:899", "跳转到外部链接:", url);
     },
     // 确认下课
     confirmClassEnd(index = null) {
@@ -510,6 +553,54 @@ const _sfc_main = common_vendor.defineComponent({
             this.reservedCourses.splice(index, 1);
             common_vendor.index.showToast({
               title: "已确认下课",
+              icon: "success",
+              duration: 2e3
+            });
+          }
+        }
+      }));
+    },
+    // 学生数据初始化
+    initStudentData() {
+      common_vendor.index.__f__("log", "at pages/mine/course/course.vue:931", "初始化学生数据");
+      const globalData = getApp().globalData || new UTSJSONObject({});
+      if (globalData.studentReservations && globalData.studentReservations.length > 0) {
+        common_vendor.index.__f__("log", "at pages/mine/course/course.vue:939", "发现老师发起的预约:", globalData.studentReservations.length);
+        globalData.studentReservations.forEach((reservation = null) => {
+          const exists = this.pendingCourses.some((course) => {
+            return course.id === reservation.id;
+          });
+          if (!exists) {
+            this.pendingCourses.unshift({
+              id: reservation.id,
+              name: reservation.name,
+              teacher: reservation.teacher,
+              time: reservation.time,
+              price: reservation.price,
+              image: reservation.image,
+              description: reservation.description,
+              isTeacherReservation: true
+              // 标记为老师发起的预约
+            });
+          }
+        });
+        globalData.studentReservations = [];
+      }
+    },
+    // 学生端 - 接受老师发起的预约
+    acceptReservation(index = null) {
+      const course = this.pendingCourses[index];
+      common_vendor.index.showModal(new UTSJSONObject({
+        title: "接受预约",
+        content: `确认接受${course.teacher}的预约吗？
+课程：${course.name}
+时间：${course.time}`,
+        success: (res) => {
+          if (res.confirm) {
+            this.reservedCourses.push(Object.assign(Object.assign({}, course), { reservedTime: course.time }));
+            this.pendingCourses.splice(index, 1);
+            common_vendor.index.showToast({
+              title: "已接受预约",
               icon: "success",
               duration: 2e3
             });
@@ -539,12 +630,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     d: common_vendor.o((...args) => $options.resetDateSelection && $options.resetDateSelection(...args))
   } : {}, {
     e: common_vendor.f($data.pendingCourses, (item, index, i0) => {
-      return {
+      return common_vendor.e({
         a: common_vendor.t(item.name),
         b: common_vendor.t(item.teacher),
-        c: common_vendor.o(($event) => $options.handleReserve(index), index),
-        d: index
-      };
+        c: item.isTeacherReservation
+      }, item.isTeacherReservation ? {
+        d: common_vendor.t(item.time)
+      } : {}, {
+        e: item.isTeacherReservation
+      }, item.isTeacherReservation ? {
+        f: common_vendor.o(($event) => $options.acceptReservation(index), index)
+      } : {
+        g: common_vendor.o(($event) => $options.handleReserve(index), index)
+      }, {
+        h: index
+      });
     }),
     f: $data.pendingCourses.length === 0
   }, $data.pendingCourses.length === 0 ? {} : {}, {
@@ -596,25 +696,32 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       return {
         a: common_vendor.t(item.name),
         b: common_vendor.t(item.studentName || "暂无"),
-        c: common_vendor.o(($event) => $options.acceptCourse(index), index),
+        c: common_vendor.o(($event) => $options.teacherReserve(index), index),
         d: index
       };
     }),
     q: $data.teacherPendingCourses.length === 0
   }, $data.teacherPendingCourses.length === 0 ? {} : {}, {
-    r: common_vendor.f($data.teacherActiveCourses, (item, index, i0) => {
+    r: common_vendor.sr("teacherCalendar", "0cb8e478-3,0cb8e478-2"),
+    s: common_vendor.o($options.onTeacherCalendarConfirm),
+    t: common_vendor.p({
+      insert: false,
+      ["start-date"]: $options.getToday(),
+      ["end-date"]: $options.getNextMonth()
+    }),
+    v: common_vendor.f($data.teacherActiveCourses, (item, index, i0) => {
       return {
         a: common_vendor.t(item.name),
         b: common_vendor.t(item.studentName || "暂无"),
         c: common_vendor.t(item.classTime),
         d: common_vendor.o(($event) => $options.completeClass(index), index),
-        e: common_vendor.o(($event) => $options.rescheduleClass(index), index),
+        e: common_vendor.o(($event) => _ctx.rescheduleClass(index), index),
         f: index
       };
     }),
-    s: $data.teacherActiveCourses.length === 0
+    w: $data.teacherActiveCourses.length === 0
   }, $data.teacherActiveCourses.length === 0 ? {} : {}, {
-    t: common_vendor.f($data.teacherCompletedCourses, (item, index, i0) => {
+    x: common_vendor.f($data.teacherCompletedCourses, (item, index, i0) => {
       return {
         a: common_vendor.t(item.name),
         b: common_vendor.t(item.studentName || "暂无"),
@@ -623,15 +730,15 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         e: index
       };
     }),
-    v: $data.teacherCompletedCourses.length === 0
+    y: $data.teacherCompletedCourses.length === 0
   }, $data.teacherCompletedCourses.length === 0 ? {} : {}, {
-    w: common_vendor.o($options.onTeacherTabChange),
-    x: common_vendor.p({
+    z: common_vendor.o($options.onTeacherTabChange),
+    A: common_vendor.p({
       navHeight: 60,
       userRole: $data.userRole
     })
   }), {
-    y: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    B: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

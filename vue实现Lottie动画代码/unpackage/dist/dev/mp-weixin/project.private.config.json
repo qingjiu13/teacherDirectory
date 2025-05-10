@@ -5,18 +5,5 @@
     "compileHotReLoad": true,
     "urlCheck": false,
     "bigPackageSizeSupport": true
-  },
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "pages/match/match",
-          "pathName": "pages/match/match",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        }
-      ]
-    }
   }
 }

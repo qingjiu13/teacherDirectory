@@ -6,39 +6,14 @@
   width: 100%;
   min-height: 100vh;
 }
-
-/* 加载状态样式 */
-.loading-container {
-  position: fixed;
+.background-image {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #f8f8f8;
-  z-index: 999;
-}
-.loading-spinner {
-  width: 80rpx;
-  height: 80rpx;
-  border: 8rpx solid #f3f3f3;
-  border-top: 8rpx solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20rpx;
-}
-@keyframes spin {
-0% { transform: rotate(0deg);
-}
-100% { transform: rotate(360deg);
-}
-}
-.loading-text {
-  font-size: 28rpx;
-  color: #666;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none; /* 保证背景图不影响交互 */
 }
 .page-container {
   position: relative;
@@ -49,26 +24,49 @@
   align-items: center;
   box-sizing: border-box;
   padding-bottom: 120rpx;
-  background-color: #f8f8f8;
+  /* background-color: #f8f8f8; */
+  z-index: 1;
 }
 .header {
   display: flex;
   flex-direction: column;
-  margin-left: 200rpx;
-  margin-top: 80rpx;
+  margin-left: 100px;
+  margin-top: 110px;
   width: 100%;
 }
+
+/**
+ * main-title 主标题样式
+ * @font-family PingFang SC
+ * @font-weight 400
+ * @font-size 24px (约48rpx)
+ * @line-height 35px (约70rpx)
+ * @letter-spacing -0.55px (约-1.1rpx)
+ */
 .main-title {
-  font-size: 48rpx;
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
   font-weight: 550;
-  margin-bottom: 20rpx;
+  font-size: 48rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
   color: #333;
 }
+
+/**
+ * sub-title 副标题样式
+ * @font-family PingFang SC
+ * @font-weight 400
+ * @font-size 20px (约40rpx)
+ * @line-height 35px (约70rpx)
+ * @letter-spacing -0.55px (约-1.1rpx)
+ */
 .sub-title {
-  font-size: 28rpx;
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 400;
+  font-size: 40rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
   color: #666;
-  margin-bottom: 40rpx;
-  font-weight: 450;
   text-align: left;
 }
 .button-area {
@@ -78,27 +76,77 @@
   align-items: center;
   margin-top: 60rpx;
 }
+
+/**
+ * match-button 精准匹配按钮样式
+ * @width 159px (约318rpx)
+ * @height 53px (约106rpx)
+ * @border-radius 10px (约20rpx)
+ * @background 渐变色 linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%)
+ */
 .match-button {
-  width: 480rpx;
-  height: 80rpx;
-  background-color: #ffffff;
-  color: #333;
-  border: 1px solid #dddddd;
-  border-radius: 40rpx;
+  width: 318rpx;
+  height: 106rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
+  color: #fff;
   font-size: 32rpx;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  justify-content: flex-start;
+  border: none;
+  box-shadow: none;
+  padding-left: 32rpx;
   padding: 0;
-  font-weight: 500;
-  line-height: 80rpx;
+  gap: 16rpx;
+  /* 可选：去除原有边框和阴影 */
+}
+
+/**
+ * match-content 按钮内容容器，横向排列图标和文字
+ */
+.match-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 33rpx;
+}
+
+/**
+ * match-icon 按钮内左侧图标样式
+ * @width 20.3px (约40rpx)
+ * @height 20.3px (约40rpx)
+ * @margin-right 16rpx（图标与文字间距）
+ */
+.match-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 40rpx;
 }
 .match-animation {
   position: relative;
   margin-top: 50rpx;
   top: 0;
   left: 0;
+}
+
+/**
+ * match-text 精准匹配文字样式
+ * @font-family PingFang SC
+ * @font-weight 400
+ * @font-size 18px (约36rpx)
+ * @line-height 100%
+ * @letter-spacing -0.68px (约-1.36rpx)
+ * @text-align center
+ */
+.match-text {
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -1.36rpx;
+  text-align: center;
+  color: #fff;
 }
 

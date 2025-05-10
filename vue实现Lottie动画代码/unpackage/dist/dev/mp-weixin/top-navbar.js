@@ -27,8 +27,8 @@ const _sfc_main = common_vendor.defineComponent({
         new UTSJSONObject({ name: "已完成", id: "tab3" })
       ],
       teacherTabs: [
-        new UTSJSONObject({ name: "待接受", id: "tab1" }),
-        new UTSJSONObject({ name: "进行中", id: "tab2" }),
+        new UTSJSONObject({ name: "待预约", id: "tab1" }),
+        new UTSJSONObject({ name: "待开始", id: "tab2" }),
         new UTSJSONObject({ name: "已完成", id: "tab3" })
       ],
       currentTab: 0

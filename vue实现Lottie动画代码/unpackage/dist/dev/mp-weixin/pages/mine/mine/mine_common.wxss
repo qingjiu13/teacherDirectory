@@ -141,9 +141,3 @@
   width: fit-content;
   /* 或者可以使用 min-width: fit-content; */
 }
-.school-major-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 8px; /* 标签之间的间距 */
-}

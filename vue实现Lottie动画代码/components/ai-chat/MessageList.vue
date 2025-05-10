@@ -9,7 +9,11 @@
 			ref="messageScroll">
 			
 			<view v-if="messages.length === 0" class="empty-message">
-				<text class="empty-message-text">{{emptyText}}</text>
+				<view class="empty-message-content">
+					<image src="/static/image/AIchat/welcomeImage.png" class="empty-message-image" mode="widthFix" />
+					<text class="empty-message-title">欢迎使用研师录AI助手</text>
+					<text class="empty-message-desc">请选择您的所在学校和专业，然后开始提问~</text>
+				</view>
 			</view>
 			
 			<view v-else class="message-list">
@@ -119,9 +123,28 @@
 		justify-content: center;
 	}
 	
-	.empty-message-text {
-		color: #999;
-		font-size: 28rpx;
+	/* 新增空消息内容样式 */
+	.empty-message-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+	.empty-message-image {
+		width: 180rpx;
+		height: 180rpx;
+		margin-bottom: 32rpx;
+	}
+	.empty-message-title {
+		font-size: 32rpx;
+		color: #333;
+		font-weight: bold;
+		margin-bottom: 12rpx;
+	}
+	.empty-message-desc {
+		font-size: 26rpx;
+		color: #888;
+		text-align: center;
 	}
 	
 	.message-list {

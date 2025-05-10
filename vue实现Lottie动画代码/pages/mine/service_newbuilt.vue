@@ -195,18 +195,15 @@
       <text v-else>完成修改</text>
     </view>
     
-    <!-- 加载动画组件 -->
-    <loading ref="loadingRef" />
   </view>
 </template>
 
 <script>
-import Loading from '@/components/loading-animation/loading.vue'
+
 import ChoiceSelected from '@/components/combobox/combobox.vue'
 
 export default {
   components: {
-    Loading,
     ChoiceSelected
   },
   data() {

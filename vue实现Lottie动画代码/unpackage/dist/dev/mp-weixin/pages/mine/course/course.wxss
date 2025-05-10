@@ -119,6 +119,30 @@
   color: white;
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
 }
+.accept-btn {
+  position: absolute;
+  right: 20rpx;
+  bottom: 20rpx;
+  border-radius: 30rpx;
+  padding: 0 25rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  background-color: #3a86ff;
+  color: white;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+.course-time {
+  font-size: 26rpx;
+  color: #ff7043;
+  font-weight: 500;
+  margin-top: 4rpx;
+  margin-bottom: 4rpx;
+  line-height: 1.2;
+  text-align: left;
+  padding: 2rpx 0;
+}
 .confirm-class-btn, .modify-time-btn {
   position: absolute;
   right: 20rpx;

@@ -1,13 +1,8 @@
 <template>
   <view class="container">
-    <!-- 加载状态显示 -->
-    <view class="loading-container" v-if="!pageReady">
-      <view class="loading-spinner"></view>
-      <view class="loading-text">加载中...</view>
-    </view>
-    
+    <image class="background-image" src="/static/image/index/image.png" mode="aspectFill" alt="背景图" />
     <!-- 主页面内容 -->
-    <view class="page-container" v-else>
+    <view class="page-container">
       <view class="header">
         <view class="main-title">一站式对接</view>
         <view class="sub-title">目标院校专业学长学姐</view>
@@ -22,7 +17,17 @@
         @dataReady="onDataReady"
   		></c-lottie>
       <view class="button-area">
-        <button class="match-button" @click.stop="matchAnimation">精准匹配</button>
+        <button class="match-button" @click.stop="matchAnimation">
+          <view class="match-content">
+            <image
+              class="match-icon"
+              src="/static/image/index/matchsearch.png"
+              mode="aspectFit"
+              alt="匹配图标"
+            />
+            <text class="match-text">精准匹配</text>
+          </view>
+        </button>
       </view>
   
       <!-- <AICartoon /> -->
@@ -35,7 +40,10 @@
 // import AICartoon from '@/components/AI-cartoon/AI-cartoon.vue'
 import TabBar from '@/components/tab-bar/tab-bar.vue'
 import { Navigator } from '@/router/Router.js'
-import { ref, onMounted, onActivated } from "vue";
+import { ref, onMounted, onActivated, onBeforeUnmount } from "vue";
+
+// 创建一个缓存对象，用于存储动画数据
+const animationCache = new Map();
 
 const cLottieRef = ref()
 const animationSrc = ref('')
@@ -66,63 +74,105 @@ const getAnimationKey = (url) => {
 }
 
 /**
- * 检查缓存状态
- * @param {String} key - 存储键名
+ * 检查动画是否已缓存
+ * @param {String} url - 动画URL
  * @returns {Boolean} 是否已缓存
  */
-const checkCached = (key) => {
-  const storageKey = `lottie_${key}`
+const isAnimationCached = (url) => {
+  return animationCache.has(url)
+}
+
+/**
+ * 从缓存中获取动画数据
+ * @param {String} url - 动画URL
+ * @returns {Object|null} 动画数据或null
+ */
+const getAnimationFromCache = (url) => {
+  return animationCache.get(url) || null
+}
+
+/**
+ * 将动画数据存入缓存
+ * @param {String} url - 动画URL
+ * @param {Object} data - 动画数据
+ */
+const saveAnimationToCache = (url, data) => {
+  animationCache.set(url, data)
+  
+  // 同时保存到本地存储，以便下次应用启动时可以恢复
   try {
-    const stored = uni.getStorageSync(storageKey)
-    return !!stored
+    const key = `lottie_${getAnimationKey(url)}`
+    uni.setStorageSync(key, data)
+    console.log('动画数据已保存到本地存储', key)
   } catch (e) {
-    console.error('检查缓存状态失败', e)
-    return false
+    console.error('保存到本地存储失败', e)
   }
 }
 
 /**
- * 预加载并缓存动画数据
+ * 恢复本地存储中的动画数据到缓存
  * @param {String} url - 动画URL
- * @param {String} key - 存储键名
- * @returns {Promise<Boolean>} 是否成功
+ * @returns {Boolean} 是否成功恢复
  */
-const preloadLottieAnimation = async (url, key) => {
-  if (loading.value) return false
-  
-  loading.value = true
-  const storageKey = `lottie_${key}`
-  
-  // 检查是否已缓存
-  if (checkCached(key)) {
-    console.log('动画已缓存，无需预加载')
-    loading.value = false
-    return true
+const restoreAnimationFromStorage = (url) => {
+  const key = `lottie_${getAnimationKey(url)}`
+  try {
+    const data = uni.getStorageSync(key)
+    if (data) {
+      animationCache.set(url, data)
+      console.log('已从本地存储恢复动画数据到缓存', key)
+      return true
+    }
+  } catch (e) {
+    console.error('从本地存储恢复失败', e)
+  }
+  return false
+}
+
+/**
+ * 加载动画数据
+ * @param {String} url - 动画URL
+ * @returns {Promise<Object>} 动画数据
+ */
+const loadAnimationData = async (url) => {
+  if (loading.value) {
+    console.log('已有加载任务正在进行')
+    return null
   }
   
-  // 从网络加载
-  console.log('从网络预加载Lottie动画')
+  loading.value = true
+  
+  // 首先检查内存缓存
+  if (isAnimationCached(url)) {
+    console.log('从内存缓存获取动画数据')
+    loading.value = false
+    return getAnimationFromCache(url)
+  }
+  
+  // 然后检查本地存储
+  if (restoreAnimationFromStorage(url)) {
+    console.log('从本地存储恢复动画数据')
+    loading.value = false
+    return getAnimationFromCache(url)
+  }
+  
+  // 最后从网络加载
+  console.log('从网络加载动画数据', url)
   try {
     const { data } = await uni.request({
       url: url,
       method: 'GET'
     })
     
-    // 保存到本地缓存
-    try {
-      uni.setStorageSync(storageKey, data)
-      console.log('Lottie动画已缓存到本地')
-      loading.value = false
-      return true
-    } catch (e) {
-      console.error('保存缓存失败', e)
-      loading.value = false
-      return false
-    }
-  } catch (e) {
-    console.error('获取动画文件失败', e)
+    // 保存到缓存
+    saveAnimationToCache(url, data)
+    
     loading.value = false
-    return false
+    return data
+  } catch (e) {
+    console.error('网络加载动画数据失败', e)
+    loading.value = false
+    return null
   }
 }
 
@@ -139,14 +189,16 @@ const initAnimation = async () => {
   pageReady.value = false
   
   // 设置动画源
-  animationSrc.value = props.src
+  const targetSrc = props.src || defaultSrc
+  animationSrc.value = targetSrc
   
-  // 检查是否已经缓存了动画数据
-  const animationKey = getAnimationKey(props.src)
-  const isCached = checkCached(animationKey)
-  
-  // 预加载动画到缓存（不影响当前显示）
-  preloadLottieAnimation(props.src, animationKey)
+  // 预加载动画数据
+  loadAnimationData(targetSrc).then(data => {
+    if (data) {
+      console.log('动画数据加载成功')
+      animationLoaded.value = true
+    }
+  })
   
   // 设置超时处理，最长等待3秒
   loadTimeout = setTimeout(() => {
@@ -155,7 +207,7 @@ const initAnimation = async () => {
   }, 3000)
   
   // 如果已经缓存，可能不会触发dataReady事件，需要主动检查
-  if (isCached) {
+  if (isAnimationCached(targetSrc)) {
     console.log('检测到缓存数据，预先设置动画加载状态')
     animationLoaded.value = true
     // 短暂延迟后显示页面
@@ -208,6 +260,16 @@ const navigateToMatch = () => {
   Navigator.toMatch()
 }
 
+/**
+ * 清理函数，在组件销毁前清除超时计时器
+ */
+const cleanup = () => {
+  if (loadTimeout) {
+    clearTimeout(loadTimeout)
+    loadTimeout = null
+  }
+}
+
 // 组件挂载时初始化
 onMounted(() => {
   console.log('组件挂载，初始化动画')
@@ -227,6 +289,11 @@ onActivated(() => {
     }
   }
 })
+
+// 在组件卸载前清理资源
+onBeforeUnmount(() => {
+  cleanup()
+})
 </script>
 
 <style >
@@ -236,39 +303,14 @@ onActivated(() => {
   min-height: 100vh;
 }
 
-/* 加载状态样式 */
-.loading-container {
-  position: fixed;
+.background-image {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #f8f8f8;
-  z-index: 999;
-}
-
-.loading-spinner {
-  width: 80rpx;
-  height: 80rpx;
-  border: 8rpx solid #f3f3f3;
-  border-top: 8rpx solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20rpx;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-text {
-  font-size: 28rpx;
-  color: #666;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none; /* 保证背景图不影响交互 */
 }
 
 .page-container {
@@ -280,29 +322,50 @@ onActivated(() => {
   align-items: center;
   box-sizing: border-box;
   padding-bottom: 120rpx;
-  background-color: #f8f8f8;
+  /* background-color: #f8f8f8; */
+  z-index: 1;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  margin-left: 200rpx;
-  margin-top: 80rpx;
+  margin-left: 100px;
+  margin-top: 110px;
   width: 100%;
 }
 
-.main-title {
-  font-size: 48rpx;
+/**
+ * main-title 主标题样式
+ * @font-family PingFang SC
+ * @font-weight 400
+ * @font-size 24px (约48rpx)
+ * @line-height 35px (约70rpx)
+ * @letter-spacing -0.55px (约-1.1rpx)
+ */
+ .main-title {
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
   font-weight: 550;
-  margin-bottom: 20rpx;
+  font-size: 48rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
   color: #333;
 }
 
-.sub-title {
-  font-size: 28rpx;
+/**
+ * sub-title 副标题样式
+ * @font-family PingFang SC
+ * @font-weight 400
+ * @font-size 20px (约40rpx)
+ * @line-height 35px (约70rpx)
+ * @letter-spacing -0.55px (约-1.1rpx)
+ */
+ .sub-title {
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 400;
+  font-size: 40rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
   color: #666;
-  margin-bottom: 40rpx;
-  font-weight: 450;
   text-align: left;
 }
 
@@ -314,22 +377,52 @@ onActivated(() => {
   margin-top: 60rpx;
 }
 
-.match-button {
-  width: 480rpx;
-  height: 80rpx;
-  background-color: #ffffff;
-  color: #333;
-  border: 1px solid #dddddd;
-  border-radius: 40rpx;
+/**
+ * match-button 精准匹配按钮样式
+ * @width 159px (约318rpx)
+ * @height 53px (约106rpx)
+ * @border-radius 10px (约20rpx)
+ * @background 渐变色 linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%)
+ */
+ .match-button {
+  width: 318rpx;
+  height: 106rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
+  color: #fff;
   font-size: 32rpx;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  justify-content: flex-start;
+  border: none;
+  box-shadow: none;
+  padding-left: 32rpx;
   padding: 0;
-  font-weight: 500;
-  line-height: 80rpx;
+  gap: 16rpx;
+  /* 可选：去除原有边框和阴影 */
+}
+
+/**
+ * match-content 按钮内容容器，横向排列图标和文字
+ */
+.match-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 33rpx;
+}
+
+/**
+ * match-icon 按钮内左侧图标样式
+ * @width 20.3px (约40rpx)
+ * @height 20.3px (约40rpx)
+ * @margin-right 16rpx（图标与文字间距）
+ */
+.match-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 40rpx;
 }
 
 .match-animation {
@@ -337,6 +430,25 @@ onActivated(() => {
   margin-top: 50rpx;
   top: 0;
   left: 0;
+}
+
+/**
+ * match-text 精准匹配文字样式
+ * @font-family PingFang SC
+ * @font-weight 400
+ * @font-size 18px (约36rpx)
+ * @line-height 100%
+ * @letter-spacing -0.68px (约-1.36rpx)
+ * @text-align center
+ */
+.match-text {
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -1.36rpx;
+  text-align: center;
+  color: #fff;
 }
 
 </style>

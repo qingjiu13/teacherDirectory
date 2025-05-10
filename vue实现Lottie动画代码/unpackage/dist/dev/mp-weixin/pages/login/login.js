@@ -26,9 +26,9 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: common_assets._imports_1,
+    a: common_assets._imports_1$2,
     b: common_vendor.o(($event) => $options.selectIdentity("student")),
-    c: common_assets._imports_1,
+    c: common_assets._imports_1$2,
     d: common_vendor.o(($event) => $options.selectIdentity("teacher")),
     e: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   };

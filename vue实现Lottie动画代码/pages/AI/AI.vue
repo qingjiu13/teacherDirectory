@@ -20,15 +20,19 @@
 				<view class="nav-bar">
 					<view class="nav-left">
 						<view class="history-btn" @click.stop="toggleSidebar">
-							<text class="iconfont">&#xe67c;</text>
+							<image src="/static/image/AIchat/chatHistory.png" class="history-icon" />
 						</view>
 					</view>
 					<view class="nav-title">
-						<text>研师录AI</text>
+						<mode-selector
+							:current-mode="currentMode"
+							:inNav="true"
+							@mode-change="switchMode">
+						</mode-selector>
 					</view>
 					<view class="nav-right">
 						<view class="new-chat-btn" @click.stop="startNewChat">
-							<text>新对话</text>
+							<image src="/static/image/AIchat/newChat.png" class="new-chat-icon" />
 						</view>
 					</view>
 				</view>
@@ -90,12 +94,6 @@
 						@update-auto-scroll-id="autoScrollId = $event"
 						ref="messageList">
 					</message-list>
-					
-					<!-- 功能模式区域 -->
-					<mode-selector
-						:current-mode="currentMode"
-						@mode-change="switchMode">
-					</mode-selector>
 					
 					<!-- 输入区域 -->
 					<input-section
@@ -1054,7 +1052,7 @@
 	}
 	
 	.nav-left {
-		width: 33%;
+		width: 20%;
 		display: flex;
 		align-items: center;
 	}
@@ -1077,11 +1075,20 @@
 		content: "≡"; /* 使用三横线作为菜单图标 */
 	}
 	
+	/* 新增图片图标样式 */
+	.history-icon {
+		width: 22px;
+		height: 15px;
+		display: block;
+		margin: 0 auto;
+	}
+	
 	.nav-title {
-		width: 34%;
+		width: 60%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		overflow: hidden;
 	}
 	
 	.nav-title text {
@@ -1091,7 +1098,7 @@
 	}
 	
 	.nav-right {
-		width: 33%;
+		width: 20%;
 		display: flex;
 		justify-content: flex-end;
 		align-items: center;
@@ -1099,19 +1106,19 @@
 	
 	.new-chat-btn {
 		padding: 14rpx 28rpx;
-		background-color: #1E90FF;
-		border-radius: 40rpx;
-		box-shadow: 0 2rpx 8rpx rgba(30, 144, 255, 0.3);
+
+
+
 		transition: all 0.3s;
 	}
 	
-	.new-chat-btn:active {
-		opacity: 0.8;
-		transform: scale(0.98);
-	}
+
 	
-	.new-chat-btn text {
-		font-size: 28rpx;
-		color: #fff;
+	/* 新增新对话图片图标样式 */
+	.new-chat-icon {
+		width: 15px;
+		height: 15px;
+		display: block;
+		margin: 0 auto;
 	}
 </style>

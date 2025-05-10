@@ -76,6 +76,8 @@ const _sfc_main = common_vendor.defineComponent({
       showConfirmOrderModal: false,
       // 当前操作的订单
       currentOrder: null,
+      // 微信支付相关
+      wxPayUrl: "https://api.mch.weixin.qq.com/pay/unifiedorder",
       // 支付方式
       isPaymentDropdownOpen: false,
       selectedPayment: 0,
@@ -136,7 +138,7 @@ const _sfc_main = common_vendor.defineComponent({
               common_vendor.index.setStorageSync("userRole", this.userData.role);
             }
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/mine/order/order_common.vue:387", "解析用户信息失败:", e);
+            common_vendor.index.__f__("error", "at pages/mine/order/order_common.vue:359", "解析用户信息失败:", e);
           }
         }
       } else {
@@ -149,7 +151,7 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 加载订单数据
      */
     loadOrderData() {
-      common_vendor.index.__f__("log", "at pages/mine/order/order_common.vue:404", `加载${this.userRole}角色的订单数据`);
+      common_vendor.index.__f__("log", "at pages/mine/order/order_common.vue:376", `加载${this.userRole}角色的订单数据`);
     },
     /**
      * @description 切换标签页
@@ -208,13 +210,33 @@ const _sfc_main = common_vendor.defineComponent({
      * @description 确认支付
      */
     confirmPay() {
-      const payMethod = this.paymentMethods[this.selectedPayment].name;
+      common_vendor.index.showLoading({
+        title: "跳转支付..."
+      });
+      setTimeout(() => {
+        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("log", "at pages/mine/order/order_common.vue:455", "调用微信支付接口，支付地址:", this.wxPayUrl);
+        common_vendor.index.__f__("log", "at pages/mine/order/order_common.vue:456", "订单信息:", this.currentOrder);
+        this.paySuccess();
+      }, 1500);
+    },
+    // 支付成功
+    paySuccess() {
+      this.showPayModal = false;
       common_vendor.index.showToast({
-        title: `${payMethod}支付成功`,
+        title: "支付成功",
         icon: "success"
       });
+      this.loadOrders();
+    },
+    // 支付失败
+    payFail(err = null) {
       this.showPayModal = false;
-      this.isPaymentDropdownOpen = false;
+      common_vendor.index.showToast({
+        title: "支付失败",
+        icon: "none"
+      });
+      common_vendor.index.__f__("error", "at pages/mine/order/order_common.vue:506", "支付失败:", err);
     },
     /**
      * @description 查看订单详情
@@ -349,51 +371,32 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     q: $data.showPayModal
   }, $data.showPayModal ? {
     r: common_vendor.t((_a = $data.currentOrder) == null ? void 0 : _a.price),
-    s: common_vendor.t($data.paymentMethods[$data.selectedPayment].icon),
-    t: common_vendor.n($data.paymentMethods[$data.selectedPayment].type),
-    v: common_vendor.t($data.paymentMethods[$data.selectedPayment].name),
-    w: $data.isPaymentDropdownOpen ? 1 : "",
-    x: $data.isPaymentDropdownOpen ? 1 : "",
-    y: common_vendor.o((...args) => $options.togglePaymentDropdown && $options.togglePaymentDropdown(...args)),
-    z: common_vendor.f($data.paymentMethods, (method, index, i0) => {
-      return common_vendor.e({
-        a: common_vendor.t(method.icon),
-        b: common_vendor.n(method.type),
-        c: common_vendor.t(method.name),
-        d: $data.selectedPayment === index
-      }, $data.selectedPayment === index ? {} : {}, {
-        e: index,
-        f: $data.selectedPayment === index ? 1 : "",
-        g: common_vendor.o(($event) => $options.selectPayment(index), index)
-      });
-    }),
-    A: $data.isPaymentDropdownOpen ? 1 : "",
-    B: common_vendor.o(($event) => $data.showPayModal = false),
-    C: common_vendor.o((...args) => $options.confirmPay && $options.confirmPay(...args))
+    s: common_vendor.o(($event) => $data.showPayModal = false),
+    t: common_vendor.o((...args) => $options.confirmPay && $options.confirmPay(...args))
   } : {}, {
-    D: $data.showDetailModal
+    v: $data.showDetailModal
   }, $data.showDetailModal ? common_vendor.e({
-    E: common_vendor.t((_b = $data.currentOrder) == null ? void 0 : _b.time),
-    F: common_vendor.t((_c = $data.currentOrder) == null ? void 0 : _c.title),
-    G: common_vendor.t((_d = $data.currentOrder) == null ? void 0 : _d.price),
-    H: common_vendor.t((_e = $data.currentOrder) == null ? void 0 : _e.status),
-    I: $data.userRole === "teacher" && ((_f = $data.currentOrder) == null ? void 0 : _f.studentName)
+    w: common_vendor.t((_b = $data.currentOrder) == null ? void 0 : _b.time),
+    x: common_vendor.t((_c = $data.currentOrder) == null ? void 0 : _c.title),
+    y: common_vendor.t((_d = $data.currentOrder) == null ? void 0 : _d.price),
+    z: common_vendor.t((_e = $data.currentOrder) == null ? void 0 : _e.status),
+    A: $data.userRole === "teacher" && ((_f = $data.currentOrder) == null ? void 0 : _f.studentName)
   }, $data.userRole === "teacher" && ((_g = $data.currentOrder) == null ? void 0 : _g.studentName) ? {
-    J: common_vendor.t($data.currentOrder.studentName)
+    B: common_vendor.t($data.currentOrder.studentName)
   } : {}, {
-    K: common_vendor.o((...args) => $options.closeDetailModal && $options.closeDetailModal(...args))
+    C: common_vendor.o((...args) => $options.closeDetailModal && $options.closeDetailModal(...args))
   }) : {}, {
-    L: $data.showDeleteModal
+    D: $data.showDeleteModal
   }, $data.showDeleteModal ? {
-    M: common_vendor.o(($event) => $data.showDeleteModal = false),
-    N: common_vendor.o((...args) => $options.confirmDelete && $options.confirmDelete(...args))
+    E: common_vendor.o(($event) => $data.showDeleteModal = false),
+    F: common_vendor.o((...args) => $options.confirmDelete && $options.confirmDelete(...args))
   } : {}, {
-    O: $data.showConfirmOrderModal
+    G: $data.showConfirmOrderModal
   }, $data.showConfirmOrderModal ? {
-    P: common_vendor.o(($event) => $data.showConfirmOrderModal = false),
-    Q: common_vendor.o((...args) => $options.confirmOrderAction && $options.confirmOrderAction(...args))
+    H: common_vendor.o(($event) => $data.showConfirmOrderModal = false),
+    I: common_vendor.o((...args) => $options.confirmOrderAction && $options.confirmOrderAction(...args))
   } : {}, {
-    R: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+    J: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
