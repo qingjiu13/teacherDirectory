@@ -25,8 +25,10 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-}
-.search-wrapper.data-v-d5601611 {
+  height: 80rpx;
+  margin-left: 20rpx;
+  margin-right: 20rpx;
+  border-radius: 8rpx;
   padding: 10px;
   background: #fff;
 }
@@ -93,7 +95,7 @@
   margin-bottom: 2px;
   color: rgba(0,0,0,0.5);
 }
-.select-item.active.data-v-d5601611 {
+.select-item-content.active .label-text.data-v-d5601611{
   color: rgba(95, 38, 247, 1);
 }
 .arrow-icon.data-v-d5601611 {
@@ -134,12 +136,11 @@
 }
 .popup-title.data-v-d5601611 {
   font-family: 'PingFang SC', sans-serif;
-  font-weight: 400;
-  font-size: 28rpx;
+  font-size: 32rpx;
   line-height: 70rpx;
   letter-spacing: -1.1rpx;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+  color: rgba(0, 0, 0, 1);
 }
 .popup-close.data-v-d5601611 {
   color: #007AFF;
@@ -184,9 +185,6 @@
 
   display: block;
 }
-.filter-section.data-v-d5601611 {
-  padding: 25rpx 0;
-}
 .option-buttons.data-v-d5601611 {
   display: flex;
   flex-wrap: wrap;
@@ -200,6 +198,8 @@
   font-size: 14px;
   color: #666;
   transition: all 0.3s ease;
+  margin-bottom: 10rpx;
+  margin-top: 10rpx;
 }
 .option-button-active.data-v-d5601611 {
   background-color: #e6f2ff;
@@ -271,12 +271,13 @@
   z-index: 1;
 }
 .card-left.data-v-d5601611 {
-  margin-right: 15px;
   align-self: flex-start;
   position: relative;
   z-index: 10;
+  margin-bottom: -20rpx;
 }
 .teacher-avatar.data-v-d5601611 {
+
   width: 230rpx;
   height: 230rpx;
   position: relative;
@@ -287,8 +288,8 @@
   padding-right: 65px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   min-height: 70px;
-  justify-content: space-between;
   width: calc(100% - 85px);
   box-sizing: border-box;
 }
@@ -300,14 +301,25 @@
 .card-middle-top-row.data-v-d5601611 {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8rpx;
+  min-height: 60rpx;
 }
 .teacher-name.data-v-d5601611 {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 6px;
+  /**
+   * 老师名字字体样式
+   * @font PingFang SC, 400, 16px, 100%, -0.55px
+   */
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 600;
+  font-size: 32rpx;
+  line-height: 100%;
+  letter-spacing: -0.55px;
   color: #333333;
+  margin-bottom: 20rpx;
+  display: inline-flex;
+  align-items: center;
 }
 .teacher-info.data-v-d5601611 {
   /**
@@ -316,11 +328,18 @@
    */
   font-family: 'PingFang SC', sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 24rpx;
   line-height: 100%;
   letter-spacing: -0.55px;
   color: rgba(70, 78, 248, 1);
-  margin-bottom: 4px;
+  margin-bottom: 4rpx;
+}
+.teacher-major-score.data-v-d5601611 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  margin-top:4rpx
 }
 .teacher-tags.data-v-d5601611 {
   display: flex;
@@ -329,27 +348,12 @@
 .teacher-tags-inline.data-v-d5601611 {
   display: flex;
   flex-wrap: wrap;
-}
-.tag.data-v-d5601611 {
-  font-size: 12px;
-  color: #1E90FF;
-  background-color: rgba(30, 144, 255, 0.1);
-  padding: 4px 8px;
-  border-radius: 12px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-  /* 新增以下属性 */
-  display: inline-flex;
-  justify-content: center;
-  white-space: nowrap;
-  width: -webkit-fit-content;
-  width: fit-content;
-  /* 或者可以使用 min-width: fit-content; */
+  margin-left: 8rpx;
 }
 .price-tag-container.data-v-d5601611 {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
+  right: 18rpx;
+  bottom: 18rpx;
   z-index: 1;
 }
 .price-tag.data-v-d5601611 {
@@ -373,7 +377,7 @@
 .card-right-center.data-v-d5601611 {
   position: absolute;
   top: 50%;
-  right: 0;
+  right: 50rpx;
   transform: translateY(-50%);
   z-index: 2;
 }
@@ -432,13 +436,13 @@
   border-radius: 20rpx 20rpx 0 0;
   display: flex;
   flex-direction: column;
-  height: 650rpx;
+  height:600rpx;
 }
 .filter-popup.sort-popup.data-v-d5601611 {
-  height: 51vh;
+  height: 41vh;
 }
 .filter-popup.non-professional-popup.data-v-d5601611 {
-  height: 60vh;
+  height: 50vh;
 }
 
 /* 筛选弹窗内容区 */
@@ -485,12 +489,6 @@
   font-size: 28rpx;
 }
 
-/* 重置按钮样式 */
-.reset-button.data-v-d5601611 {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #007AFF;
-}
 
 /* 表单行样式 */
 .form-row.data-v-d5601611 {
@@ -596,12 +594,6 @@
   top: 160px;
   left: 332px;
 }
-.teacher-major-score.data-v-d5601611 {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-}
 .teacher-major.data-v-d5601611, .teacher-score.data-v-d5601611 {
   /**
    * 专业和评分字体样式
@@ -620,10 +612,22 @@
    * @size 16x16px
    * @align 与昵称垂直居中
    */
-  width: 118rpx;
-  height: 50rpx;
-  margin-left: 6rpx;
-  vertical-align: middle;
+  width: 94rpx;
+  height: 40rpx;
+  margin-left: 4rpx;
   display: inline-block;
+  z-index: 10;
+}
+
+/* 非专业课弹窗确认按钮下移 */
+.filter-popup.non-professional-popup .button-container.data-v-d5601611 {
+  margin-top: auto; /* 自动推到底部 */
+  padding-bottom: 25rpx; /* 比默认多20rpx，可根据实际调整 */
+}
+
+/* 排序方式弹窗确认按钮下移 */
+.filter-popup.sort-popup .button-container.data-v-d5601611 {
+  margin-top: auto;
+  padding-bottom: 25rpx;
 }
 
