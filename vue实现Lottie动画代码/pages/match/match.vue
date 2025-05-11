@@ -54,7 +54,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title popup-title-school">学校</text>
+          <text class="popup-title">学校</text>
         </view>
         <view class="popup-content">
           <view class="form-row">
@@ -95,7 +95,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title popup-title-professional">专业课</text>
+          <text class="popup-title">专业课</text>
         </view>
         <view class="popup-content">
           <view class="form-row">
@@ -137,7 +137,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title popup-title-nonpro">非专业课</text>
+          <text class="popup-title">非专业课</text>
         </view>
         <view class="popup-content">
           <!-- 水平排列四个选项 -->
@@ -169,7 +169,7 @@
           </view>
           
           <!-- 固定位置的确认按钮 -->
-          <view class="fixed-button-container">
+          <view class="button-container">
             <button class="popup-button confirm-button" @click.stop="confirmNonProfessionalFilter">确认</button>
           </view>
         </view>
@@ -182,7 +182,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title popup-title-sort">排序方式</text>
+          <text class="popup-title">排序方式</text>
         </view>
         <view class="popup-content">
           <view class="filter-section">
@@ -1107,8 +1107,10 @@ onMounted(() => {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-}
-.search-wrapper {
+  height: 80rpx;
+  margin-left: 20rpx;
+  margin-right: 20rpx;
+  border-radius: 8rpx;
   padding: 10px;
   background: #fff;
 }
@@ -1182,7 +1184,7 @@ onMounted(() => {
   color: rgba(0,0,0,0.5);
 }
 
-.select-item.active {
+.select-item-content.active .label-text{
   color: rgba(95, 38, 247, 1);
 }
 
@@ -1229,12 +1231,11 @@ onMounted(() => {
 
 .popup-title {
   font-family: 'PingFang SC', sans-serif;
-  font-weight: 400;
-  font-size: 28rpx;
+  font-size: 32rpx;
   line-height: 70rpx;
   letter-spacing: -1.1rpx;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.5);;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 1);
 }
 
 .popup-close {
@@ -1284,9 +1285,6 @@ onMounted(() => {
   display: block;
 }
 
-.filter-section {
-  padding: 25rpx 0;
-}
 
 
 .option-buttons {
@@ -1303,6 +1301,8 @@ onMounted(() => {
   font-size: 14px;
   color: #666;
   transition: all 0.3s ease;
+  margin-bottom: 10rpx;
+  margin-top: 10rpx;
 }
 
 .option-button-active {
@@ -1380,13 +1380,14 @@ onMounted(() => {
 }
 
 .card-left {
-  margin-right: 15px;
   align-self: flex-start;
   position: relative;
   z-index: 10;
+  margin-bottom: -20rpx;
 }
 
 .teacher-avatar {
+
   width: 230rpx;
   height: 230rpx;
   position: relative;
@@ -1398,8 +1399,8 @@ onMounted(() => {
   padding-right: 65px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   min-height: 70px;
-  justify-content: space-between;
   width: calc(100% - 85px);
   box-sizing: border-box;
 }
@@ -1413,15 +1414,26 @@ onMounted(() => {
 .card-middle-top-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8rpx;
+  min-height: 60rpx;
 }
 
 .teacher-name {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 6px;
+  /**
+   * 老师名字字体样式
+   * @font PingFang SC, 400, 16px, 100%, -0.55px
+   */
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 600;
+  font-size: 32rpx;
+  line-height: 100%;
+  letter-spacing: -0.55px;
   color: #333333;
+  margin-bottom: 20rpx;
+  display: inline-flex;
+  align-items: center;
 }
 
 .teacher-info {
@@ -1431,13 +1443,19 @@ onMounted(() => {
    */
   font-family: 'PingFang SC', sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 24rpx;
   line-height: 100%;
   letter-spacing: -0.55px;
   color: rgba(70, 78, 248, 1);
-  margin-bottom: 4px;
+  margin-bottom: 4rpx;
 }
-
+.teacher-major-score {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  margin-top:4rpx
+}
 .teacher-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1446,28 +1464,14 @@ onMounted(() => {
 .teacher-tags-inline {
   display: flex;
   flex-wrap: wrap;
+  margin-left: 8rpx;
 }
 
-.tag {
-  font-size: 12px;
-  color: #1E90FF;
-  background-color: rgba(30, 144, 255, 0.1);
-  padding: 4px 8px;
-  border-radius: 12px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-  /* 新增以下属性 */
-  display: inline-flex;
-  justify-content: center;
-  white-space: nowrap;
-  width: fit-content;
-  /* 或者可以使用 min-width: fit-content; */
-}
 
 .price-tag-container {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
+  right: 18rpx;
+  bottom: 18rpx;
   z-index: 1;
 }
 
@@ -1494,7 +1498,7 @@ onMounted(() => {
 .card-right-center {
   position: absolute;
   top: 50%;
-  right: 0;
+  right: 50rpx;
   transform: translateY(-50%);
   z-index: 2;
 }
@@ -1555,13 +1559,13 @@ onMounted(() => {
   border-radius: 20rpx 20rpx 0 0;
   display: flex;
   flex-direction: column;
-  height: 650rpx;
+  height:600rpx;
 }
 .filter-popup.sort-popup {
-  height: 51vh;
+  height: 41vh;
 }
 .filter-popup.non-professional-popup {
-  height: 60vh;
+  height: 50vh;
 }
 
 /* 筛选弹窗内容区 */
@@ -1608,12 +1612,6 @@ onMounted(() => {
   font-size: 28rpx;
 }
 
-/* 重置按钮样式 */
-.reset-button {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #007AFF;
-}
 
 /* 表单行样式 */
 .form-row {
@@ -1726,12 +1724,7 @@ onMounted(() => {
   left: 332px;
 }
 
-.teacher-major-score {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-}
+
 
 .teacher-major, .teacher-score {
   /**
@@ -1752,11 +1745,23 @@ onMounted(() => {
    * @size 16x16px
    * @align 与昵称垂直居中
    */
-  width: 118rpx;
-  height: 50rpx;
-  margin-left: 6rpx;
-  vertical-align: middle;
+  width: 94rpx;
+  height: 40rpx;
+  margin-left: 4rpx;
   display: inline-block;
+  z-index: 10;
+}
+
+/* 非专业课弹窗确认按钮下移 */
+.filter-popup.non-professional-popup .button-container {
+  margin-top: auto; /* 自动推到底部 */
+  padding-bottom: 25rpx; /* 比默认多20rpx，可根据实际调整 */
+}
+
+/* 排序方式弹窗确认按钮下移 */
+.filter-popup.sort-popup .button-container {
+  margin-top: auto;
+  padding-bottom: 25rpx;
 }
 
 </style>
