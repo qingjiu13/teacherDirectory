@@ -7,9 +7,15 @@
 			}
 		},
 		{
-			"path": "pages/match/match",
+			"path": "pages/message/chat",
 			"style": {
-				"navigationStyle": "custom"
+				"navigationBarTitleText": "聊天"
+			}
+		},
+		{
+			"path": "pages/mine/mine_common",
+			"style": {
+				"navigationBarTitleText": "个人中心（共用）"
 			}
 		},
 		{
@@ -19,115 +25,168 @@
 			}
 		},
 		{
-			"path": "pages/AI/AI",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
 			"path": "pages/message/message",
 			"style": {
 				"navigationBarTitleText": "消息列表"
 			}
-		},
-		{
-			"path": "pages/message/chat",
-			"style": {
-				"navigationBarTitleText": "聊天"
-			}
-		},
-		{
-			"path": "pages/login/login",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/login/login_detail",
-			"style": {
-				"navigationBarTitleText": "登录详情"
-			}
-		},
-		{
-			"path": "pages/login/wechat_login",
-			"style": {
-				"navigationBarTitleText": "微信登录"
-			}
-		},
-		{
-			"path": "pages/mine/mine/mine_common",
-			"style": {
-				"navigationBarTitleText": "个人中心（共用）"
-			}
-		},
-		{
-			"path": "pages/mine/modify",
-			"style": {
-				"navigationBarTitleText": "修改资料"
-			}
-		},
-		{
-			"path": "pages/mine/course/course",
-			"style": {
-				"navigationBarTitleText": "我的课程"
-			}
-		},
-		{
-			"path": "pages/mine/order",
-			"style": {
-				"navigationBarTitleText": "我的订单"
-			}
-		},
-		{
-			"path": "pages/mine/order/order_common",
-			"style": {
-				"navigationBarTitleText": "我的订单（共用）"
-			}
-		},
-		{
-			"path": "pages/mine/order/appraise/appraise",
-			"style": {
-				"navigationBarTitleText": "评价"
-			}
-		},
-		{
-			"path": "pages/mine/qualification",
-			"style": {
-				"navigationBarTitleText": "资质认证"
-			}
-		},
-		{
-			"path": "pages/mine/service",
-			"style": {
-				"navigationBarTitleText": "服务设置"
-			}
-		},
-		{
-			"path": "pages/mine/settings",
-			"style": {
-				"navigationBarTitleText": "系统设置"
-			}
-		},
-		{
-			"path": "pages/mine/wallet",
-			"style": {
-				"navigationBarTitleText": "我的钱包"
-			}
-		},
-		{
-			"path" : "pages/test/test",
-			"style" : {
-				"navigationBarTitleText" : ""
-			}
-		},
-		{
-			"path" : "pages/mine/service_newbuilt",
-			"style" : 
-			{
-				"navigationBarTitleText" : "新建服务"
-			}
 		}
 	],
+	"subPackages": [
+		{
+			"root": "pages_AI_Login_Match",
+			"pages": [
+				{
+					"path": "AI/AI",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},		
+				{
+					"path": "match/match",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "login/wechat_login",
+					"style": {
+						"navigationBarTitleText": "微信登录"
+					}
+				},
+				{
+					"path": "login/login",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "login/login_detail",
+					"style": {
+						"navigationBarTitleText": "登录详情"
+					}
+				}
+			]
+		},
+		{
+			"root": "pagesMine",
+			"pages": [
+				{
+					"path": "settings/settings",
+					"style": {
+						"navigationBarTitleText": "系统设置"
+					}
+				},
+				{
+					"path": "wallet/wallet",
+					"style": {
+						"navigationBarTitleText": "我的钱包"
+					}
+				},
+				{
+					"path": "service/service",
+					"style": {
+						"navigationBarTitleText": "服务设置"
+					}
+				},
+				{
+					"path": "course/course",
+					"style": {
+						"navigationBarTitleText": "我的课程"
+					}
+				},
+				{
+					"path": "qualification/qualification",
+					"style": {
+						"navigationBarTitleText": "资质认证"
+					}
+				},
+				{
+					"path": "service/service_newbuilt",
+					"style": {
+						"navigationBarTitleText": "新建服务"
+					}
+				},
+				{
+					"path":"modify/modify",
+					"style": {
+						"navigationBarTitleText": "修改信息"
+					}
+				},
+				{
+					"path": "order/order_common",
+					"style": {
+						"navigationBarTitleText": "我的订单"
+					}
+				},
+				{
+					"path": "order/appraise",
+					"style": {
+						"navigationBarTitleText": "评价"
+					}
+				},
+				{
+					"path": "contactUs/contectUs",
+					"style": {
+						"navigationBarTitleText": "联系我们"
+					}
+				}
+			]
+		}
+	],
+	"preloadRule": {
+		"pages_AI_Login_Match/login/login": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pages_AI_Login_Match/login/wechat_login": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pages_AI_Login_Match/login/login_detail": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/settings/settings": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/wallet/wallet": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/service/service": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/course/course": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/order/order_common": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/qualification/qualification": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/service/service_newbuilt": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/contactUs/contectUs": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pages_AI_Login_Match/match/match": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pages_AI_Login_Match/AI/AI": {
+			"network": "all",
+			"packages": ["__APP__"]
+		}
+	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "研师录",
@@ -137,10 +196,10 @@
 	"easycom": {
 		"autoscan": true,
 		"custom": {
-			"^history-sidebar$": "components/ai-chat/HistorySidebar",
-			"^message-list$": "components/ai-chat/MessageList",
-			"^filter-section$": "components/ai-chat/FilterSection", 
-			"^mode-selector$": "components/ai-chat/ModeSelector",
+			"^history-sidebar$": "pages_AI_Login_Match/AI/ai-chat/HistorySidebar",
+			"^message-list$": "pages_AI_Login_Match/AI/ai-chat/MessageList",
+			"^filter-section$": "pages_AI_Login_Match/AI/ai-chat/FilterSection", 
+			"^mode-selector$": "pages_AI_Login_Match/AI/ai-chat/ModeSelector",
 			"^top-navbar$": "components/top-navbar/top-navbar"
 		}
 	},

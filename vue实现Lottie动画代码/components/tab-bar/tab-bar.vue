@@ -50,19 +50,19 @@
 				 */
 				iconPaths: {
 					'index': {
-						normal: '/static/image/tab-bar/wechat.png',
-						active: '/static/image/defaultAvatar/teacher-man.png'
+						normal: '/static/image/tab-bar/mineDown.png',
+						active: '/static/image/tab-bar/mineUp.png'
 					},
 					'AI': {
-						normal: '/static/image/index/AI.png',
+						normal: '/static/image/tab-bar/AI.png',
 					},
 					'message': {
-						normal: '/static/image/index/messageDown.png',
-						active: '/static/image/index/messageUp.png'
+						normal: '/static/image/tab-bar/messageDown.png',
+						active: '/static/image/tab-bar/messageUp.png'
 					},
 					'mine': {
-						normal: '/static/image/index/mineDown.png',
-						active: '/static/image/index/mineUp.png'
+						normal: '/static/image/tab-bar/mineDown.png',
+						active: '/static/image/tab-bar/mineUp.png'
 					}
 				}
 			}

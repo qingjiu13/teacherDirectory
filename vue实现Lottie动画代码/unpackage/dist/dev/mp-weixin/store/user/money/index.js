@@ -1,14 +1,2 @@
-"use strict";
-const store_user_money_state = require("./state.js");
-const store_user_money_mutations = require("./mutations.js");
-const store_user_money_actions = require("./actions.js");
-const store_user_money_getters = require("./getters.js");
-const money = {
-  namespaced: true,
-  state: store_user_money_state.state,
-  mutations: store_user_money_mutations.mutations,
-  actions: store_user_money_actions.actions,
-  getters: store_user_money_getters.getters
-};
-exports.money = money;
+"use strict";const e=require("./state.js"),t=require("./mutations.js"),s=require("./actions.js"),o=require("./getters.js"),r={namespaced:!0,state:e.state,mutations:t.mutations,actions:s.actions,getters:o.getters};exports.money=r;
 //# sourceMappingURL=../../../../.sourcemap/mp-weixin/store/user/money/index.js.map

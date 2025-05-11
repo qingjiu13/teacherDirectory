@@ -14,7 +14,7 @@ export const IndexRoutes = {
  * @description 匹配相关路由
  */
 export const MatchRoutes = {
-	MATCH: '/pages/match/match',
+	MATCH: '/pages_AI_Login_Match/match/match',
 	TEACHER: '/pages/teacher/teacher'
 };
 
@@ -22,7 +22,7 @@ export const MatchRoutes = {
  * @description AI相关路由
  */
 export const AIRoutes = {
-	AI_SERVER: '/pages/AI/AI'
+	AI_SERVER: '/pages_AI_Login_Match/AI/AI'
 };
 
 /**
@@ -37,9 +37,9 @@ export const MessageRoutes = {
  * @description 登录相关路由
  */
 export const LoginRoutes = {
-	LOGIN: '/pages/login/login',
-	LOGIN_DETAIL: '/pages/login/login_detail',
-	WECHAT_LOGIN: '/pages/login/wechat_login'
+	LOGIN: '/pages_AI_Login_Match/login/login',
+	LOGIN_DETAIL: '/pages_AI_Login_Match/login/login_detail',
+	WECHAT_LOGIN: '/pages_AI_Login_Match/login/wechat_login'
 };
 
 /**
@@ -47,26 +47,26 @@ export const LoginRoutes = {
  */
 export const MineRoutes = {
 	// 我的页面
-	MINE: '/pages/mine/mine/mine_common',
+	MINE: '/pages/mine/mine_common',
 	
 	// 个人信息修改
-	MODIFY: '/pages/mine/modify',
+	MODIFY: '/pagesMine/modify/modify',
 	
 	// 课程相关
-	COURSE: '/pages/mine/course/course',
+	COURSE: '/pagesMine/course/course',
 
 	
 	// 订单相关
-	ORDER_COMMON: '/pages/mine/order/order_common',
-	APPRAISE: '/pages/mine/order/appraise/appraise',
+	ORDER_COMMON: '/pagesMine/order/order_common',
+	APPRAISE: '/pagesMine/order/appraise',
 	
 	// 其他设置
-	QUALIFICATION: '/pages/mine/qualification',
-	SERVICE: '/pages/mine/service',
-	SERVICE_NEWBUILT:'/pages/mine/service_newbuilt',
-	SETTINGS: '/pages/mine/settings',
-	WALLET: '/pages/mine/wallet',
-	SUBSCRIBE: '/pages/mine/subscribe'
+	QUALIFICATION: '/pagesMine/qualification/qualification',
+	SERVICE: '/pagesMine/service/service',
+	SERVICE_NEWBUILT:'/pagesMine/service/service_newbuilt',
+	SETTINGS: '/pagesMine/settings/settings',
+	WALLET: '/pagesMine/wallet/wallet',
+	CONTACT_US: '/pagesMine/contactUs/contectUs'
 };
 
 /**
@@ -289,11 +289,12 @@ export const Navigator = {
 		this.navigateTo(MineRoutes.MINE);
 	},
 	
+	
 	/**
-	 * @description 跳转到公众号订阅页面
+	 * @description 跳转到联系我们页面
 	 */
-	toSubscribe() {
-		this.navigateTo(MineRoutes.SUBSCRIBE);
+	toContactUs() {
+		this.navigateTo(MineRoutes.CONTACT_US);
 	}
 };
 

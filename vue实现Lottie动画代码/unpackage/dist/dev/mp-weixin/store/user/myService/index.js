@@ -1,14 +1,2 @@
-"use strict";
-const store_user_myService_state = require("./state.js");
-const store_user_myService_mutations = require("./mutations.js");
-const store_user_myService_actions = require("./actions.js");
-const store_user_myService_getters = require("./getters.js");
-const myService = {
-  namespaced: true,
-  state: store_user_myService_state.state,
-  mutations: store_user_myService_mutations.mutations,
-  actions: store_user_myService_actions.actions,
-  getters: store_user_myService_getters.getters
-};
-exports.myService = myService;
+"use strict";const e=require("./state.js"),t=require("./mutations.js"),s=require("./actions.js"),r=require("./getters.js"),i={namespaced:!0,state:e.state,mutations:t.mutations,actions:s.actions,getters:r.getters};exports.myService=i;
 //# sourceMappingURL=../../../../.sourcemap/mp-weixin/store/user/myService/index.js.map

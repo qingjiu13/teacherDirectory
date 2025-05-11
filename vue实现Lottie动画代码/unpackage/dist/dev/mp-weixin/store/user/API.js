@@ -1,20 +1,2 @@
-"use strict";
-const UPLOAD_FILE_URL = "http://localhost:8080/user/myService/uploadFile";
-const MATCH_API_BASE_URL = "http://localhost:8080/match/match";
-const USER_TEACHER_DETAIL_URL = "http://localhost:8080/user/teacherDetails";
-const BALANCE_GET_BALANCE_URL = "http://localhost:8080/balance/getBalance";
-const BALANCE_WITHDRAWAL_URL = "http://localhost:8080/balance/withdrawal";
-const AIQA_QUESTION_URL = "http://localhost:8080/AIQA/question";
-const AIQA_GET_HISTORY_URL = "http://localhost:8080/AIQA/getHistory";
-const AIQA_DELETE_HISTORY_URL = "http://localhost:8080/AIQA/deleteHistory";
-const AIQA_GET_HISTORY_DETAIL_URL = "http://localhost:8080/AIQA/getHistoryDetail";
-exports.AIQA_DELETE_HISTORY_URL = AIQA_DELETE_HISTORY_URL;
-exports.AIQA_GET_HISTORY_DETAIL_URL = AIQA_GET_HISTORY_DETAIL_URL;
-exports.AIQA_GET_HISTORY_URL = AIQA_GET_HISTORY_URL;
-exports.AIQA_QUESTION_URL = AIQA_QUESTION_URL;
-exports.BALANCE_GET_BALANCE_URL = BALANCE_GET_BALANCE_URL;
-exports.BALANCE_WITHDRAWAL_URL = BALANCE_WITHDRAWAL_URL;
-exports.MATCH_API_BASE_URL = MATCH_API_BASE_URL;
-exports.UPLOAD_FILE_URL = UPLOAD_FILE_URL;
-exports.USER_TEACHER_DETAIL_URL = USER_TEACHER_DETAIL_URL;
+"use strict";const A="http://localhost:8080/user/myService/uploadFile",t="http://localhost:8080/match/match",_="http://localhost:8080/user/teacherDetails",L="http://localhost:8080/balance/getBalance",E="http://localhost:8080/balance/withdrawal",o="http://localhost:8080/AIQA/question",I="http://localhost:8080/AIQA/getHistory",R="http://localhost:8080/AIQA/deleteHistory",l="http://localhost:8080/AIQA/getHistoryDetail";exports.AIQA_DELETE_HISTORY_URL=R;exports.AIQA_GET_HISTORY_DETAIL_URL=l;exports.AIQA_GET_HISTORY_URL=I;exports.AIQA_QUESTION_URL=o;exports.BALANCE_GET_BALANCE_URL=L;exports.BALANCE_WITHDRAWAL_URL=E;exports.MATCH_API_BASE_URL=t;exports.UPLOAD_FILE_URL=A;exports.USER_TEACHER_DETAIL_URL=_;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/store/user/API.js.map

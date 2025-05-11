@@ -1,20 +1,3 @@
 @import "../../uvue.wxss";
 :host{display:flex;flex-direction:column}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 55px; /* 为自定义tabBar留出空间 */
-}
-.title {
-  font-size: 36rpx;
-  color: #333;
-}
+.container{display:flex;flex-direction:column;height:100%}.content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:55px}.title{font-size:36rpx;color:#333}

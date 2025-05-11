@@ -1,6 +1,2 @@
-"use strict";
-const actions = {
-  // 这里放置actions方法
-};
-exports.actions = actions;
+"use strict";const s={};exports.actions=s;
 //# sourceMappingURL=../../../../.sourcemap/mp-weixin/store/user/myService/actions.js.map
