@@ -185,35 +185,16 @@
   top: 800rpx; /* 1020rpx - 220rpx */
 }
 .background-image.data-v-e4e4508d {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-
-/**
- * 保证背景图全屏显示
- */
-html, body, #app, .container {
-  height: 100%;
-  min-height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* 只保留一份背景图样式，建议用 fixed */
-.background-image {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   z-index: 0;
-  pointer-events: none; /* 保证背景图不影响交互 */
+  pointer-events: none;
+}
+.background-image image.data-v-e4e4508d {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
