@@ -1,18 +1,60 @@
 <template>
+    <view class="background-image">
+      <image
+        src="/static/image/login/background1.png"
+        mode="aspectFill" alt="背景图"
+      />
+    </view>
+    <view class="background-image">
+      <image
+        src="/static/image/login/background.png"
+        mode="aspectFill" alt="背景图"
+      />
+    </view>
   <view class="container">
-    <text class="title">你的身份是：</text>
 
-    <view class="card" @click="selectIdentity('student')">
-      <view class="card-content">
-        <image class="card-image" src="/static/image/tab-bar/default_avatar.png" mode="aspectFit" />
-        <text class="card-text">我是同学~</text>
+    <!-- 返回按钮 -->
+    <image
+      class="nav-back"
+      src="/static/image/navBack.png"
+      mode="aspectFit"
+      @click="goBack"
+    />
+    <text class="title">您的身份是：</text>
+
+    <!-- 同学卡片上方的图片 -->
+    <image
+      class="student-image"
+      src="/static/image/login/student.png"
+      mode="aspectFit"
+    />
+    <view class="card student-card" @click="selectIdentity('student')">
+      <view class="card-outer student-card-outer">
+        <view class="card-outer-gradient student-card-outer-gradient">
+          <view class="card-inner student-card-inner">
+            <view class="card-content">
+              <text class="card-text">同学</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="card" @click="selectIdentity('teacher')">
-      <view class="card-content">
-        <image class="card-image" src="/static/image/tab-bar/default_avatar.png" mode="aspectFit" />
-        <text class="card-text">我是老师~</text>
+    <!-- 老师卡片上方的图片 -->
+    <image
+      class="teacher-image"
+      src="/static/image/login/teacher.png"
+      mode="aspectFit"
+    />
+    <view class="card teacher-card" @click="selectIdentity('teacher')">
+      <view class="card-outer teacher-card-outer">
+        <view class="card-outer-gradient teacher-card-outer-gradient">
+          <view class="card-inner teacher-card-inner">
+            <view class="card-content">
+              <text class="card-text">老师</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
@@ -45,6 +87,13 @@ export default {
           icon: 'none'
         });
       }
+    },
+    /**
+     * 返回到微信登录页面
+     * @returns {void}
+     */
+    goBack() {
+      Navigator.reLaunch('/pages/login/wechat_login');
     }
   }
 }
@@ -52,39 +101,226 @@ export default {
 
 <style scoped>
 .container {
+  position: relative;
   padding: 40rpx;
+  min-height: 100vh;
+  height: 100vh;
+  background: transparent;
+  z-index: 1;
+}
+
+/* 返回按钮样式 */
+.nav-back {
+  position: absolute;
+  top: 134rpx;
+  left: 40rpx;
+  width: 72rpx;
+  height: 62rpx;
+  z-index: 100;
 }
 
 .title {
-  font-size: 36rpx;
-  font-weight: bold;
-  margin-bottom: 60rpx;
+  position: absolute;
+  width: 284rpx;
+  top: 248rpx;
+  left: 106rpx;
+  font-family: PingFang SC;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+  z-index: 50;
 }
 
 .card {
-  border: 1px solid #ccc;
-  border-radius: 20rpx;
-  padding: 20rpx;
-  margin-bottom: 40rpx;
-  background-color: #fff;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.05);
+  position: absolute;
+  width: 648rpx;
+  height: 200rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  z-index: 10;
+}
+
+/* 外层：模拟边框 */
+.card-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  padding: 2rpx; /* 边框宽度 */
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: transparent;
+}
+
+.card-outer-gradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  padding: 2rpx;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+/* 学生卡片外层渐变 */
+.student-card-outer-gradient {
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+}
+
+/* 老师卡片外层渐变 */
+.teacher-card-outer-gradient {
+  background: linear-gradient(180deg, rgba(233, 234, 255, 1) 0%, rgba(95, 38, 247, 1) 100%);
 }
 
 .card-content {
+  position: absolute;
+  top: 110rpx;
+  left: 0;
+  width: 100%;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.card-image {
-  width: 140rpx;
-  height: 140rpx;
-  background-color: #f0f0f0;
-  border-radius: 10rpx;
-  margin-right: 30rpx;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .card-text {
-  font-size: 32rpx;
+  font-family: PingFang SC, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 35px;
+  letter-spacing: 2px;
+  color: #2F2F2F;
+  text-align: center;
+  width: 100%;
+}
+
+/**
+ * "我是同学~"按钮样式
+ */
+.student-card {
+  position: absolute;
+  width: 648rpx;
+  height: 200rpx;
+  left: 50%;
+  top: 560rpx;
+  transform: translateX(-50%);
+  background: transparent;
+}
+
+/**
+ * "我是老师~"按钮样式
+ */
+.teacher-card {
+  position: absolute;
+  width: 648rpx;
+  height: 200rpx;
+  left: 50%;
+  top: 1090rpx;
+  transform: translateX(-50%);
+  background: transparent;
+}
+
+/* 内层：内容区 */
+.card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  position: relative;
+}
+
+/* 学生卡内容渐变遮罩 */
+.student-card-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
+  z-index: 1;
+}
+
+/* 老师卡内容渐变遮罩 */
+.teacher-card-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(224, 212, 255, 0.2) 11.54%, rgba(95, 38, 247, 0.2) 111.54%);
+  z-index: 1;
+}
+
+/**
+ * 同学图片，距离同学按钮上方40rpx
+ */
+.student-image {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 972rpx;
+  height: 300rpx;
+  z-index: 20;
+  pointer-events: none;
+  top: 370rpx; /* 684rpx - 150rpx - 40rpx */
+}
+
+/**
+ * 老师图片，距离老师按钮上方40rpx
+ */
+.teacher-image {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 972rpx;
+  height: 375rpx;
+  z-index: 20;
+  pointer-events: none;
+  top: 800rpx; /* 1020rpx - 220rpx */
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+</style>
+
+<style>
+/**
+ * 保证背景图全屏显示
+ */
+html, body, #app, .container {
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 只保留一份背景图样式，建议用 fixed */
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none; /* 保证背景图不影响交互 */
 }
 </style>

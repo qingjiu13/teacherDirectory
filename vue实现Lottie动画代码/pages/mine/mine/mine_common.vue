@@ -3,7 +3,7 @@
     <!-- 用户信息区 -->
     <view class="user-info">
       <view class="user-info-row">
-        <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @click="handleClick"></image>
+        <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @click="handleClick"></image>
         <view class="user-info-content">
           <view class="nickname-row">
             <text class="login-text" @click="handleClick">{{ userData.name || storeName || '登录' }}</text>

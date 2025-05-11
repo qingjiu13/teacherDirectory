@@ -24,7 +24,7 @@ export default {
         sessionType: 'private',
         targetId: 'user123',
         title: '王老师',       // 会话标题(可能是备注/群名称)
-        avatar: '/static/image/tab-bar/default_avatar.png',       // 头像
+        avatar: '/static/image/defaultAvatar/teacher-man.png',       // 头像
         lastMessage: {},     // 最后一条消息
         unreadCount: 3,      // 未读数量
         lastMessageTime: 1620000000, // 最后消息时间戳
@@ -67,7 +67,7 @@ export default {
     'user123':  {
       userId: 'user123',
       nickname: '王老师',
-      avatar: '/static/image/tab-bar/default_avatar.png',
+      avatar: '/static/image/defaultAvatar/teacher-man.png',
       remark: '王老师'       // 备注名
     }
     

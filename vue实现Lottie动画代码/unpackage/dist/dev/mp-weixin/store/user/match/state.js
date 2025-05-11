@@ -46,7 +46,7 @@ const state = {
     {
       id: "teacher001",
       name: "张老师",
-      avatar: "/static/image/tab-bar/default_avatar.png",
+      avatar: "/static/image/defaultAvatar/teacher-man.png",
       gender: "male",
       selfIntroduction: "清华大学计算机专业硕士，5年教学经验",
       certificate: 1,
@@ -77,7 +77,7 @@ const state = {
     {
       id: "teacher002",
       name: "李老师",
-      avatar: "/static/image/tab-bar/default_avatar.png",
+      avatar: "/static/image/defaultAvatar/teacher-man.png",
       gender: "female",
       selfIntroduction: "北京大学经济学博士，3年教学经验",
       certificate: 1,

@@ -15,7 +15,7 @@
       
       <!-- 用户头像占位 -->
       <view class="avatar-container">
-        <image class="avatar" :src="userInfo.avatarUrl || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill"></image>
+        <image class="avatar" :src="userInfo.avatarUrl || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
         <text class="nickname" v-if="userInfo.nickName">{{userInfo.nickName}}</text>
         <text class="nickname" v-else>未登录</text>
       </view>
@@ -23,7 +23,7 @@
       <!-- 微信登录按钮 -->
       <button class="login-btn" @click="onWxLogin" v-if="!hasLogin">
         <view class="btn-content">
-          <image class="wechat-icon" src="/static/image/tab-bar/default_avatar.png"></image>
+          <image class="wechat-icon" src="/static/image/defaultAvatar/teacher-man.png"></image>
           <text class="login-text">微信一键登录</text>
         </view>
       </button>

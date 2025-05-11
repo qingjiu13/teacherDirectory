@@ -25,14 +25,14 @@ const _sfc_main = common_vendor.defineComponent({
       iconPaths: new UTSJSONObject({
         "index": new UTSJSONObject({
           normal: "/static/image/tab-bar/wechat.png",
-          active: "/static/image/tab-bar/default_avatar.png"
+          active: "/static/image/defaultAvatar/teacher-man.png"
         }),
         "AI": new UTSJSONObject({
           normal: "/static/image/index/AI.png"
         }),
         "message": new UTSJSONObject({
           normal: "/static/image/index/messageDown.png",
-          active: "/static/image/tab-bar/default_avatar.png"
+          active: "/static/image/index/messageUp.png"
         }),
         "mine": new UTSJSONObject({
           normal: "/static/image/index/mineDown.png",

@@ -10,7 +10,7 @@ const _sfc_main = common_vendor.defineComponent({
       teacherData: new UTSJSONObject({
         id: null,
         name: "",
-        avatar: "/static/image/tab-bar/default_avatar.png",
+        avatar: "/static/image/defaultAvatar/teacher-man.png",
         school: "",
         major: "",
         teacherScore: 0,
@@ -77,7 +77,7 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: $data.teacherData.avatar || "/static/image/tab-bar/default_avatar.png",
+    a: $data.teacherData.avatar || "/static/image/defaultAvatar/teacher-man.png",
     b: common_vendor.t($data.teacherData.name),
     c: common_vendor.t($data.teacherData.school),
     d: common_vendor.t($data.teacherData.major),

@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "精准匹配",
-  "usingComponents": {}
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "header": "../../components/navigationTitleBar/header"
+  }
 }

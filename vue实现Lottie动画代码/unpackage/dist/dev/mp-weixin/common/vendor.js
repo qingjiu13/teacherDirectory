@@ -8127,9 +8127,9 @@ function isConsoleWritable() {
   return isWritable;
 }
 function initRuntimeSocketService() {
-  const hosts = "100.81.1.13,127.0.0.1";
+  const hosts = "100.78.77.216,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_PPwsYC";
+  const id = "mp-weixin_b_ZvK2";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -16018,6 +16018,7 @@ exports.s = s;
 exports.sei = sei;
 exports.sr = sr;
 exports.t = t;
+exports.unref = unref;
 exports.useStore = useStore;
 exports.watch = watch;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

@@ -185,7 +185,7 @@ export default {
     return {
       formData: {
         nickname: '', // 用户昵称
-        avatar: '/static/image/tab-bar/default_avatar.png', // 默认头像
+        avatar: '/static/image/defaultAvatar/teacher-man.png', // 默认头像
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,  // 目标学校索引

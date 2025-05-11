@@ -51,14 +51,14 @@
 				iconPaths: {
 					'index': {
 						normal: '/static/image/tab-bar/wechat.png',
-						active: '/static/image/tab-bar/default_avatar.png'
+						active: '/static/image/defaultAvatar/teacher-man.png'
 					},
 					'AI': {
 						normal: '/static/image/index/AI.png',
 					},
 					'message': {
 						normal: '/static/image/index/messageDown.png',
-						active: '/static/image/tab-bar/default_avatar.png'
+						active: '/static/image/index/messageUp.png'
 					},
 					'mine': {
 						normal: '/static/image/index/mineDown.png',

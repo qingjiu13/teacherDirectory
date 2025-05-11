@@ -576,7 +576,7 @@
 		// 初始化默认用户数据
 		store.dispatch('user/baseInfo/updateUserInfo', {
 			userName: '默认用户',
-			avatar: '/static/image/tab-bar/default_avatar.png'
+			avatar: '/static/image/defaultAvatar/teacher-man.png'
 		});
 		
 		// 确保全局动画对象存在

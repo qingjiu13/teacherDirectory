@@ -1,4 +1,19 @@
 <template>
+  <view class="background-image">
+    <image
+      class="background-image-img"
+      src="/static/image/match/background1.png"
+      mode="aspectFill" alt="背景图"
+    />
+  </view>
+  <view class="background-image">
+    <image
+      class="background-image-img"
+      src="/static/image/match/background.png"
+      mode="aspectFill" alt="背景图"
+    />
+  </view>
+  <Header :title="'精准匹配'" @back="handleBack" />
   <view class="page">
     <!-- 搜索框 -->
     <view class="search-wrapper">
@@ -39,7 +54,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title">学校</text>
+          <text class="popup-title popup-title-school">学校</text>
         </view>
         <view class="popup-content">
           <view class="form-row">
@@ -80,7 +95,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title">专业课</text>
+          <text class="popup-title popup-title-professional">专业课</text>
         </view>
         <view class="popup-content">
           <view class="form-row">
@@ -122,7 +137,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title">非专业课</text>
+          <text class="popup-title popup-title-nonpro">非专业课</text>
         </view>
         <view class="popup-content">
           <!-- 水平排列四个选项 -->
@@ -167,7 +182,7 @@
         @click.stop
       >
         <view class="popup-header">
-          <text class="popup-title">排序方式</text>
+          <text class="popup-title popup-title-sort">排序方式</text>
         </view>
         <view class="popup-content">
           <view class="filter-section">
@@ -196,24 +211,46 @@
       <!-- 老师卡片列表 -->
       <scroll-view class="card-list" scroll-y="true" id="step2" @scrolltolower="loadMoreTeachers">
         <view class="teacher-card" v-for="(teacher, index) in matchTeachers" :key="teacher.id || index">
-          <view class="card-left">
-            <image class="teacher-avatar" :src="teacher.avatar || '/static/image/tab-bar/default_avatar.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
-          </view>
-          <view class="card-middle">
-            <view class="card-middle-top">
-              <view class="teacher-name">{{ teacher.name }}</view>
-              <view class="teacher-info">{{ teacher.school }} | {{ teacher.major }} | {{ teacher.teacherScore }}</view>
+          <view class="teacher-card-outer">
+            <view class="teacher-card-outer-gradient">
+              <view class="teacher-card-inner">
+                <view class="card-left">
+                  <image class="teacher-avatar" :src="teacher.avatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
+                </view>
+                <view class="card-middle">
+                  <!-- 顶部：昵称和认证标签同一行 -->
+                  <view class="card-middle-top-row">
+                    <view class="teacher-name">{{ teacher.name }}</view>
+                    <view class="teacher-tags-inline">
+                      <!--
+                        认证状态图标
+                        @已认证 static/image/certify/certified.png
+                        @未认证 static/image/certify/uncertified.png
+                      -->
+                      <image
+                        class="certify-icon"
+                        :src="teacher.certificate ? '/static/image/certify/certified.png' : '/static/image/certify/uncertified.png'"
+                        :alt="teacher.certificate ? '已认证' : '未认证'"
+                      />
+                    </view>
+                  </view>
+                  <!-- 学校单独一行 -->
+                  <view class="teacher-info">{{ teacher.school }}</view>
+                  <!-- 专业和评分同一行 -->
+                  <view class="teacher-major-score">
+                    <view class="teacher-major">{{ teacher.major }}</view>
+                    <view class="teacher-score">{{ teacher.teacherScore }}</view>
+                  </view>
+                </view>
+                <!-- 竖直居中按钮 -->
+                <view class="card-right card-right-center">
+                  <button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
+                </view>
+                <view class="price-tag-container" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
+                  <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时起</view>
+                </view>
+              </view>
             </view>
-            <view class="teacher-tags">
-              <view class="tag" v-if="teacher.certificate">已认证</view>
-              <view class="tag" v-else>未认证</view>
-            </view>
-          </view>
-          <view class="card-right">
-            <button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
-          </view>
-          <view class="price-tag-container" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
-            <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时起</view>
           </view>
         </view>
         
@@ -232,6 +269,7 @@ import { ref, reactive, computed, onMounted} from 'vue'
 import { useStore } from 'vuex'
 import { Navigator } from '@/router/Router.js'
 import GraduateStore from '../../components/combobox/graduate_school_major.js'
+import Header from '../../components/navigationTitleBar/header'
 
 // 初始化 store
 const store = useStore()
@@ -1023,7 +1061,9 @@ const resetNonProfessionalFilter = () => {
   
   activeNonProTab.value = ''
 }
-
+const handleBack = () => {
+  Navigator.toIndex()
+}
 // 初始化
 onMounted(() => {
   initGraduateData().then(() => {
@@ -1042,12 +1082,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.searchText {
-  width: 100%;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+.background-image-img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
+}
+.page {
+  position: relative;
+  z-index: 1;
 }
 .search-wrapper {
   display: flex;
@@ -1055,12 +1108,6 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
 }
-.page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
 .search-wrapper {
   padding: 10px;
   background: #fff;
@@ -1111,7 +1158,7 @@ onMounted(() => {
 .select-item {
   flex: 1;
   min-width: 0;
-  padding: 12px 5px;
+  padding: 12px 0px;
   position: relative;
   white-space: nowrap;
   display: flex;
@@ -1132,21 +1179,20 @@ onMounted(() => {
   white-space: nowrap;
   text-align: center;
   margin-bottom: 2px;
+  color: rgba(0,0,0,0.5);
 }
 
-.select-item.active .label-text {
-  color: #007AFF;
+.select-item.active {
+  color: rgba(95, 38, 247, 1);
 }
 
-.select-item.active .arrow-icon {
-  color: #007AFF;
-}
 
 .arrow-icon {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
   transition: transform 0.3s ease;
+  margin-left: 10rpx;
 }
 
 .arrow-icon-rotate {
@@ -1157,6 +1203,7 @@ onMounted(() => {
   flex: 1;
   background: #f5f5f5;
   overflow-y: auto;
+  background-color: transparent;
 }
 
 .popup-content {
@@ -1181,17 +1228,21 @@ onMounted(() => {
 }
 
 .popup-title {
-  font-size: 32rpx;
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 400;
+  font-size: 28rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
   font-weight: 500;
-  color: #333;
+  color: rgba(0, 0, 0, 0.5);;
 }
 
 .popup-close {
   color: #007AFF;
-  font-size: 14px;
+  font-size: 28rpx;
   position: absolute;
-  right: 16px;
-  top: 14px;
+  right: 32rpx;
+  top: 28rpx;
 }
 
 /* 状态提示栏 */
@@ -1229,7 +1280,7 @@ onMounted(() => {
 .filter-label {
   font-size: 15px;
   color: #333;
-  margin-bottom: 10px;
+
   display: block;
 }
 
@@ -1247,7 +1298,6 @@ onMounted(() => {
 .option-button {
   padding: 8px 15px;
   margin-right: 15px;
-  margin-bottom: 15px;
   background-color: #f5f5f5;
   border-radius: 20px;
   font-size: 14px;
@@ -1274,23 +1324,73 @@ onMounted(() => {
   flex-direction: row;
   background-color: #ffffff;
   border-radius: 16px;
-  padding: 18px;
+
   margin-bottom: 15px;
   box-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
   position: relative;
   min-height: 110px;
 }
 
+.teacher-card-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: transparent;
+}
+
+.teacher-card-outer-gradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  padding: 2rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+}
+
+.teacher-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+/**
+ * 老师卡内容渐变遮罩
+ * 参考login页面同学卡内容渐变遮罩
+ */
+.teacher-card-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
+  z-index: 1;
+}
+
 .card-left {
   margin-right: 15px;
   align-self: flex-start;
+  position: relative;
+  z-index: 10;
 }
 
 .teacher-avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 35px;
-  background-color: #f5f5f5;
+  width: 230rpx;
+  height: 230rpx;
+  position: relative;
+  z-index: 10;
 }
 
 .card-middle {
@@ -1310,6 +1410,13 @@ onMounted(() => {
   width: 100%;
 }
 
+.card-middle-top-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .teacher-name {
   font-size: 18px;
   font-weight: bold;
@@ -1318,12 +1425,25 @@ onMounted(() => {
 }
 
 .teacher-info {
-  font-size: 14px;
-  color: #666666;
-  margin-bottom: 12px;
+  /**
+   * 学校信息字体样式
+   * @font PingFang SC, 400, 12px, 100%, -0.55px, 颜色rgba(70, 78, 248, 1)
+   */
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: -0.55px;
+  color: rgba(70, 78, 248, 1);
+  margin-bottom: 4px;
 }
 
 .teacher-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.teacher-tags-inline {
   display: flex;
   flex-wrap: wrap;
 }
@@ -1356,7 +1476,7 @@ onMounted(() => {
   color: #ff6b00;
   background-color: rgba(255, 107, 0, 0.1);
   padding: 4px 10px;
-  border-radius: 12px;
+  border-radius: 8rpx;
   font-weight: 600;
   display: inline-flex;
   white-space: nowrap;
@@ -1371,16 +1491,38 @@ onMounted(() => {
   z-index: 2;
 }
 
+.card-right-center {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
 .communicate-btn {
-  background-color: #1E90FF;
-  color: #ffffff;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 20px;
+  /**
+   * 马上沟通按钮样式
+   * 渐变背景，圆角，白色文字，指定文字样式
+   */
+  background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
+  color: #fff;
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 100%;
+  letter-spacing: -0.68px;
+  text-align: center;
+  padding: 0 24rpx;
+  height: 52rpx;
+  border-radius: 8rpx;
   border: none;
-  font-weight: 500;
-  line-height: 1.2;
-  min-width: 80px;
+  font-weight: 400;
+  min-width: 120rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  cursor: pointer;
 }
 
 .empty-state {
@@ -1553,4 +1695,68 @@ onMounted(() => {
   background-color: #fff;
   z-index: 5;
 }
+
+/* 针对每个弹窗标题的绝对定位样式 */
+.popup-title-school {
+  position: absolute;
+  width: 32px;
+  height: 35px;
+  top: 160px;
+  left: 21px;
+}
+.popup-title-professional {
+  position: absolute;
+  width: 47px;
+  height: 35px;
+  top: 160px;
+  left: 110px;
+}
+.popup-title-nonpro {
+  position: absolute;
+  width: 63px;
+  height: 35px;
+  top: 160px;
+  left: 212px;
+}
+.popup-title-sort {
+  position: absolute;
+  width: 63px;
+  height: 35px;
+  top: 160px;
+  left: 332px;
+}
+
+.teacher-major-score {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.teacher-major, .teacher-score {
+  /**
+   * 专业和评分字体样式
+   * @font PingFang SC, 400, 12px, 100%, -0.55px
+   */
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: -0.55px;
+  color: #666666;
+}
+
+.certify-icon {
+  /**
+   * 认证状态图标样式
+   * @size 16x16px
+   * @align 与昵称垂直居中
+   */
+  width: 118rpx;
+  height: 50rpx;
+  margin-left: 6rpx;
+  vertical-align: middle;
+  display: inline-block;
+}
+
 </style>

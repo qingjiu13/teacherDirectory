@@ -60,7 +60,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $props.messages.length === 0
   }, $props.messages.length === 0 ? {
-    b: common_assets._imports_0$3
+    b: common_assets._imports_0$6
   } : {
     c: common_vendor.f($props.messages, (msg, index, i0) => {
       return {

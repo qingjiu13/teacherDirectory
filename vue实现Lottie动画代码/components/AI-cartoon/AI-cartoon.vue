@@ -33,7 +33,7 @@ export default {
     // 内联配置，不依赖外部文件
     const config = {
       // 图标图片路径
-      iconPath: '/static/image/tab-bar/default_avatar.png',
+      iconPath: '/static/image/defaultAvatar/teacher-man.png',
       // 初始位置
       initialLeft: 20,
       initialTop: 100,

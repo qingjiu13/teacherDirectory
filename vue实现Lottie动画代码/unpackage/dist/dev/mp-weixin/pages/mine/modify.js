@@ -176,7 +176,7 @@ const _sfc_main = common_vendor.defineComponent({
 });
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: $data.userInfo.avatar || "/static/image/tab-bar/default_avatar.png",
+    a: $data.userInfo.avatar || "/static/image/defaultAvatar/teacher-man.png",
     b: common_vendor.o((...args) => $options.chooseAvatar && $options.chooseAvatar(...args)),
     c: $data.userInfo.nickname,
     d: common_vendor.o(($event) => $data.userInfo.nickname = $event.detail.value),

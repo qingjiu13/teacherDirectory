@@ -1,7 +1,12 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const common_assets = require("../../common/assets.js");
 const router_Router = require("../../router/Router.js");
 const components_combobox_graduate_school_major = require("../../components/combobox/graduate_school_major.js");
+if (!Math) {
+  common_vendor.unref(Header)();
+}
+const Header = () => "../../components/navigationTitleBar/header.js";
 const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
   __name: "match",
   setup(__props) {
@@ -539,6 +544,9 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
       }
       updateFilteredMajorList();
     };
+    const handleBack = () => {
+      router_Router.Navigator.toIndex();
+    };
     common_vendor.onMounted(() => {
       initGraduateData().then(() => {
         var _a;
@@ -554,11 +562,17 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
     });
     return (_ctx = null, _cache = null) => {
       const __returned__ = common_vendor.e(new UTSJSONObject({
-        a: searchText.value,
-        b: common_vendor.o(($event = null) => {
+        a: common_assets._imports_0$1,
+        b: common_assets._imports_1$1,
+        c: common_vendor.o(handleBack),
+        d: common_vendor.p(new UTSJSONObject({
+          title: "精准匹配"
+        })),
+        e: searchText.value,
+        f: common_vendor.o(($event = null) => {
           return searchText.value = $event.detail.value;
         }),
-        c: common_vendor.f(options, (item = null, k0 = null, i0 = null) => {
+        g: common_vendor.f(options, (item = null, k0 = null, i0 = null) => {
           return common_vendor.e(new UTSJSONObject({
             a: common_vendor.t(item.label),
             b: filterSummary.value[item.key]
@@ -573,21 +587,21 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, item.key)
           }));
         }),
-        d: showPopup.value
+        h: showPopup.value
       }), showPopup.value ? common_vendor.e(new UTSJSONObject({
-        e: currentOption.value === "school"
+        i: currentOption.value === "school"
       }), currentOption.value === "school" ? common_vendor.e(new UTSJSONObject({
-        f: common_vendor.o([($event = null) => {
+        j: common_vendor.o([($event = null) => {
           return schoolInput.value = $event.detail.value;
         }, onSchoolInput]),
-        g: common_vendor.o(() => {
+        k: common_vendor.o(() => {
         }),
-        h: schoolInput.value,
-        i: schoolInput.value
+        l: schoolInput.value,
+        m: schoolInput.value
       }), schoolInput.value ? new UTSJSONObject({
-        j: common_vendor.o(resetSchoolFilter)
+        n: common_vendor.o(resetSchoolFilter)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        k: common_vendor.f(filteredSchoolList.value, (school = null, idx = null, i0 = null) => {
+        o: common_vendor.f(filteredSchoolList.value, (school = null, idx = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(school),
             b: school,
@@ -597,25 +611,25 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, school)
           });
         }),
-        l: common_vendor.o(confirmSchoolFilter),
-        m: common_vendor.o(() => {
+        p: common_vendor.o(confirmSchoolFilter),
+        q: common_vendor.o(() => {
         })
       })) : new UTSJSONObject({}), new UTSJSONObject({
-        n: currentOption.value === "professional"
+        r: currentOption.value === "professional"
       }), currentOption.value === "professional" ? common_vendor.e(new UTSJSONObject({
-        o: formData.targetSchool ? "请输入专业名称" : "请先选择学校",
-        p: !formData.targetSchool,
-        q: common_vendor.o([($event = null) => {
+        s: formData.targetSchool ? "请输入专业名称" : "请先选择学校",
+        t: !formData.targetSchool,
+        v: common_vendor.o([($event = null) => {
           return majorInput.value = $event.detail.value;
         }, onMajorInput]),
-        r: common_vendor.o(() => {
+        w: common_vendor.o(() => {
         }),
-        s: majorInput.value,
-        t: majorInput.value
+        x: majorInput.value,
+        y: majorInput.value
       }), majorInput.value ? new UTSJSONObject({
-        v: common_vendor.o(resetProfessionalFilter)
+        z: common_vendor.o(resetProfessionalFilter)
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        w: common_vendor.f(filteredMajorList.value, (major = null, idx = null, i0 = null) => {
+        A: common_vendor.f(filteredMajorList.value, (major = null, idx = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(major),
             b: major,
@@ -625,13 +639,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, major)
           });
         }),
-        x: common_vendor.o(confirmProfessionalFilter),
-        y: common_vendor.o(() => {
+        B: common_vendor.o(confirmProfessionalFilter),
+        C: common_vendor.o(() => {
         })
       })) : new UTSJSONObject({}), new UTSJSONObject({
-        z: currentOption.value === "nonProfessional"
+        D: currentOption.value === "nonProfessional"
       }), currentOption.value === "nonProfessional" ? new UTSJSONObject({
-        A: common_vendor.f(nonProTabs, (tab = null, k0 = null, i0 = null) => {
+        E: common_vendor.f(nonProTabs, (tab = null, k0 = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(tab.label),
             b: tab.key,
@@ -641,8 +655,8 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, tab.key)
           });
         }),
-        B: common_vendor.t(tabLabelMap[activeNonProTab.value]),
-        C: common_vendor.f(getChoiceList(activeNonProTab.value), (option = null, index = null, i0 = null) => {
+        F: common_vendor.t(tabLabelMap[activeNonProTab.value]),
+        G: common_vendor.f(getChoiceList(activeNonProTab.value), (option = null, index = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(option),
             b: index,
@@ -652,13 +666,13 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, index)
           });
         }),
-        D: common_vendor.o(confirmNonProfessionalFilter),
-        E: common_vendor.o(() => {
+        H: common_vendor.o(confirmNonProfessionalFilter),
+        I: common_vendor.o(() => {
         })
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        F: currentOption.value === "sort"
+        J: currentOption.value === "sort"
       }), currentOption.value === "sort" ? new UTSJSONObject({
-        G: common_vendor.f(sortOptions.value, (option = null, index = null, i0 = null) => {
+        K: common_vendor.f(sortOptions.value, (option = null, index = null, i0 = null) => {
           return new UTSJSONObject({
             a: common_vendor.t(option),
             b: index,
@@ -668,39 +682,38 @@ const _sfc_main = /* @__PURE__ */ common_vendor.defineComponent({
             }, index)
           });
         }),
-        H: common_vendor.o(confirmSortFilter),
-        I: common_vendor.o(() => {
+        L: common_vendor.o(confirmSortFilter),
+        M: common_vendor.o(() => {
         })
       }) : new UTSJSONObject({}), new UTSJSONObject({
-        J: common_vendor.o(onPopupClose)
+        N: common_vendor.o(onPopupClose)
       })) : new UTSJSONObject({}), new UTSJSONObject({
-        K: common_vendor.f(matchTeachers.value, (teacher = null, index = null, i0 = null) => {
+        O: common_vendor.f(matchTeachers.value, (teacher = null, index = null, i0 = null) => {
           return common_vendor.e(new UTSJSONObject({
-            a: teacher.avatar || "/static/image/tab-bar/default_avatar.png",
+            a: teacher.avatar || "/static/image/defaultAvatar/teacher-man.png",
             b: common_vendor.o(($event = null) => {
               return viewTeacherDetail(teacher.id);
             }, teacher.id || index),
             c: common_vendor.t(teacher.name),
-            d: common_vendor.t(teacher.school),
-            e: common_vendor.t(teacher.major),
-            f: common_vendor.t(teacher.teacherScore),
-            g: teacher.certificate
-          }), teacher.certificate ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-            h: common_vendor.o(($event = null) => {
+            d: teacher.certificate ? "/static/image/certify/certified.png" : "/static/image/certify/uncertified.png",
+            e: teacher.certificate ? "已认证" : "未认证",
+            f: common_vendor.t(teacher.school),
+            g: common_vendor.t(teacher.major),
+            h: common_vendor.t(teacher.teacherScore),
+            i: common_vendor.o(($event = null) => {
               return handleCommunicate(teacher.id);
             }, teacher.id || index),
-            i: oneToOneMatchPrice(matchTeachers.value)[teacher.id]
+            j: oneToOneMatchPrice(matchTeachers.value)[teacher.id]
           }), oneToOneMatchPrice(matchTeachers.value)[teacher.id] ? new UTSJSONObject({
-            j: common_vendor.t(oneToOneMatchPrice(matchTeachers.value)[teacher.id].hourlyPrice)
+            k: common_vendor.t(oneToOneMatchPrice(matchTeachers.value)[teacher.id].hourlyPrice)
           }) : new UTSJSONObject({}), new UTSJSONObject({
-            k: teacher.id || index
+            l: teacher.id || index
           }));
         }),
-        L: matchTeachers.value.length === 0 && !isLoading.value
+        P: matchTeachers.value.length === 0 && !isLoading.value
       }), matchTeachers.value.length === 0 && !isLoading.value ? new UTSJSONObject({}) : new UTSJSONObject({}), new UTSJSONObject({
-        M: common_vendor.sei("step2", "scroll-view"),
-        N: common_vendor.o(loadMoreTeachers),
-        O: common_vendor.sei(common_vendor.gei(_ctx, ""), "view")
+        Q: common_vendor.sei("step2", "scroll-view"),
+        R: common_vendor.o(loadMoreTeachers)
       }));
       return __returned__;
     };

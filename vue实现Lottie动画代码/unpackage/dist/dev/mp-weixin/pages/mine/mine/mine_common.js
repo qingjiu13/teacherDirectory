@@ -274,7 +274,7 @@ if (!Array) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: $data.userData.avatar || _ctx.storeAvatar || "/static/image/tab-bar/default_avatar.png",
+    a: $data.userData.avatar || _ctx.storeAvatar || "/static/image/defaultAvatar/teacher-man.png",
     b: common_vendor.o((...args) => $options.handleClick && $options.handleClick(...args)),
     c: common_vendor.t($data.userData.name || _ctx.storeName || "登录"),
     d: common_vendor.o((...args) => $options.handleClick && $options.handleClick(...args)),

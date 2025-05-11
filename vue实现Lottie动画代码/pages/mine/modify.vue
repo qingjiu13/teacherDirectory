@@ -10,7 +10,7 @@
 			<view class="form-item">
 				<text class="form-label">头像</text>
 				<view class="avatar-wrapper" @click="chooseAvatar">
-					<image :src="userInfo.avatar || '/static/image/tab-bar/default_avatar.png'" class="avatar" mode="aspectFill"></image>
+					<image :src="userInfo.avatar || '/static/image/defaultAvatar/teacher-man.png'" class="avatar" mode="aspectFill"></image>
 					<view class="avatar-edit-icon">
 						<text class="icon">✏️</text>
 					</view>

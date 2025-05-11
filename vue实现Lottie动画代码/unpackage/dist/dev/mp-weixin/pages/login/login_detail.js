@@ -21,7 +21,7 @@ const _sfc_main = common_vendor.defineComponent({
     return {
       formData: new UTSJSONObject({
         nickname: "",
-        avatar: "/static/image/tab-bar/default_avatar.png",
+        avatar: "/static/image/defaultAvatar/teacher-man.png",
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,

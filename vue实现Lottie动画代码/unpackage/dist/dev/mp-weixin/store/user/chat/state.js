@@ -27,7 +27,7 @@ const state = {
         targetId: "user123",
         title: "王老师",
         // 会话标题(可能是备注/群名称)
-        avatar: "/static/image/tab-bar/default_avatar.png",
+        avatar: "/static/image/defaultAvatar/teacher-man.png",
         // 头像
         lastMessage: {},
         // 最后一条消息
@@ -84,7 +84,7 @@ const state = {
     "user123": {
       userId: "user123",
       nickname: "王老师",
-      avatar: "/static/image/tab-bar/default_avatar.png",
+      avatar: "/static/image/defaultAvatar/teacher-man.png",
       remark: "王老师"
       // 备注名
     }
