@@ -20,7 +20,7 @@
 				<view class="nav-bar">
 					<view class="nav-left">
 						<view class="history-btn" @click.stop="toggleSidebar">
-							<image src="./AIchat/chatHistory.png" class="history-icon" />
+							<image src="../static/AIchat/chatHistory.png" class="history-icon" />
 						</view>
 					</view>
 					<view class="nav-title">
@@ -32,7 +32,7 @@
 					</view>
 					<view class="nav-right">
 						<view class="new-chat-btn" @click.stop="startNewChat">
-							<image src="./AIchat/newChat.png" class="new-chat-icon" />
+							<image src="../static/AIchat/newChat.png" class="new-chat-icon" />
 						</view>
 					</view>
 				</view>
@@ -120,8 +120,8 @@
 	import InputSection from './ai-chat/InputSection'
 	import ChoiceSelected from '@/components/combobox/combobox'
 	import store from '@/store'
-	import schoolData from '@/pages_AI_Login_Match/data/2886所大学.json';
-	import majorData from '@/pages_AI_Login_Match/data/本科专业.json';
+	import schoolData from '@/pages_AI_Login_Match/static/data/2886所大学.json';
+	import majorData from '@/pages_AI_Login_Match/static/data/本科专业.json';
 	import { mapState } from 'vuex';
 	import createDataModule from '@/components/combobox/undergraduate.js';
 	import Header from '@/components/navigationTitleBar/header.vue';

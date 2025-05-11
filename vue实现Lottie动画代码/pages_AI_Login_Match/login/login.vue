@@ -5,7 +5,7 @@
         @description 登录页背景图1，分包页面通过相对路径./images/background1.png按需加载
       -->
       <image
-        src="./login/background1.png"
+        src="../static/login/background1.png"
         mode="aspectFill" alt="背景图"
       />
     </view>
@@ -15,7 +15,7 @@
         @description 登录页背景图2，分包页面通过相对路径./images/background.png按需加载
       -->
       <image
-        src="./login/background.png"
+        src="../static/login/background.png"
         mode="aspectFill" alt="背景图"
       />
     </view>
@@ -41,7 +41,7 @@
     -->
     <image
       class="student-image"
-      src="./login/student.png"
+      src="../static/login/student.png"
       mode="aspectFit"
     />
     <view class="card student-card" @click="selectIdentity('student')">
@@ -63,7 +63,7 @@
     -->
     <image
       class="teacher-image"
-      src="./login/teacher.png"
+      src="../static/login/teacher.png"
       mode="aspectFit"
     />
     <view class="card teacher-card" @click="selectIdentity('teacher')">

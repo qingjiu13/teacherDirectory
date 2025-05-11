@@ -10,7 +10,7 @@
 			
 			<view v-if="messages.length === 0" class="empty-message">
 				<view class="empty-message-content">
-					<image src="../AIchat/welcomeImage.png" class="empty-message-image" mode="widthFix" />
+					<image src="../../static/AIchat/welcomeImage.png" class="empty-message-image" mode="widthFix" />
 					<text class="empty-message-title">欢迎使用研师录AI助手</text>
 					<text class="empty-message-desc">请选择您的所在学校和专业，然后开始提问~</text>
 				</view>

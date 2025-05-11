@@ -164,8 +164,8 @@ import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { Navigator } from '../../router/Router';
 import GraduateStore from '../../components/combobox/graduate_school_major.js';
 import createDataModule from '../../components/combobox/undergraduate.js';
-import schoolData from '../../pages_AI_Login_Match/data/2886所大学.json';
-import majorData from '../../pages_AI_Login_Match/data/本科专业.json';
+import schoolData from '@/pages_AI_Login_Match/static/data/2886所大学.json';
+import majorData from '@/pages_AI_Login_Match/static/data/本科专业.json';
 
 export default {
   onPageScroll() {

@@ -2,7 +2,7 @@
   <view class="login-container">
     <!-- 顶部背景图 -->
     <view class="header-bg">
-      <image class="bg-image" src="./login/login_qianduan_test.png" mode="widthFix"></image>
+      <image class="bg-image" src="../static/login/login_qianduan_test.png" mode="widthFix"></image>
     </view>
     
     <!-- 内容区域 -->

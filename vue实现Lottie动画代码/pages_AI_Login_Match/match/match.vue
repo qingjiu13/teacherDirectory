@@ -2,14 +2,14 @@
   <view class="background-image">
     <image
       class="background-image-img"
-      src="./match/background1.png"
+      src="../static/match/background1.png"
       mode="aspectFill" alt="背景图"
     />
   </view>
   <view class="background-image">
     <image
       class="background-image-img"
-      src="./match/background.png"
+      src="../static/match/background.png"
       mode="aspectFill" alt="背景图"
     />
   </view>
