@@ -2,7 +2,9 @@
   <view class="container">
     <!-- 添加顶部导航栏组件 -->
     <header :title="userRole === 'student' ? '我的课程' : '教师课程'" @back="goBack"></header>
-    
+    <view>
+		
+	</view>
     <!-- 学生界面 -->
     <block v-if="userRole === 'student'">
       <top-navbar @change="onTabChange" :navHeight="60" :userRole="userRole">
