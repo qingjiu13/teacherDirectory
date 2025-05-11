@@ -1,5 +1,8 @@
 <template>
   <view class="order-container">
+    <!-- 添加顶部导航栏组件 -->
+    <header title="我的订单" @back="goBack"></header>
+    
     <!-- 水平Tab栏 -->
     <scroll-view 
       class="tab-bar" 
@@ -73,8 +76,12 @@
 <script>
 // 导入路由管理器
 import { Navigator, MineRoutes } from '@/router/Router.js';
+import Header from '@/components/navigationTitleBar/header.vue'
 
 export default {
+  components: {
+    Header
+  },
   data() {
     return {
       tabs: [
@@ -94,6 +101,11 @@ export default {
   },
   
   methods: {
+    // 处理返回按钮点击
+    goBack() {
+      uni.navigateBack();
+    },
+    
     // 切换Tab
     switchTab(index) {
       this.currentTab = index;
