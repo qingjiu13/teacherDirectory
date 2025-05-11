@@ -1,5 +1,8 @@
 <template>
   <view class="service-container">
+    <!-- 添加顶部导航栏组件 -->
+    <header title="我的服务" @back="goBack"></header>
+    
     <!-- 顶部导航 -->
     <view class="header">
       <!-- <view class="back-btn" @click="goBack">
@@ -27,8 +30,12 @@
             <view class="service-price">{{ service.price }}</view>
           </view>
           <view class="action-buttons" @click.stop>
-            <view class="edit-btn" @click="editService(index)">修改</view>
-            <view class="delete-btn" @click="deleteService(index)">删除</view>
+            <view class="edit-btn" @click="editService(index)">
+              <image src="/static/image/style for pages/edit botton.png" mode="aspectFit" class="action-icon"></image>
+            </view>
+            <view class="delete-btn" @click="deleteService(index)">
+              <image src="/static/image/style for pages/delete botton.png" mode="aspectFit" class="action-icon"></image>
+            </view>
           </view>
         </view>
       </view>
@@ -58,8 +65,11 @@
 </template>
 
 <script>
+import Header from '@/components/navigationTitleBar/header.vue'
+
 export default {
   components: {
+    Header
   },
   data() {
     return {
@@ -215,16 +225,7 @@ export default {
       this.services[index].checked = !this.services[index].checked
     },
     editService(index) {
-      // 显示加载动画
-      this.$refs.loadingRef.show()
-      
-      // 模拟接口请求
-      setTimeout(() => {
-        // 隐藏加载动画
-        this.$refs.loadingRef.hide()
-        this.selectedService = this.services[index]
-        
-        // 将服务数据传递到编辑页面
+      try {
         const currentService = this.services[index]
         
         // 将当前服务数据存储到全局状态，方便编辑页面获取
@@ -233,45 +234,108 @@ export default {
         
         // 跳转到新建/编辑服务页面
         uni.navigateTo({
-          url: '/pages/mine/service_newbuilt?mode=edit&id=' + currentService.id
+          url: '/pages/mine/service_newbuilt?mode=edit&id=' + currentService.id,
+          success: () => {
+            console.log('跳转到编辑页面成功')
+          },
+          fail: (err) => {
+            console.error('跳转失败：', err)
+            uni.showToast({
+              title: '跳转失败，请重试',
+              icon: 'none'
+            })
+          }
         })
-      }, 600)
+      } catch (error) {
+        console.error('编辑服务出错：', error)
+        uni.showToast({
+          title: '操作失败，请重试',
+          icon: 'none'
+        })
+      }
     },
     deleteService(index) {
-      // 显示加载动画
-      this.$refs.loadingRef.show()
+      // 获取要删除的服务ID，用于后续比较
+      const serviceToDeleteId = this.services[index].id;
       
-      // 模拟接口请求
-      setTimeout(() => {
-        // 隐藏加载动画
-        this.$refs.loadingRef.hide()
-        
-        // 删除当前服务
-        this.services.splice(index, 1)
-        
-        // 更新本地存储
-        this.saveServices()
-        
-        uni.showToast({
-          title: '服务已删除',
-          icon: 'success'
-        })
-      }, 800)
+      // 显示确认对话框
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除此服务吗？此操作无法撤销。',
+        confirmText: '确认删除',
+        confirmColor: '#ff4d4f',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            try {
+              // 用户确认删除
+              
+              // 如果删除的是当前选中的服务，先隐藏详情
+              if (this.selectedService && this.selectedService.id === serviceToDeleteId) {
+                // 隐藏详情面板
+                this.isDetailExpanded = false;
+                this.overlayVisible = false;
+                this.selectedService = null;
+              }
+              
+              // 删除当前服务
+              this.services.splice(index, 1);
+              
+              // 如果服务列表为空，需要特殊处理
+              if (this.services.length === 0) {
+                this.selectedService = null;
+              } 
+              // 否则选择第一个服务作为当前选中服务
+              else if (!this.selectedService) {
+                this.selectedService = this.services[0];
+              }
+              
+              // 更新本地存储
+              this.saveServices();
+              
+              // 强制更新视图
+              this.$forceUpdate();
+              
+              // 显示成功提示
+              uni.showToast({
+                title: '服务已删除',
+                icon: 'success'
+              });
+            } catch (error) {
+              console.error('删除服务出错：', error);
+              uni.showToast({
+                title: '删除失败，请重试',
+                icon: 'none'
+              });
+            }
+          }
+          // 用户取消删除，不做任何操作
+        }
+      });
     },
     handleAddService() {
-      // 显示加载动画
-      this.$refs.loadingRef.show()
+      // 显示加载提示
+      uni.showLoading({
+        title: '加载中...'
+      })
       
-      // 模拟接口请求
+      // 延迟执行，模拟网络请求
       setTimeout(() => {
-        // 隐藏加载动画
-        this.$refs.loadingRef.hide()
+        // 隐藏加载提示
+        uni.hideLoading()
         
         // 跳转到新建服务页面
         uni.navigateTo({
-          url: '/pages/mine/service_newbuilt'
+          url: '/pages/mine/service_newbuilt',
+          fail: (err) => {
+            console.error('跳转失败：', err)
+            uni.showToast({
+              title: '跳转失败，请重试',
+              icon: 'none'
+            })
+          }
         })
-      }, 800)
+      }, 300)
     },
     // 处理新添加的服务
     handleServiceAdded(newService) {
@@ -340,25 +404,29 @@ export default {
       }
     },
     showServiceDetail(index) {
-      // 如果点击的是按钮区域，不执行展示详情
-      this.selectedService = this.services[index]
-      
-      // 先显示遮罩层
-      this.overlayVisible = true
-      
-      // 延迟一帧后显示详情卡片，确保动画效果
-      setTimeout(() => {
-        this.isDetailExpanded = true
-      }, 20)
+      // 确保索引在有效范围内
+      if (index >= 0 && index < this.services.length) {
+        // 设置选中的服务
+        this.selectedService = this.services[index];
+        
+        // 先显示遮罩层
+        this.overlayVisible = true;
+        
+        // 延迟一帧后显示详情卡片，确保动画效果
+        setTimeout(() => {
+          this.isDetailExpanded = true;
+        }, 20);
+      }
     },
     hideServiceDetail() {
       // 先隐藏详情卡片
-      this.isDetailExpanded = false
+      this.isDetailExpanded = false;
       
       // 动画结束后隐藏遮罩层
       setTimeout(() => {
-        this.overlayVisible = false
-      }, 300)
+        this.overlayVisible = false;
+        // 不要马上清除选中的服务，这样可以保留上次查看的服务信息
+      }, 300);
     }
   }
 }
@@ -415,8 +483,9 @@ export default {
 }
 /* 服务卡片 */
 .service-card {
-  background-color: #fff;
+  background-color: linear-gradient(to bottom, #C2DDFA, #2288F9);
   border-radius: 20rpx;
+  height: 260rpx;
   padding: 25rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
@@ -458,7 +527,7 @@ left:300rpx;
   font-size: 45rpx;
   font-weight: 600;
   margin-bottom: 15rpx;
-  color: #333;
+  color: #000000;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -468,7 +537,7 @@ left:300rpx;
   position:relative;
   left:300rpx;
   font-size: 40rpx;
-  color: #0f0000;
+  color: #464EF8;
   font-weight: 500;
 }
 /* 操作按键容器 */
@@ -484,31 +553,39 @@ left:300rpx;
 .edit-btn {
   position: relative;
   left: 380rpx;
-  padding: 8rpx 20rpx;
-  background-color: #c9ccd4;
-  border-radius: 25rpx;
-  font-size: 40rpx;
-  color: #070101a9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60rpx;
+  height: 60rpx;
   transition: all 0.3s ease;
+  background-color: transparent;
 }
 /* 删除按钮 */
 .delete-btn {
   position: relative;
-  left:380rpx;
-  padding: 8rpx 20rpx;
-  background-color: #c9ccd4;
-  border-radius: 25rpx;
-  font-size: 40rpx;
-  color: #090202;
+  left: 380rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60rpx;
+  height: 60rpx;
   transition: all 0.3s ease;
+  background-color: transparent;
+}
+
+/* 操作图标 */
+.action-icon {
+  width: 50rpx;
+  height: 50rpx;
 }
 
 .edit-btn:active {
-  background-color: #e0e7fc;
+  transform: scale(0.9);
 }
 
 .delete-btn:active {
-  background-color: #ffd6d6;
+  transform: scale(0.9);
 }
 /* 服务详情卡片 */
 .service-detail-card {
@@ -627,7 +704,7 @@ left:300rpx;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   z-index: 999;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.3s ease;
   backdrop-filter: blur(3px);
 }

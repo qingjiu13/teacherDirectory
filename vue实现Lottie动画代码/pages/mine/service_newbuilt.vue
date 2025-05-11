@@ -1,5 +1,8 @@
 <template>
   <view>
+    <!-- 添加顶部导航栏组件 -->
+    <header :title="mode === 'add' ? '新增服务' : '编辑服务'" @back="goBack"></header>
+    
     <!-- 表单区域 -->
     <view class="form-container">
       <!-- 服务类型和节数在一行 -->
@@ -201,10 +204,12 @@
 <script>
 
 import ChoiceSelected from '@/components/combobox/combobox.vue'
+import Header from '@/components/navigationTitleBar/header.vue'
 
 export default {
   components: {
-    ChoiceSelected
+    ChoiceSelected,
+    Header
   },
   data() {
     return {
@@ -256,11 +261,37 @@ export default {
       
       // 从全局状态获取服务数据
       if (getApp().globalData && getApp().globalData.editingService) {
-        const serviceData = getApp().globalData.editingService
-        this.originalService = JSON.parse(JSON.stringify(serviceData)) // 保存原始数据的副本
-        
-        // 填充表单数据
-        this.fillFormWithServiceData(serviceData)
+        try {
+          const serviceData = getApp().globalData.editingService
+          this.originalService = JSON.parse(JSON.stringify(serviceData)) // 保存原始数据的副本
+          
+          // 填充表单数据
+          this.fillFormWithServiceData(serviceData)
+          
+          // 清除全局状态中的编辑数据，避免影响下次编辑
+          setTimeout(() => {
+            getApp().globalData.editingService = null
+          }, 1000)
+        } catch (error) {
+          console.error('处理编辑数据出错：', error)
+          uni.showToast({
+            title: '加载数据失败，请重试',
+            icon: 'none'
+          })
+          // 返回上一页
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
+        }
+      } else {
+        uni.showToast({
+          title: '未找到要编辑的数据',
+          icon: 'none'
+        })
+        // 返回上一页
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 1500)
       }
     }
     
@@ -417,16 +448,12 @@ export default {
       })
     },
     submitForm() {
-      // 显示加载动画
-      this.$refs.loadingRef.show()
-      
       // 表单验证
       if (this.coverUrls.length === 0) {
         uni.showToast({
           title: '请上传封面图片',
           icon: 'none'
         })
-        this.$refs.loadingRef.hide()
         return
       }
       
@@ -435,7 +462,6 @@ export default {
           title: '请选择服务类型',
           icon: 'none'
         })
-        this.$refs.loadingRef.hide()
         return
       }
       
@@ -446,7 +472,6 @@ export default {
             title: '请选择课程节数',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
         
@@ -455,7 +480,6 @@ export default {
             title: '请选择课程时长',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
         
@@ -464,7 +488,6 @@ export default {
             title: '请填写服务名称',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
       } 
@@ -477,7 +500,6 @@ export default {
             title: '请选择课程时长',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
         
@@ -486,7 +508,6 @@ export default {
             title: '请填写服务名称',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
         
@@ -495,7 +516,6 @@ export default {
             title: '请选择课程人数',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
       } 
@@ -506,7 +526,6 @@ export default {
             title: '请填写课程数量',
             icon: 'none'
           })
-          this.$refs.loadingRef.hide()
           return
         }
       }
@@ -516,9 +535,13 @@ export default {
           title: '请填写服务价格',
           icon: 'none'
         })
-        this.$refs.loadingRef.hide()
         return
       }
+      
+      // 显示加载中提示
+      uni.showLoading({
+        title: '提交中...'
+      })
       
       // 构建服务对象
       let serviceData = {
@@ -583,7 +606,7 @@ export default {
         getApp().globalData.newServiceAdded = true
         getApp().globalData.newService = newService
         
-        this.$refs.loadingRef.hide()
+        uni.hideLoading()
         
         uni.showToast({
           title: '提交成功',
@@ -602,7 +625,7 @@ export default {
         }, 1500)
       } catch (e) {
         console.error('保存服务失败', e)
-        this.$refs.loadingRef.hide()
+        uni.hideLoading()
         uni.showToast({
           title: '保存失败，请重试',
           icon: 'none'
@@ -645,7 +668,7 @@ export default {
         getApp().globalData.serviceEdited = true
         getApp().globalData.editedService = updatedService
         
-        this.$refs.loadingRef.hide()
+        uni.hideLoading()
         
         uni.showToast({
           title: '更新成功',
@@ -664,7 +687,7 @@ export default {
         }, 1500)
       } catch (e) {
         console.error('更新服务失败', e)
-        this.$refs.loadingRef.hide()
+        uni.hideLoading()
         uni.showToast({
           title: '更新失败，请重试',
           icon: 'none'
