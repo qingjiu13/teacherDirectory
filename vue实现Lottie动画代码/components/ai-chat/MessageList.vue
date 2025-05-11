@@ -109,11 +109,15 @@
 		overflow: hidden;
 		position: relative;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		display: flex;
+		flex-direction: column;
 	}
 	
 	.message-scroll {
-		height: 100%;
+		flex: 1;
 		padding: 30rpx;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 	
 	.empty-message {
@@ -121,6 +125,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		flex: 1;
 	}
 	
 	/* 新增空消息内容样式 */

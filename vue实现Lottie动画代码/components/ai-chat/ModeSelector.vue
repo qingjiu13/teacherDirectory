@@ -131,7 +131,7 @@
 	}
 	.nav-tab-text {
 		font-size: 32rpx;
-		color: #333;
+		color: rgba(0, 0, 0, 0.5);
 		font-weight: 500;
 		line-height: 90rpx;
 	}
@@ -143,8 +143,8 @@
 		bottom: -2rpx;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 60rpx;
-		height: 8rpx;
+		width: 110rpx;
+		height: 12rpx;
 		background: #5F26F7;
 		border-radius: 4rpx;
 	}
@@ -155,17 +155,18 @@
 		margin: 0 5rpx;
 	}
 
-	.function-item.active {
-		background-color: #1E90FF;
-	}
+
 
 	.function-item-text {
+		font-family: 'PingFang SC';
+		font-style: normal;
 		font-size: 28rpx;
-		color: #333;
+		color: rgba(0, 0, 0, 0.5);
+		letter-spacing: -0.552147px;
 	}
 
 	.nav-mode .function-item-text {
-		font-size: 24rpx;
+		font-size: 28rpx;
 	}
 
 	.function-item.active .function-item-text {

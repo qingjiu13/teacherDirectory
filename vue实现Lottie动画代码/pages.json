@@ -21,7 +21,7 @@
 		{
 			"path": "pages/AI/AI",
 			"style": {
-				"navigationBarTitleText": "AI助手"
+				"navigationStyle": "custom"
 			}
 		},
 		{
