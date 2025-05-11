@@ -54,7 +54,7 @@
                     <text class="avatar-text">人</text>
                   </view>
                 </view>
-                <view class="course-info">
+                <view class="course-info"> 
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>

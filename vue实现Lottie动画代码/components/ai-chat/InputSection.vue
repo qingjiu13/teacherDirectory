@@ -53,12 +53,12 @@
 	/* 输入区域 */
 	.input-section {
 		width: 100%;
-		height: 100rpx;
+		height: 129rpx;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		padding: 0 10rpx;
 		box-sizing: border-box;
+		background-color:rgba(255, 255, 255, 1);
 	}
 	
 	.message-input {
@@ -67,7 +67,6 @@
 		background-color: #ffffff;
 		border: 2rpx solid #ddd;
 		border-radius: 8px;
-		padding: 0 30rpx;
 		margin-right: 20rpx;
 		font-size: 28rpx;
 		box-sizing: border-box;

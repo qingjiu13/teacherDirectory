@@ -1,4 +1,5 @@
 <template>
+	<Header :title="'AI助手'" @back="handleBack" />
 	<view class="page-container" @click="onPageClick">
 		<!-- 导航栏和侧边栏 -->
 		<view class="nav-sidebar-container">
@@ -124,6 +125,8 @@
 	import majorData from '../../static/data/本科专业.json';
 	import { mapState } from 'vuex';
 	import createDataModule from '../../components/combobox/undergraduate.js';
+	import Header from '../../components/navigationTitleBar/header.vue';
+	import { Navigator } from '/router/Router.js'
 
 	
 	
@@ -158,7 +161,8 @@
 			MessageList,
 			ModeSelector,
 			InputSection,
-			ChoiceSelected
+			ChoiceSelected,
+			Header
 		},
 		computed: {
 			// 从Vuex获取状态
@@ -892,6 +896,9 @@
 						}
 					}
 				});
+			},
+			handleBack(){
+				Navigator.toIndex()
 			}
 		}
 	}
@@ -904,10 +911,10 @@
 		height: 100vh;
 		display: flex;
 		flex-direction: column;
-		padding: 0; /* 移除页面容器的内边距 */
+		padding: 0;
 		box-sizing: border-box;
 		background-color: #f5f5f5;
-		overflow: hidden; /* 防止内容溢出 */
+		overflow: hidden;
 	}
 	
 	/* 加载遮罩 */
@@ -936,25 +943,13 @@
 		color: #333;
 	}
 	
-	/* 侧边栏容器样式 */
 	.nav-sidebar-container {
 		position: relative;
 		width: 100%;
-		height: 100vh;
+		height: calc(100vh - var(--status-bar-height));
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-	}
-	
-	.sidebar-mask {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 998;
-		transition: opacity 0.3s ease;
 	}
 	
 	.main-wrapper {
@@ -963,7 +958,7 @@
 		flex-direction: column;
 		transition: transform 0.3s ease, opacity 0.3s ease;
 		background-color: #f5f5f5;
-		padding-bottom: 20rpx; /* 底部增加内边距 */
+		overflow: hidden;
 	}
 	
 	.main-wrapper.shifted {
@@ -975,9 +970,8 @@
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		padding: 0 20rpx; /* 仅添加左右内边距 */
-		height: calc(100vh - 90rpx); /* 减去导航栏高度 */
-		overflow-y: auto; /* 允许内容垂直滚动 */
+		padding: 0 20rpx;
+		overflow: hidden;
 	}
 	
 	/* 筛选区域样式 */
@@ -987,6 +981,7 @@
 		margin: 20rpx 0;
 		padding: 20rpx;
 		box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+		flex-shrink: 0; /* 防止压缩 */
 	}
 	
 	.choice-wrapper {
@@ -1046,9 +1041,10 @@
 		flex-direction: row;
 		align-items: center;
 		padding: 0 20rpx;
-		border-bottom: none; /* 移除底部边框 */
+		border-bottom: none;
 		position: relative;
-		z-index: 11; /* 提高z-index，确保显示在筛选区域上方 */
+		z-index: 11;
+		flex-shrink: 0; /* 防止压缩 */
 	}
 	
 	.nav-left {
@@ -1092,9 +1088,9 @@
 	}
 	
 	.nav-title text {
-		font-size: 36rpx;
+		font-size: 32rpx; /* 增大字体 */
 		color: #333;
-		font-weight: 500;
+		font-weight: 700; /* 加粗 */
 	}
 	
 	.nav-right {
@@ -1106,13 +1102,8 @@
 	
 	.new-chat-btn {
 		padding: 14rpx 28rpx;
-
-
-
 		transition: all 0.3s;
 	}
-	
-
 	
 	/* 新增新对话图片图标样式 */
 	.new-chat-icon {
