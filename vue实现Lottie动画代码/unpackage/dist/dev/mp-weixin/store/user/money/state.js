@@ -1,11 +1,2 @@
-"use strict";
-const state = {
-  balance: 0,
-  // 当前钱包余额
-  withdrawAmount: 0,
-  // 提现金额
-  withdrawMethod: "wechat"
-  // 提现方式，微信，支付宝，银行卡
-};
-exports.state = state;
+"use strict";const t={balance:0,withdrawAmount:0,withdrawMethod:"wechat"};exports.state=t;
 //# sourceMappingURL=../../../../.sourcemap/mp-weixin/store/user/money/state.js.map

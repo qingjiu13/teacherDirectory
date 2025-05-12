@@ -1,32 +1,123 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/match/match",
-    "pages/teacher/teacher",
-    "pages/AI/AI",
-    "pages/message/message",
     "pages/message/chat",
-    "pages/login/login",
-    "pages/login/login_detail",
-    "pages/login/wechat_login",
-    "pages/mine/mine/mine_common",
-    "pages/mine/modify",
-    "pages/mine/course/course",
-    "pages/mine/order",
-    "pages/mine/order/order_common",
-    "pages/mine/order/appraise/appraise",
-    "pages/mine/qualification",
-    "pages/mine/service",
-    "pages/mine/settings",
-    "pages/mine/wallet",
-    "pages/test/test",
-    "pages/mine/service_newbuilt"
+    "pages/mine/mine_common",
+    "pages/teacher/teacher",
+    "pages/message/message"
+  ],
+  "subPackages": [
+    {
+      "root": "pages_AI_Login_Match",
+      "pages": [
+        "AI/AI",
+        "match/match",
+        "login/wechat_login",
+        "login/login",
+        "login/login_detail"
+      ]
+    },
+    {
+      "root": "pagesMine",
+      "pages": [
+        "settings/settings",
+        "wallet/wallet",
+        "service/service",
+        "course/course",
+        "qualification/qualification",
+        "service/service_newbuilt",
+        "modify/modify",
+        "order/order_common",
+        "order/appraise",
+        "contactUs/contectUs"
+      ]
+    }
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "研师录",
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F8F8F8"
+  },
+  "preloadRule": {
+    "pages_AI_Login_Match/login/login": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pages_AI_Login_Match/login/wechat_login": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pages_AI_Login_Match/login/login_detail": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/settings/settings": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/wallet/wallet": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/service/service": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/course/course": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/order/order_common": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/qualification/qualification": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/service/service_newbuilt": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/contactUs/contectUs": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pages_AI_Login_Match/match/match": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pages_AI_Login_Match/AI/AI": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    }
   },
   "lazyCodeLoading": "requiredComponents",
   "permission": {

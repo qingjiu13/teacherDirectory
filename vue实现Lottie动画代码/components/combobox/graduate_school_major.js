@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js'
-import schoolData from '../../static/data/school_graduate_changed.json'
+import schoolData from '../../pages_AI_Login_Match/static/data/school_graduate_changed.json'
 
 export default {
   state: {

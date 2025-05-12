@@ -1,1 +1,1 @@
-{"version":3,"file":"getters.js","sources":["store/user/money/getters.js"],"sourcesContent":["/**\r\n * money模块的getters\r\n * @module store/user/money/getters\r\n */\r\n\r\nexport default {\r\n    // 这里放置getters方法\r\n}; "],"names":[],"mappings":";AAKA,MAAe,UAAA;AAAA;AAEf;;"}
+{"version":3,"file":"getters.js","sources":["store/user/money/getters.js"],"sourcesContent":["/**\r\n * money模块的getters\r\n * @module store/user/money/getters\r\n */\r\n\r\nexport default {\r\n    // 这里放置getters方法\r\n}; "],"names":["getters"],"mappings":"aAKA,MAAeA,EAAA,CAEf"}

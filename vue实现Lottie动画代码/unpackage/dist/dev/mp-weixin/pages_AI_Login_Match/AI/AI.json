@@ -1,0 +1,11 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "history-sidebar": "./ai-chat/HistorySidebar",
+    "mode-selector": "./ai-chat/ModeSelector",
+    "message-list": "./ai-chat/MessageList",
+    "input-section": "./ai-chat/InputSection",
+    "choice-selected": "../../components/combobox/combobox",
+    "header": "../../components/navigationTitleBar/header"
+  }
+}
