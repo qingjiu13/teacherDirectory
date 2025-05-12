@@ -1,8 +1,5 @@
 <template>
-  <view>
-    <!-- 添加顶部导航栏组件 -->
-    <header :title="mode === 'add' ? '新增服务' : '编辑服务'" @back="goBack"></header>
-    
+  <view class="page-container">
     <!-- 表单区域 -->
     <view class="form-container">
       <!-- 服务类型和节数在一行 -->
@@ -157,11 +154,11 @@
       
       <!-- 服务价格 -->
       <view class="form-item">
-        <view class="form-label">服务价格</view>
+        <view class="form-label">服务价格(每小时价格/h)</view>
         <input 
           class="form-input" 
           type="text" 
-          placeholder="按照元填写，如200元~" 
+          placeholder="按照元填写，如200元/h~" 
           v-model="price"
         />
       </view>
@@ -177,18 +174,21 @@
       <!-- 封面上传 -->
       <view class="form-item">
         <view class="form-label">封面上传</view>
-        <view class="cover-upload-container">
-          <view class="cover-upload-list">
-            <view v-for="(url, index) in coverUrls" :key="index" class="cover-item">
-              <image :src="url" class="cover-preview"></image>
-              <view class="cover-delete" @click.stop="deleteCover(index)">×</view>
+        <view class="cover-grid">
+          <!-- 已上传的图片 -->
+          <block v-for="(url, index) in coverUrls" :key="index">
+            <view class="cover-item">
+              <image :src="url" class="cover-image" mode="aspectFill"></image>
+              <view class="delete-icon" @click.stop="deleteCover(index)">×</view>
             </view>
-            <view class="cover-upload" @click="chooseCover" v-if="coverUrls.length < 9">
-              <text class="plus-icon">+</text>
-            </view>
+          </block>
+          
+          <!-- 上传按钮 -->
+          <view class="cover-item add-button" @click="chooseCover" v-if="coverUrls.length < 9">
+            <text class="add-icon">+</text>
           </view>
-          <text class="upload-tip">最多可上传9张图片</text>
         </view>
+        <text class="tip-text">最多可上传9张图片，建议比例1:1</text>
       </view>
     </view>
     
@@ -204,12 +204,10 @@
 <script>
 
 import ChoiceSelected from '@/components/combobox/combobox.vue'
-import Header from '@/components/navigationTitleBar/header.vue'
 
 export default {
   components: {
-    ChoiceSelected,
-    Header
+    ChoiceSelected
   },
   data() {
     return {
@@ -237,15 +235,13 @@ export default {
       // 一对一课程相关数据
       serviceName: '',
       selectedLessonsIndex: -1,
-      lessonOptions: ['1', '2', '3', '4', '5', '6', '7', '8','9','10'],
+      lessonOptions: ['1', '2', '3', '4', '5', '6', '7', '8','9','10', '20'],
       selectedHoursIndex: -1,
       hourOptions: ['1', '2', '3', '4', '5', '6', '8', '10'],
       selectedMinutesIndex: -1,
       minuteOptions: ['0', '15', '30', '45'],
       
       // 一对多课程相关数据
-      selectedMultiLessonsIndex: -1,
-      multiLessonOptions: ['1', '2', '3', '4', '5', '6', '7', '20'],
       selectedMultiHoursIndex: -1,
       selectedMultiMinutesIndex: -1,
       multiServiceName: '',
@@ -261,37 +257,11 @@ export default {
       
       // 从全局状态获取服务数据
       if (getApp().globalData && getApp().globalData.editingService) {
-        try {
-          const serviceData = getApp().globalData.editingService
-          this.originalService = JSON.parse(JSON.stringify(serviceData)) // 保存原始数据的副本
-          
-          // 填充表单数据
-          this.fillFormWithServiceData(serviceData)
-          
-          // 清除全局状态中的编辑数据，避免影响下次编辑
-          setTimeout(() => {
-            getApp().globalData.editingService = null
-          }, 1000)
-        } catch (error) {
-          console.error('处理编辑数据出错：', error)
-          uni.showToast({
-            title: '加载数据失败，请重试',
-            icon: 'none'
-          })
-          // 返回上一页
-          setTimeout(() => {
-            uni.navigateBack()
-          }, 1500)
-        }
-      } else {
-        uni.showToast({
-          title: '未找到要编辑的数据',
-          icon: 'none'
-        })
-        // 返回上一页
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1500)
+        const serviceData = getApp().globalData.editingService
+        this.originalService = JSON.parse(JSON.stringify(serviceData)) // 保存原始数据的副本
+        
+        // 填充表单数据
+        this.fillFormWithServiceData(serviceData)
       }
     }
     
@@ -374,7 +344,7 @@ export default {
         
         // 设置课时
         if (serviceData.lessons) {
-          this.selectedMultiLessonsIndex = this.multiLessonOptions.findIndex(l => l === serviceData.lessons.toString())
+          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => l === serviceData.lessons.toString())
         }
         
         // 解析总时长的小时和分钟
@@ -405,6 +375,22 @@ export default {
       this.selectedServiceTypeIndex = index
       this.selectedServiceType = this.serviceTypes[index]
       
+      // 切换服务类型时，重置相关字段
+      if (this.selectedServiceType === '一对一课程') {
+        this.selectedLessonsIndex = -1
+        this.selectedHoursIndex = -1
+        this.selectedMinutesIndex = -1
+        this.serviceName = ''
+      } else if (this.selectedServiceType === '一对多课程') {
+        this.selectedLessonsIndex = -1
+        this.selectedMultiHoursIndex = -1
+        this.selectedMultiMinutesIndex = -1
+        this.multiServiceName = ''
+        this.selectedPersonCountIndex = -1
+      } else if (this.selectedServiceType === '学习资料') {
+        this.coursequantity = ''
+      }
+      
       // 更新表单字段显示
       this.updateFormFields()
     },
@@ -416,9 +402,6 @@ export default {
     },
     handleMinutesSelect(index) {
       this.selectedMinutesIndex = index
-    },
-    handleMultiLessonsSelect(index) {
-      this.selectedMultiLessonsIndex = index
     },
     handleMultiHoursSelect(index) {
       this.selectedMultiHoursIndex = index
@@ -448,12 +431,18 @@ export default {
       })
     },
     submitForm() {
+      // 显示加载动画
+      uni.showLoading({
+        title: '提交中...'
+      })
+      
       // 表单验证
       if (this.coverUrls.length === 0) {
         uni.showToast({
           title: '请上传封面图片',
           icon: 'none'
         })
+        uni.hideLoading()
         return
       }
       
@@ -462,6 +451,7 @@ export default {
           title: '请选择服务类型',
           icon: 'none'
         })
+        uni.hideLoading()
         return
       }
       
@@ -472,6 +462,7 @@ export default {
             title: '请选择课程节数',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
         
@@ -480,6 +471,7 @@ export default {
             title: '请选择课程时长',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
         
@@ -488,18 +480,27 @@ export default {
             title: '请填写服务名称',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
       } 
       // 一对多课程的特殊验证
       else if (this.selectedServiceType === '一对多课程') {
-      
+        if (this.selectedLessonsIndex === -1) {
+          uni.showToast({
+            title: '请选择课程节数',
+            icon: 'none'
+          })
+          uni.hideLoading()
+          return
+        }
         
         if (this.selectedMultiHoursIndex === -1 || this.selectedMultiMinutesIndex === -1) {
           uni.showToast({
             title: '请选择课程时长',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
         
@@ -508,6 +509,7 @@ export default {
             title: '请填写服务名称',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
         
@@ -516,6 +518,7 @@ export default {
             title: '请选择课程人数',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
       } 
@@ -526,6 +529,7 @@ export default {
             title: '请填写课程数量',
             icon: 'none'
           })
+          uni.hideLoading()
           return
         }
       }
@@ -535,13 +539,9 @@ export default {
           title: '请填写服务价格',
           icon: 'none'
         })
+        uni.hideLoading()
         return
       }
-      
-      // 显示加载中提示
-      uni.showLoading({
-        title: '提交中...'
-      })
       
       // 构建服务对象
       let serviceData = {
@@ -562,7 +562,7 @@ export default {
       // 为一对多课程添加特殊字段
       else if (this.selectedServiceType === '一对多课程') {
         serviceData.serviceName = this.multiServiceName
-        serviceData.lessons = this.multiLessonOptions[this.selectedMultiLessonsIndex]
+        serviceData.lessons = this.lessonOptions[this.selectedLessonsIndex]
         serviceData.totalDuration = `${this.hourOptions[this.selectedMultiHoursIndex]}小时${this.minuteOptions[this.selectedMultiMinutesIndex]}分钟`
         serviceData.personCount = this.personCountOptions[this.selectedPersonCountIndex]
       } 
@@ -595,8 +595,15 @@ export default {
           services = JSON.parse(servicesStr)
         }
         
-        // 添加新服务到列表中
-        services.push(newService)
+        // 检查服务是否已存在
+        const existingIndex = services.findIndex(s => s.id === newService.id)
+        if (existingIndex !== -1) {
+          // 如果已存在，则更新
+          services[existingIndex] = newService
+        } else {
+          // 添加新服务到列表中
+          services.push(newService)
+        }
         
         // 保存更新后的列表
         uni.setStorageSync('services', JSON.stringify(services))
@@ -648,16 +655,8 @@ export default {
         if (index !== -1) {
           services[index] = updatedService
         } else {
-          // 如果在本地存储中找不到，则查找默认数据
-          const defaultServices = getApp().globalData.defaultServices || []
-          const defaultIndex = defaultServices.findIndex(s => s.id == this.serviceId)
-          
-          if (defaultIndex !== -1) {
-            defaultServices[defaultIndex] = updatedService
-          } else {
-            // 如果都找不到，则添加为新服务
-            services.push(updatedService)
-          }
+          // 如果找不到，则添加为新服务
+          services.push(updatedService)
         }
         
         // 保存更新后的列表
@@ -702,13 +701,11 @@ export default {
 </script>
 
 <style>
-/* 服务编辑容器 */
-.service-edit-container {
-  padding: 30rpx;
-  background-color: #f5f7fa;
+/* 整体页面容器 */
+.page-container {
+  background-color: #f5f9ff;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  padding: 30rpx;
 }
 
 /* 表单容器 */
@@ -717,69 +714,55 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 30rpx;
+  padding: 20rpx;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 /* 一行布局容器 */
 .row-container {
   display: flex;
   flex-direction: row;
-  gap: 20rpx; /* 减小元素间距 */
-  margin-bottom: 20rpx;
-}
-
-.one-to-one-container{
-  display: flex;
-  flex-direction: row;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
   width: 100%;
 }
+
 /* 特殊对齐的两行 */
 .form-item1 {
   display: flex;
   flex-direction: column;
   width: 48%;
 }
+
 /* 标准表单项保持垂直布局 */
 .form-item {
   display: flex;  
   flex-direction: column;
   position: relative;
-  margin-bottom: 15rpx;
+  margin-bottom: 25rpx;
   width: 100%;
 }
 
 /* 表单标签 */
-.form-label, .coursequantity {
+.form-label {
   font-size: 30rpx;
   font-weight: 500;
   color: #333;
   margin-bottom: 16rpx;
 }
 
-/* 表单选择器容器 */
-.combobox-container {
-  display: flex;
-  flex-direction: column;
-  width: 40%;
+/* 必填项标记 */
+.required::after {
+  content: '*';
+  color: #ff4d4f;
+  position: absolute;
+  top: 2rpx;
+  right: -20rpx;
+  font-size: 28rpx;
 }
 
-/* 课程时长容器 */
-.duration-container {
-  display: flex;
-  gap: 16rpx;
-  justify-content: space-between;
-}
-
-/* 课程时长项 */
-.duration-item {
-  width: 40%;
-  max-width: 340rpx;
-}
-
-/* 课时和分钟定位 */
-.combobox-container{
-  position: relative;
-  top: 37rpx;
-}
 /* 表单输入框 */
 .form-input, .form-select{
   height: 90rpx;
@@ -789,6 +772,8 @@ export default {
   font-size: 28rpx;
   color: #333;
   border: 2rpx solid #eee;
+  width: calc(100% - 40rpx);
+  align-self: stretch;
 }
 
 /* 表单文本域 */
@@ -800,7 +785,112 @@ export default {
   font-size: 28rpx;
   color: #333;
   border: 2rpx solid #eee;
-  width: calc(100% - 44rpx);
+  width: calc(100% - 40rpx);
+  align-self: stretch;
+}
+
+/* 错误提示样式 */
+.error-message {
+  color: #ff4d4f;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+/* 错误状态的输入框 */
+.input-error {
+  border-color: #ff4d4f !important;
+}
+
+/* 表单选择器容器 */
+.combobox-container {
+  position: relative; 
+  top:10rpx;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 30rpx;
+}
+
+/* 提交按钮 */
+.submit-btn {
+  height: 90rpx;
+  background: linear-gradient(135deg, #4a89dc, #3a7bd5);
+  border-radius: 45rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-top: 40rpx;
+  position: relative;
+  transition: all 0.3s ease;
+  align-self: stretch;
+}
+
+/* 提交按钮点击效果 */  
+.submit-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 3rpx 10rpx rgba(74, 111, 227, 0.2);
+}
+
+/* 封面图片网格 */
+.cover-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0 -5rpx;
+}
+
+.cover-item {
+  width: calc(33.33% - 10rpx);
+  height: 215rpx;
+  margin: 0 5rpx 15rpx;
+  position: relative;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.delete-icon {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 40rpx;
+  height: 40rpx;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-bottom-left-radius: 8rpx;
+}
+
+.add-button {
+  border: 2rpx dashed #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.add-icon {
+  font-size: 80rpx;
+  color: #ccc;
+  font-weight: 200;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
 }
 
 /* 附件上传区域 */
@@ -821,112 +911,5 @@ export default {
   font-size: 72rpx;
   color: #ddd;
   font-weight: 300;
-}
-
-/* 提交按钮 */
-.submit-btn {
-  height: 90rpx;
-  background:#494747;
-  border-radius: 45rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 500;
-  margin-top: 60rpx;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-/* 提交按钮点击效果 */  
-.submit-btn:active {
-  transform: scale(0.98);
-  box-shadow: 0 3rpx 10rpx rgba(74, 111, 227, 0.2);
-}
-
-/* 提交按钮图标 */
-.lightning-icon {
-  margin-left: 10rpx;
-  font-size: 32rpx;
-}
-
-.side-by-side-container {
-  display: flex;
-  gap: 20rpx;
-  margin-bottom: 30rpx;
-}
-
-.duration-hours {
-  flex: 1;
-}
-
-.duration-minutes {
-  flex: 1;
-}
-
-/* 封面上传区域 */
-.cover-upload-container {
-  width: 100%;
-}
-
-.cover-upload-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-  margin-bottom: 10rpx;
-}
-
-.cover-item {
-  width: 200rpx;
-  height: 200rpx;
-  position: relative;
-  border-radius: 10rpx;
-  overflow: hidden;
-}
-
-.cover-preview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cover-delete {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 40rpx;
-  height: 40rpx;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  border-bottom-left-radius: 10rpx;
-}
-
-.cover-upload {
-  width: 200rpx;
-  height: 200rpx;
-  background-color: #fff;
-  border-radius: 10rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2rpx solid #ddd;
-}
-
-.upload-tip {
-  font-size: 24rpx;
-  color: #999;
-  margin-top: 10rpx;
-}
-
-/* 删除原有的头像上传相关样式 */
-.avatar-upload,
-.avatar-preview,
-.avatar-placeholder {
-  display: none;
 }
 </style>

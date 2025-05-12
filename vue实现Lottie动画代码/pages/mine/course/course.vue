@@ -1,10 +1,5 @@
 <template>
   <view class="container">
-    <!-- 添加顶部导航栏组件 -->
-    <header :title="userRole === 'student' ? '我的课程' : '教师课程'" @back="goBack"></header>
-    <view>
-		
-	</view>
     <!-- 学生界面 -->
     <block v-if="userRole === 'student'">
       <top-navbar @change="onTabChange" :navHeight="60" :userRole="userRole">
@@ -28,7 +23,6 @@
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
                   <text class="course-lessons">课程节数：第2节/共10节</text>
-                  <text class="course-time">课程时间：{{item.time}}</text>
                   <text v-if="item.isTeacherReservation" class="course-time">老师已选时间：{{item.time}}</text>
                 </view>
                 <button v-if="item.isTeacherReservation" class="accept-btn" @click="acceptReservation(index)">接受预约</button>
@@ -60,13 +54,12 @@
                     <text class="avatar-text">人</text>
                   </view>
                 </view>
-                <view class="course-info"> 
+                <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
-                  <text class="course-time">课程时间：{{item.reservedTime}}</text>
+                  <text class="course-lessons">预约时间：{{item.reservedTime}}</text>
                 </view>
-                <button class="confirm-class-btn" @click="confirmClassEnd(index)">确认下课</button>
                 <button class="modify-time-btn" @click="modifyReservationTime(index)">修改时间</button>
               </view>
               <view v-if="reservedCourses.length === 0" class="empty-tip">
@@ -90,8 +83,7 @@
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
-                  <text class="course-time">课程时间：{{item.reservedTime || '无数据'}}</text>
-                  <text class="course-time">完成时间：{{item.completedTime}}</text>
+                  <text class="course-lessons">完成时间：{{item.completedTime}}</text>
                   <view class="rating" v-if="item.rating">
                     <text class="rating-text">评分: </text>
                     <text class="rating-star" v-for="i in 5" :key="i">
@@ -127,7 +119,6 @@
                   <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
                   <text class="course-lessons">课程节数：第2节/共10节</text>
-                  <text class="course-time" v-if="item.time">课程时间：{{item.time}}</text>
                 </view>
                 <button class="reserve-btn" @click="teacherReserve(index)">发起预约</button>
               </view>
@@ -161,7 +152,7 @@
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
-                  <text class="course-time">课程时间：{{item.classTime}}</text>
+                  <text class="course-lessons">上课时间：{{item.classTime}}</text>
                 </view>
                 <button class="confirm-class-btn" @click="completeClass(index)">确认下课</button>
                 <button class="modify-time-btn" @click="rescheduleClass(index)">修改时间</button>
@@ -187,8 +178,7 @@
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
-                  <text class="course-time" v-if="item.classTime">课程时间：{{item.classTime}}</text>
-                  <text class="course-time">完成时间：{{item.completedTime}}</text>
+                  <text class="course-lessons">完成时间：{{item.completedTime}}</text>
                 </view>
                 <button class="view-feedback-btn" @click="viewClassFeedback(item)">查看回放</button>
               </view>
@@ -206,12 +196,10 @@
 <script>
 // 导入顶部导航栏组件
 import topNavbar from '@/components/top-navbar/top-navbar.vue';
-import Header from '@/components/navigationTitleBar/header.vue'
 
 export default {
   components: {
-    topNavbar,
-    Header
+    topNavbar
   },
   data() {
     return {
@@ -396,13 +384,6 @@ export default {
   },
   methods: {
     /**
-     * 处理返回按钮点击
-     */
-    goBack() {
-      uni.navigateBack();
-    },
-    
-    /**
      * @description 加载用户数据
      */
     loadUserData() {
@@ -574,20 +555,6 @@ export default {
     // 完成课程时添加回放链接
     completeClass(index) {
       const course = this.teacherActiveCourses[index];
-      
-      // 检查当前时间是否已经过了预约时间
-      const now = new Date();
-      const classTime = new Date(course.classTime.replace(/-/g, '/'));
-      
-      // 如果当前时间早于课程预约时间，不允许确认下课
-      if (now < classTime) {
-        uni.showModal({
-          title: '无法确认下课',
-          content: '只能在课程预约时间之后才能确认下课',
-          showCancel: false
-        });
-        return;
-      }
       
       // 先让用户输入回放链接
       uni.showModal({
@@ -934,30 +901,15 @@ export default {
 
     // 确认下课
     confirmClassEnd(index) {
-      const course = this.reservedCourses[index];
-      
-      // 检查当前时间是否已经过了预约时间
-      const now = new Date();
-      const reservedTime = new Date(course.reservedTime.replace(/-/g, '/'));
-      
-      // 如果当前时间早于课程预约时间，不允许确认下课
-      if (now < reservedTime) {
-        uni.showModal({
-          title: '无法确认下课',
-          content: '只能在课程预约时间之后才能确认下课',
-          showCancel: false
-        });
-        return;
-      }
-      
       uni.showModal({
         title: '确认下课',
         content: '确定要确认下课吗？',
         success: (res) => {
           if (res.confirm) {
             // 将课程状态修改为已完成
+            const completedCourse = this.reservedCourses[index];
             this.completedCourses.push({
-              ...course,
+              ...completedCourse,
               completedTime: new Date().toISOString().split('T')[0]
             });
             
@@ -1145,7 +1097,7 @@ export default {
   text-align: left;
 }
 
-.course-teacher, .course-type, .course-lessons, .course-time {
+.course-teacher, .course-type, .course-lessons {
   font-size: 26rpx;
   color: #5d6b89;
   margin-bottom: 4rpx;
@@ -1187,6 +1139,17 @@ export default {
   background-color: #3a86ff;
   color: white;
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.course-time {
+  font-size: 26rpx;
+  color: #ff7043;
+  font-weight: 500;
+  margin-top: 4rpx;
+  margin-bottom: 4rpx;
+  line-height: 1.2;
+  text-align: left;
+  padding: 2rpx 0;
 }
 
 .confirm-class-btn, .modify-time-btn {
