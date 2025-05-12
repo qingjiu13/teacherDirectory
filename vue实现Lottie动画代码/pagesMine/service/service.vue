@@ -1,21 +1,12 @@
 <template>
   <view class="service-container">
-    <!-- 添加顶部导航栏组件 -->
-    <header title="我的服务" @back="goBack"></header>
-    
-    <!-- 顶部导航 -->
-    <view class="header">
-      <!-- <view class="back-btn" @click="goBack">
-        <text>←</text>
-      </view> -->
-      <view class="add-btn" @click="handleAddService">
-        <text class="plus">+</text>
-        <text>新增</text>
-      </view>
-    </view>
-    
     <!-- 服务卡片区域 -->
     <view class="service-list">
+      <!-- 当没有服务数据时显示提示 -->
+      <view class="empty-tip" v-if="services.length === 0">
+        <text class="empty-text">暂无服务数据，点击右下角添加按钮新增服务</text>
+      </view>
+      
       <view 
         v-for="(service, index) in services" 
         :key="service.id" 
@@ -24,17 +15,17 @@
         @click="showServiceDetail(index)"
       >
         <view class="service-info">
-          <view class="service-thumb" :style="{ backgroundImage: `url(${service.imageUrl})`, backgroundSize: 'cover' }"></view>
+          <view class="service-thumb" :style="{ backgroundImage: `url(${getServiceCover(service)})`, backgroundSize: 'cover' }"></view>
           <view class="service-details">
             <view class="service-name">{{ service.serviceName || service.name }}</view>
             <view class="service-price">{{ service.price }}</view>
           </view>
           <view class="action-buttons" @click.stop>
-            <view class="edit-btn" @click="editService(index)">
-              <image src="/static/image/style for pages/edit botton.png" mode="aspectFit" class="action-icon"></image>
+            <view class="edit-btn" @click.stop="editService(index)">
+              <image src='/static/image/style_for_pages/edit_botton.png' mode="aspectFit" class="action-icon"></image>
             </view>
-            <view class="delete-btn" @click="deleteService(index)">
-              <image src="/static/image/style for pages/delete botton.png" mode="aspectFit" class="action-icon"></image>
+            <view class="delete-btn" @click.stop="deleteService(index)">
+              <image src='/static/image/style_for_pages/delete_botton.png' mode="aspectFit" class="action-icon"></image>
             </view>
           </view>
         </view>
@@ -43,7 +34,7 @@
       <!-- 服务详情展示 -->
       <view class="service-detail-card" v-if="selectedService" :class="{'detail-card-expanded': isDetailExpanded}">
         <view class="detail-close-btn" @click="hideServiceDetail">×</view>
-        <view class="detail-thumb" :style="{ backgroundImage: `url(${selectedService.imageUrl})`, backgroundSize: 'cover' }"></view>
+        <view class="detail-thumb" :style="{ backgroundImage: `url(${getServiceCover(selectedService)})`, backgroundSize: 'cover' }"></view>
         <view class="detail-info">
           <view class="detail-name">{{ selectedService.serviceName || selectedService.name }}</view>
           <view class="detail-price">{{ selectedService.price }}</view>
@@ -58,6 +49,9 @@
       </view>
     </view>
     
+    <!-- 新增按钮 -->
+    <view class="add-button" @click="handleAddService">+</view>
+    
     <!-- 半透明背景遮罩 -->
     <view class="detail-overlay" v-if="overlayVisible" @click="hideServiceDetail"></view>
 
@@ -65,104 +59,14 @@
 </template>
 
 <script>
-import Header from '@/components/navigationTitleBar/header.vue'
-
 export default {
   components: {
-    Header
   },
   data() {
     return {
-      services: [
-        {
-          id: 1,
-          name: '考研全年VIP班',
-          price: '¥12800',
-          description: '一站式考研备考方案，包含全年公共课与专业课辅导，专属学习规划师制定个性化学习计划，配套核心教材和真题资料，定期模拟测试及学习情况分析，考前冲刺点题，适合零基础考生。',
-          checked: true,
-          imageUrl: '/static/images/kaoyan1.jpg'
-        },
-        {
-          id: 2,
-          name: '考研政治精讲班',
-          price: '¥1580',
-          description: '由资深政治老师授课，系统讲解考研政治核心知识点，深度剖析马原、毛中特、史纲、思修法基，配套专属内部讲义和大量真题解析，掌握答题技巧和方法，突破政治高分。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan2.jpg'
-        },
-        {
-          id: 3,
-          name: '考研英语强化班',
-          price: '¥1880',
-          description: '针对考研英语一/二，重点讲解阅读理解、翻译、写作等高频考点，配合历年真题详解和独家预测题，教授解题思路和答题模板，针对性提升英语应试能力，助力高分突破。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan3.jpg'
-        },
-        {
-          id: 4,
-          name: '专业课一对一定制',
-          price: '¥4980',
-          description: '根据不同院校不同专业量身定制辅导计划，由目标院校毕业导师或博士生授课，提供内部资料和历年真题解析，深度挖掘考试重点和命题规律，定期模拟测试和答疑，确保专业课高分。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan4.jpg'
-        },
-        {
-          id: 5,
-          name: '考研数学基础班',
-          price: '¥2280',
-          description: '专为数学基础薄弱的考生设计，从高数、线代、概率论基础讲起，循序渐进，配合大量例题和习题，帮助考生建立数学思维，掌握核心解题方法，突破数学难关。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan1.jpg'
-        },
-        {
-          id: 6,
-          name: '考研复试指导班',
-          price: '¥3680',
-          description: '全面覆盖复试各环节，包括专业课笔试、英语听说、专业面试和综合面试，提供院校复试真题和模拟题，安排多轮模拟面试演练，指导简历制作和自我介绍，提高复试通过率。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan2.jpg'
-        },
-        {
-          id: 7,
-          name: '考研暑期集训营',
-          price: '¥5980',
-          description: '暑期30天高强度集训，每日8小时专业授课，涵盖公共课和专业课，配合每日测试和强化训练，建立系统知识框架，培养高效学习习惯，为后期复习打下坚实基础。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan3.jpg'
-        },
-        {
-          id: 8,
-          name: '考研考前冲刺班',
-          price: '¥3280',
-          description: '针对考前最后3个月开设，重点突破历年真题和模拟题，总结各科目重点难点，进行专项训练和查漏补缺，配合心理调适和应试技巧指导，确保考生以最佳状态应考。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan4.jpg'
-        },
-        {
-          id: 9,
-          name: '考研专业课资料包',
-          price: '¥980',
-          description: '包含目标院校专业课内部资料、历年真题及详解、考试大纲解析、核心知识点总结、重点院校考研经验分享等，电子版+纸质版双重提供，助力专业课复习事半功倍。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan1.jpg'
-        },
-        {
-          id: 10,
-          name: '考研院校专业选择指导',
-          price: '¥1280',
-          description: '由专业顾问团队提供一对一院校专业选择指导，包括个人情况评估、目标设定、院校专业分析、报考策略制定等，为考生提供科学合理的择校方案，提高复试录取成功率。',
-          checked: false,
-          imageUrl: '/static/images/kaoyan2.jpg'
-        }
-      ],
-      selectedService: {
-        id: 1,
-        name: '考研全年VIP班',
-        price: '¥12800',
-        description: '一站式考研备考方案，包含全年公共课与专业课辅导，专属学习规划师制定个性化学习计划，配套核心教材和真题资料，定期模拟测试及学习情况分析，考前冲刺点题，适合零基础考生。',
-        checked: true,
-        imageUrl: '/static/images/kaoyan1.jpg'
-      },
+      defaultCoverImage: '/static/image/service/default_cover.jpg', // 默认封面图片
+      services: [],
+      selectedService: null,
       isDetailExpanded: false,
       overlayVisible: false
     }
@@ -182,8 +86,19 @@ export default {
           newService.price = '¥' + newService.price
         }
         
-        // 将新服务添加到列表
-        this.services.unshift(newService)
+        // 从本地存储加载最新的服务列表
+        this.loadServices()
+        
+        // 选中这个新服务
+        const existingServiceIndex = this.services.findIndex(s => s.id === newService.id)
+        if (existingServiceIndex === -1) {
+          // 如果服务列表中没有这个服务，才添加它
+          // 将新服务添加到列表
+          this.services.unshift(newService)
+          
+          // 保存到本地存储
+          this.saveServices()
+        }
         
         // 选中这个新服务
         this.selectedService = newService
@@ -196,11 +111,14 @@ export default {
         
         // 清除临时存储的新服务
         getApp().globalData.newService = null
+      } else {
+        // 从本地存储加载服务列表
+        this.loadServices()
       }
+    } else {
+      // 从本地存储加载服务列表
+      this.loadServices()
     }
-    
-    // 从本地存储加载服务列表
-    this.loadServices()
   },
   onLoad() {
     // 监听serviceAdded事件
@@ -208,9 +126,8 @@ export default {
     // 监听serviceEdited事件
     uni.$on('serviceEdited', this.handleServiceEdited)
     
-    // 保存默认服务列表到全局状态中，方便编辑时引用
+    // 初始化全局数据对象
     getApp().globalData = getApp().globalData || {}
-    getApp().globalData.defaultServices = JSON.parse(JSON.stringify(this.services))
   },
   onUnload() {
     // 移除事件监听
@@ -226,27 +143,39 @@ export default {
     },
     editService(index) {
       try {
+        // 显示加载提示
+        uni.showLoading({
+          title: '加载中...'
+        })
+        
         const currentService = this.services[index]
         
         // 将当前服务数据存储到全局状态，方便编辑页面获取
         getApp().globalData = getApp().globalData || {}
         getApp().globalData.editingService = JSON.parse(JSON.stringify(currentService))
         
-        // 跳转到新建/编辑服务页面
-        uni.navigateTo({
-          url: '/pages/mine/service_newbuilt?mode=edit&id=' + currentService.id,
-          success: () => {
-            console.log('跳转到编辑页面成功')
-          },
-          fail: (err) => {
-            console.error('跳转失败：', err)
-            uni.showToast({
-              title: '跳转失败，请重试',
-              icon: 'none'
-            })
-          }
-        })
+        // 延迟模拟网络请求
+        setTimeout(() => {
+          // 隐藏加载提示
+          uni.hideLoading()
+          
+          // 跳转到新建/编辑服务页面
+          uni.navigateTo({
+            url: '/pages/mine/service_newbuilt?mode=edit&id=' + currentService.id,
+            success: () => {
+              console.log('跳转到编辑页面成功')
+            },
+            fail: (err) => {
+              console.error('跳转失败：', err)
+              uni.showToast({
+                title: '跳转失败，请重试',
+                icon: 'none'
+              })
+            }
+          })
+        }, 500)
       } catch (error) {
+        uni.hideLoading()
         console.error('编辑服务出错：', error)
         uni.showToast({
           title: '操作失败，请重试',
@@ -268,40 +197,38 @@ export default {
         success: (res) => {
           if (res.confirm) {
             try {
-              // 用户确认删除
+              // 显示加载提示
+              uni.showLoading({
+                title: '删除中...'
+              })
               
-              // 如果删除的是当前选中的服务，先隐藏详情
-              if (this.selectedService && this.selectedService.id === serviceToDeleteId) {
-                // 隐藏详情面板
-                this.isDetailExpanded = false;
-                this.overlayVisible = false;
-                this.selectedService = null;
-              }
-              
-              // 删除当前服务
-              this.services.splice(index, 1);
-              
-              // 如果服务列表为空，需要特殊处理
-              if (this.services.length === 0) {
-                this.selectedService = null;
-              } 
-              // 否则选择第一个服务作为当前选中服务
-              else if (!this.selectedService) {
-                this.selectedService = this.services[0];
-              }
-              
-              // 更新本地存储
-              this.saveServices();
-              
-              // 强制更新视图
-              this.$forceUpdate();
-              
-              // 显示成功提示
-              uni.showToast({
-                title: '服务已删除',
-                icon: 'success'
-              });
+              // 延迟模拟网络请求
+              setTimeout(() => {
+                // 隐藏加载提示
+                uni.hideLoading()
+                
+                // 如果删除的是当前选中的服务，先隐藏详情
+                if (this.selectedService && this.selectedService.id === serviceToDeleteId) {
+                  // 隐藏详情面板
+                  this.isDetailExpanded = false;
+                  this.overlayVisible = false;
+                  this.selectedService = null;
+                }
+                
+                // 删除当前服务
+                this.services.splice(index, 1);
+                
+                // 更新本地存储
+                this.saveServices();
+                
+                // 显示成功提示
+                uni.showToast({
+                  title: '服务已删除',
+                  icon: 'success'
+                });
+              }, 500)
             } catch (error) {
+              uni.hideLoading()
               console.error('删除服务出错：', error);
               uni.showToast({
                 title: '删除失败，请重试',
@@ -344,8 +271,15 @@ export default {
         newService.price = '¥' + newService.price
       }
       
-      // 添加到服务列表的最前面
-      this.services.unshift(newService)
+      // 检查服务是否已存在于列表中
+      const existingIndex = this.services.findIndex(service => service.id === newService.id)
+      if (existingIndex !== -1) {
+        // 如果已存在，则更新而不是添加
+        this.services[existingIndex] = newService
+      } else {
+        // 添加到服务列表的最前面
+        this.services.unshift(newService)
+      }
       
       // 选中新服务
       this.selectedService = newService
@@ -392,7 +326,7 @@ export default {
         const servicesStr = uni.getStorageSync('services')
         if (servicesStr) {
           const storedServices = JSON.parse(servicesStr)
-          // 如果有存储的服务数据，使用存储的数据替换默认数据
+          // 如果有存储的服务数据，使用存储的数据
           if (storedServices && storedServices.length > 0) {
             this.services = storedServices
             // 默认选中第一个服务
@@ -420,14 +354,71 @@ export default {
     },
     hideServiceDetail() {
       // 先隐藏详情卡片
-      this.isDetailExpanded = false;
+      this.isDetailExpanded = false
       
       // 动画结束后隐藏遮罩层
       setTimeout(() => {
-        this.overlayVisible = false;
-        // 不要马上清除选中的服务，这样可以保留上次查看的服务信息
-      }, 300);
-    }
+        this.overlayVisible = false
+      }, 300)
+    },
+    // 服务卡片中使用封面图片或默认图片
+    getServiceCover(service) {
+      return service.imageUrl || (service.imageUrls && service.imageUrls.length > 0 ? service.imageUrls[0] : this.defaultCoverImage);
+    },
+    updateExistingService(updatedService) {
+      try {
+        // 获取服务列表
+        const servicesStr = uni.getStorageSync('services')
+        let services = []
+        
+        if (servicesStr) {
+          services = JSON.parse(servicesStr)
+        }
+        
+        // 查找并更新对应的服务
+        const index = services.findIndex(s => s.id == this.serviceId)
+        
+        if (index !== -1) {
+          services[index] = updatedService
+        } else {
+          // 如果找不到，则添加为新服务
+          services.push(updatedService)
+        }
+        
+        // 保存更新后的列表
+        uni.setStorageSync('services', JSON.stringify(services))
+        
+        // 设置编辑标志
+        getApp().globalData = getApp().globalData || {}
+        getApp().globalData.serviceEdited = true
+        getApp().globalData.editedService = updatedService
+        
+        this.$refs.loadingRef.hide()
+        
+        uni.showToast({
+          title: '更新成功',
+          icon: 'success'
+        })
+        
+        // 延时返回上一页
+        setTimeout(() => {
+          uni.navigateBack({
+            delta: 1,
+            success: () => {
+              // 触发自定义事件通知上一页
+              uni.$emit('serviceEdited', updatedService)
+            }
+          })
+        }, 1500)
+      } catch (e) {
+        console.error('更新服务失败', e)
+        this.$refs.loadingRef.hide()
+        uni.showToast({
+          title: '更新失败，请重试',
+          icon: 'none'
+        })
+      }
+    },
   }
 }
 </script>
@@ -436,107 +427,76 @@ export default {
 /* 服务容器 */
 .service-container {
   padding: 30rpx;
-  background-color: #f5f7fa;
+  background: linear-gradient(135deg, #f5f9ff, #edf3ff);
   min-height: 100vh;
-}
-/* 头部 */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0rpx;
-  padding: 35rpx 0;
-  position: relative;
-  height: 50rpx;
-}
-/* 添加按钮 */
-.add-btn {
-  display: flex;
-  align-items: center;
-  
-  padding: 8rpx 20rpx;
-  border-radius: 25rpx;
-  background-color: #f0f0f0;
- 
-  transition: all 0.3s ease;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 24rpx;
-}
-/* 添加按钮点击效果 */
-.add-btn:active {
-  transform: translateY(-50%) scale(0.96);
-}
-/* 添加按钮图标 */
-.plus {
-  margin-right: 6rpx;
-  font-weight: bold;
 }
 /* 服务列表 */
 .service-list {
   display: flex;
   flex-direction: column;
-  gap: 30rpx;
-  padding-top: 10rpx;
+  gap: 15rpx;
+  padding: 10rpx 0;
 }
 /* 服务卡片 */
 .service-card {
-  background-color: linear-gradient(to bottom, #C2DDFA, #2288F9);
-  border-radius: 20rpx;
-  height: 260rpx;
-  padding: 25rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  border-radius: 30rpx;
+  padding: 25rpx 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+  position: relative;
+  min-height: 160rpx;
+  margin-bottom: 20rpx;
+  border: 1rpx solid rgba(74, 137, 220, 0.3);
 }
 /* 选中服务卡片 */
 .active-card {
-  border-left: 6rpx solid #4A6FE3;
-  transform: translateX(5rpx);
+  background: #f8fbff;
+  box-shadow: 0 4rpx 15rpx rgba(74, 111, 227, 0.1);
+  border: 1rpx solid rgba(74, 137, 220, 0.6);
 }
 /* 服务信息 */  
 .service-info {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 }
 /* 头像框 */
 .service-thumb {
-  position: ralative;
-  top:20px; 
-  width: 150rpx;
-  height: 150rpx;
+  width: 160rpx;
+  height: 160rpx;
   background-color: #f0f0f0;
-  border-radius: 12rpx;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.08);
+  border-radius: 15rpx;
   overflow: hidden;
   flex-shrink: 0;
-  margin-right: 25rpx;
+  margin-right: 30rpx;
+  border: none;
+  box-shadow: 0 6rpx 15rpx rgba(0, 0, 0, 0.1);
 }
 /* 服务名称和价格容器 */
 .service-details {
-margin-top: -100rpx;
-min-height: 200rpx;
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 15rpx;
+  margin-top: 5rpx;
 }
 /* 服务名称 */
 .service-name {
-  position:relative;
-bottom:5rpx;
-left:300rpx;
-  font-size: 45rpx;
+  font-size: 28rpx;
   font-weight: 600;
-  margin-bottom: 15rpx;
-  color: #000000;
+  margin-bottom: 10rpx;
+  color: #333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 /* 服务价格 */
 .service-price {
-  position:relative;
-  left:300rpx;
-  font-size: 40rpx;
+  font-size: 26rpx;
   color: #464EF8;
   font-weight: 500;
 }
@@ -544,40 +504,38 @@ left:300rpx;
 .action-buttons {
   display: flex;
   flex-direction: row;
-  width: 800rpx;
-  gap: 15rpx;
-  flex-shrink: 0;
-  margin-left: 20rpx;
+  gap: 12rpx;
+  margin-left: auto;
+  align-items: center;
+  padding-left: 15rpx;
 }
 /* 修改按钮 */
 .edit-btn {
-  position: relative;
-  left: 380rpx;
+  width: 45rpx;
+  height: 45rpx;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 60rpx;
-  height: 60rpx;
   transition: all 0.3s ease;
-  background-color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 /* 删除按钮 */
 .delete-btn {
-  position: relative;
-  left: 380rpx;
+  width: 45rpx;
+  height: 45rpx;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 60rpx;
-  height: 60rpx;
   transition: all 0.3s ease;
-  background-color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* 操作图标 */
 .action-icon {
-  width: 50rpx;
-  height: 50rpx;
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .edit-btn:active {
@@ -595,15 +553,16 @@ left:300rpx;
   transform: translate(-50%, -45%) scale(0.95);
   width: 85%;
   max-height: 80vh;
-  background-color: #fff;
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
   border-radius: 20rpx;
   padding: 40rpx 30rpx;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 15rpx 40rpx rgba(0, 0, 0, 0.2);
   z-index: 1000;
   overflow-y: auto;
   opacity: 0;
   transition: all 0.3s ease;
   visibility: hidden;
+  border: 2rpx solid rgba(200, 220, 255, 0.8);
 }
 /* 服务详情卡片展开 */
 .detail-card-expanded {
@@ -624,22 +583,30 @@ left:300rpx;
   align-items: center;
   justify-content: center;
   z-index: 10;
+  transition: all 0.3s ease;
 }
+
+.detail-close-btn:active {
+  transform: scale(0.9);
+  color: #666;
+}
+
 /* 服务详情卡片头像 */
 .detail-thumb {
-  width: 180rpx;
-  height: 180rpx;
+  width: 200rpx;
+  height: 200rpx;
   background-color: #f0f0f0;
-  border-radius: 12rpx;
-  margin: 0 auto 25rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  border-radius: 16rpx;
+  margin: 0 auto 30rpx;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  border: 2rpx solid rgba(200, 220, 255, 0.8);
 }
 /* 服务详情卡片信息 */  
 .detail-info {
   margin-bottom: 30rpx;
-  padding-bottom: 20rpx;
-  border-bottom: 2rpx solid #f2f5fd;
+  padding-bottom: 25rpx;
+  border-bottom: 2rpx solid rgba(200, 220, 255, 0.8);
 }
 /* 服务详情卡片名称 */
 .detail-name {
@@ -648,11 +615,12 @@ left:300rpx;
   text-align: center;
   margin-bottom: 15rpx;
   color: #333;
+  letter-spacing: 1rpx;
 }
 /* 服务详情卡片价格 */
 .detail-price {
   font-size: 32rpx;
-  color: #4A6FE3;
+  color: #4a89dc;
   text-align: center;
   font-weight: 500;
 }
@@ -660,40 +628,42 @@ left:300rpx;
 .detail-description {
   font-size: 28rpx;
   color: #333;
-  margin-top: 20rpx;
+  margin-top: 25rpx;
 }
 /* 服务详情卡片描述标题 */
 .description-title {
   display: block;
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 600;
-  margin-bottom: 15rpx;
+  margin-bottom: 20rpx;
   color: #333;
+  letter-spacing: 1rpx;
 }
 /* 服务详情卡片描述内容 */
 .description-content {
   display: block;
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #666;
-  line-height: 1.6;
-  margin-bottom: 20rpx;
+  line-height: 1.7;
+  margin-bottom: 25rpx;
+  letter-spacing: 0.5rpx;
 }
 /* 服务详情卡片图片占位符 */
 .detail-image-placeholder {
   width: 100%;
   height: 240rpx;
-  background-color: #f7f7f7;
+  background: linear-gradient(135deg, #f7f9ff, #edf2ff);
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20rpx;
-  border-radius: 12rpx;
-  border: 2rpx dashed #ddd;
+  margin-top: 25rpx;
+  border-radius: 16rpx;
+  border: 2rpx dashed rgba(200, 220, 255, 0.8);
 }
 /* 服务详情卡片图片图标 */
 .image-icon {
   font-size: 60rpx;
-  color: #ccc;
+  color: #b0c4de;
 }
 /* 服务详情卡片遮罩层 */  
 .detail-overlay {
@@ -707,5 +677,49 @@ left:300rpx;
   opacity: 1;
   transition: opacity 0.3s ease;
   backdrop-filter: blur(3px);
+}
+/* 新增按钮 */
+.add-button {
+  position: fixed;
+  bottom: 100rpx;
+  right: 50rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a89dc, #3a7bd5);
+  box-shadow: 0 6rpx 20rpx rgba(58, 123, 213, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 70rpx;
+  font-weight: bold;
+  color: #fff;
+  z-index: 999;
+  line-height: 90rpx;
+  padding-bottom: 8rpx;
+}
+
+.add-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 3rpx 10rpx rgba(58, 123, 213, 0.3);
+}
+
+/* 空数据提示 */
+.empty-tip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300rpx;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+  text-align: center;
 }
 </style>
