@@ -45,20 +45,20 @@ export default {
                 abstract: '关于择校的咨询',
                 id: 'conv-001',
                 chatMode: 'school',
-                createdAt: '2023-10-01T10:00:00Z',
-                updatedAt: '2023-10-01T10:30:00Z',
+                createdAt: '2025-05-12T10:05:00Z',
+                updatedAt: '2025-05-12T10:10:00Z',
                 messages: [
                     {
                         id: 'msg-001',
                         role: 'user',
                         content: '我想咨询一下清华大学计算机专业的录取情况',
-                        timestamp: '2023-10-01T10:05:00Z'
+                        timestamp: '2025-05-12T10:05:00Z'
                     },
                     {
                         id: 'msg-002',
                         role:'AI',
                         content: '清华大学计算机专业去年录取分数线为680分',
-                        timestamp: '2023-10-01T10:10:00Z'
+                        timestamp: '2025-05-12T10:10:00Z'
                     }
                 ]
             },
@@ -66,20 +66,20 @@ export default {
                 abstract: '职业规划讨论',
                 id: 'conv-002',
                 chatMode: 'career',
-                createdAt: '2023-10-02T14:00:00Z',
-                updatedAt: '2023-10-02T14:45:00Z',
+                createdAt: '2025-05-5T14:05:00Z',
+                updatedAt: '2025-05-5T14:15:00Z',
                 messages: [
                     {
                         id: 'msg-003',
                         role:'user',
                         content: '我对人工智能领域很感兴趣，该如何规划职业发展？',
-                        timestamp: '2023-10-02T14:05:00Z'
+                        timestamp: '2025-05-5T14:05:00Z'
                     },
                     {
                         id: 'msg-004',
                         role:'AI',
                         content: '建议先打好数学和编程基础，然后深入学习机器学习算法',
-                        timestamp: '2023-10-02T14:15:00Z'
+                        timestamp: '2025-05-5T14:15:00Z'
                     }
                 ]
             }

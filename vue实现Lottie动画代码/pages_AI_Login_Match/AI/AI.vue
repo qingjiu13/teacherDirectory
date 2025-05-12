@@ -1,4 +1,5 @@
 <template>
+
 	<view class="page-container" @click="onPageClick">
 		<!-- 导航栏和侧边栏 -->
 		<view class="nav-sidebar-container">
@@ -6,16 +7,15 @@
 			<view class="sidebar-mask" v-if="sidebarVisible" @click.stop="closeSidebar" :style="{opacity: sidebarVisible ? 0.5 : 0}"></view>
 			<Header :title="'AI助手'" @back="handleBack" />
 			<!-- 历史记录侧边栏 -->
-			<history-sidebar
-				:visible="sidebarVisible"
-				:history-summaries="historySummaries"
-				:current-chat-id="currentChatId"
-				@load-chat="loadChatHistory"
-				@delete-chat="deleteChatHistory">
-			</history-sidebar>
-			
+				<history-sidebar
+					:visible="sidebarVisible"
+					:grouped-history="groupedHistorySummaries"
+					:current-chat-id="currentChatId"
+					@load-chat="loadChatHistory"
+					@delete-chat="deleteChatHistory">
+				</history-sidebar>
 			<!-- 主内容区域 -->
-			<view class="main-wrapper" :class="{shifted: sidebarVisible}">
+			<view class="main-wrapper">
 				<!-- 顶部导航栏 -->
 				<view class="nav-bar">
 					<view class="nav-left">
@@ -215,6 +215,41 @@
 			filteredMajorList() {
 				if (!this.majorStore) return [];
 				return this.majorStore.getters.filteredData(this.majorStore.state);
+			},
+			
+			/**
+			 * @description 按时间分组历史记录
+			 * @returns {Object} { today: [], week: [], month: [] }
+			 */
+			groupedHistorySummaries() {
+				const now = new Date();
+				const today = [];
+				const week = [];
+				const month = [];
+				
+				(this.historySummaries || []).forEach(item => {
+					const timeStr = item.updatedAt || item.createdAt;
+					if (!timeStr) return;
+					const time = new Date(timeStr);
+
+					// 计算天数差
+					const diffTime = now.getTime() - time.getTime();
+					const diffDays = Math.floor(diffTime / (24 * 60 * 60 * 1000));
+
+					// 判断分组
+					if (
+						time.getFullYear() === now.getFullYear() &&
+						time.getMonth() === now.getMonth() &&
+						time.getDate() === now.getDate()
+					) {
+						today.push(item);
+					} else if (diffDays < 7) {
+						week.push(item);
+					} else if (diffDays < 30) {
+						month.push(item);
+					}
+				});
+				return { today, week, month };
 			}
 		},
 		data() {
@@ -912,7 +947,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		z-index: 999;
+		z-index: 1500;
 	}
 	
 	.loading-content {
@@ -931,7 +966,7 @@
 	.nav-sidebar-container {
 		position: relative;
 		width: 100%;
-		height: 100vh;
+		height: 100%;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
@@ -939,27 +974,21 @@
 	
 	.sidebar-mask {
 		position: fixed;
-		top: 0;
+		top: 206rpx; /* 修改这里，让遮罩层从header下面开始 */
 		left: 0;
 		right: 0;
 		bottom: 0;
 		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 998;
+		z-index: 1500;
 		transition: opacity 0.3s ease;
 	}
-	
+
 	.main-wrapper {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
 		transition: transform 0.3s ease, opacity 0.3s ease;
 		background-color: #f5f5f5;
-		padding-bottom: 20rpx; /* 底部增加内边距 */
-	}
-	
-	.main-wrapper.shifted {
-		transform: translateX(66vw);
-		opacity: 0.85;
 	}
 	
 	.main-content {
@@ -1112,4 +1141,6 @@
 		display: block;
 		margin: 0 auto;
 	}
+	
+
 </style>

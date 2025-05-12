@@ -56,25 +56,32 @@
 		height: 129rpx;
 		display: flex;
 		flex-direction: row;
-		align-items: center;
 		box-sizing: border-box;
 		background-color:rgba(255, 255, 255, 1);
+		margin-top: 5rpx;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 1000;
 	}
 	
 	.message-input {
 		flex: 1;
-		height: 80rpx;
+		height: 52rpx;
 		background-color: #ffffff;
-		border: 2rpx solid #ddd;
+		border: 2rpx solid rgba(151, 151, 151, 1);
 		border-radius: 8px;
-		margin-right: 20rpx;
+		margin-right: 30rpx;
+		margin-left: 30rpx;
 		font-size: 28rpx;
 		box-sizing: border-box;
+		margin-top: 20rpx;
+		padding-left: 20rpx;
 	}
 	
 	.send-button {
-		width: 140rpx;
-		height: 80rpx;
+		width: 108rpx;
+		height: 52rpx;
 		background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
 		color: #fff;
 		border-radius: 8px;
@@ -83,9 +90,11 @@
 		justify-content: center;
 		border: none;
 		padding: 0;
+		margin-right: 30rpx;
 		box-sizing: border-box;
 		transition: all 0.3s; /* 添加过渡效果 */
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1); /* 添加阴影 */
+		margin-top: 20rpx;
 	}
 	
 	.send-button:disabled {

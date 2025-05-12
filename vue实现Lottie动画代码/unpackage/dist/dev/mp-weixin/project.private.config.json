@@ -3,5 +3,18 @@
   "setting": {
     "urlCheck": false,
     "bigPackageSizeSupport": true
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages_AI_Login_Match/AI/AI",
+          "pathName": "pages_AI_Login_Match/AI/AI",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
   }
 }

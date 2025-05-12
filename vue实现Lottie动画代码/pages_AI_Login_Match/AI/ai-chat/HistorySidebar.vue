@@ -4,27 +4,99 @@
 			<text class="sidebar-title">历史记录</text>
 		</view>
 		<scroll-view class="history-list" scroll-y="true">
-			<view class="empty-history" v-if="historySummaries.length === 0">
-				<text class="empty-history-text">暂无历史记录</text>
-			</view>
-			<view v-else>
-				<view 
-					v-for="(item, index) in historySummaries" 
-					:key="item.id" 
-					class="history-item"
-					:class="{'active': currentChatId === item.id}"
-					@click="loadChatHistory(item.id)">
-					<view class="history-item-content">
-						<text class="history-title">{{item.abstract || item.title || '对话 ' + (index + 1)}}</text>
-						<text class="history-time">{{formatTime(item.updatedAt || item.createdAt)}}</text>
+			<!-- 今天 -->
+			<view v-if="groupedHistory.today && groupedHistory.today.length">
+				<view class="history-group-title">今天</view>
+				<view v-for="item in groupedHistory.today" :key="item.id" class="history-item-outer" :class="{'active': currentChatId === item.id}">
+					<view v-if="currentChatId === item.id" class="history-item-outer-gradient" @click="loadChatHistory(item.id)">
+						<view class="history-item-inner">
+							<view class="history-item-content">
+								<text class="history-title">{{item.abstract || item.title}}</text>
+							</view>
+							<view class="history-actions">
+								<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+								<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+    								<image class="delete-icon-img" src="../.././static/AIchat/delate.png" mode="aspectFit" />
+								</view>
+							</view>
+						</view>
 					</view>
-					<view class="history-actions">
-						<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
-						<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
-							<text class="delete-icon">×</text>
+					<view v-else class="history-item-inner" @click="loadChatHistory(item.id)">
+						<view class="history-item-content">
+							<text class="history-title">{{item.abstract || item.title}}</text>
+						</view>
+						<view class="history-actions">
+							<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+							<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+    							<image class="delete-icon-img" src="../.././static/AIchat/delate.png" mode="aspectFit" />
+							</view>
 						</view>
 					</view>
 				</view>
+			</view>
+			<!-- 七天内 -->
+			<view v-if="groupedHistory.week && groupedHistory.week.length">
+				<view class="history-group-title">七天内</view>
+				<view v-for="item in groupedHistory.week" :key="item.id" class="history-item-outer" :class="{'active': currentChatId === item.id}">
+					<view v-if="currentChatId === item.id" class="history-item-outer-gradient" @click="loadChatHistory(item.id)">
+						<view class="history-item-inner">
+							<view class="history-item-content">
+								<text class="history-title">{{item.abstract || item.title}}</text>
+							</view>
+							<view class="history-actions">
+								<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+								<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+    								<image class="delete-icon-img" src="../.././static/AIchat/delate.png" mode="aspectFit" />
+								</view>
+							</view>
+						</view>
+					</view>
+					<view v-else class="history-item-inner" @click="loadChatHistory(item.id)">
+						<view class="history-item-content">
+							<text class="history-title">{{item.abstract || item.title}}</text>
+						</view>
+						<view class="history-actions">
+							<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+							<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+    							<image class="delete-icon-img" src="../.././static/AIchat/delate.png" mode="aspectFit" />
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+			<!-- 30天内 -->
+			<view v-if="groupedHistory.month && groupedHistory.month.length">
+				<view class="history-group-title">30天内</view>
+				<view v-for="item in groupedHistory.month" :key="item.id" class="history-item-outer" :class="{'active': currentChatId === item.id}">
+					<view v-if="currentChatId === item.id" class="history-item-outer-gradient" @click="loadChatHistory(item.id)">
+						<view class="history-item-inner">
+							<view class="history-item-content">
+								<text class="history-title">{{item.abstract || item.title}}</text>
+							</view>
+							<view class="history-actions">
+								<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+								<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+    								<image class="delete-icon-img" src="../.././static/AIchat/delate.png" mode="aspectFit" />
+								</view>
+							</view>
+						</view>
+					</view>
+					<view v-else class="history-item-inner" @click="loadChatHistory(item.id)">
+						<view class="history-item-content">
+							<text class="history-title">{{item.abstract || item.title}}</text>
+						</view>
+						<view class="history-actions">
+							<text class="mode-badge" v-if="item.chatMode">{{getModeLabel(item.chatMode)}}</text>
+							<view class="history-delete" @click.stop="deleteChatHistory(item.id, $event)">
+    							<image class="delete-icon-img" src="../.././static/AIchat/delate.png" mode="aspectFit" />
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+			<!-- 没有历史记录 -->
+			<view class="empty-history" v-if="!hasAnyHistory">
+				<text class="empty-history-text">暂无历史记录</text>
 			</view>
 		</scroll-view>
 	</view>
@@ -34,8 +106,10 @@
 	import { mapState, mapActions } from 'vuex';
 	
 	/**
-	 * @description 历史记录侧边栏组件
+	 * @description 历史记录侧边栏组件，按时间分组显示
 	 * @property {Boolean} visible - 侧边栏是否可见
+	 * @property {Object} groupedHistory - 按时间分组的历史记录
+	 * @property {String} currentChatId - 当前选中的聊天ID
 	 * @event {Function} loadChat - 加载聊天历史记录
 	 * @event {Function} deleteChat - 删除聊天历史记录
 	 */
@@ -45,6 +119,14 @@
 			visible: {
 				type: Boolean,
 				default: false
+			},
+			groupedHistory: {
+				type: Object,
+				default: () => ({ today: [], week: [], month: [] })
+			},
+			currentChatId: {
+				type: String,
+				default: ''
 			}
 		},
 		computed: {
@@ -75,36 +157,12 @@
 			}),
 			
 			/**
-			 * @description 历史聊天摘要数组（只包含ID、标题等基本信息）
-			 * @returns {Array} 历史聊天摘要数组
+			 * @description 是否有任何历史记录
+			 * @returns {Boolean}
 			 */
-			historySummaries() {
-				// 添加防御性检查，确保 conversations 存在
-				if (!this.conversations) {
-					console.warn('conversations 是 undefined');
-					return [];
-				}
-				
-				try {
-					return this.conversations.map(conv => ({
-						id: conv.id,
-						abstract: conv.abstract,
-						chatMode: conv.chatMode,
-						createdAt: conv.createdAt,
-						updatedAt: conv.updatedAt
-					}));
-				} catch (e) {
-					console.error('处理 historySummaries 出错:', e);
-					return [];
-				}
-			},
-			
-			/**
-			 * @description 当前选中的聊天ID
-			 * @returns {String} 当前选中的聊天ID
-			 */
-			currentChatId() {
-				return this.activeConversation;
+			hasAnyHistory() {
+				const g = this.groupedHistory;
+				return (g.today && g.today.length) || (g.week && g.week.length) || (g.month && g.month.length);
 			}
 		},
 		created() {
@@ -192,23 +250,7 @@
 				this.$emit('deleteChat', chatId);
 			},
 			
-			/**
-			 * @description 格式化时间
-			 * @param {Date|String} time - 时间对象或时间字符串
-			 * @returns {String} 格式化后的时间字符串
-			 */
-			formatTime(time) {
-				if (!time) return '';
-				
-				const date = new Date(time);
-				const year = date.getFullYear();
-				const month = String(date.getMonth() + 1).padStart(2, '0');
-				const day = String(date.getDate()).padStart(2, '0');
-				const hours = String(date.getHours()).padStart(2, '0');
-				const minutes = String(date.getMinutes()).padStart(2, '0');
-				
-				return `${year}-${month}-${day} ${hours}:${minutes}`;
-			}
+
 		}
 	}
 </script>
@@ -216,17 +258,19 @@
 <style>
 	.history-sidebar {
 		position: fixed;
-		top: 0;
+		top: 206rpx;
 		left: 0;
-		width: 66vw; /* 占屏幕宽度的2/3 */
-		height: 100vh;
+		width: 66vw;
+		height: calc(100vh - 88rpx);
 		background-color: #ffffff;
 		transform: translateX(-100%);
 		transition: transform 0.3s ease;
-		z-index: 999;
+		z-index: 2000;
 		box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.1);
 		display: flex;
 		flex-direction: column;
+		padding-left: 32rpx;
+		padding-right: 32rpx;
 	}
 	
 	.history-sidebar.visible {
@@ -234,25 +278,24 @@
 	}
 	
 	.sidebar-header {
-		padding: 30rpx 20rpx;
-		border-bottom: 1rpx solid #eee;
+		padding: 30rpx 0 30rpx 0;
 		display: flex;
-		align-items: center;
-		justify-content: center;
+		justify-content: flex-start;
 		height: 80rpx;
 	}
 	
 	.sidebar-title {
-		font-size: 32rpx;
-		color: #333;
-		font-weight: 500;
+		font-size: 36rpx;
+		color: rgba(47, 47, 47, 1);
+		font-weight: 600;
+		margin-left: 20rpx;
 	}
 	
 	.history-list {
 		flex: 1;
-		height: calc(100vh - 80rpx);
+		height: calc(100vh - 168rpx);
 		padding: 0;
-		background-color: #f9f9f9;
+		background-color: rgba(255, 255, 255, 1);
 	}
 	
 	.empty-history {
@@ -260,7 +303,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 40rpx;
+		padding: 40rpx 0;
 		color: #999;
 	}
 	
@@ -269,25 +312,44 @@
 		font-size: 28rpx;
 	}
 	
-	.history-item {
-		padding: 30rpx 20rpx;
-		background-color: #ffffff;
+	.history-item-outer {
+		width: 100%;
+		border-radius: 16px;
 		margin-bottom: 2rpx;
+		box-sizing: border-box;
+	}
+	
+	.history-item-outer-gradient {
+		width: 100%;
+		border-radius: 40rpx;
+		padding: 2rpx 0;
+		box-sizing: border-box;
+		background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+	}
+	
+	.history-item-inner {
+		width: 100%;
+		border-radius: 40rpx;
+		background: #fff;
+		overflow: hidden;
 		display: flex;
 		flex-direction: row;
-		justify-content: space-between;
+		position: relative;
+		padding: 10rpx 20rpx;
 		align-items: center;
-		border-bottom: 1rpx solid #f0f0f0;
+		justify-content: space-between;
 		transition: all 0.2s;
 	}
 	
-	.history-item:active {
-		background-color: #f5f5f5;
-	}
-	
-	.history-item.active {
-		background-color: #e6f7ff;
-		border-left: 4rpx solid #1890ff;
+	.history-item-outer.active .history-item-inner::after{
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(180deg, rgba(194, 221, 250, 0.1) 11.54%, rgba(34, 136, 249, 0.1) 111.54%);
+
 	}
 	
 	.history-item-content {
@@ -298,9 +360,12 @@
 	}
 	
 	.history-title {
-		font-size: 28rpx;
-		color: #333;
-		margin-bottom: 10rpx;
+		font-family: PingFang SC;
+		font-weight: 400;
+		font-size: 26rpx;
+		line-height: 100%;
+		letter-spacing: -1.1rpx;
+		color: rgba(0, 0, 0, 1);
 		/* 单行文本截断 */
 		white-space: nowrap;
 		overflow: hidden;
@@ -308,10 +373,6 @@
 		max-width: 80%;
 	}
 	
-	.history-time {
-		font-size: 24rpx;
-		color: #999;
-	}
 	
 	.history-actions {
 		display: flex;
@@ -321,26 +382,34 @@
 	
 	.mode-badge {
 		font-size: 22rpx;
-		color: #fff;
-		background-color: #1890ff;
+		color: rgba(34, 136, 249, 0.8);
 		padding: 6rpx 12rpx;
 		border-radius: 20rpx;
 		margin-right: 16rpx;
 	}
 	
 	.history-delete {
-		width: 60rpx;
-		height: 60rpx;
+		width: 28rpx;
+		height: 28rpx;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		border-radius: 50%;
-		background-color: #f5f5f5;
 	}
 	
-	.delete-icon {
-		font-size: 36rpx;
-		color: #ff4d4f;
-		line-height: 1;
+	.delete-icon-img {
+		width: 28rpx;
+		height: 28rpx;
+	}
+	.history-group-title {
+		font-family: PingFang SC;
+		font-weight: 400;
+		font-size: 24rpx;
+		line-height: 100%;
+		letter-spacing: -1.1rpx;
+		color: #888;
+		font-weight: bold;
+		padding: 20rpx 0 10rpx 0;
+		margin-left: 20rpx;
 	}
 </style> 
