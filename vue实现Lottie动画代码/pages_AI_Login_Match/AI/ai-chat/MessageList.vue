@@ -26,6 +26,8 @@
 						:status="msg.status"
 						:streaming="msg.streaming"
 						:ai-title="aiTitle"
+						:user-avatar="userAvatar"
+						:ai-avatar="aiAvatar"
 						@retry="$emit('retryMessage', index)">
 					</message-item>
 				</view>
@@ -36,6 +38,7 @@
 
 <script>
 	import MessageItem from './MessageItem';
+	import { mapState } from 'vuex';
 	
 	/**
 	 * @description 消息列表组件
@@ -68,6 +71,14 @@
 			autoScrollId: {
 				type: String,
 				default: ''
+			}
+		},
+		computed: {
+			...mapState({
+				userAvatar: state => state.user.baseInfo.avatar
+			}),
+			aiAvatar() {
+				return '../../static/AIchat/welcomeImage.png';
 			}
 		},
 		methods: {
@@ -150,5 +161,14 @@
 	.message-list {
 		display: flex;
 		flex-direction: column;
+	}
+	
+	.ai-avatar {
+		left: 10rpx;
+		top: 0;
+	}
+	.user-avatar {
+		right: 10rpx;
+		top: 0;
 	}
 </style> 

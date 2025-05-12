@@ -5,7 +5,7 @@
 		</view>
 		<scroll-view class="history-list" scroll-y="true">
 			<!-- 今天 -->
-			<view v-if="groupedHistory.today && groupedHistory.today.length">
+			<view v-if="groupedHistory.today && groupedHistory.today.length" class="history-group">
 				<view class="history-group-title">今天</view>
 				<view v-for="item in groupedHistory.today" :key="item.id" class="history-item-outer" :class="{'active': currentChatId === item.id}">
 					<view v-if="currentChatId === item.id" class="history-item-outer-gradient" @click="loadChatHistory(item.id)">
@@ -35,7 +35,7 @@
 				</view>
 			</view>
 			<!-- 七天内 -->
-			<view v-if="groupedHistory.week && groupedHistory.week.length">
+			<view v-if="groupedHistory.week && groupedHistory.week.length" class="history-group">
 				<view class="history-group-title">七天内</view>
 				<view v-for="item in groupedHistory.week" :key="item.id" class="history-item-outer" :class="{'active': currentChatId === item.id}">
 					<view v-if="currentChatId === item.id" class="history-item-outer-gradient" @click="loadChatHistory(item.id)">
@@ -65,7 +65,7 @@
 				</view>
 			</view>
 			<!-- 30天内 -->
-			<view v-if="groupedHistory.month && groupedHistory.month.length">
+			<view v-if="groupedHistory.month && groupedHistory.month.length" class="history-group">
 				<view class="history-group-title">30天内</view>
 				<view v-for="item in groupedHistory.month" :key="item.id" class="history-item-outer" :class="{'active': currentChatId === item.id}">
 					<view v-if="currentChatId === item.id" class="history-item-outer-gradient" @click="loadChatHistory(item.id)">
@@ -395,6 +395,7 @@
 		justify-content: center;
 		align-items: center;
 		border-radius: 50%;
+		z-index: 1000;
 	}
 	
 	.delete-icon-img {
@@ -411,5 +412,8 @@
 		font-weight: bold;
 		padding: 20rpx 0 10rpx 0;
 		margin-left: 20rpx;
+	}
+	.history-group {
+		padding-bottom: 40rpx;
 	}
 </style> 

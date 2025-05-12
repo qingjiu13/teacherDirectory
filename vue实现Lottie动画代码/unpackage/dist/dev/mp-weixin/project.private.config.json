@@ -8,6 +8,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages_AI_Login_Match/login/wechat_login",
+          "pathName": "pages_AI_Login_Match/login/wechat_login",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages_AI_Login_Match/AI/AI",
           "pathName": "pages_AI_Login_Match/AI/AI",
           "query": "",

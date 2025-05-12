@@ -23,8 +23,8 @@
       <!-- 微信登录按钮 -->
       <button class="login-btn" @click="onWxLogin" v-if="!hasLogin">
         <view class="btn-content">
-          <image class="wechat-icon" src="/static/image/defaultAvatar/teacher-man.png"></image>
-          <text class="login-text">微信一键登录</text>
+          <image class="wechat-icon" src="../static/login/wechat.png"></image>
+          <text class="login-text">微信登录</text>
         </view>
       </button>
       
@@ -496,11 +496,11 @@ export default {
     }
     
     .login-btn {
-      width: 100%;
-      height: 90rpx;
-      line-height: 90rpx;
-      border-radius: 45rpx;
-      background: linear-gradient(to right, #07C160, #09BB07);
+      width: 318rpx;
+      height: 88rpx;
+      line-height: 50rpx;
+      border-radius: 20rpx;
+      background: rgba(22, 217, 26, 1);
       color: #fff;
       font-size: 32rpx;
       padding: 0;
@@ -522,13 +522,18 @@ export default {
       }
       
       .wechat-icon {
-        width: 40rpx;
-        height: 40rpx;
-        margin-right: 15rpx;
+        width: 48rpx;
+        height: 38rpx;
+        margin-right: 40rpx;
       }
 
       .login-text {
-        display: inline-block;
+        font-family: PingFang SC;
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 100%;
+        letter-spacing: -0.68px;
+        text-align: center;
       }
     }
     

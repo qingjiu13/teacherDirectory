@@ -1065,7 +1065,6 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		padding: 0 20rpx;
 		border-bottom: none; /* 移除底部边框 */
 		position: relative;
 		z-index: 11; /* 提高z-index，确保显示在筛选区域上方 */
@@ -1088,11 +1087,6 @@
 	.history-btn .iconfont {
 		font-size: 48rpx;
 		color: #333;
-	}
-	
-	/* 使用图标替代文字，如果没有图标字体可以使用以下替代样式 */
-	.history-btn .iconfont:before {
-		content: "≡"; /* 使用三横线作为菜单图标 */
 	}
 	
 	/* 新增图片图标样式 */
