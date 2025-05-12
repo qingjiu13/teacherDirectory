@@ -15,7 +15,7 @@ export const IndexRoutes = {
  */
 export const MatchRoutes = {
 	MATCH: '/pages_AI_Login_Match/match/match',
-	TEACHER: '/pages/teacher/teacher'
+	TEACHER: '/pagesMine/teacher/teacher'
 };
 
 /**

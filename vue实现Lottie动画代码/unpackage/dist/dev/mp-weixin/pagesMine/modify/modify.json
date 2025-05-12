@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "修改信息",
-  "usingComponents": {}
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "header": "../../components/navigationTitleBar/header"
+  }
 }

@@ -19,12 +19,6 @@
 			}
 		},
 		{
-			"path": "pages/teacher/teacher",
-			"style": {
-				"navigationBarTitleText": "导师详情"
-			}
-		},
-		{
 			"path": "pages/message/message",
 			"style": {
 				"navigationBarTitleText": "消息列表"
@@ -50,7 +44,7 @@
 				{
 					"path": "login/wechat_login",
 					"style": {
-						"navigationBarTitleText": "微信登录"
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -74,6 +68,12 @@
 					"path": "settings/settings",
 					"style": {
 						"navigationBarTitleText": "系统设置"
+					}
+				},
+				{
+					"path": "teacher/teacher",
+					"style": {
+						"navigationBarTitleText": "导师详情"
 					}
 				},
 				{
@@ -109,7 +109,7 @@
 				{
 					"path":"modify/modify",
 					"style": {
-						"navigationBarTitleText": "修改信息"
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -134,6 +134,14 @@
 		}
 	],
 	"preloadRule": {
+		"pages_AI_Login_Match/match/match": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pages_AI_Login_Match/AI/AI": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
 		"pages_AI_Login_Match/login/login": {
 			"network": "all",
 			"packages": ["__APP__"]
@@ -178,11 +186,11 @@
 			"network": "all",
 			"packages": ["__APP__"]
 		},
-		"pages_AI_Login_Match/match/match": {
+		"pagesMine/modify/modify": {
 			"network": "all",
 			"packages": ["__APP__"]
 		},
-		"pages_AI_Login_Match/AI/AI": {
+		"pagesMine/teacher/teacher": {
 			"network": "all",
 			"packages": ["__APP__"]
 		}

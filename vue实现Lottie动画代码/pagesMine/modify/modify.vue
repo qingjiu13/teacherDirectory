@@ -1,103 +1,127 @@
 <template>
-	<view class="modify-container">
-		<view class="header">
-			<text class="header-title">个人资料</text>
-		</view>
-		
-		<!-- 表单区域 -->
-		<view class="form-container">
-			<!-- 头像 -->
-			<view class="form-item">
-				<text class="form-label">头像</text>
-				<view class="avatar-wrapper" @click="chooseAvatar">
-					<image :src="userInfo.avatar || '/static/image/defaultAvatar/teacher-man.png'" class="avatar" mode="aspectFill"></image>
-					<view class="avatar-edit-icon">
-						<text class="icon">✏️</text>
+	<Header :title="'修改资料'" @back="handleBack" class="header-container"/>
+	<view class="background-image">
+    <image
+        src="../static/background1.png"
+        mode="aspectFill" alt="背景图"
+      />
+    </view>
+    <view class="background-image">
+      <image
+        src="../static/background.png"
+        mode="aspectFill" alt="背景图"
+      />
+    </view>
+	<scroll-view class="container">
+		<view class="modify-container">
+
+			<!-- 表单区域 -->
+			<view class="form-container">
+				<!-- 头像 -->
+				<view class="form-item horizontal-item">
+					<text class="form-label">头像</text>
+					<view class="input-container">
+						<view class="avatar-wrapper" @click="chooseAvatar">
+							<image :src="userInfo.avatar || '/static/image/defaultAvatar/teacher-man.png'" class="avatar" mode="aspectFill"></image>
+						</view>
 					</view>
 				</view>
-			</view>
-			
-			<!-- 昵称 -->
-			<view class="form-item">
-				<text class="form-label">昵称</text>
-				<input 
-					type="text" 
-					v-model="userInfo.nickname" 
-					placeholder="请输入昵称" 
-					class="form-input" 
-					maxlength="20"
-				/>
-			</view>
-			
-			<!-- 个人介绍 -->
-			<view class="form-item">
-				<text class="form-label">个人介绍</text>
-				<textarea 
-					v-model="userInfo.introduction" 
-					placeholder="请输入个人介绍" 
-					class="form-textarea" 
-					maxlength="200"
-				></textarea>
-				<text class="word-count">{{userInfo.introduction.length}}/200</text>
-			</view>
-			
-			<!-- 性别 -->
-			<view class="form-item">
-				<text class="form-label">性别</text>
-				<view class="radio-group">
-					<view class="radio-item" @click="userInfo.gender = '男'">
-						<view class="radio-circle" :class="{'selected': userInfo.gender === '男'}"></view>
-						<text class="radio-text">男</text>
-					</view>
-					<view class="radio-item" @click="userInfo.gender = '女'">
-						<view class="radio-circle" :class="{'selected': userInfo.gender === '女'}"></view>
-						<text class="radio-text">女</text>
+				
+				<!-- 昵称 -->
+				<view class="form-item horizontal-item">
+					<text class="form-label">昵称</text>
+					<view class="input-container">
+						<input 
+							type="text" 
+							v-model="userInfo.nickname" 
+							placeholder="请输入昵称" 
+							class="form-input" 
+							maxlength="20"
+						/>
 					</view>
 				</view>
-			</view>
-			
-			<!-- 手机号 -->
-			<view class="form-item">
-				<text class="form-label">手机号</text>
-				<input 
-					type="number" 
-					v-model="userInfo.phone" 
-					placeholder="请输入手机号" 
-					class="form-input" 
-					maxlength="11"
-				/>
-			</view>
-			
-			<!-- 微信号 -->
-			<view class="form-item">
-				<text class="form-label">微信号</text>
-				<input 
-					type="text" 
-					v-model="userInfo.wechat" 
-					placeholder="请输入微信号" 
-					class="form-input" 
-					maxlength="30"
-				/>
-			</view>
-			
-			<!-- 密码 -->
-			<view class="form-item">
-				<text class="form-label">密码</text>
-				<input 
-					type="password" 
-					v-model="userInfo.password" 
-					placeholder="请输入密码" 
-					class="form-input" 
-					maxlength="20"
-				/>
+				
+
+				
+				<!-- 性别 -->
+				<view class="form-item horizontal-item">
+					<text class="form-label">性别</text>
+					<view class="input-container">
+						<view class="radio-group">
+							<view class="radio-item" @click="userInfo.gender = '男'">
+								<view class="radio-circle" :class="{'selected': userInfo.gender === '男'}"></view>
+								<text class="radio-text">男</text>
+							</view>
+							<view class="radio-item" @click="userInfo.gender = '女'">
+								<view class="radio-circle" :class="{'selected': userInfo.gender === '女'}"></view>
+								<text class="radio-text">女</text>
+							</view>
+						</view>
+					</view>
+				</view>
+				
+				<!-- 手机号 -->
+				<view class="form-item horizontal-item">
+					<text class="form-label">手机号</text>
+					<view class="input-container">
+						<input 
+							type="number" 
+							v-model="userInfo.phone" 
+							placeholder="请输入手机号" 
+							class="form-input" 
+							maxlength="11"
+						/>
+					</view>
+				</view>
+				
+				<!-- 微信号 -->
+				<view class="form-item horizontal-item">
+					<text class="form-label">微信号</text>
+					<view class="input-container">
+						<input 
+							type="text" 
+							v-model="userInfo.wechat" 
+							placeholder="请输入微信号" 
+							class="form-input" 
+							maxlength="30"
+						/>
+					</view>
+				</view>
+				
+				<!-- 密码 -->
+				<view class="form-item horizontal-item">
+					<text class="form-label">密码</text>
+					<view class="input-container">
+						<input 
+							type="password" 
+							v-model="userInfo.password" 
+							placeholder="请输入密码" 
+							class="form-input" 
+							maxlength="20"
+						/>
+					</view>
+				</view>
+				<!-- 个人介绍 -->
+				<view class="form-item">
+					<text class="form-label">个人介绍</text>
+						<textarea 
+							v-model="userInfo.introduction" 
+							placeholder="请输入个人介绍" 
+							class="form-textarea" 
+							maxlength="200"
+						></textarea>
+					<text class="word-count">{{userInfo.introduction.length}}/200</text>
+				</view>
+				<!-- 保存按钮 -->
+				<view class="save-button-container">
+					<button class="save-button" @click="saveProfile" :disabled="updating">
+						<image src="../static/modify/submit.png" mode="aspectFill" class="save-button-image"/>
+						<text class="save-button-text">提交</text>
+					</button>
+				</view>
 			</view>
 		</view>
-		
-		<!-- 保存按钮 -->
-		<view class="save-button-container">
-			<button class="save-button" @click="saveProfile" :disabled="updating">保存</button>
-		</view>
-	</view>
+	</scroll-view>
 </template>
 
 <script>
@@ -106,8 +130,12 @@
  */
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 import { Navigator } from '@/router/Router.js';
+import Header from '@/components/navigationTitleBar/header.vue';
 
 export default {
+	components: {
+		Header
+	},
 	data() {
 		return {
 			userInfo: {
@@ -186,8 +214,7 @@ export default {
 			} catch (error) {
 				console.error('获取用户信息失败', error);
 				uni.showToast({
-					title: '获取用户信息失败',
-					icon: 'none'
+					title: '获取用户信息失败' 
 				});
 			}
 		},
@@ -209,7 +236,9 @@ export default {
 			});
 		},
 		
-		
+		handleBack() {
+			uni.navigateBack();
+		},
 		/**
 		 * @description 保存用户资料
 		 */
@@ -217,8 +246,7 @@ export default {
 			// 基本验证
 			if (!this.userInfo.nickname) {
 				uni.showToast({
-					title: '昵称不能为空',
-					icon: 'none'
+					title: '昵称不能为空' 
 				});
 				return;
 			}
@@ -226,8 +254,7 @@ export default {
 			// 手机号格式验证
 			if (this.userInfo.phone && !/^1\d{10}$/.test(this.userInfo.phone)) {
 				uni.showToast({
-					title: '手机号格式不正确',
-					icon: 'none'
+					title: '手机号格式不正确' 
 				});
 				return;
 			}
@@ -235,8 +262,7 @@ export default {
 			// 检查数据是否有变更
 			if (!this.isDataChanged) {
 				uni.showToast({
-					title: '未检测到数据变更',
-					icon: 'none'
+					title: '未检测到数据变更' 
 				});
 				setTimeout(() => {
 					uni.navigateBack();
@@ -271,7 +297,6 @@ export default {
 				// 显示成功提示
 				uni.showToast({
 					title: '保存成功',
-					icon: 'success'
 				});
 				
 				// 更新原始数据，防止重复提交
@@ -284,8 +309,7 @@ export default {
 			} catch (error) {
 				console.error('保存失败', error);
 				uni.showToast({
-					title: error.message || '保存失败',
-					icon: 'none'
+					title: error.message || '保存失败' 
 				});
 			} finally {
 				this.updating = false;
@@ -296,44 +320,89 @@ export default {
 </script>
 
 <style>
+.header-container {
+	/**
+	 * @description 固定顶部导航栏，背景不透明，确保在最上层
+	 */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: #fff;
+	z-index: 100;
+}
+
+.container {
+	/**
+	 * @description 填充除header外的所有区域，底部透明
+	 */
+	position: absolute;
+	top: 206rpx; /* header高度 */
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	background: transparent;
+	z-index: 1;
+	overflow: auto;
+}
+
 .modify-container {
 	display: flex;
 	flex-direction: column;
 	min-height: 100vh;
-	background-color: #f8f8f8;
-}
-
-.header {
-	height: 100rpx;
-	background-color: #ffffff;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	border-bottom: 1rpx solid #f0f0f0;
-}
-
-.header-title {
-	font-size: 36rpx;
-	font-weight: bold;
-	color: #333333;
+	background-color: transparent;
 }
 
 .form-container {
-	padding: 20rpx;
-	background-color: #ffffff;
+	background-color: transparent;
 	margin-top: 20rpx;
 }
 
 .form-item {
 	padding: 30rpx 0;
-	border-bottom: 1rpx solid #f0f0f0;
+
+}
+
+/* 水平排列的表单项样式 */
+.horizontal-item {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 2rpx solid rgba(217, 217, 217, 1);
 }
 
 .form-label {
-	font-size: 32rpx;
-	color: #333333;
-	margin-bottom: 20rpx;
+	margin-left: 40rpx;
+	font-size: 28rpx;
 	display: block;
+	font-family: PingFang SC;
+	font-weight: 500;
+	line-height: 100%;
+	letter-spacing: -0.55px;
+	color: rgba(0, 0, 0, 1);
+}
+
+/* 水平布局时标签样式 */
+.horizontal-item .form-label {
+	margin-bottom: 0;
+	width: 160rpx;
+	flex-shrink: 0;
+}
+
+/* 输入区域容器 */
+.input-container {
+	flex: 1;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+/* 个人介绍的输入容器特殊处理，不需要右对齐 */
+.form-item:not(.horizontal-item) .input-container {
+	display: block;
+	justify-content: flex-start;
 }
 
 .form-input {
@@ -343,6 +412,12 @@ export default {
 	border-radius: 8rpx;
 	padding: 0 20rpx;
 	font-size: 28rpx;
+}
+
+/* 水平布局中的输入框样式调整，限制最大宽度，保持右对齐 */
+.horizontal-item .form-input {
+	max-width: 400rpx;
+	width: auto;
 }
 
 .form-textarea {
@@ -363,36 +438,27 @@ export default {
 
 .avatar-wrapper {
 	position: relative;
-	width: 150rpx;
-	height: 150rpx;
-	margin: 0 auto;
+	width: 90rpx;
+	height: 90rpx;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
 }
 
 .avatar {
-	width: 150rpx;
-	height: 150rpx;
+	width: 90rpx;
+	height: 90rpx;
 	border-radius: 75rpx;
 	background-color: #f0f0f0;
-}
-
-.avatar-edit-icon {
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	width: 50rpx;
-	height: 50rpx;
-	background-color: #ffffff;
-	border-radius: 25rpx;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 }
 
 .radio-group {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	justify-content: flex-end;
+	width: auto;
 }
 
 .radio-item {
@@ -451,22 +517,51 @@ export default {
 }
 
 .save-button-container {
-	padding: 40rpx 20rpx;
+	padding: 20rpx 40rpx 20rpx;
 }
 
 .save-button {
 	width: 100%;
-	height: 90rpx;
-	background-color: #2196F3;
+	height: 76rpx;
+	background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
 	color: #ffffff;
 	border-radius: 45rpx;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	font-size: 32rpx;
+	border-radius: 20rpx;
+	flex-direction: row;
 }
 
-.save-button[disabled] {
-	background-color: #cccccc;
+
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+.background-image image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.save-button-image{
+	width: 36rpx;
+	height: 36rpx;
+	margin-right: 30rpx;
+}
+.save-button-text{
+	font-size: 32rpx;
+	color: rgba(255, 255, 255, 1);
+	font-family: PingFang SC;
+	font-weight: 400;
+	line-height: 100%;
+	letter-spacing: -0.68px;
+	text-align: center;
+
 }
 </style>

@@ -246,9 +246,9 @@ export default {
   height: 100%;
   border-radius: 40rpx;
   background: #fff;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   justify-content: stretch;
   position: relative;
 }

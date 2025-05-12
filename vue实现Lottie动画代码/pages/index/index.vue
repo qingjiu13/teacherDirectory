@@ -321,7 +321,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  padding-bottom: 120rpx;
+  padding-bottom: 180rpx; /* 调整底部间距，确保内容不被tab-bar遮挡 */
   /* background-color: #f8f8f8; */
   z-index: 1;
 }

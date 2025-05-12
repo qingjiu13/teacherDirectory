@@ -2,8 +2,8 @@
 	<view class="tab-bar-wrapper">
 		<view class="tab-bar">
 			<view class="tab-item index-tab" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
-				<image class="nav-icon" :src="getIconPath('index')"></image>
-				<text class="tab-text">主页</text>
+				<image class="nav-icon index-icon" :src="getIconPath('index')"></image>
+				<text class="index-tab tab-text">精准匹配</text>
 			</view>
 			<view class="tab-item message-tab" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
 				<image class="nav-icon" :src="getIconPath('message')"></image>
@@ -50,11 +50,12 @@
 				 */
 				iconPaths: {
 					'index': {
-						normal: '/static/image/tab-bar/mineDown.png',
-						active: '/static/image/tab-bar/mineUp.png'
+						normal: '/static/image/tab-bar/index.png',
+						active: '/static/image/tab-bar/index.png'
 					},
 					'AI': {
 						normal: '/static/image/tab-bar/AI.png',
+						active: '/static/image/tab-bar/AI.png'
 					},
 					'message': {
 						normal: '/static/image/tab-bar/messageDown.png',
@@ -152,49 +153,72 @@
 <style>
 	.tab-bar-wrapper {
 		width: 100%;
-		height: 80px;
+		height: 160rpx;
 		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
 		z-index: 999;
+		overflow: visible; /* 确保wrapper允许内容溢出 */
 	}
+
 	
 	.tab-bar {
 		display: flex;
 		flex-direction: row;
 		width: 100%;
-		height: 80px;
+		height: 160rpx;
 		border-top: 1px solid #eeeeee;
 		background: linear-gradient(180deg, #e9eaff 11.54%, #747aff 111.54%);
+		overflow: visible; /* 确保tab-bar允许内容溢出 */
 	}
-	
+	.index-tab {
+		width: 40%;
+		position: relative; /* 父元素设置相对定位 */
+		align-items: center;
+		justify-content: flex-end;
+		overflow: visible; /* 确保index-tab允许内容溢出 */
+	}
 	.tab-item {
 		width: auto;
-		padding: 0 10px;
-		height: 55px;
+		padding: 0 20rpx;
+		height: 110rpx;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		overflow: visible; /* 确保所有tab-item允许内容溢出 */
 	}
 	
 	.nav-icon {
-		width: 24px;
-		height: 24px;
-		margin-bottom: 3px;
+		width: 48rpx;
+		height: 48rpx;
+		margin-bottom: 6rpx;
 	}
-	
+		/* 增加图片大小，并上移部分 */
+	.index-tab .nav-icon {
+		width: 232rpx;
+		height: 140rpx;
+		position: absolute;
+		top: -50rpx; /* 控制图片上浮，增加上浮距离 */
+		left: 50%; /* 水平居中定位 */
+		transform: translateX(-50%); /* 确保真正居中 */
+		z-index: 1000;
+	}
+
 	.tab-text {
 		font-family: 'PingFang SC', sans-serif;
 		font-weight: 400;
-		font-size: 10px;
+		font-size: 20rpx;
 		line-height: 100%;
-		letter-spacing: -0.63px;
+		letter-spacing: -1.26rpx;
 		text-align: center;
 		color: #000000;
 	}
-	
+	.index-tab .tab-text {
+		top:15rpx;
+		font-weight: 700;
+	}
 	.active .tab-text {
 		color: #5F26F7;
 	}

@@ -3,7 +3,6 @@
     "pages/index/index",
     "pages/message/chat",
     "pages/mine/mine_common",
-    "pages/teacher/teacher",
     "pages/message/message"
   ],
   "subPackages": [
@@ -21,6 +20,7 @@
       "root": "pagesMine",
       "pages": [
         "settings/settings",
+        "teacher/teacher",
         "wallet/wallet",
         "service/service",
         "course/course",
@@ -40,6 +40,18 @@
     "backgroundColor": "#F8F8F8"
   },
   "preloadRule": {
+    "pages_AI_Login_Match/match/match": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pages_AI_Login_Match/AI/AI": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
     "pages_AI_Login_Match/login/login": {
       "network": "all",
       "packages": [
@@ -106,13 +118,13 @@
         "__APP__"
       ]
     },
-    "pages_AI_Login_Match/match/match": {
+    "pagesMine/modify/modify": {
       "network": "all",
       "packages": [
         "__APP__"
       ]
     },
-    "pages_AI_Login_Match/AI/AI": {
+    "pagesMine/teacher/teacher": {
       "network": "all",
       "packages": [
         "__APP__"

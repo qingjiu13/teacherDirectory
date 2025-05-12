@@ -1,12 +1,20 @@
 <template>
+  <image
+      class="nav-back"
+      src="/static/image/navBack.png"
+      mode="aspectFit"
+      @click="goBack"
+  />
   <view class="login-container">
     <!-- 顶部背景图 -->
     <view class="header-bg">
-      <image class="bg-image" src="../static/login/login_qianduan_test.png" mode="widthFix"></image>
+      <image class="bg-image" src="../static/login/login_qianduan_test.png" mode="heightFix"></image>
     </view>
     
     <!-- 内容区域 -->
     <view class="content">
+      <!-- 底部模糊背景层 -->
+      <image class="blur-bottom-bg" src="../static/login/blur_bg.png" mode="widthFix"></image>
       <!-- 欢迎文案 -->
       <view class="welcome-text">
         <text class="title">欢迎使用</text>
@@ -34,14 +42,14 @@
       </button>
       
       <!-- 协议声明 -->
-		<view class="agreement">
-		  <text>登录即表示同意</text>
-		  <view class="link-group">
-			<text class="link" @click="showAgreement">《用户协议》</text>
-			<text>和</text>
-			<text class="link" @click="showPrivacy">《隐私政策》</text>
-		  </view>
-		</view>
+      <view class="agreement">
+        <text>登录即表示同意</text>
+        <view class="link-group">
+          <text class="link" @click="showAgreement">《用户协议》</text>
+          <text>和</text>
+          <text class="link" @click="showPrivacy">《隐私政策》</text>
+        </view>
+      </view>
     </view>
     
     <!-- 用户协议弹窗 -->
@@ -393,8 +401,8 @@ export default {
      * 根据注册状态跳转到相应页面
      * @returns {void}
      */
-    toHome() {
-      Navigator.redirectTo(IndexRoutes.INDEX);
+    goBack() {
+      Navigator.toIndex();
     },
     
     /**
@@ -431,134 +439,174 @@ export default {
 
 <style lang="scss" scoped>
 .login-container {
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f8f8;
+  position: relative;
+  overflow: hidden;
+  
+  .header-bg {
+    width: 100%;
+    height: 600rpx;
+    position: absolute;
+    top: 0;
+    left: 0;
+    
+    .bg-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.content {
+  position: absolute;
+  top: 600rpx;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.blur-bottom-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(100px);
+  pointer-events: none;
+}
+/* 返回按钮样式 */
+.nav-back {
+  position: absolute;
+  top: 134rpx;
+  left: 40rpx;
+  width: 72rpx;
+  height: 62rpx;
+  z-index: 100;
+}
+.login-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #f8f8f8;
   
-  .header-bg {
-    width: 100%;
-    height: 300rpx;
-    position: relative;
+  .welcome-text {
+    margin-top: 40rpx;
+    margin-bottom: 80rpx;
+    text-align: center;
     
-    .bg-image {
-      width: 100%;
-      height: 100%;
+    .title {
+      display: block;
+      font-size: 48rpx;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .subtitle {
+      display: block;
+      font-size: 28rpx;
+      color: #999;
+      margin-top: 20rpx;
     }
   }
   
-  .content {
-    flex: 1;
-    padding: 0 60rpx;
+  .avatar-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-bottom: 80rpx;
     
-    .welcome-text {
-      margin-top: 40rpx;
-      margin-bottom: 80rpx;
-      text-align: center;
-      
-      .title {
-        display: block;
-        font-size: 48rpx;
-        font-weight: bold;
-        color: #333;
-      }
-      
-      .subtitle {
-        display: block;
-        font-size: 28rpx;
-        color: #999;
-        margin-top: 20rpx;
-      }
+    .avatar {
+      width: 140rpx;
+      height: 140rpx;
+      border-radius: 50%;
+      border: 4rpx solid #fff;
+      box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
     }
     
-    .avatar-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 80rpx;
-      
-      .avatar {
-        width: 140rpx;
-        height: 140rpx;
-        border-radius: 50%;
-        border: 4rpx solid #fff;
-        box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
-      }
-      
-      .nickname {
-        margin-top: 20rpx;
-        font-size: 32rpx;
-        color: #333;
-      }
-    }
-    
-    .login-btn {
-      width: 318rpx;
-      height: 88rpx;
-      line-height: 50rpx;
-      border-radius: 20rpx;
-      background: rgba(22, 217, 26, 1);
-      color: #fff;
+    .nickname {
+      margin-top: 20rpx;
       font-size: 32rpx;
-      padding: 0;
-      border: none;
-      box-shadow: 0 10rpx 20rpx rgba(7, 193, 96, 0.3);
-      
-      &.logged-in {
-        background: linear-gradient(to right, #1989fa, #3194fa);
-        box-shadow: 0 10rpx 20rpx rgba(25, 137, 250, 0.3);
-      }
+      color: #333;
+    }
+  }
+  
+  .login-btn {
+    width: 318rpx;
+    height: 88rpx;
+    line-height: 50rpx;
+    border-radius: 20rpx;
+    background: rgba(22, 217, 26, 1);
+    color: #fff;
+    font-size: 32rpx;
+    padding: 0;
+    border: none;
+    box-shadow: 0 10rpx 20rpx rgba(7, 193, 96, 0.3);
+    
+    &.logged-in {
+      background: linear-gradient(to right, #1989fa, #3194fa);
+      box-shadow: 0 10rpx 20rpx rgba(25, 137, 250, 0.3);
+    }
 
-      .btn-content {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-      }
-      
-      .wechat-icon {
-        width: 48rpx;
-        height: 38rpx;
-        margin-right: 40rpx;
-      }
-
-      .login-text {
-        font-family: PingFang SC;
-        font-weight: 400;
-        font-size: 18px;
-        line-height: 100%;
-        letter-spacing: -0.68px;
-        text-align: center;
-      }
+    .btn-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
     }
     
-.agreement {
-  margin-top: 40rpx;
-  font-size: 24rpx;
-  color: #999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: nowrap;
-  flex-direction: row;
+    .wechat-icon {
+      width: 48rpx;
+      height: 38rpx;
+      margin-right: 40rpx;
+    }
 
-  .link-group {
+    .login-text {
+      font-family: PingFang SC;
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 100%;
+      letter-spacing: -0.68px;
+      text-align: center;
+    }
+  }
+  
+  .agreement {
+    margin-top: 40rpx;
+    font-size: 24rpx;
+    color: #999;
     display: flex;
-    flex-direction: row;
+    justify-content: center;
+    align-items: center;
     flex-wrap: nowrap;
-    gap: 6rpx; // 控制《用户协议》和之间的间距
-    margin-left: 8rpx;
-  }
+    flex-direction: row;
 
-  .link {
-    color: #1989fa;
-  }
-}
+    .link-group {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 6rpx; // 控制《用户协议》和之间的间距
+      margin-left: 8rpx;
+    }
+
+    .link {
+      color: #1989fa;
+    }
   }
   
   // 弹窗样式
@@ -636,17 +684,17 @@ export default {
   
   // 新增授权弹窗样式
   .auth-popup {
+    display: none;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 999;
-    visibility: hidden;
     transform: translateY(100%);
     transition: all 0.3s ease;
-    
+
     &.auth-popup-show {
-      visibility: visible;
+      display: block;
       transform: translateY(0);
     }
     
