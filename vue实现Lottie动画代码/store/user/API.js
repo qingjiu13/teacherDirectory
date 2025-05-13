@@ -38,11 +38,8 @@ export const ORDER_GET_ORDER_URL = 'http://localhost:8080/order/getOrder';
 // updateUserInfo API配置：更新用户信息
 export const USER_UPDATE_USER_INFO_URL = 'http://localhost:8080/user/updateUserInfo';
 
-// getBalance API配置：余额查询
-export const BALANCE_GET_BALANCE_URL = 'http://localhost:8080/balance/getBalance';
-
-// withdrawal API配置：余额提现
-export const BALANCE_WITHDRAWAL_URL = 'http://localhost:8080/balance/withdrawal';
+// getBalance API配置：账单查询
+export const TRANSACTION_GET_TRANSACTION_URL = 'http://localhost:8080/transaction/getTransaction';
 
 // wetherSignIn API配置：判断是否注册过
 export const LOGIN_WETHER_SIGN_IN_URL = 'http://localhost:8080/login/wetherSignIn';

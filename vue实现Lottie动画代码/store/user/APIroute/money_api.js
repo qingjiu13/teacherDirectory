@@ -1,53 +1,43 @@
-import { BALANCE_GET_BALANCE_URL, BALANCE_WITHDRAWAL_URL } from '../API';
-
 /**
- * 获取用户余额的API
+ * 获取指定用户的交易订单列表（分页）
  * @param {string} userId - 用户ID
- * @returns {Promise} - 返回请求结果的Promise
+ * @param {number} page - 当前页码（从1开始）
+ * @param {number} pageSize - 每页数量
+ * @returns {Promise<TransactionItem[]>}
  */
-export const getBalanceAPI = (userId) => {
+export const getTransactionAPI = (userId, page = 1, pageSize = 10) => {
     return new Promise((resolve, reject) => {
+        if (!userId) {
+            reject(new Error('userId 不能为空'));
+            return;
+        }
+
         uni.request({
-            url: BALANCE_GET_BALANCE_URL,
+            url: TRANSACTION_GET_TRANSACTION_URL,
             method: 'GET',
             header: {
                 'Content-Type': 'application/json'
             },
-            data: { userId }, // 添加用户ID参数
-            success: res => {
-                if (res.statusCode === 200) {
-                    resolve(res.data);
-                } else {
-                    reject(res.data);
-                }
+            data: {
+                userId,
+                page,
+                pageSize
             },
-            fail: reject
-        });
-    });
-};
+            success: (res) => {
+                const { statusCode, data } = res;
 
-/**
- * 提现API
- * @param {Object} data - 提现数据
- * @param {string} data.userId - 用户ID
- * @param {number} data.amount - 提现金额
- * @param {string} data.method - 提现方式
- * @returns {Promise} - 返回请求结果的Promise
- */
-export const withdrawAPI = (data) => {
-    return new Promise((resolve, reject) => {
-        uni.request({
-            url: BALANCE_WITHDRAWAL_URL,
-            method: 'POST',
-            header: {
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify(data), // data中应包含userId
-            success: res => {
-                if (res.statusCode === 200) {
-                    resolve(res.data);
+                if (statusCode === 200 && Array.isArray(data)) {
+                    const transactionList = data.map(item => ({
+                        id: String(item.id || ''),
+                        name: String(item.name || ''),
+                        date: String(item.date || ''),
+                        amount: typeof item.amount === 'number'
+                            ? item.amount
+                            : parseFloat(item.amount) || 0
+                    }));
+                    resolve(transactionList);
                 } else {
-                    reject(res.data);
+                    reject(new Error('接口返回格式错误或无数据'));
                 }
             },
             fail: reject

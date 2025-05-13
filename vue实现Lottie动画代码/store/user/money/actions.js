@@ -1,58 +1,48 @@
-/**
- * money模块的actions
- * @module store/user/money/actions
- */
-
-import { getBalanceAPI, withdrawAPI } from '../APIroute/money_api';
+import { getTransactionAPI } from '@/store/user/APIroute/money_api';
 
 export default {
     /**
-     * 获取用户余额
-     * @param {Object} context - Vuex的上下文对象
-     * @param {Function} context.commit - commit函数
-     * @param {Object} context.rootState - 根state对象
+     * 初始化加载交易数据（刷新）
+     * @param {*} param0 
+     * @param {string} userId 
      */
-    async fetchBalance({ commit, rootState }) {
+    async fetchTransactionList({ commit, state }, userId) {
+        commit('resetTransactionState');
+        commit('setLoading', true);
         try {
-            const userId = rootState.user.baseInfo.id; // 从根state获取用户ID
-            const res = await getBalanceAPI(userId); // 传递用户ID
-            if (res.code === 200) {
-                commit('SET_BALANCE', res.data.balance);
-            } else {
-                throw new Error(res.message || '获取余额失败');
-            }
+            const list = await getTransactionAPI(userId, 1, state.pageSize);
+            commit('setTransactionList', list);
+            commit('setCurrentPage', 1);
+            commit('setHasMore', list.length === state.pageSize);
         } catch (err) {
-            console.error('fetchBalance error:', err);
-            throw err;
+            console.error('获取交易列表失败', err);
+            commit('setHasMore', false);
+        } finally {
+            commit('setLoading', false);
         }
     },
 
     /**
-     * 提交提现请求
-     * @param {Object} context - Vuex的上下文对象
-     * @param {Function} context.commit - commit函数
-     * @param {Object} context.state - 当前模块的state
-     * @param {Object} context.rootState - 根state对象
+     * 加载更多交易数据（下拉触发）
+     * @param {*} param0 
+     * @param {string} userId 
      */
-    async submitWithdraw({ commit, state, rootState }) {
+    async loadMoreTransactions({ commit, state }, userId) {
+        if (state.isLoading || !state.hasMore) return;
+
+        commit('setLoading', true);
         try {
-            const userId = rootState.user.baseInfo.id; // 从根state获取用户ID
-            const payload = {
-                userId, // 添加用户ID
-                amount: state.withdrawAmount,
-                method: state.withdrawMethod
-            };
-            const res = await withdrawAPI(payload);
-            if (res.code === 200) {
-                // 后端返回新的余额
-                commit('SET_BALANCE', res.data.newBalance);
-                return res;
-            } else {
-                throw new Error(res.message || '提现失败');
+            const nextPage = state.currentPage + 1;
+            const list = await getTransactionAPI(userId, nextPage, state.pageSize);
+            commit('appendTransactionList', list);
+            commit('setCurrentPage', nextPage);
+            if (list.length < state.pageSize) {
+                commit('setHasMore', false);
             }
         } catch (err) {
-            console.error('submitWithdraw error:', err);
-            throw err;
-        }
+            console.error('加载更多交易记录失败', err);
+            commit('setHasMore', false);
+        } 
     }
-}; 
+};
+

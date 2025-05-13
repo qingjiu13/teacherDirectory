@@ -1,2 +1,2 @@
-"use strict";const a={SET_BALANCE(t,T){t.balance=T},SET_WITHDRAW_AMOUNT(t,T){t.withdrawAmount=T},SET_WITHDRAW_METHOD(t,T){t.withdrawMethod=T}};exports.mutations=a;
+"use strict";const a={setTransactionList(t,s){t.transactionList=s},appendTransactionList(t,s){t.transactionList=[...t.transactionList,...s]},setCurrentPage(t,s){t.currentPage=s},setHasMore(t,s){t.hasMore=s},resetTransactionState(t){t.transactionList=[],t.currentPage=1,t.hasMore=!0,t.isLoading=!1}};exports.mutations=a;
 //# sourceMappingURL=../../../../.sourcemap/mp-weixin/store/user/money/mutations.js.map

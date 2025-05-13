@@ -4,5 +4,5 @@
  */
 
 export default {
-    // 这里放置getters方法
+    // 这里目前不需要getters方法
 }; 
