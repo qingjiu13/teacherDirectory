@@ -73,7 +73,7 @@
 				{
 					"path": "teacher/teacher",
 					"style": {
-						"navigationBarTitleText": "导师详情"
+						"navigationStyle": "custom"
 					}
 				},
 				{

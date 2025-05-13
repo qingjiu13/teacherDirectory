@@ -32,8 +32,8 @@
         class="select-item"
         :class="{active: isActive(item.key)}"
         @click="onOptionClick(item.key)">
-        <view class="select-item-content">
-          <text class="label-text">{{ item.label }}</text>
+        <view class="select-item-content" :class="{active: isActive(item.key)}">
+          <text class="label-text" :class="{active: isActive(item.key)}">{{ item.label }}</text>
           <text v-if="filterSummary[item.key]" class="selected-text">{{ filterSummary[item.key] }}</text>
         </view>
         <image
@@ -1184,7 +1184,7 @@ onMounted(() => {
   color: rgba(0,0,0,0.5);
 }
 
-.select-item-content.active .label-text{
+.select-item.active .select-item-content .label-text {
   color: rgba(95, 38, 247, 1);
 }
 
@@ -1196,7 +1196,9 @@ onMounted(() => {
   transition: transform 0.3s ease;
   margin-left: 10rpx;
 }
-
+.arrow-icon.active {
+  color: rgba(95, 38, 247, 1);
+}
 .arrow-icon-rotate {
   transform: rotate(180deg);
 }

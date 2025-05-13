@@ -207,13 +207,14 @@
 	}
 
 	.tab-text {
-		font-family: 'PingFang SC', sans-serif;
+		font-family: 'PingFang SC';
 		font-weight: 400;
 		font-size: 20rpx;
 		line-height: 100%;
 		letter-spacing: -1.26rpx;
 		text-align: center;
 		color: #000000;
+
 	}
 	.index-tab .tab-text {
 		top:15rpx;

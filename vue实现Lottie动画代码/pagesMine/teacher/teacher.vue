@@ -1,4 +1,5 @@
 <template>
+  <Header :title="'导师详情'" @back="handleBack" class="header-container"/>
   <view class="container">
     <!-- 主要内容区域（可滚动） -->
     <scroll-view class="content-area" scroll-y="true">
@@ -42,11 +43,11 @@
         
         <!-- 服务列表内容 -->
         <view class="services-container" v-if="activeTab === 'services'">
-          <block v-if="services.length > 0">
-            <view class="service-card" v-for="(service, index) in services" :key="index">
+          <block v-if="teacherData.service.length > 0">
+            <view class="service-card" v-for="(service, index) in teacherData.service" :key="index" @click="goToServiceDetail(service.id)">
               <view class="service-card-header">
                 <view class="service-image-container">
-                  <image class="service-image" :src="service.image || '/static/image/services/default_service.png'" mode="aspectFill"></image>
+                  <image class="service-image" :src="service.image || '/static/image/services/default_service.png'" mode="aspectFill"/>
                 </view>
                 <view class="service-title-price">
                   <text class="service-title">{{service.name}}</text>
@@ -67,56 +68,123 @@
         </view>
       </view>
     </scroll-view>
+    
+    <!-- 在页面底部添加服务详情浮窗 -->
+    <view class="service-detail-popup" v-if="showServiceDetail">
+      <view class="popup-mask" @click="closeServiceDetail"></view>
+      <view class="popup-content">
+        <view class="popup-header">
+          <text class="popup-title">服务详情</text>
+          <text class="popup-close" @click="closeServiceDetail">×</text>
+        </view>
+        
+        <scroll-view scroll-y class="popup-body">
+          <!-- 服务基本信息 -->
+          <view class="service-info">
+            <image class="service-image" :src="currentService.image" mode="aspectFill"></image>
+            <view class="service-name">{{currentService.name}}</view>
+            <view class="service-price">{{currentService.price}}</view>
+          </view>
+          
+          <!-- 服务类型信息 -->
+          <view class="service-type-info">
+            <view class="info-title">服务类型</view>
+            <view class="info-content">
+              <view class="info-item">
+                <text class="item-label">类型：</text>
+                <text class="item-value">{{currentService.type.typename}}</text>
+              </view>
+              
+              <!-- 根据服务类型显示不同的信息 -->
+              <block v-if="currentService.type.typename === '一对一课程' || currentService.type.typename === '一对多课程'">
+                <view class="info-item">
+                  <text class="item-label">课程节数：</text>
+                  <text class="item-value">{{currentService.type.coursenum}}节</text>
+                </view>
+                <view class="info-item">
+                  <text class="item-label">总时长：</text>
+                  <text class="item-value">{{currentService.type.fulllength.hours}}{{currentService.type.fulllength.minutes}}</text>
+                </view>
+              </block>
+              
+              <!-- 仅对一对多课程显示学生人数 -->
+              <view class="info-item" v-if="currentService.type.typename === '一对多课程'">
+                <text class="item-label">学生人数：</text>
+                <text class="item-value">{{currentService.type.studentnum}}人</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 服务描述 -->
+          <view class="service-description">
+            <view class="info-title">服务描述</view>
+            <view class="description-content">{{currentService.description}}</view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
-import { Navigator, MessageRoutes } from '@/router/Router.js'
+import { Navigator, MatchRoutes } from '@/router/Router.js'
 import { mapGetters, mapState } from 'vuex'
+import Header from '@/components/navigationTitleBar/header';
 
 /**
 * @file 老师详情页
 * @description 展示老师个人信息和服务
 */
 export default {
+    components: {
+      Header
+    },
     data() {
       return {
           teacherId: null,
           activeTab: 'services', // 当前选中的标签页
           isLoading: false, // 是否正在加载
-          teacherData: {
-            id: null,
-            name: '',
-            avatar: '/static/image/defaultAvatar/teacher-man.png',
-            school: '',
-            major: '',
-            teacherScore: 0, 
-            certificate: 0,
-            selfIntroduction: '加载中...',
-            service: []
-          }
+          showServiceDetail: false,
+          currentService: null
       }
     },
     
     computed: {
       /**
-      * @description 从Vuex获取老师信息
-      * @returns {Object} 老师信息对象
-      */
-      ...mapGetters('user/match', ['teacherInfo']),
+       * @description 从Vuex获取匹配列表
+       * @returns {Array} 匹配的老师列表
+       */
+      ...mapState('user/match', ['matchList']),
       
       /**
-      * @description 获取老师的服务列表
-      * @returns {Array} 服务列表
-      */
+       * @description 根据ID获取当前教师数据
+       * @returns {Object} 教师详细信息
+       */
+      teacherData() {   
+        // 从matchList中过滤出当前教师
+        const teacher = this.matchList.find(t => t.id === this.teacherId);
+        return teacher || {
+          id: null,
+          name: '',
+          avatar: '/static/image/defaultAvatar/teacher-man.png',
+          school: '',
+          major: '',
+          teacherScore: 0, 
+          certificate: 0,
+          selfIntroduction: '暂无数据',
+          service: []
+        };
+      },
+      
+      /**
+       * @description 获取老师的服务列表
+       * @returns {Array} 服务列表
+       */
       services() {
-        if (!this.teacherData || !this.teacherData.service) {
-          return [];
-        }
-        return this.teacherData.service || [];
+        // 保证始终返回数组，防止undefined
+        return (this.teacherData && Array.isArray(this.teacherData.service)) ? this.teacherData.service : [];
       }
     },
-    
     onLoad(options) {
       // 获取老师ID
       this.teacherId = options.id || '';
@@ -132,12 +200,8 @@ export default {
       // 显示加载状态
       this.isLoading = true;
       
-      // 从Vuex store获取教师信息
-      const teacherData = this.teacherInfo(this.teacherId);
-      
-      if (teacherData) {
-        this.teacherData = teacherData;
-      } else {
+      // 检查是否存在该教师信息
+      if (!this.teacherData || !this.teacherData.id) {
         uni.showToast({
           title: '未找到该教师信息',
           icon: 'none'
@@ -149,6 +213,12 @@ export default {
     },
     
     methods: {
+      /**
+       * @description 返回上一页
+       */
+      handleBack() {
+        Navigator.redirectTo(MatchRoutes.MATCH);
+      },
       /**
        * @description 切换标签页
        * @param {String} tab - 标签名称
@@ -170,6 +240,33 @@ export default {
           // 使用router.js中的方法跳转到聊天页面
           Navigator.toChat(this.teacherId);
         }, 800);
+      },
+      
+      /**
+       * @description 跳转到服务详情页
+       * @param {String} serviceId - 服务ID
+       */
+      goToServiceDetail(serviceId) {
+        // 防御性判断，确保 services 一定是数组
+        const services = Array.isArray(this.services) ? this.services : [];
+        const service = services.find(s => s.id === serviceId);
+        if (service) {
+          this.currentService = service;
+          this.showServiceDetail = true;
+        } else {
+          uni.showToast({
+            title: '未找到服务信息',
+            icon: 'none'
+          });
+        }
+      },
+      
+      /**
+       * @description 关闭服务详情浮窗
+       */
+      closeServiceDetail() {
+        this.showServiceDetail = false;
+        this.currentService = null;
       }
     }
 }
@@ -190,7 +287,17 @@ export default {
     --card-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
     font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
   }
-  
+  .header-container {
+	/**
+	 * @description 固定顶部导航栏，背景不透明，确保在最上层
+	 */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: #fff;
+	z-index: 100;
+}
   .container {
     display: flex;
     flex-direction: column;
@@ -445,4 +552,129 @@ export default {
     position: relative;
     z-index: 1;
   }
+  
+  /* 服务详情浮窗样式 */
+  .service-detail-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .popup-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .popup-content {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    background-color: #fff;
+    border-radius: 12rpx;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .popup-header {
+    padding: 20rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1rpx solid #eee;
+  }
+  
+  .popup-title {
+    font-size: 32rpx;
+    font-weight: bold;
+  }
+  
+  .popup-close {
+    font-size: 40rpx;
+    color: #999;
+    padding: 0 10rpx;
+  }
+  
+  .popup-body {
+    flex: 1;
+    padding: 20rpx;
+  }
+  
+  .service-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30rpx;
+  }
+  
+  .service-image {
+    width: 200rpx;
+    height: 200rpx;
+    border-radius: 8rpx;
+    margin-bottom: 20rpx;
+  }
+  
+  .service-name {
+    font-size: 34rpx;
+    font-weight: bold;
+    margin-bottom: 10rpx;
+  }
+  
+  .service-price {
+    font-size: 32rpx;
+    color: #f56c6c;
+    font-weight: bold;
+  }
+  
+  .service-type-info,
+  .service-description {
+    margin-bottom: 30rpx;
+  }
+  
+  .info-title {
+    font-size: 30rpx;
+    font-weight: bold;
+    margin-bottom: 15rpx;
+    color: #333;
+  }
+  
+  .info-content {
+    background-color: #f8f8f8;
+    border-radius: 8rpx;
+    padding: 15rpx;
+  }
+  
+  .info-item {
+    display: flex;
+    margin-bottom: 10rpx;
+  }
+  
+  .item-label {
+    color: #666;
+    width: 150rpx;
+  }
+  
+  .item-value {
+    color: #333;
+    flex: 1;
+  }
+  
+  .description-content {
+    background-color: #f8f8f8;
+    border-radius: 8rpx;
+    padding: 15rpx;
+    line-height: 1.5;
+    color: #333;
+  }
+
 </style>
