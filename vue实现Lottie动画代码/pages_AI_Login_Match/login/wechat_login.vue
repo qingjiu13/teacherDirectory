@@ -8,7 +8,7 @@
   <view class="login-container">
     <!-- 顶部背景图 -->
     <view class="header-bg">
-      <image class="bg-image" src="../static/login/login_qianduan_test.png" mode="heightFix"></image>
+      <image class="bg-image" src="../static/login/image.png" mode="widthFix"></image>
     </view>
     
     <!-- 内容区域 -->

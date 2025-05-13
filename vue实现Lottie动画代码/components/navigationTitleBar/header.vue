@@ -40,7 +40,7 @@ export default {
 <style scoped>
 .header-container {
   width: 100%;
-  height: 206rpx;
+  height: 200rpx;
   display: flex;
   align-items: flex-end;
   position: relative;
@@ -48,7 +48,7 @@ export default {
 }
 .nav-back {
   position: absolute;
-  top: 134rpx;
+  top: 130rpx;
   left: 40rpx;
   width: 72rpx;
   height: 62rpx;
@@ -62,9 +62,9 @@ export default {
   bottom: 16rpx;
   font-family: 'PingFang SC', sans-serif;
   font-weight: 400;
-  font-size: 18px;
-  line-height: 35px;
-  letter-spacing: -0.55px;
+  font-size: 36rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
   color: #000;
 }
 </style>

@@ -12,7 +12,7 @@
         mode="aspectFill" alt="背景图"
       />
     </view>
-	<scroll-view class="container">
+	<view class="container">
 		<view class="modify-container">
 
 			<!-- 表单区域 -->
@@ -23,6 +23,12 @@
 					<view class="input-container">
 						<view class="avatar-wrapper" @click="chooseAvatar">
 							<image :src="userInfo.avatar || '/static/image/defaultAvatar/teacher-man.png'" class="avatar" mode="aspectFill"></image>
+							<!-- 头像底部正方形背景 -->
+							<!--
+								@description 头像底部正方形背景
+								@style background: rgba(239, 240, 255, 1); width: 90rpx; height: 90rpx; border-radius: 2px; border-width: 2px;
+							-->
+							<view class="avatar-square-bg"></view>
 						</view>
 					</view>
 				</view>
@@ -104,13 +110,15 @@
 				<!-- 个人介绍 -->
 				<view class="form-item">
 					<text class="form-label">个人介绍</text>
-						<textarea 
-							v-model="userInfo.introduction" 
-							placeholder="请输入个人介绍" 
-							class="form-textarea" 
-							maxlength="200"
-						></textarea>
-					<text class="word-count">{{userInfo.introduction.length}}/200</text>
+						<view class="input-container">
+							<textarea 
+								v-model="userInfo.introduction" 
+								placeholder="请输入个人介绍" 
+								class="form-textarea" 
+								maxlength="200"
+							></textarea>
+							<text class="word-count">{{userInfo.introduction.length}}/200</text>
+						</view>
 				</view>
 				<!-- 保存按钮 -->
 				<view class="save-button-container">
@@ -121,7 +129,7 @@
 				</view>
 			</view>
 		</view>
-	</scroll-view>
+	</view>
 </template>
 
 <script>
@@ -344,7 +352,7 @@ export default {
 	width: 100%;
 	background: transparent;
 	z-index: 1;
-	overflow: auto;
+	overflow: hidden;
 }
 
 .modify-container {
@@ -356,11 +364,10 @@ export default {
 
 .form-container {
 	background-color: transparent;
-	margin-top: 20rpx;
 }
 
 .form-item {
-	padding: 30rpx 0;
+	padding: 10rpx 0;
 
 }
 
@@ -371,17 +378,26 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 	border-bottom: 2rpx solid rgba(217, 217, 217, 1);
+	height: 110rpx;
 }
 
+/**
+ * @description 表单标签样式，文字靠左对齐
+ */
+/**
+ * @description 表单标签样式，确保所有内容左对齐
+ */
 .form-label {
+	line-height: 110rpx; /* 与 .horizontal-item 的 height 保持一致 */
+	position: relative;
+	display: block; /* 使用 block 保证内容左对齐 */
 	margin-left: 40rpx;
 	font-size: 28rpx;
-	display: block;
 	font-family: PingFang SC;
 	font-weight: 500;
-	line-height: 100%;
 	letter-spacing: -0.55px;
 	color: rgba(0, 0, 0, 1);
+	text-align: left; /* 明确指定文字靠左 */
 }
 
 /* 水平布局时标签样式 */
@@ -391,12 +407,18 @@ export default {
 	flex-shrink: 0;
 }
 
-/* 输入区域容器 */
+/**
+ * 输入区域容器
+ * 使容器内的元素靠右对齐
+ */
 .input-container {
 	flex: 1;
 	display: flex;
-	justify-content: flex-end;
-	align-items: center;
+	justify-content: flex-end; /* 元素靠右 */
+	align-items: flex-end;     /* 元素在交叉轴底部对齐 */
+	padding-left: 40rpx;
+	padding-right: 40rpx;
+	position: relative; /* 使字数统计可以绝对定位 */
 }
 
 /* 个人介绍的输入容器特殊处理，不需要右对齐 */
@@ -405,13 +427,25 @@ export default {
 	justify-content: flex-start;
 }
 
+/**
+ * 表单输入框样式
+ * 文字内容靠右对齐
+ */
 .form-input {
 	width: 100%;
 	height: 80rpx;
 	background-color: #f8f8f8;
 	border-radius: 8rpx;
-	padding: 0 20rpx;
-	font-size: 28rpx;
+
+	font-size: 24rpx;
+	text-align: right; /* 文字靠右 */
+	background-color: transparent;
+
+	font-family: PingFang SC;
+	font-weight: 400;
+	line-height: 100%;
+	letter-spacing: -1.1rpx;
+
 }
 
 /* 水平布局中的输入框样式调整，限制最大宽度，保持右对齐 */
@@ -422,24 +456,42 @@ export default {
 
 .form-textarea {
 	width: 100%;
-	height: 200rpx;
+	height: 400rpx;
 	background-color: #f8f8f8;
 	border-radius: 8rpx;
-	padding: 20rpx;
+	padding: 30rpx 40rpx;
 	font-size: 28rpx;
+	border-radius: 40rpx;
+	font-family: PingFang SC;
+	font-weight: 400;
+	line-height: 100%;
+	letter-spacing: -1.1rpx;
+	padding-bottom: 60rpx; /* 增加底部内边距，避免字数统计遮挡内容 */
+	background: linear-gradient(180deg, rgba(217, 217, 217, 0.1) 11.54%, rgba(126, 126, 126, 0.1) 111.54%);
+	backdrop-filter: blur(30px);
+
 }
 
 .word-count {
 	text-align: right;
 	font-size: 24rpx;
-	color: #999999;
+	color: rgba(0, 0, 0, 0.6);
 	margin-top: 10rpx;
+	position: absolute;
+	bottom: 30rpx;
+	right: 80rpx;
+	z-index: 2;
+	font-family: PingFang SC;
+	font-weight: 400;
+	line-height: 100%;
+	letter-spacing: -1.1rpx;
+
 }
 
 .avatar-wrapper {
 	position: relative;
-	width: 90rpx;
-	height: 90rpx;
+	width: 80rpx;
+	height: 80rpx;
 	margin: 0;
 	display: flex;
 	align-items: center;
@@ -447,13 +499,15 @@ export default {
 }
 
 .avatar {
-	width: 90rpx;
-	height: 90rpx;
+	width: 80rpx;
+	height: 80rpx;
 	border-radius: 75rpx;
 	background-color: #f0f0f0;
+	z-index: 5;
+
 }
 
-.radio-group {
+.radio-group {     
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -465,31 +519,24 @@ export default {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	margin-right: 60rpx;
+	margin-left: 80rpx;
 }
 
 .radio-circle {
-	width: 40rpx;
-	height: 40rpx;
+	width: 24rpx;
+	height: 24rpx;
 	border-radius: 20rpx;
-	border: 2rpx solid #dddddd;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	border: 1px solid rgba(86, 86, 86, 1)
 }
 
 .radio-circle.selected {
-	border-color: #2196F3;
-	background-color: #2196F3;
+	background: rgba(95, 38, 247, 1);
 }
 
-.radio-circle.selected:after {
-	content: '';
-	width: 20rpx;
-	height: 20rpx;
-	border-radius: 10rpx;
-	background-color: #ffffff;
-}
+
 
 .radio-text {
 	font-size: 28rpx;
@@ -532,6 +579,7 @@ export default {
 	font-size: 32rpx;
 	border-radius: 20rpx;
 	flex-direction: row;
+	margin-top: 60rpx;
 }
 
 
@@ -563,5 +611,16 @@ export default {
 	letter-spacing: -0.68px;
 	text-align: center;
 
+}
+/* 头像底部正方形背景样式 */
+.avatar-square-bg {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80rpx;
+  height: 80rpx;
+  background: rgba(239, 240, 255, 1);
+  border-radius: 4rpx;
+  z-index: 1;
 }
 </style>
