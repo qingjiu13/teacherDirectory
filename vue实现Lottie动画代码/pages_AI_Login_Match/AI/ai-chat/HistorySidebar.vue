@@ -322,7 +322,7 @@
 	.history-item-outer-gradient {
 		width: 100%;
 		border-radius: 40rpx;
-		padding: 2rpx 0;
+		padding: 2rpx 2rpx;
 		box-sizing: border-box;
 		background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
 	}

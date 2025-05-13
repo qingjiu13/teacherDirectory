@@ -1,25 +1,23 @@
 <template>
+  <Header :title="'登录详情'" @back="handleBack" class="header-container"/>
+	<view class="background-image">
+    <image
+        src="../static/login/background1.png"
+        mode="aspectFill" alt="背景图"
+      />
+    </view>
+    <view class="background-image">
+      <image
+        src="../static/login/background.png"
+        mode="aspectFill" alt="背景图"
+      />
+  </view>
   <view class="form-container">
-    
           <!-- 表单内容 -->
     <view class="form-card">
-      <!-- Gender -->
-      <view class="form-row">
-        <view class="label-container">
-          <text class="form-label">性别</text>
-          <text class="optional-tag">(选填)</text>
-        </view>
-        <view class="radio-group">
-          <view class="radio-item-row">
-            <view class="radio-option" @click="formData.gender = '男'">
-              <radio :checked="formData.gender === '男'" color="#007AFF" />
-              <text class="option-text">男</text>
-            </view>
-            <view class="radio-option" @click="formData.gender = '女'">
-              <radio :checked="formData.gender === '女'" color="#007AFF" />
-              <text class="option-text">女</text>
-            </view>
-          </view>
+      <view class="reminder-outer">
+        <view class="reminder-inner">
+          <text class="reminder-text">以下信息为选填项，您可以选择填写您想提供的信息</text>
         </view>
       </view>
       <!-- 普通学校和专业筛选框 - 仅学生显示 -->
@@ -119,9 +117,9 @@
               :choiceList="targetMajorList"
               :parentValue="formData.targetSchool"
               :isLinkage="true"
-              :defaultText="formData.targetSchool ? (userRole === '学生' ? '请选择专业' : '请选择专业') : '请先选择学校'"
+              :defaultText="formData.targetSchool ? '请选择专业' : '请先选择学校'"
               mode="search"
-              :searchPlaceholder="userRole === '学生' ? '输入目标专业名称' : '输入专业名称'"
+              :searchPlaceholder="!formData.targetSchool ? '请先选择学校' : (userRole === '学生' ? '请选择目标专业' : '请选择专业')"
               @onChoiceClick="handleTargetMajorSelect"
               @search-input="handleTargetMajorSearch"
               @reset-selection="resetMajorSelection"
@@ -133,7 +131,14 @@
       </block>
       <!-- 按钮区域 -->
       <view class="button-container">
-        <button class="submit-btn" @click="submitForm">提交信息</button>
+        <button class="skip-btn" @click="skipForm">
+          <image src="../static/login/skip.png" class="skip-btn-icon"/>
+          <text class="btn-text">跳过</text>
+        </button>
+        <button class="submit-btn" @click="submitForm">
+          <image src="../static/login/submit.png" class="submit-btn-icon"/>
+          <text class="btn-text">提交</text>
+        </button>
       </view>
     </view>
 
@@ -159,13 +164,14 @@
 </template>
 
 <script>
-import ChoiceSelected from '../../components/combobox/combobox'
+import ChoiceSelected from '@/components/combobox/combobox'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-import { Navigator } from '../../router/Router';
-import GraduateStore from '../../components/combobox/graduate_school_major.js';
-import createDataModule from '../../components/combobox/undergraduate.js';
+import { Navigator } from '@/router/Router';
+import GraduateStore from '@/components/combobox/graduate_school_major.js';
+import createDataModule from '@/components/combobox/undergraduate.js';
 import schoolData from '@/pages_AI_Login_Match/static/data/2886所大学.json';
 import majorData from '@/pages_AI_Login_Match/static/data/本科专业.json';
+import Header from '@/components/navigationTitleBar/header';
 
 export default {
   onPageScroll() {
@@ -174,6 +180,7 @@ export default {
   },
   components: {
     ChoiceSelected,
+    Header
   },
   onLoad() {
     this.loadUniversityData();
@@ -262,7 +269,9 @@ export default {
   methods: {
     // 使用mapMutations映射UPDATE_USER_INFO方法
     ...mapMutations('user/baseInfo', ['UPDATE_USER_INFO', 'SET_USER_INFO']),
-    
+    handleBack() {
+      Navigator.toLogin();
+    },
     /**
      * @description 初始化用户信息
      */
@@ -275,12 +284,7 @@ export default {
         // 如果没有token，可能需要重新登录
         uni.showToast({
           title: '请先登录',
-          icon: 'none',
-          complete: () => {
-            setTimeout(() => {
-              Navigator.redirectTo('/pages/login/wechat_login');
-            }, 1500);
-          }
+          icon: 'none'
         });
         return;
       }
@@ -677,7 +681,9 @@ export default {
         }, 1500);
       }
     },
-    
+    skipForm(){
+      Navigator.toIndex();
+    },
     /**
      * @description 提交表单信息
      */
@@ -959,23 +965,84 @@ export default {
     if (this.schoolStore && this.majorStore) {
       this.initSchoolAndMajorSearch();
     }
-  }
+  },
 };
 </script>
 
 <style lang="scss" scoped>
-.form-container {
-  padding: 30rpx;
+.header-container {
+	/**
+	 * @description 固定顶部导航栏，背景不透明，确保在最上层
+	 */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-color: #fff;
+	z-index: 100;
+}
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+.background-image image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.reminder-outer {
+  width: 100%;
+  border-radius: 10rpx;
+  padding: 2rpx 2rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+  margin-bottom: 30rpx;
+}
+
+.reminder-inner {
+  width: 100%;
+  border-radius: 10rpx;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  padding: 20rpx 30rpx;
+  align-items: center;
+  justify-content: center;
+}
+
+.reminder-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.1) 11.54%, rgba(34, 136, 249, 0.1) 111.54%);
+}
+
+.reminder-text {
+  color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  position: relative;
+  font-family: PingFang SC;
+  font-weight: 400;
+  font-size: 24rpx;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
 }
 
 .form-card {
-  background-color: #fff;
+  background-color: transparent;
   border-radius: 20rpx;
   padding: 30rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
 }
-
-
 
 .label-container {
   display: flex;
@@ -990,9 +1057,14 @@ export default {
 
 .form-label {
   display: block;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: bold;
-  color: #333;
+  color: rgba(0, 0, 0, 1);
+  font-family: PingFang SC;
+  font-weight: 400;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
+
 }
 
 .optional-tag {
@@ -1045,26 +1117,58 @@ export default {
 
 .form-select {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 2rpx solid rgba(151, 151, 151, 1);
   border-radius: 8rpx;
   box-sizing: border-box;
 }
 
 .button-container {
   margin-top: 50rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.skip-btn{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 200rpx;
+  height: 76rpx;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #B2D7FF 0%, #2288F9 100%);
+}
+.skip-btn-icon{
+  width: 36rpx;
+  height: 36rpx;
 }
 
+.submit-btn-icon{
+  width: 36rpx;
+  height: 36rpx;
+}
 .submit-btn {
-  width: 100%;
-  height: 90rpx;
-  line-height: 90rpx;
-  text-align: center;
-  background-color: #007AFF;
-  color: #fff;
-  font-size: 32rpx;
-  border-radius: 45rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 200rpx;
+  height: 76rpx;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
+  margin-left: 80rpx;
 }
-
+.btn-text{
+  font-family: PingFang SC;
+  font-weight: 400;
+  font-size: 28rpx;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
+  text-align: center;
+  color:rgba(255, 255, 255, 1);
+  margin-left: 20rpx;
+}
 /* 头像上传相关样式 */
 .avatar-upload-container {
   position: relative;

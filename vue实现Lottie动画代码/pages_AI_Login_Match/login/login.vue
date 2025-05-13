@@ -113,7 +113,7 @@ export default {
      * @returns {void}
      */
     goBack() {
-      Navigator.reLaunch('/pages/login/wechat_login');
+      Navigator.toWechatLogin();
     }
   }
 }

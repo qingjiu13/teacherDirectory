@@ -8,15 +8,15 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pagesMine/modify/modify",
-          "pathName": "pagesMine/modify/modify",
+          "name": "pages_AI_Login_Match/login/wechat_login",
+          "pathName": "pages_AI_Login_Match/login/login_detail",
           "query": "",
           "launchMode": "default",
           "scene": null
         },
         {
-          "name": "pages_AI_Login_Match/login/wechat_login",
-          "pathName": "pages_AI_Login_Match/login/wechat_login",
+          "name": "pagesMine/modify/modify",
+          "pathName": "pagesMine/modify/modify",
           "query": "",
           "launchMode": "default",
           "scene": null

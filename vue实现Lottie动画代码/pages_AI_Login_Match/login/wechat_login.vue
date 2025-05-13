@@ -308,6 +308,7 @@ export default {
         avatarUrl: this.tempUserInfo.avatarUrl,
         nickName: this.tempUserInfo.nickName
       });
+      Navigator.toLogin();
     },
     
     /**
@@ -365,7 +366,7 @@ export default {
           
           // 延迟跳转
           setTimeout(() => {
-            Navigator.redirectTo(IndexRoutes.INDEX);
+            Navigator.toIndex();
           }, 1500);
         } else {
           uni.hideLoading();

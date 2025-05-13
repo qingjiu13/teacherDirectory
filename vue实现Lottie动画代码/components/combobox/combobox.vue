@@ -5,7 +5,7 @@
             <!-- 统一的内容容器 -->
             <view class="input-content-wrapper">
                 <!-- 纯下拉选择模式 -->
-                <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'input-placeholder' : 'input-text']">{{displayContent}}</text>
+                <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'input-placeholder' : 'input-placeholder-selected']" >{{displayContent}}</text>
                 
                 <!-- 搜索筛选模式 -->
                 <input 
@@ -570,7 +570,7 @@
     /* 统一的内容容器 */
     .input-content-wrapper {
         flex: 1;
-        height: 60rpx;
+        height: 70rpx;
         display: flex;
         align-items: center;
         box-sizing: border-box;
@@ -578,9 +578,10 @@
     
     /* 统一的文本样式 */
     .input-text {
+        font-family: PingFang SC;
         flex: 1;
         font-size: 28rpx;
-        color: #333;
+        color: rgba(0, 0, 0, 1);
         height: 50rpx;
         line-height: 50rpx;
         padding-left: 20rpx;
@@ -592,20 +593,33 @@
     .input-placeholder {
         flex: 1;
         font-size: 28rpx;
-        color: #999;
+        color: rgba(0, 0, 0, 0.5);
         height: 50rpx;
         line-height: 50rpx;
         padding-left: 20rpx;
         text-align: left;
         width: 100%;
         box-sizing: border-box;
+        margin-top: 10rpx;
+    }
+    .input-placeholder-selected {
+        flex: 1;
+        font-size: 28rpx;
+        color: rgba(0, 0, 0, 1);
+        height: 50rpx;
+        line-height: 50rpx;
+        padding-left: 20rpx;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 10rpx;
     }
 
     .drop-down-box-selected {
         display: flex;
         flex-direction: row;
         align-items: center;
-        height: 60rpx;
+        height: 70rpx;
         width: 100%;
         border: 2rpx solid #F0AD4E;
         box-sizing: border-box;
@@ -617,9 +631,8 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        height: 60rpx;
+        height: 70rpx;
         width: 100%;
-        border: 2rpx solid gray;
         border-radius: 10rpx;
         box-sizing: border-box;
         padding: 0 10rpx;
@@ -630,6 +643,9 @@
         flex-direction: column;
         justify-content: center;
         width: 100%;
+        background-color: rgba(255, 255, 255, 1);
+        border: 2rpx solid rgba(151, 151, 151, 1);
+        border-radius: 8rpx;
     }
     
     /* 箭头容器 */
@@ -639,7 +655,7 @@
         justify-content: center;
         margin-left: 5rpx;
         width: 30rpx;
-        height: 60rpx;
+        height: 10rpx;
         flex-shrink: 0;
         z-index: 2;
     }

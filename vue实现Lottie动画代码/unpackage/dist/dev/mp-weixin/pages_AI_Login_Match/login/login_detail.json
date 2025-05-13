@@ -1,6 +1,7 @@
 {
-  "navigationBarTitleText": "登录详情",
+  "navigationStyle": "custom",
   "usingComponents": {
-    "choice-selected": "../../components/combobox/combobox"
+    "choice-selected": "../../components/combobox/combobox",
+    "header": "../../components/navigationTitleBar/header"
   }
 }

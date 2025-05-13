@@ -56,7 +56,7 @@
 				{
 					"path": "login/login_detail",
 					"style": {
-						"navigationBarTitleText": "登录详情"
+						"navigationStyle": "custom"
 					}
 				}
 			]
