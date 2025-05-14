@@ -118,12 +118,12 @@
 	import MessageList from './ai-chat/MessageList'
 	import ModeSelector from './ai-chat/ModeSelector'
 	import InputSection from './ai-chat/InputSection'
-	import ChoiceSelected from '@/components/combobox/combobox'
+	import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox'
 	import store from '@/store'
-	import schoolData from '@/pages_AI_Login_Match/static/data/2886所大学.json';
-	import majorData from '@/pages_AI_Login_Match/static/data/本科专业.json';
+	import schoolData from '/pages_AI_Login_Match/static/data/2886所大学.json';
+	import majorData from '/pages_AI_Login_Match/static/data/本科专业.json';
 	import { mapState } from 'vuex';
-	import createDataModule from '@/components/combobox/undergraduate.js';
+	import createDataModule from '/pages_AI_Login_Match/components/combobox/undergraduate.js';
 	import Header from '@/components/navigationTitleBar/header.vue';
 	import { Navigator } from '@/router/Router.js'
 

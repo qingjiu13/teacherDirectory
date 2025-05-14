@@ -23,7 +23,7 @@
       
       <!-- 用户头像占位 -->
       <view class="avatar-container">
-        <image class="avatar" :src="userInfo.avatarUrl || '/pagesMine/static/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+        <image class="avatar" :src="userInfo.avatarUrl || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
         <text class="nickname" v-if="userInfo.nickName">{{userInfo.nickName}}</text>
         <text class="nickname" v-else>未登录</text>
       </view>

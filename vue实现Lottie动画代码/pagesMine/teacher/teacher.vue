@@ -5,7 +5,7 @@
     <scroll-view class="content-area" scroll-y="true">
       
       <!-- 头像独立于容器 -->
-      <image class="teacher-avatar" :src="teacherData.avatar || '/pagesMine/static/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+      <image class="teacher-avatar" :src="teacherData.avatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
       
       <!-- 老师个人信息卡片 -->
       <view class="teacher-profile">
@@ -166,7 +166,7 @@ export default {
         return teacher || {
           id: null,
           name: '',
-          avatar: '/pagesMine/static/defaultAvatar/teacher-man.png',
+          avatar: '/static/image/defaultAvatar/teacher-man.png',
           school: '',
           major: '',
           teacherScore: 0, 

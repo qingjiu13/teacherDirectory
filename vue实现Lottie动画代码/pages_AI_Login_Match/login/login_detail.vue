@@ -164,13 +164,13 @@
 </template>
 
 <script>
-import ChoiceSelected from '@/components/combobox/combobox'
+import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { Navigator } from '@/router/Router';
-import GraduateStore from '@/components/combobox/graduate_school_major.js';
-import createDataModule from '@/components/combobox/undergraduate.js';
-import schoolData from '@/pages_AI_Login_Match/static/data/2886所大学.json';
-import majorData from '@/pages_AI_Login_Match/static/data/本科专业.json';
+import GraduateStore from '/pages_AI_Login_Match/components/combobox/graduate_school_major.js';
+import createDataModule from '/pages_AI_Login_Match/components/combobox/undergraduate.js';
+import schoolData from '/pages_AI_Login_Match/static/data/2886所大学.json';
+import majorData from '/pages_AI_Login_Match/static/data/本科专业.json';
 import Header from '@/components/navigationTitleBar/header';
 
 export default {
@@ -192,7 +192,7 @@ export default {
     return {
       formData: {
         nickname: '', // 用户昵称
-        avatar: '/pagesMine/static/defaultAvatar/teacher-man.png', // 默认头像
+        avatar: '/static/image/defaultAvatar/teacher-man.png', // 默认头像
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,  // 目标学校索引
@@ -668,7 +668,7 @@ export default {
         
         // 提示成功
         uni.showToast({
-          title: '信息保存成功',
+          title: '提交成功',
           icon: 'success'
         });
         
@@ -751,7 +751,7 @@ export default {
         
         // 提示成功
         uni.showToast({
-          title: '信息保存成功',
+          title: '提交成功',
           icon: 'success'
         });
         
@@ -762,7 +762,7 @@ export default {
       } catch (error) {
         console.error('提交表单时出错:', error);
         uni.showToast({
-          title: '保存失败，请重试',
+          title: '提交失败，请重试',
           icon: 'none'
         });
       }

@@ -10,7 +10,7 @@ const { getUserInfo, updateUserInfo, updateRole } = {
         success: true, 
         data: {
             id: '1566454',
-            avatar: '/pagesMine/static/defaultAvatar/teacher-man.png',
+            avatar: '/static/image/defaultAvatar/teacher-man.png',
             name: '张三',
             gender: '男',
             selfIntroduction: '我是一个热爱学习的人',

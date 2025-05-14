@@ -153,7 +153,7 @@
 <style>
 	.tab-bar-wrapper {
 		width: 100%;
-		height: 160rpx;
+		height: 120rpx;
 		position: fixed;
 		bottom: 0;
 		left: 0;
@@ -167,7 +167,7 @@
 		display: flex;
 		flex-direction: row;
 		width: 100%;
-		height: 160rpx;
+		height: 120rpx;
 		border-top: 1px solid #eeeeee;
 		background: linear-gradient(180deg, #e9eaff 11.54%, #747aff 111.54%);
 		overflow: visible; /* 确保tab-bar允许内容溢出 */

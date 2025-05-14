@@ -215,7 +215,7 @@
             <view class="teacher-card-outer-gradient">
               <view class="teacher-card-inner">
                 <view class="card-left">
-                  <image class="teacher-avatar" :src="teacher.avatar || '/pagesMine/static/defaultAvatar/teacher-man.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
+                  <image class="teacher-avatar" :src="teacher.avatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
                 </view>
                 <view class="card-middle">
                   <!-- 顶部：昵称和认证标签同一行 -->
@@ -268,8 +268,8 @@
 import { ref, reactive, computed, onMounted} from 'vue'
 import { useStore } from 'vuex'
 import { Navigator } from '@/router/Router.js'
-import GraduateStore from '../../components/combobox/graduate_school_major.js'
-import Header from '../../components/navigationTitleBar/header'
+import GraduateStore from '/pages_AI_Login_Match/components/combobox/graduate_school_major.js'
+import Header from '@/components/navigationTitleBar/header'
 
 // 初始化 store
 const store = useStore()
@@ -1622,13 +1622,15 @@ onMounted(() => {
 }
 
 .selected-text {
-  font-size: 12px;
+  font-size: 20rpx;
   color: #007AFF;
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 80px;
+  max-width: 140rpx;
+  text-align: left;
+  margin-left: 20rpx;
 }
 
 /* 非专业课选项卡样式 */

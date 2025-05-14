@@ -9,7 +9,7 @@
           <view class="avatar-wrapper">
             <view class="avatar-outer">
               <view class="avatar-inner">
-                <image class="avatar" :src="userData.avatar || storeAvatar || '/pagesMine/static/defaultAvatar/teacher-man.png'" mode="aspectFill" @click="handleClick"></image>
+                <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @click="handleClick"></image>
               </view>
             </view>
           </view>

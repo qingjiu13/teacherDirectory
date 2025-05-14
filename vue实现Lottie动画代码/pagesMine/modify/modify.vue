@@ -22,7 +22,7 @@
 					<text class="form-label">头像</text>
 					<view class="input-container">
 						<view class="avatar-wrapper" @click="chooseAvatar">
-							<image :src="userInfo.avatar || '/pagesMine/static/defaultAvatar/teacher-man.png'" class="avatar" mode="aspectFill"></image>
+							<image :src="userInfo.avatar || '/static/image/defaultAvatar/teacher-man.png'" class="avatar" mode="aspectFill"></image>
 							<!-- 头像底部正方形背景 -->
 							<!--
 								@description 头像底部正方形背景

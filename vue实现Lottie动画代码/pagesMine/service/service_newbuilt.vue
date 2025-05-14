@@ -203,7 +203,7 @@
 
 <script>
 
-import ChoiceSelected from '@/components/combobox/combobox.vue'
+import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox.vue'
 
 export default {
   components: {

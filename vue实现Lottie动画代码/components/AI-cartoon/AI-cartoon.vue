@@ -35,7 +35,7 @@ export default {
      * @type {string}
      * @description 默认头像图片路径
      */
-    const DEFAULT_AVATAR_PATH = '/pagesMine/static/defaultAvatar/teacher-man.png';
+    const DEFAULT_AVATAR_PATH = '/static/image/defaultAvatar/teacher-man.png';
 
     // 内联配置，不依赖外部文件
     const config = {
