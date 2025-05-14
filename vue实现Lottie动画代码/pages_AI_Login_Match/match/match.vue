@@ -2,14 +2,14 @@
   <view class="background-image">
     <image
       class="background-image-img"
-      src="../static/match/background1.png"
+      src="/static/image/bgPicture/background1.png"
       mode="aspectFill" alt="背景图"
     />
   </view>
   <view class="background-image">
     <image
       class="background-image-img"
-      src="../static/match/background.png"
+      src="/static/image/bgPicture/background.png"
       mode="aspectFill" alt="背景图"
     />
   </view>
@@ -37,7 +37,7 @@
           <text v-if="filterSummary[item.key]" class="selected-text">{{ filterSummary[item.key] }}</text>
         </view>
         <image
-          :src="'../../static/image/arrow/arrow_down.svg'"
+          :src="'/static/image/arrow/arrow_down.svg'"
           class="arrow-icon"
           :class="{'arrow-icon-rotate': currentOption === item.key}"
         />
@@ -215,7 +215,7 @@
             <view class="teacher-card-outer-gradient">
               <view class="teacher-card-inner">
                 <view class="card-left">
-                  <image class="teacher-avatar" :src="teacher.avatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
+                  <image class="teacher-avatar" :src="teacher.avatar || '/pagesMine/static/defaultAvatar/teacher-man.png'" mode="aspectFill" @tap="viewTeacherDetail(teacher.id)"></image>
                 </view>
                 <view class="card-middle">
                   <!-- 顶部：昵称和认证标签同一行 -->

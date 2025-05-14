@@ -68,7 +68,7 @@ export default {
         {
             id: 'teacher001',
             name: '张老师',
-            avatar: '/static/image/defaultAvatar/teacher-man.png',
+            avatar: '/pagesMine/static/defaultAvatar/teacher-man.png',
             gender: 'male',
             selfIntroduction: '清华大学计算机专业硕士，5年教学经验',
             certificate: 1,
@@ -83,7 +83,7 @@ export default {
                     type: getServiceTypeByName('一对一课程'),
                     price: '200元',
                     description: '提供考研全程规划指导不会不会给vui不会vu一部韩剧韩剧u一般会的给v保监局预估i保护局故意不回就搞不好健康环保',
-                    image: '/static/image/defaultAvatar/teacher-man.png',
+                    image: '/pagesMine/static/defaultAvatar/teacher-man.png',
                 },
                 {
                     id: 'service002',
@@ -91,14 +91,14 @@ export default {
                     type: getServiceTypeByName('一对多课程'),
                     price: '300元',
                     description: '计算机专业课一对一辅导',
-                    image: '/static/image/defaultAvatar/teacher-man.png',
+                    image: '/pagesMine/static/defaultAvatar/teacher-man.png',
                 }
             ]
         },
         {
             id: 'teacher002',
             name: '李老师',
-            avatar: '/static/image/defaultAvatar/teacher-man.png',
+            avatar: '/pagesMine/static/defaultAvatar/teacher-man.png',
             gender: 'female',
             selfIntroduction: '北京大学经济学博士，3年教学经验',
             certificate: 1,
@@ -113,7 +113,7 @@ export default {
                     type: getServiceTypeByName('学习资料'),
                     price: '150元',
                     description: '经济学基础理论讲解',
-                    image: '/static/image/defaultAvatar/teacher-man.png',
+                    image: '/pagesMine/static/defaultAvatar/teacher-man.png',
                 }
             ]
         }

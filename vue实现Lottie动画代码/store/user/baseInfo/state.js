@@ -6,7 +6,7 @@
 export default {
     // 用户基本身份信息
     id: '1566454',
-    avatar: '/static/image/defaultAvatar/teacher-man.png',
+    avatar: '/pagesMine/static/defaultAvatar/teacher-man.png',
     name: '张三',
     gender: '男',
     selfIntroduction: '我是一个热爱学习的人',

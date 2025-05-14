@@ -8,29 +8,8 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/mine/mine_common",
-          "pathName": "pages/mine/mine_common",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
           "name": "pages_AI_Login_Match/login/wechat_login",
-          "pathName": "pages_AI_Login_Match/login/login_detail",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pagesMine/modify/modify",
-          "pathName": "pagesMine/modify/modify",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages_AI_Login_Match/AI/AI",
-          "pathName": "pages_AI_Login_Match/AI/AI",
+          "pathName": "pages_AI_Login_Match/login/wechat_login",
           "query": "",
           "launchMode": "default",
           "scene": null

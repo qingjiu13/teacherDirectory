@@ -1,2 +1,0 @@
-"use strict";const e=require("../../common/vendor.js"),a=()=>"../../components/tab-bar/tab-bar.js",n=e.defineComponent({components:{TabBar:a},data(){return{}},onLoad(){},methods:{loadMessages(){}}});Array||e.resolveComponent("TabBar")();function r(o,s,c,m,p,i){return{a:e.p({pageName:"message"}),b:e.sei(e.gei(o,""),"view")}}const t=e._export_sfc(n,[["render",r]]);wx.createPage(t);
-//# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/message/message.js.map

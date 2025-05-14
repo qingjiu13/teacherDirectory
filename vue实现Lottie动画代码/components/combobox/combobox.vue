@@ -20,7 +20,7 @@
             
             <!-- 统一的箭头图标 -->
             <view class="arrow-container">
-                <image class="dropdown-icon" :class="{'dropdown-icon-rotate': isShowChoice}" src="../../static/image/arrow/arrow_down.svg" mode="widthFix"></image>
+                <image class="dropdown-icon" :class="{'dropdown-icon-rotate': isShowChoice}" src="/static/image/arrow/arrow_down.svg" mode="widthFix"></image>
             </view>
         </view>
         <!-- 弹框内容 -->

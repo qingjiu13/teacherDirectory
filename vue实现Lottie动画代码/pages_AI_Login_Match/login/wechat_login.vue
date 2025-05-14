@@ -8,7 +8,7 @@
   <view class="login-container">
     <!-- 顶部背景图 -->
     <view class="header-bg">
-      <image class="bg-image" src="../static/login/image.png" mode="widthFix"></image>
+      <image class="bg-image" src="/pagesMine/static/mine/topImage.png" mode="widthFix"></image>
     </view>
     
     <!-- 内容区域 -->
@@ -23,7 +23,7 @@
       
       <!-- 用户头像占位 -->
       <view class="avatar-container">
-        <image class="avatar" :src="userInfo.avatarUrl || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+        <image class="avatar" :src="userInfo.avatarUrl || '/pagesMine/static/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
         <text class="nickname" v-if="userInfo.nickName">{{userInfo.nickName}}</text>
         <text class="nickname" v-else>未登录</text>
       </view>

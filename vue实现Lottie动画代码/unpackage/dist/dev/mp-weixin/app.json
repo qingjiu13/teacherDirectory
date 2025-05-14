@@ -1,9 +1,6 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/message/chat",
-    "pages/mine/mine_common",
-    "pages/message/message"
+    "pages/index/index"
   ],
   "subPackages": [
     {
@@ -17,8 +14,16 @@
       ]
     },
     {
+      "root": "pagesChat",
+      "pages": [
+        "chat",
+        "message"
+      ]
+    },
+    {
       "root": "pagesMine",
       "pages": [
+        "mine/mine_common",
         "settings/settings",
         "teacher/teacher",
         "bill/bill",
@@ -40,6 +45,12 @@
     "backgroundColor": "#F8F8F8"
   },
   "preloadRule": {
+    "pagesMine/mine/mine_common": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
     "pages_AI_Login_Match/match/match": {
       "network": "all",
       "packages": [
@@ -47,6 +58,18 @@
       ]
     },
     "pages_AI_Login_Match/AI/AI": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesChat/chat": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesChat/message": {
       "network": "all",
       "packages": [
         "__APP__"

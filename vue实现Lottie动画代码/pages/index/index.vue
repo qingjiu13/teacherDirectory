@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <image class="background-image" src="./index/background.png" mode="aspectFill" alt="背景图" />
+    <image class="background-image" src="/static/index/background.png" mode="aspectFill" alt="背景图" />
     <!-- 主页面内容 -->
     <view class="page-container">
       <view class="header">
@@ -21,7 +21,7 @@
           <view class="match-content">
             <image
               class="match-icon"
-              src="./index/matchsearch.png"
+              src="/static/index/matchsearch.png"
               mode="aspectFit"
               alt="匹配图标"
             />

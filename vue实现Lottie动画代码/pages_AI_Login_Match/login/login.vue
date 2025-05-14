@@ -5,7 +5,7 @@
         @description 登录页背景图1，分包页面通过相对路径./images/background1.png按需加载
       -->
       <image
-        src="../static/login/background1.png"
+        src="/static/image/bgPicture/background1.png"
         mode="aspectFill" alt="背景图"
       />
     </view>
@@ -15,7 +15,7 @@
         @description 登录页背景图2，分包页面通过相对路径./images/background.png按需加载
       -->
       <image
-        src="../static/login/background.png"
+        src="/static/image/bgPicture/background.png"
         mode="aspectFill" alt="背景图"
       />
     </view>

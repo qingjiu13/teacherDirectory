@@ -29,8 +29,8 @@ export const AIRoutes = {
  * @description 消息相关路由
  */
 export const MessageRoutes = {
-	MESSAGE: '/pages/message/message',
-	CHAT: '/pages/message/chat'
+	MESSAGE: '/pagesChat/message',
+	CHAT: '/pagesChat/chat'
 };
 
 /**
@@ -47,7 +47,7 @@ export const LoginRoutes = {
  */
 export const MineRoutes = {
 	// 我的页面
-	MINE: '/pages/mine/mine_common',
+	MINE: '/pagesMine/mine/mine_common',
 	
 	// 个人信息修改
 	MODIFY: '/pagesMine/modify/modify',

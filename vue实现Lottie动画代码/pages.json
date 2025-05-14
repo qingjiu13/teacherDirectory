@@ -5,24 +5,6 @@
 			"style": {
 				"navigationStyle": "custom"
 			}
-		},
-		{
-			"path": "pages/message/chat",
-			"style": {
-				"navigationBarTitleText": "聊天"
-			}
-		},
-		{
-			"path": "pages/mine/mine_common",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/message/message",
-			"style": {
-				"navigationBarTitleText": "消息列表"
-			}
 		}
 	],
 	"subPackages": [
@@ -62,8 +44,31 @@
 			]
 		},
 		{
+			"root": "pagesChat",
+			"pages": [
+				{
+					"path": "chat",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "message",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				}
+			]
+		},
+		{
 			"root": "pagesMine",
 			"pages": [
+				{
+					"path": "mine/mine_common",
+					"style": {
+						"navigationStyle": "custom"
+					}
+				},
 				{
 					"path": "settings/settings",
 					"style": {
@@ -134,11 +139,23 @@
 		}
 	],
 	"preloadRule": {
+		"pagesMine/mine/mine_common": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
 		"pages_AI_Login_Match/match/match": {
 			"network": "all",
 			"packages": ["__APP__"]
 		},
 		"pages_AI_Login_Match/AI/AI": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesChat/chat": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesChat/message": {
 			"network": "all",
 			"packages": ["__APP__"]
 		},

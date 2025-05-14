@@ -2,13 +2,13 @@
   <Header :title="'登录详情'" @back="handleBack" class="header-container"/>
 	<view class="background-image">
     <image
-        src="../static/login/background1.png"
+        src="/static/image/bgPicture/background1.png"
         mode="aspectFill" alt="背景图"
       />
     </view>
     <view class="background-image">
       <image
-        src="../static/login/background.png"
+        src="/static/image/bgPicture/background.png"
         mode="aspectFill" alt="背景图"
       />
   </view>
@@ -192,7 +192,7 @@ export default {
     return {
       formData: {
         nickname: '', // 用户昵称
-        avatar: '/static/image/defaultAvatar/teacher-man.png', // 默认头像
+        avatar: '/pagesMine/static/defaultAvatar/teacher-man.png', // 默认头像
         schoolIndex: -1,
         majorIndex: -1,
         targetSchoolIndex: -1,  // 目标学校索引

@@ -30,10 +30,17 @@ import { Navigator, AIRoutes } from '@/router/Router.js';
 export default {
   name: 'AICartoon',
   data() {
+    /**
+     * @constant
+     * @type {string}
+     * @description 默认头像图片路径
+     */
+    const DEFAULT_AVATAR_PATH = '/pagesMine/static/defaultAvatar/teacher-man.png';
+
     // 内联配置，不依赖外部文件
     const config = {
       // 图标图片路径
-      iconPath: '/static/image/defaultAvatar/teacher-man.png',
+      iconPath: DEFAULT_AVATAR_PATH,
       // 初始位置
       initialLeft: 20,
       initialTop: 100,
