@@ -65,7 +65,7 @@ export const MineRoutes = {
 	SERVICE: '/pagesMine/service/service',
 	SERVICE_NEWBUILT:'/pagesMine/service/service_newbuilt',
 	SETTINGS: '/pagesMine/settings/settings',
-	WALLET: '/pagesMine/wallet/wallet',
+	BILL: '/pagesMine/bill/bill',
 	CONTACT_US: '/pagesMine/contactUs/contectUs'
 };
 
@@ -278,8 +278,8 @@ export const Navigator = {
 	/**
 	 * @description 跳转到钱包页面
 	 */
-	toWallet() {
-		this.navigateTo(MineRoutes.WALLET);
+	toBill() {
+		this.navigateTo(MineRoutes.BILL);
 	},
 	
 	/**

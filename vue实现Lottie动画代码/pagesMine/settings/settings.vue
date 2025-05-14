@@ -15,14 +15,6 @@
         </view>
         <text class="settings-text">修改个人信息</text>
       </view>
-      <!-- 联系我们 -->
-      <view class="settings-item" @click="handleContactUs">
-        <view class="icon-circle info">
-          <text class="icon-text">📞</text>
-        </view>
-        <text class="settings-text">联系我们</text>
-      </view>
-      
       <!-- 退出登录 -->
       <view class="settings-item" @click="handleLogout" v-if="isLoggedIn">
         <view class="icon-circle warning">
@@ -113,18 +105,6 @@ export default {
         }
       });
     },
-    
-    /**
-     * @description 处理联系我们
-     */
-    handleContactUs() {
-      uni.showModal({
-        title: '联系我们',
-        content: '客服电话：400-123-4567\n客服邮箱：support@example.com\n工作时间：周一至周五 9:00-18:00',
-        showCancel: false
-      });
-    },
-    
     /**
      * @description 处理退出登录
      */

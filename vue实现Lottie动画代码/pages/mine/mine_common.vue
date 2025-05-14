@@ -1,74 +1,79 @@
 <template>
   <view class="container">
-    <!-- 用户信息区 -->
-    <view class="user-info">
-      <view class="user-info-row">
-        <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @click="handleClick"></image>
-        <view class="user-info-content">
+    <view class="top-bg-wrapper">
+      <image class="top-image" src="/static/image/mine/topImage.png" mode="widthFix"></image>
+      <view class="overlay-content">
+        <!-- 用户信息区 -->
+        <view class="user-info">
+          <image class="campus-ambassador" v-if="storeCampusAmbassador && storeRole === '老师'" src="/static/image/mine/CampusAmbassador.png" mode="widthFix"></image>
+          <view class="avatar-wrapper">
+            <view class="avatar-outer">
+              <view class="avatar-inner">
+                <image class="avatar" :src="userData.avatar || storeAvatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill" @click="handleClick"></image>
+              </view>
+            </view>
+          </view>
           <view class="nickname-row">
             <text class="login-text" @click="handleClick">{{ userData.name || storeName || '登录' }}</text>
+            <image class="edit-profile-icon" src="/static/image/mine/edit.png" mode="widthFix" @click="navModify"></image>
           </view>
           <!-- 是否认证 -->
-          <view class="certification-row" v-if="storeRole === '老师'">
-            <text class="tag">{{ storeCertificate === 1 ? '已认证' : '未认证' }}</text>
-            <text class="tag" v-if="storeCampusAmbassador">{{'校园大使'}}</text>
+          <view class="certification-row">
+            <image class="user-tag" src="/static/image/mine/teacher.png" v-if="storeRole === '老师'" mode="heightFix"></image>
+            <image class="user-tag" src="/static/image/mine/student.png" v-if="storeRole === '学生'" mode="heightFix"></image>
+            <image class="user-tag" src="/static/image/certify/certified.png" v-if="storeCertificate === 1 && storeRole === '老师'" mode="heightFix"></image>
+            <image class="user-tag" src="/static/image/certify/uncertified.png" v-if="storeCertificate === 0 && storeRole === '老师'" mode="heightFix"></image>
+          </view>
+          <view class="middle-list">
+            <view class="middle-item">
+              <image class="middle-icon" src="/static/image/mine/order.png" mode="heightFix" @click="toOrderCommon"></image>
+              <text class="middle-text">订单</text>
+            </view>
+            <view class="middle-item">
+              <image class="middle-icon" src="/static/image/mine/course.png" mode="heightFix" @click="toCourse"></image>
+              <text class="middle-text">课程</text>
+            </view>
+            <view class="middle-item">
+              <image class="middle-icon" src="/static/image/mine/bill.png" mode="heightFix" @click="toBill"></image>
+              <text class="middle-text">账单</text>
+            </view>
+            <view class="middle-item">
+              <image class="middle-icon" src="/static/image/mine/customer.png" mode="heightFix" @click="handleContactUs"></image>
+              <text class="middle-text">客服</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 菜单列表 -->
+        <view class="menu-list">
+          <!-- 老师特有功能菜单 -->
+          <view v-if="storeRole === '老师'" class="menu-item" @click="toService">
+            <view class="icon-circle-info">
+              <image class="icon-image" src="/static/image/mine/service.png" mode="widthFix"></image>
+            </view>
+            <text class="menu-text">我的服务</text>
+            <image class="arrow-image" src="/static/image/arrow/arrow_right.png" mode="heightFix"></image>
+          </view>
+          <!-- 老师特有菜单项：资质认证 -->
+          <view v-if="storeRole === '老师' && storeCertificate === 0" class="menu-item" @click="toQualification">
+            <view class="icon-circle-info">
+              <image class="icon-image" src="/static/image/mine/qualification.png" mode="widthFix"></image>
+            </view>
+            <text class="menu-text">资质认证</text>
+            <image class="arrow-image" src="/static/image/arrow/arrow_right.png" mode="heightFix"></image>
+          </view>
+
+          <!-- 共有菜单项：设置 -->
+          <view class="menu-item" @click="toSettings">
+            <view class="icon-circle-info">
+              <image class="icon-image" src="/static/image/mine/settings.png" mode="widthFix"></image>
+            </view>
+            <text class="menu-text">设置</text>
+            <image class="arrow-image" src="/static/image/arrow/arrow_right.png" mode="heightFix"></image>
           </view>
         </view>
       </view>
     </view>
-    
-    <!-- 菜单列表 -->
-    <view class="menu-list">
-      <!-- 老师特有功能菜单 -->
-      <view v-if="storeRole === '老师'" class="menu-item" @click="toService">
-        <view class="icon-circle info">
-          <text class="icon-text">⏱</text>
-        </view>
-        <text class="menu-text">我的服务</text>
-      </view>
-      
-      <!-- 共有菜单项：我的订单 -->
-      <view class="menu-item" @click="toOrderCommon">
-        <view class="icon-circle success">
-          <text class="icon-text">✓</text>
-        </view>
-        <text class="menu-text">我的订单</text>
-      </view>
-      
-      <!-- 共有菜单项：我的课程 -->
-      <view class="menu-item" @click="toCourse">
-        <view class="icon-circle info">
-          <text class="icon-text">📚</text>
-        </view>
-        <text class="menu-text">我的课程</text>
-      </view>
-      
-      <!-- 老师特有菜单项：资质认证 -->
-      <view v-if="storeRole === '老师'" class="menu-item" @click="toQualification">
-        <view class="icon-circle info">
-          <text class="icon-text">📃</text>
-        </view>
-        <text class="menu-text">资质认证</text>
-      </view>
-      
-      <!-- 老师特有菜单项：我的钱包 -->
-      <view v-if="storeRole === '老师'" class="menu-item" @click="toWallet">
-        <view class="icon-circle warning">
-          <text class="icon-text">💰</text>
-        </view>
-        <text class="menu-text">我的钱包</text>
-      </view>
-      
-      
-      <!-- 共有菜单项：设置 -->
-      <view class="menu-item" @click="toSettings">
-        <view class="icon-circle info">
-          <text class="icon-text">⚙️</text>
-        </view>
-        <text class="menu-text">设置</text>
-      </view>
-    </view>
-    
     <!-- 添加自定义底部导航栏 -->
     <TabBar pageName="mine" />
   </view>
@@ -104,7 +109,7 @@ export default {
       storeName: state => state.name,
       storeGender: state => state.gender,
       storeRole: state => state.userInfo?.role || '学生',
-      storeCertificate: state => state.certificate,
+      storeCertificate: state => state.userInfo?.certificate || 0,
       storeCampusAmbassador: state => state.campusAmbassador
     })
   },
@@ -321,7 +326,12 @@ export default {
         Navigator.toWechatLogin();
       }
     },
-    
+    /**
+     * @description 跳转到修改页面
+     */
+    navModify(){
+      Navigator.toModify();
+    },
     /**
      * @description 页面跳转方法
      * @param {string} url - 目标页面路径
@@ -354,8 +364,8 @@ export default {
     /**
      * @description 跳转到钱包页面
      */
-    toWallet() {
-      Navigator.toWallet();
+    toBill() {
+      Navigator.toBill();
     },
     
     /**
@@ -367,6 +377,13 @@ export default {
     
     toService() {
       Navigator.toService();
+    },
+    
+    /**
+     * @description 处理联系我们
+     */
+    handleContactUs() {
+      Navigator.toChat(1);//客服id（暂待定）
     }
   }
 }
@@ -380,51 +397,150 @@ export default {
   padding-bottom: 55px; /* 为自定义tabBar留出空间 */
   background-color: #ffffff;
 }
-
+.top-bg-wrapper {
+  position: relative;
+  height:100%;
+  width: 100%;
+}
+.top-image {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  z-index: 0;
+}
+.overlay-content {
+  position: absolute;
+  top:450rpx;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+  background-color:rgba(255, 255, 255, 1);
+  border-radius:140rpx 140rpx 0 0;
+  overflow: visible;
+}
 /* 用户信息区样式 */
 .user-info {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 30rpx;
+  align-items: center;
+  justify-content: flex-start;
+
   border-bottom: 1px solid #f0f0f0;
+  min-height: 450rpx;
+  position: relative;
+  z-index: 2;
+  overflow: visible;
 }
-
-.user-info-row {
+.campus-ambassador{
+  height: 190rpx;
+  width: 46rpx;
+  top:0;
+  left:570rpx;
+  position: absolute;
+}
+.avatar-wrapper {
+  width: 180rpx;
+  height: 180rpx;
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  width: 100%;
-  margin-bottom: 20rpx;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+  margin-top: -90rpx;
 }
 
+/*
+ * @description 头像外层正方形底板
+ */
+.avatar-outer {
+  width: 180rpx;
+  height: 180rpx;
+  background: rgba(255, 255, 255, 1);
+  border-radius: 30rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/*
+ * @description 头像内层正方形底板
+ */
+.avatar-inner {
+  width: 168rpx; /* 200rpx - 6rpx*2 */
+  height: 168rpx;
+  border-radius: 30rpx;
+  background: rgba(239, 240, 255, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/*
+ * @description 头像图片本身
+ */
 .avatar {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  margin-right: 20rpx;
-  flex-shrink: 0;
-}
-
-.user-info-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  width: 180rpx;
+  height: 180rpx;
+  object-fit: cover;
+  background-color: transparent;
+  border: none;
 }
 
 .nickname-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  margin-bottom: 10rpx;
+  justify-content: center;
+  width: 100%;
+  margin-top: 30rpx;
+  overflow: visible;
 }
 
 .login-text {
-  font-size: 32rpx;
-  font-weight: bold;
-  margin-right: 20rpx;
+  font-size: 38rpx;
+  text-align: center;
+  font-family: PingFang SC;
+  font-weight: 550;
+  line-height: 100%;
+  letter-spacing: -1.26rpx;
+}
+.edit-profile-icon{
+  width: 40rpx;
+  height: 40rpx;
+  position: absolute;
+  margin-left: 130rpx;
+  margin-top: -8rpx;
 }
 
+.middle-list{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40rpx;
+}
+.middle-item{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-left: 40rpx;
+  margin-right: 40rpx;
+}
+.middle-icon{
+  height:85rpx;
+}
+.middle-text{
+  height: 25rpx;
+  width: 100%;
+  font-size: 25rpx;
+  color: rgba(0, 0, 0, 1);
+  text-align: center;
+  font-family: PingFang SC;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
+  margin-top: 20rpx;
+}
 /* 调试信息 */
 .debug-info {
   display: flex;
@@ -453,26 +569,37 @@ export default {
   width: 100%;
 }
 
+/*
+ * @description 菜单项容器，设置为相对定位以便子元素绝对定位
+ */
 .menu-item {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  padding: 30rpx 0;
+  padding: 20rpx 0;
   border-bottom: 1px solid #f0f0f0;
+  position: relative; /* 新增：为绝对定位子元素做准备 */
+  min-height: 100rpx;
 }
-
-.icon-circle {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
+.icon-circle-info{
   display: flex;
-  justify-content: center;
+  flex-direction: row;
   align-items: center;
-  margin: 0 30rpx;
-  flex-shrink: 0;
+  justify-content: center;
 }
-
+.icon-image{
+  width: 60rpx;
+  margin-left: 60rpx;
+}
+/**
+ * @description 右侧箭头图标，绝对定位于父容器右侧
+ */
+.arrow-image{
+  height: 28rpx;
+  position: absolute; /* 新增：绝对定位 */
+  right: 40rpx;        /* 新增：距离右侧30rpx，可根据需要调整 */
+}
 .success {
   background-color: rgba(76, 175, 80, 0.1);
 }
@@ -503,29 +630,24 @@ export default {
 }
 
 .menu-text {
-  font-size: 30rpx;
-  color: #333;
-  text-align: left;
+  height: 25rpx;
+  width: 100%;
+  font-size: 25rpx;
+  color: rgba(0, 0, 0, 1);
+  font-family: PingFang SC;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
+  margin-left: 30rpx;
 }
 .certification-row {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 8px;
+  margin-top: 40rpx;
 }
-.tag {
-  font-size: 12px;
-  color: #1E90FF;
-  background-color: rgba(30, 144, 255, 0.1);
-  padding: 4px 8px;
-  border-radius: 12px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-  /* 新增以下属性 */
-  display: inline-flex;
-  justify-content: center;
-  white-space: nowrap;
-  width: fit-content;
-  /* 或者可以使用 min-width: fit-content; */
+.user-tag{
+  height: 50rpx;
+  margin-left: 15rpx;
 }
 </style>

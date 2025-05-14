@@ -161,7 +161,7 @@ export default {
           
           // 跳转到新建/编辑服务页面
           uni.navigateTo({
-            url: '/pages/mine/service_newbuilt?mode=edit&id=' + currentService.id,
+            url: '/pagesMine/service_newbuilt?mode=edit&id=' + currentService.id,
             success: () => {
               console.log('跳转到编辑页面成功')
             },
@@ -253,7 +253,7 @@ export default {
         
         // 跳转到新建服务页面
         uni.navigateTo({
-          url: '/pages/mine/service_newbuilt',
+          url: '/pagesMine/service/service_newbuilt',
           fail: (err) => {
             console.error('跳转失败：', err)
             uni.showToast({

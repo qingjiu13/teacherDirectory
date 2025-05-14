@@ -21,7 +21,7 @@
       "pages": [
         "settings/settings",
         "teacher/teacher",
-        "wallet/wallet",
+        "bill/bill",
         "service/service",
         "course/course",
         "qualification/qualification",
@@ -76,7 +76,7 @@
         "__APP__"
       ]
     },
-    "pagesMine/wallet/wallet": {
+    "pagesMine/bill/bill": {
       "network": "all",
       "packages": [
         "__APP__"
