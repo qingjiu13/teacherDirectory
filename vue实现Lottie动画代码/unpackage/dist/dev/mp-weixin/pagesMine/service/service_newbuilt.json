@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "新建服务",
   "usingComponents": {
-    "choice-selected": "../../pages_AI_Login_Match/components/combobox/combobox"
+    "choice-selected": "../components/combobox/combobox"
   }
 }
