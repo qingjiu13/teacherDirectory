@@ -159,9 +159,22 @@ export default {
       const course = this.pendingCourses[index];
       // 第一步：确认预约
       const { confirm } = await uni.showModal({
-        title: '确认预约',
-        content: `确定要预约《${course.name}》课程吗？`,
-        confirmText: '确认',
+        title: '确认预约'
+        content: '确定要预约《${course.name}》课程吗？'
+        confirmText: '确认'
+        cancelText: '取消'
+      });
+      
+      if (!confirm) return;
+      
+      // 记录当前课程索引
+      this.currentCourseIndex = index;
+      // 显示日期选择提示
+      uni.showToast({
+        title: '请选择预约日期'
+        icon: 'none'
+        duration: 1500
+        confirmText: '确认'
         cancelText: '取消'
       });
       

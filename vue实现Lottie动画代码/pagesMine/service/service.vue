@@ -159,9 +159,9 @@ export default {
           // 隐藏加载提示
           uni.hideLoading()
           
-          // 跳转到新建/编辑服务页面
+          // 跳转到新建/编辑服务页面（修复路径）
           uni.navigateTo({
-            url: '/pagesMine/service_newbuilt?mode=edit&id=' + currentService.id,
+            url: './service_newbuilt?mode=edit&id=' + currentService.id,
             success: () => {
               console.log('跳转到编辑页面成功')
             },
@@ -251,9 +251,9 @@ export default {
         // 隐藏加载提示
         uni.hideLoading()
         
-        // 跳转到新建服务页面
+        // 跳转到新建服务页面（修复路径）
         uni.navigateTo({
-          url: '/pagesMine/service/service_newbuilt',
+          url: './service_newbuilt',
           fail: (err) => {
             console.error('跳转失败：', err)
             uni.showToast({

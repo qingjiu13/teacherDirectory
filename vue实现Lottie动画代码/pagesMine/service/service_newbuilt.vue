@@ -202,7 +202,6 @@
 </template>
 
 <script>
-
 import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox.vue'
 
 export default {
@@ -212,7 +211,7 @@ export default {
   data() {
     return {
       mode: 'add', // 默认为添加模式
-      serviceId: null, // 当前编辑的服务ID
+      serviceId: '', // 当前编辑的服务ID
       coverUrls: [], // 修改：封面图片URL数组
       avatarUrl: '', // 新增：头像URL
       selectedServiceType: '',
@@ -228,16 +227,16 @@ export default {
       description: '',
       price: '',
       files: [],
-      showDuration: true,
+      showDuration: false,
       showAttachment: false,
       originalService: null, // 保存原始服务数据
       
       // 一对一课程相关数据
       serviceName: '',
       selectedLessonsIndex: -1,
-      lessonOptions: ['1', '2', '3', '4', '5', '6', '7', '8','9','10', '20'],
+      lessonOptions: ['1', '2', '3', '4', '5', '6', '8', '10', '12', '16', '20'],
       selectedHoursIndex: -1,
-      hourOptions: ['1', '2', '3', '4', '5', '6', '8', '10'],
+      hourOptions: ['1', '2', '4', '6', '8', '10', '12', '24', '48', '60', '120'],
       selectedMinutesIndex: -1,
       minuteOptions: ['0', '15', '30', '45'],
       
@@ -246,31 +245,36 @@ export default {
       selectedMultiMinutesIndex: -1,
       multiServiceName: '',
       selectedPersonCountIndex: -1,
-      personCountOptions: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+      personCountOptions: ['2', '4', '6', '8', '10', '15', '20', '30']
     }
   },
   onLoad(options) {
-    // 判断是新增模式还是编辑模式
-    if (options.mode === 'edit' && options.id) {
-      this.mode = 'edit'
-      this.serviceId = options.id
+    console.log('service_newbuilt onLoad:', options)
+    
+    // 设置模式和服务ID
+    if (options && options.mode) {
+      this.mode = options.mode
       
-      // 从全局状态获取服务数据
-      if (getApp().globalData && getApp().globalData.editingService) {
-        const serviceData = getApp().globalData.editingService
-        this.originalService = JSON.parse(JSON.stringify(serviceData)) // 保存原始数据的副本
+      if (options.mode === 'edit' && options.id) {
+        // 编辑模式：获取服务ID
+        this.serviceId = options.id
         
-        // 填充表单数据
-        this.fillFormWithServiceData(serviceData)
+        // 加载待编辑的服务数据
+        this.loadEditingService()
       }
     }
     
-    // 监听serviceAdded事件
-    uni.$on('serviceEdited', this.handleServiceEdited)
+    // 初始化表单字段显示
+    this.updateFormFields()
   },
   onUnload() {
     // 移除事件监听
     uni.$off('serviceEdited', this.handleServiceEdited)
+    
+    // 清理全局状态中的编辑服务
+    if (getApp().globalData) {
+      getApp().globalData.editingService = null
+    }
   },
   methods: {
     chooseAvatar() {
@@ -305,29 +309,80 @@ export default {
     deleteCover(index) {
       this.coverUrls.splice(index, 1)
     },
+    loadEditingService() {
+      try {
+        // 首先尝试从全局数据获取
+        if (getApp().globalData && getApp().globalData.editingService) {
+          this.originalService = getApp().globalData.editingService
+          
+          // 使用服务数据填充表单
+          this.fillFormWithServiceData(this.originalService)
+          return
+        }
+        
+        // 如果全局数据不存在，尝试从本地存储加载
+        const servicesStr = uni.getStorageSync('services')
+        if (servicesStr) {
+          const services = JSON.parse(servicesStr)
+          const service = services.find(s => s.id.toString() === this.serviceId.toString())
+          
+          if (service) {
+            this.originalService = service
+            
+            // 使用服务数据填充表单
+            this.fillFormWithServiceData(service)
+          } else {
+            // 找不到对应服务数据
+            uni.showToast({
+              title: '找不到服务数据',
+              icon: 'none'
+            })
+            
+            // 延迟返回上一页
+            setTimeout(() => {
+              uni.navigateBack()
+            }, 1500)
+          }
+        }
+      } catch (error) {
+        console.error('加载服务数据失败:', error)
+        uni.showToast({
+          title: '加载数据失败',
+          icon: 'none'
+        })
+      }
+    },
     fillFormWithServiceData(serviceData) {
       // 设置封面图片
-      this.coverUrls = serviceData.imageUrls || []
+      this.coverUrls = serviceData.imageUrls || (serviceData.imageUrl ? [serviceData.imageUrl] : [])
       
-      // 根据服务数据填充表单
-      // 设置服务类型
-      this.selectedServiceType = serviceData.name || ''
-      this.selectedServiceTypeIndex = this.serviceTypes.findIndex(type => type === serviceData.name)
+      // 设置服务类型 (注意：需要修正设置服务类型的方式)
+      if (serviceData.type && serviceData.type.typename) {
+        // 如果服务数据使用type对象
+        this.selectedServiceType = serviceData.type.typename
+        this.selectedServiceTypeIndex = this.serviceTypes.findIndex(type => type === serviceData.type.typename)
+      } else {
+        // 如果服务数据直接使用name字段
+        this.selectedServiceType = serviceData.name || ''
+        this.selectedServiceTypeIndex = this.serviceTypes.findIndex(type => type === serviceData.name)
+      }
       
       // 设置价格（去掉价格前面的¥符号）
-      this.price = serviceData.price ? serviceData.price.replace('¥', '') : ''
+      this.price = serviceData.price ? serviceData.price.replace(/[¥￥]/g, '') : ''
       
       // 设置描述
       this.description = serviceData.description || ''
       
       // 根据服务类型设置不同的字段
       if (this.selectedServiceType === '一对一课程') {
-        // 设置服务名称
-        this.serviceName = serviceData.serviceName || ''
+        // 设置服务名称 (优先使用serviceName字段，如果没有则使用name)
+        this.serviceName = serviceData.serviceName || serviceData.name || ''
         
         // 设置节数
         if (serviceData.lessons) {
           this.selectedLessonsIndex = this.lessonOptions.findIndex(l => l === serviceData.lessons.toString())
+        } else if (serviceData.type && serviceData.type.coursenum) {
+          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => parseInt(l) === serviceData.type.coursenum)
         }
         
         // 解析总时长的小时和分钟
@@ -337,14 +392,31 @@ export default {
             this.selectedHoursIndex = this.hourOptions.findIndex(h => h === match[1])
             this.selectedMinutesIndex = this.minuteOptions.findIndex(m => m === match[2])
           }
+        } else if (serviceData.type && serviceData.type.fulllength) {
+          // 从type.fulllength获取时长信息
+          const hours = serviceData.type.fulllength.hours || ''
+          const minutes = serviceData.type.fulllength.minutes || ''
+          
+          const hoursMatch = hours.match(/(\d+)/)
+          const minutesMatch = minutes.match(/(\d+)/)
+          
+          if (hoursMatch) {
+            this.selectedHoursIndex = this.hourOptions.findIndex(h => h === hoursMatch[1])
+          }
+          
+          if (minutesMatch) {
+            this.selectedMinutesIndex = this.minuteOptions.findIndex(m => m === minutesMatch[1])
+          }
         }
       } else if (this.selectedServiceType === '一对多课程') {
         // 设置服务名称
-        this.multiServiceName = serviceData.serviceName || ''
+        this.multiServiceName = serviceData.serviceName || serviceData.name || ''
         
         // 设置课时
         if (serviceData.lessons) {
           this.selectedLessonsIndex = this.lessonOptions.findIndex(l => l === serviceData.lessons.toString())
+        } else if (serviceData.type && serviceData.type.coursenum) {
+          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => parseInt(l) === serviceData.type.coursenum)
         }
         
         // 解析总时长的小时和分钟
@@ -354,15 +426,32 @@ export default {
             this.selectedMultiHoursIndex = this.hourOptions.findIndex(h => h === match[1])
             this.selectedMultiMinutesIndex = this.minuteOptions.findIndex(m => m === match[2])
           }
+        } else if (serviceData.type && serviceData.type.fulllength) {
+          // 从type.fulllength获取时长信息
+          const hours = serviceData.type.fulllength.hours || ''
+          const minutes = serviceData.type.fulllength.minutes || ''
+          
+          const hoursMatch = hours.match(/(\d+)/)
+          const minutesMatch = minutes.match(/(\d+)/)
+          
+          if (hoursMatch) {
+            this.selectedMultiHoursIndex = this.hourOptions.findIndex(h => h === hoursMatch[1])
+          }
+          
+          if (minutesMatch) {
+            this.selectedMultiMinutesIndex = this.minuteOptions.findIndex(m => m === minutesMatch[1])
+          }
         }
         
         // 设置课程人数
         if (serviceData.personCount) {
           this.selectedPersonCountIndex = this.personCountOptions.findIndex(p => p === serviceData.personCount.toString())
+        } else if (serviceData.type && serviceData.type.studentnum) {
+          this.selectedPersonCountIndex = this.personCountOptions.findIndex(p => parseInt(p) === serviceData.type.studentnum)
         }
-      } else {
+      } else if (this.selectedServiceType === '学习资料') {
         // 学习资料类型
-        this.coursequantity = serviceData.coursequantity || ''
+        this.coursequantity = serviceData.coursequantity || serviceData.name || ''
       }
       
       // 更新表单字段显示
@@ -526,7 +615,7 @@ export default {
       else if (this.selectedServiceType === '学习资料') {
         if (!this.coursequantity) {
           uni.showToast({
-            title: '请填写课程数量',
+            title: '请填写服务名称',
             icon: 'none'
           })
           uni.hideLoading()
@@ -544,13 +633,34 @@ export default {
       }
       
       // 构建服务对象
-      let serviceData = {
-        name: this.selectedServiceType,
-        price: this.price.startsWith('¥') ? this.price : '¥' + this.price,
-        description: this.description || `这是一个${this.selectedServiceType}服务`,
-        checked: false,
-        imageUrls: this.coverUrls, // 修改：使用封面图片URL数组
-        imageUrl: this.coverUrls[0] // 保持兼容性，使用第一张图片作为主图
+      let serviceData = {}
+      
+      // 编辑模式下保留原始服务的部分信息
+      if (this.mode === 'edit' && this.originalService) {
+        // 保留原始ID和部分不变的属性
+        serviceData = {
+          ...this.originalService,
+          // 这些字段将被覆盖
+          name: this.selectedServiceType,
+          price: this.price.startsWith('¥') ? this.price : '¥' + this.price,
+          description: this.description || `这是一个${this.selectedServiceType}服务`,
+          imageUrls: this.coverUrls,
+          imageUrl: this.coverUrls[0] || ''
+        }
+      } else {
+        // 新建模式
+        serviceData = {
+          id: Date.now().toString(), // 生成新ID
+          name: this.selectedServiceType,
+          price: this.price.startsWith('¥') ? this.price : '¥' + this.price,
+          description: this.description || `这是一个${this.selectedServiceType}服务`,
+          checked: false,
+          imageUrls: this.coverUrls,
+          imageUrl: this.coverUrls[0] || '',
+          createTime: new Date().toISOString().split('T')[0],
+          updateTime: new Date().toISOString().split('T')[0],
+          status: 'active'
+        }
       }
       
       // 为一对一课程添加特殊字段
@@ -558,6 +668,16 @@ export default {
         serviceData.serviceName = this.serviceName
         serviceData.lessons = this.lessonOptions[this.selectedLessonsIndex]
         serviceData.totalDuration = `${this.hourOptions[this.selectedHoursIndex]}小时${this.minuteOptions[this.selectedMinutesIndex]}分钟`
+        
+        // 添加类型信息
+        serviceData.type = {
+          typename: '一对一课程',
+          coursenum: parseInt(this.lessonOptions[this.selectedLessonsIndex]),
+          fulllength: {
+            hours: `${this.hourOptions[this.selectedHoursIndex]}小时`,
+            minutes: `${this.minuteOptions[this.selectedMinutesIndex]}分钟`
+          }
+        }
       } 
       // 为一对多课程添加特殊字段
       else if (this.selectedServiceType === '一对多课程') {
@@ -565,22 +685,37 @@ export default {
         serviceData.lessons = this.lessonOptions[this.selectedLessonsIndex]
         serviceData.totalDuration = `${this.hourOptions[this.selectedMultiHoursIndex]}小时${this.minuteOptions[this.selectedMultiMinutesIndex]}分钟`
         serviceData.personCount = this.personCountOptions[this.selectedPersonCountIndex]
+        
+        // 添加类型信息
+        serviceData.type = {
+          typename: '一对多课程',
+          coursenum: parseInt(this.lessonOptions[this.selectedLessonsIndex]),
+          fulllength: {
+            hours: `${this.hourOptions[this.selectedMultiHoursIndex]}小时`,
+            minutes: `${this.minuteOptions[this.selectedMultiMinutesIndex]}分钟`
+          },
+          studentnum: parseInt(this.personCountOptions[this.selectedPersonCountIndex])
+        }
       } 
       // 其他服务类型
-      else {
+      else if (this.selectedServiceType === '学习资料') {
         serviceData.coursequantity = this.coursequantity
+        serviceData.serviceName = this.coursequantity // 使用输入的名称作为serviceName
+        
+        // 添加类型信息
+        serviceData.type = {
+          typename: '学习资料',
+          fileLink: 'https://www.baidu.com' // 示例链接，实际应该由用户上传文件后获取
+        }
       }
       
+      // 更新时间戳
+      serviceData.updateTime = new Date().toISOString().split('T')[0]
+      
       // 根据模式执行不同操作
-      if (this.mode === 'edit' && this.serviceId && this.originalService) {
-        // 编辑模式：保留原ID和选中状态
-        serviceData.id = this.serviceId
-        serviceData.checked = this.originalService.checked
-        
+      if (this.mode === 'edit') {
         this.updateExistingService(serviceData)
       } else {
-        // 新增模式：生成新ID
-        serviceData.id = Date.now()
         this.addNewService(serviceData)
       }
     },
