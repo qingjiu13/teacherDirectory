@@ -1,0 +1,2 @@
+"use strict";function c(m,n="YYYY-MM-DD HH:mm"){let r=Number(m);r.toString().length===10&&(r*=1e3);const e=new Date(r);function t(a){return a<10?"0"+a:a}return n.replace("YYYY",e.getFullYear()).replace("MM",t(e.getMonth()+1)).replace("DD",t(e.getDate())).replace("HH",t(e.getHours())).replace("mm",t(e.getMinutes()))}exports.formatTimestamp=c;
+//# sourceMappingURL=../../.sourcemap/mp-weixin/components/timeStamp.js.map

@@ -104,6 +104,8 @@
 
 <script>
 	import { mapState, mapActions } from 'vuex';
+	// 导入时间戳格式化函数
+	import { formatTimestamp } from '../../../components/timeStamp.js';
 	
 	/**
 	 * @description 历史记录侧边栏组件，按时间分组显示
@@ -157,6 +159,54 @@
 			}),
 			
 			/**
+			 * @description 按日期分类的历史记录
+			 * @returns {Object} 分类后的历史记录
+			 */
+			groupedConversationsByDate() {
+				// 获取当前日期、一周前日期和一个月前日期的时间戳
+				const now = new Date();
+				const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+				const weekAgo = today - 7 * 24 * 60 * 60 * 1000;
+				const monthAgo = today - 30 * 24 * 60 * 60 * 1000;
+				
+				// 分类存储
+				const result = {
+					today: [],
+					week: [],
+					month: []
+				};
+				
+				// 遍历所有对话记录进行分类
+				this.conversations.forEach(conv => {
+					// 使用更新时间作为分类依据
+					const timestamp = conv.updatedAt || conv.createdAt;
+					
+					// 格式化时间戳用于调试
+					const formattedDate = formatTimestamp(timestamp);
+					console.log(`对话 ${conv.id} 的时间: ${formattedDate}, 时间戳: ${timestamp}`);
+					
+					if (timestamp >= today) {
+						result.today.push(conv);
+					} else if (timestamp >= weekAgo) {
+						result.week.push(conv);
+					} else if (timestamp >= monthAgo) {
+						result.month.push(conv);
+					}
+				});
+				
+				// 按时间戳倒序排序（最新的在前面）
+				['today', 'week', 'month'].forEach(key => {
+					result[key].sort((a, b) => {
+						const timeA = a.updatedAt || a.createdAt;
+						const timeB = b.updatedAt || b.createdAt;
+						return timeB - timeA;
+					});
+				});
+				
+				return result;
+			},
+			
+			/**
 			 * @description 是否有任何历史记录
 			 * @returns {Boolean}
 			 */
@@ -196,11 +246,34 @@
 			console.log('组件计算的 currentChatId:', this.currentChatId);
 			console.log('=================== 调试信息结束 ===================');
 		},
+		mounted() {
+			// 在组件挂载时初始化对话分类
+			this.initConversationGroups();
+		},
 		methods: {
 			...mapActions({
 				setActiveConversation: 'user/aiChat/setCurrentChat',
 				deleteConversation: 'user/aiChat/deleteChat'
 			}),
+			
+			/**
+			 * @description 初始化对话分组
+			 */
+			initConversationGroups() {
+				// 初始化对话分组，将分组结果通过事件发送给父组件
+				const groupedConversations = this.groupedConversationsByDate;
+				this.$emit('updateGroups', groupedConversations);
+			},
+			
+			/**
+			 * @description 格式化时间戳为人类可读格式
+			 * @param {Number} timestamp - 时间戳
+			 * @param {String} format - 日期格式
+			 * @returns {String} 格式化后的日期字符串
+			 */
+			formatDate(timestamp, format = 'YYYY-MM-DD') {
+				return formatTimestamp(timestamp, format);
+			},
 			
 			/**
 			 * @description 获取对话模式的中文标签
