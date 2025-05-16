@@ -225,7 +225,8 @@
 			"^message-list$": "pages_AI_Login_Match/AI/ai-chat/MessageList",
 			"^filter-section$": "pages_AI_Login_Match/AI/ai-chat/FilterSection", 
 			"^mode-selector$": "pages_AI_Login_Match/AI/ai-chat/ModeSelector",
-			"^top-navbar$": "components/top-navbar/top-navbar"
+			"^top-navbar$": "components/top-navbar/top-navbar",
+			"^choice-selected$": "pages_AI_Login_Match/components/combobox/combobox"
 		}
 	},
 	"uniIdRouter": {},
