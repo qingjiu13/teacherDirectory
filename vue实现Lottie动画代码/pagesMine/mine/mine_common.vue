@@ -578,7 +578,7 @@ export default {
   align-items: center;
   justify-content: flex-start;
   padding: 20rpx 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 2rpx solid rgba(217, 217, 217, 1);
   position: relative; /* 新增：为绝对定位子元素做准备 */
   min-height: 100rpx;
 }

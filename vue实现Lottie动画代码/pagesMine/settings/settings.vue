@@ -1,24 +1,39 @@
 <template>
+  <view class="background-image">
+    <image
+      class="background-image-img"
+      src="/static/image/bgPicture/background1.png"
+      mode="aspectFill" alt="背景图"
+    />
+  </view>
+  <view class="background-image">
+    <image
+      class="background-image-img"
+      src="/static/image/bgPicture/background.png"
+      mode="aspectFill" alt="背景图"
+    />
+  </view>
+  <Header :title="'设置'" @back="handleBack"/>
   <view class="container">
     <view class="settings-list">
       <!-- 切换身份 -->
       <view class="settings-item" @click="handleSwitchRole">
-        <view class="icon-circle info">
-          <text class="icon-text">🔄</text>
+        <view class="icon-circle-info">
+          <image src="/pagesMine/static/settings/exchange.png" class="icon" mode="widthFix" />
         </view>
         <text class="settings-text">切换身份（当前：{{isTeacher ? '老师' : '学生'}}）</text>
       </view>
       <!--修改个人信息-->
       <view class="settings-item" @click="handleModifyInfo">
-        <view class="icon-circle info">
-          <text class="icon-text">🔄</text>
+        <view class="icon-circle-info">
+          <image src="/pagesMine/static/settings/exchange.png" class="icon" mode="widthFix" />
         </view>
         <text class="settings-text">修改个人信息</text>
       </view>
       <!-- 退出登录 -->
       <view class="settings-item" @click="handleLogout" v-if="isLoggedIn">
-        <view class="icon-circle warning">
-          <text class="icon-text">⚠</text>
+        <view class="icon-circle-info">
+          <image src="/pagesMine/static/settings/logout.png" class="icon" mode="widthFix" />
         </view>
         <text class="settings-text">退出登录</text>
       </view>
@@ -33,8 +48,12 @@
 import { Navigator } from '@/router/Router.js';
 import store from '@/store';
 import { mapGetters } from 'vuex';
+import Header from '@/components/navigationTitleBar/header';
 
 export default {
+  components: {
+    Header
+  },
   data() {
     return {
       isLoggedIn: false, 
@@ -56,6 +75,9 @@ export default {
     this.isLoggedIn = store.getters['user/baseInfo/id'] !== '';
   },
   methods: {
+    handleBack() {
+      Navigator.toMine();
+    },
     // 直接调用store的dispatch方法，替代mapActions
     /**
      * @description 处理修改个人信息
@@ -148,10 +170,24 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  background-color: #ffffff;
-  padding: 20rpx 0;
+  background-color: transparent;
+  padding-top: 20rpx;
 }
-
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+.background-image-img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
+}
 .settings-list {
   width: 100%;
 }
@@ -161,54 +197,35 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  padding: 30rpx 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid rgba(217, 217, 217, 1);
+  min-height: 100rpx;
 }
 
-.icon-circle {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
+.icon-circle-info {
   display: flex;
-  justify-content: center;
+  flex-direction: row;
   align-items: center;
-  margin: 0 30rpx;
-  flex-shrink: 0;
+  justify-content: center;
 }
 
-.success {
-  background-color: rgba(76, 175, 80, 0.1);
+
+.icon {
+  width: 60rpx;
+  margin-left: 60rpx;
 }
 
-.warning {
-  background-color: rgba(255, 82, 82, 0.1);
-}
 
-.info {
-  background-color: rgba(33, 150, 243, 0.1);
-}
-
-.icon-text {
-  font-size: 30rpx;
-  font-weight: bold;
-}
-
-.success .icon-text {
-  color: #4CAF50;
-}
-
-.warning .icon-text {
-  color: #FF5252;
-}
-
-.info .icon-text {
-  color: #2196F3;
-}
 
 .settings-text {
-  font-size: 30rpx;
-  color: #333;
-  text-align: left;
-  flex: 1;
+  height: 25rpx;
+  width: 100%;
+  font-size: 25rpx;
+  color: rgba(0, 0, 0, 1);
+  font-family: PingFang SC;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
+  margin-left: 30rpx;
 }
 </style>
