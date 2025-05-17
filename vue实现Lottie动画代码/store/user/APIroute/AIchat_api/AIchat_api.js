@@ -7,8 +7,8 @@ import {
     AIQA_GET_HISTORY_URL,
     AIQA_DELETE_HISTORY_URL,
     AIQA_GET_HISTORY_DETAIL_URL
-} from '../API.js';
-import store from '../../index.js';
+} from '../../API.js';
+import store from '../../../index.js';
 
 /**
  * 封装uni.request为Promise形式

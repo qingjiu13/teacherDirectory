@@ -3,7 +3,7 @@
  * @module store/user/APIroute/myService_api
  */
 
-import { USER_MY_SERVICE_URL, USER_MY_SERVICE_NEWBUILT_URL, USER_MY_SERVICE_DELETE_URL } from '../API.js';
+import { USER_MY_SERVICE_URL, USER_MY_SERVICE_NEWBUILT_URL, USER_MY_SERVICE_DELETE_URL } from '../../API.js';
 
 /**
  * 获取用户的所有服务列表

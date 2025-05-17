@@ -118,4 +118,8 @@ export default {
             ]
         }
     ],
+    currentPage: 1,
+    pageSize: 10,
+    hasMore: false, // 是否还有更多数据可加载
+    isLoading: false
 };

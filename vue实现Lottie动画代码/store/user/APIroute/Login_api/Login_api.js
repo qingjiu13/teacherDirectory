@@ -7,7 +7,7 @@ import {
   LOGIN_WETHER_SIGN_IN_URL, 
   LOGIN_URL, 
   LOGIN_SIGN_IN_URL 
-} from '../API.js';
+} from '../../API.js';
 
 /**
  * @description 判断用户是否注册过
