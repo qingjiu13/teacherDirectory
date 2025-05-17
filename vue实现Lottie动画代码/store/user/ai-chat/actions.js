@@ -9,7 +9,7 @@ import {
     getConversationHistory, 
     getConversationDetail as fetchConversationDetail, 
     deleteConversation 
-} from '../APIroute/AIchat_api.js';
+} from '../APIroute/AIchat_api/AIchat_api.js';
 
 export default {
     /**

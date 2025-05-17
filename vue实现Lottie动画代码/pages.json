@@ -239,8 +239,12 @@
 			"^filter-section$": "pages_AI_Login_Match/AI/ai-chat/FilterSection", 
 			"^mode-selector$": "pages_AI_Login_Match/AI/ai-chat/ModeSelector",
 			"^top-navbar$": "components/top-navbar/top-navbar",
+<<<<<<< Updated upstream
 			"^choice-selected$": "pages_AI_Login_Match/components/combobox/combobox",
 			"^header$": "components/navigationTitleBar/header"
+=======
+			"^choice-selected$": "pagesMine/components/combobox/combobox"
+>>>>>>> Stashed changes
 		}
 	},
 	"uniIdRouter": {},

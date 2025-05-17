@@ -4,32 +4,6 @@
  */
 
 export default {
-  /**
-   * 设置学校列表
-   * @param {Object} state - 状态对象
-   * @param {String} schoolName - 学校名称
-   */
-  SET_SCHOOL_LIST(state, schoolName) {
-    state.schoolList = schoolName
-  },
-
-  /**
-   * 设置专业课列表
-   * @param {Object} state - 状态对象
-   * @param {String} professionalName - 专业课名称
-   */
-  SET_PROFESSIONAL_LIST(state, professionalName) {
-    state.professionalList = professionalName
-  },
-
-  /**
-   * 设置筛选模式
-   * @param {Object} state - 状态对象
-   * @param {Object} filterMode - 筛选模式对象
-   */
-  SET_FILTER_MODE(state, filterMode) {
-    state.filterMode = filterMode
-  },
 
   /**
    * 设置匹配列表
@@ -49,56 +23,80 @@ export default {
     state.matchList = [...state.matchList, ...additionalMatches]
   },
   
+
   /**
-   * 更新特定教师的详细信息
-   * @param {Object} state - match模块的state
-   * @param {Object} payload - 包含教师ID和详细信息的对象
-   * @param {String} payload.id - 教师ID
-   * @param {Object} payload.detailInfo - 教师详细信息
+   * 下面是对接api函数页码相关的mutations
+   * 设置分页信息
+   * @param {Object} state - 当前模块的state
+   * @param {Object} pagination - 分页信息
+   * @param {number} pagination.currentPage - 当前页码
+   * @param {boolean} pagination.hasMore - 是否还有更多数据
    */
-  UPDATE_TEACHER_DETAIL(state, { id, detailInfo }) {
-    if (!state.matchList || state.matchList.length === 0) {
-      // 如果matchList不存在或为空，创建一个包含该教师的新列表
-      state.matchList = [{ id, ...detailInfo }];
-      return;
-    }
+  SET_PAGINATION(state, { currentPage, hasMore }) {
+    state.currentPage = currentPage;
+    state.hasMore = hasMore;
+  },
+  
+  /**
+   * 设置老师详细信息
+   * @param {Object} state - 当前模块的state
+   * @param {string} payload.teacherId - 老师ID
+   * @param {Object} payload.detail - 老师详细信息
+   */
+  SET_TEACHER_DETAIL(state, { teacherId, detail }) {
+    // 找到匹配列表中对应的老师
+    const teacherIndex = state.matchList.findIndex(teacher => teacher.id === teacherId);
     
-    const teacherIndex = state.matchList.findIndex(teacher => teacher.id === id);
     if (teacherIndex !== -1) {
-      // 合并现有信息和新的详细信息
-      state.matchList[teacherIndex] = {
+      // 如果存在，则更新详细信息
+      const updatedTeacher = {
         ...state.matchList[teacherIndex],
-        ...detailInfo
+        selfIntroduction: detail.selfIntroduction || state.matchList[teacherIndex].selfIntroduction,
+        service: detail.service || state.matchList[teacherIndex].service
       };
-    } else {
-      // 如果在列表中找不到该教师，则添加到列表
-      state.matchList.push({ id, ...detailInfo });
+      
+      // 使用Vue.set保证响应式更新
+      state.matchList.splice(teacherIndex, 1, updatedTeacher);
     }
   },
   
   /**
-   * 清空匹配老师列表
-   * @param {Object} state - match模块的state
+   * 设置学校列表筛选
+   * @param {Object} state - 当前模块的state
+   * @param {string} schoolList - 学校名称
    */
-  CLEAR_MATCH_LIST(state) {
-    state.matchList = [];
+  SET_SCHOOL_LIST(state, schoolList) {
+    state.schoolList = schoolList;
   },
-
+  
   /**
-   * 设置非专业课列表
-   * @param {Object} state - 状态对象
-   * @param {Object} nonProfessionalList - 非专业课列表对象
+   * 设置专业课筛选
+   * @param {Object} state - 当前模块的state
+   * @param {string} professionalList - 专业课名称
+   */
+  SET_PROFESSIONAL_LIST(state, professionalList) {
+    state.professionalList = professionalList;
+  },
+  
+  /**
+   * 设置非专业课筛选
+   * @param {Object} state - 当前模块的state
+   * @param {Object} nonProfessionalList - 非专业课列表
+   * @param {string} nonProfessionalList.math - 数学类型
+   * @param {string} nonProfessionalList.english - 英语类型
+   * @param {string} nonProfessionalList.politics - 政治类型
+   * @param {string} nonProfessionalList.other - 其他类型
    */
   SET_NON_PROFESSIONAL_LIST(state, nonProfessionalList) {
-    state.nonProfessionalList = nonProfessionalList
+    state.nonProfessionalList = { ...nonProfessionalList };
   },
-
+  
   /**
-   * 设置排序模式
-   * @param {Object} state - 状态对象
-   * @param {String} sortMode - 排序模式
+   * 设置排序方式
+   * @param {Object} state - 当前模块的state
+   * @param {string} sortMode - 排序方式
    */
   SET_SORT_MODE(state, sortMode) {
-    state.sortMode = sortMode
-  },
+    state.sortMode = sortMode;
+  }
 } 

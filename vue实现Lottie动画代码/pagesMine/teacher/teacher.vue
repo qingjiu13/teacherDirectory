@@ -4,66 +4,80 @@
     <!-- 主要内容区域（可滚动） -->
     <scroll-view class="content-area" scroll-y="true">
       
-      <!-- 头像独立于容器 -->
-      <image class="teacher-avatar" :src="teacherData.avatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
-      
-      <!-- 老师个人信息卡片 -->
-      <view class="teacher-profile">
-        <!-- 昵称部分 -->
-        <view class="name-row">
-          <view class="teacher-info">
-            <text class="teacher-name">{{teacherData.name}}</text>
-          </view>
-        </view>
-        
-        <!-- 学校专业信息 -->
-        <view class="education-info">
-          {{teacherData.school}} | {{teacherData.major}} | {{teacherData.teacherScore}}
-        </view>
-        
-        <!-- 个人简介 -->
-        <view class="profile-intro">
-          <text class="intro-title">个人简介：</text>
-          <text class="intro-text">{{teacherData.selfIntroduction || '这位老师很懒，还没有填写个人简介。'}}</text>
-        </view>
+      <!-- 加载状态指示器 -->
+      <view class="loading-container" v-if="isLoading">
+        <loading-animation
+          src="https://lottie.host/1f64310d-d1a9-44c9-ac77-3c29ae849559/c3yfKGAzCm.json"
+          width="150rpx" 
+          height="150rpx"
+          :showText="true"
+          text="加载中..."
+        ></loading-animation>
       </view>
       
-      <!-- 服务部分（独立容器） -->
-      <view class="services-section">
-        <!-- 标签页导航 -->
-        <view class="tab-navigation">
-          <view 
-            class="tab-item" 
-            :class="{ active: activeTab === 'services' }" 
-            @click="switchTab('services')"
-          >
-            服务
+      <!-- 老师信息区域 -->
+      <view v-if="!isLoading">
+        <!-- 头像独立于容器 -->
+        <image class="teacher-avatar" :src="teacherData.avatar || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+        
+        <!-- 老师个人信息卡片 -->
+        <view class="teacher-profile">
+          <!-- 昵称部分 -->
+          <view class="name-row">
+            <view class="teacher-info">
+              <text class="teacher-name">{{teacherData.name}}</text>
+            </view>
+          </view>
+          
+          <!-- 学校专业信息 -->
+          <view class="education-info">
+            {{teacherData.school}} | {{teacherData.major}} | {{teacherData.teacherScore}}
+          </view>
+          
+          <!-- 个人简介 -->
+          <view class="profile-intro">
+            <text class="intro-title">个人简介：</text>
+            <text class="intro-text">{{teacherData.selfIntroduction || '这位老师很懒，还没有填写个人简介。'}}</text>
           </view>
         </view>
         
-        <!-- 服务列表内容 -->
-        <view class="services-container" v-if="activeTab === 'services'">
-          <block v-if="teacherData.service.length > 0">
-            <view class="service-card" v-for="(service, index) in teacherData.service" :key="index" @click="goToServiceDetail(service.id)">
-              <view class="service-card-header">
-                <view class="service-image-container">
-                  <image class="service-image" :src="service.image || '/static/image/services/default_service.png'" mode="aspectFill"/>
+        <!-- 服务部分（独立容器） -->
+        <view class="services-section">
+          <!-- 标签页导航 -->
+          <view class="tab-navigation">
+            <view 
+              class="tab-item" 
+              :class="{ active: activeTab === 'services' }" 
+              @click="switchTab('services')"
+            >
+              服务
+            </view>
+          </view>
+          
+          <!-- 服务列表内容 -->
+          <view class="services-container" v-if="activeTab === 'services'">
+            <block v-if="teacherData.service && teacherData.service.length > 0">
+              <view class="service-card" v-for="(service, index) in teacherData.service" :key="index" @click="goToServiceDetail(service.id)">
+                <view class="service-card-header">
+                  <view class="service-image-container">
+                    <image class="service-image" :src="service.image || '/static/image/services/default_service.png'" mode="aspectFill"/>
+                  </view>
+                  <view class="service-title-price">
+                    <text class="service-title">{{service.name}}</text>
+                    <text class="service-price">¥{{service.price}}</text>
+                  </view>
                 </view>
-                <view class="service-title-price">
-                  <text class="service-title">{{service.name}}</text>
-                  <text class="service-price">¥{{service.price}}</text>
+                <view class="service-description-container">
+                  <text class="service-description">{{service.description}}</text>
                 </view>
               </view>
-              <view class="service-description-container">
-                <text class="service-description">{{service.description}}</text>
+              <view class="consult-button-container">
+                <view class="consult-button" @click="startConsultation">立即咨询</view>
               </view>
+            </block>
+            <view class="empty-tip" v-else>
+              该老师暂未开通服务
             </view>
-            <view class="consult-button-container">
-              <view class="consult-button" @click="startConsultation">立即咨询</view>
-            </view>
-          </block>
-          <view class="empty-tip" v-else>
-            该老师暂未开通服务
           </view>
         </view>
       </view>
@@ -130,6 +144,7 @@
 import { Navigator, MatchRoutes } from '@/router/Router.js'
 import { mapGetters, mapState } from 'vuex'
 import Header from '@/components/navigationTitleBar/header';
+import LoadingAnimation from '@/components/loading/LoadingAnimation.vue';
 
 /**
 * @file 老师详情页
@@ -137,7 +152,8 @@ import Header from '@/components/navigationTitleBar/header';
 */
 export default {
     components: {
-      Header
+      Header,
+      LoadingAnimation
     },
     data() {
       return {
@@ -151,8 +167,8 @@ export default {
     
     computed: {
       /**
-       * @description 从Vuex获取匹配列表
-       * @returns {Array} 匹配的老师列表
+       * @description 从Vuex获取匹配列表和教师详情
+       * @returns {Array} 匹配的老师列表和教师详细信息
        */
       ...mapState('user/match', ['matchList']),
       
@@ -200,16 +216,24 @@ export default {
       // 显示加载状态
       this.isLoading = true;
       
-      // 检查是否存在该教师信息
-      if (!this.teacherData || !this.teacherData.id) {
-        uni.showToast({
-          title: '未找到该教师信息',
-          icon: 'none'
-        });
-      }
-      
-      // 加载结束
-      this.isLoading = false;
+      // 模拟获取教师详情
+      setTimeout(() => {
+        // 在实际应用中，这里应该调用API获取教师详情，然后通过commit修改状态
+        // 例如：const teacherDetail = await getTeacherDetail({teacherId: this.teacherId});
+        // this.$store.commit('user/match/SET_TEACHER_DETAIL', {teacherId: this.teacherId, detail: teacherDetail});
+        
+        // 这里我们假设使用现有的教师数据
+        const teacherIndex = this.matchList.findIndex(t => t.id === this.teacherId);
+        if (teacherIndex === -1) {
+          uni.showToast({
+            title: '未找到该教师信息',
+            icon: 'none'
+          });
+        }
+        
+        // 加载结束
+        this.isLoading = false;
+      }, 1000);
     },
     
     methods: {
@@ -235,11 +259,12 @@ export default {
       startConsultation() {
         this.isLoading = true;
         
+        // 简单延迟模拟处理过程
         setTimeout(() => {
           this.isLoading = false;
           // 使用router.js中的方法跳转到聊天页面
           Navigator.toChat(this.teacherId);
-        }, 800);
+        }, 500);
       },
       
       /**
@@ -287,6 +312,17 @@ export default {
     --card-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
     font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
   }
+  
+  /* 加载动画容器 */
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100rpx 0;
+    height: 60vh;
+  }
+  
   .header-container {
 	/**
 	 * @description 固定顶部导航栏，背景不透明，确保在最上层

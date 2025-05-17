@@ -83,7 +83,7 @@
             </scroll-view>
           </view>
           <view class="button-container">
-            <button class="popup-button confirm-button" @click.stop="confirmSchoolFilter">确认</button>
+            <button class="popup-button" @click.stop="confirmSchoolFilter">确定</button>
           </view>
         </view>
       </view>
@@ -125,7 +125,7 @@
             </scroll-view>
           </view>
           <view class="button-container">
-            <button class="popup-button confirm-button" @click.stop="confirmProfessionalFilter">确认</button>
+            <button class="popup-button" @click.stop="confirmProfessionalFilter">确定</button>
           </view>
         </view>
       </view>
@@ -170,7 +170,7 @@
           
           <!-- 固定位置的确认按钮 -->
           <view class="button-container">
-            <button class="popup-button confirm-button" @click.stop="confirmNonProfessionalFilter">确认</button>
+            <button class="popup-button" @click.stop="confirmNonProfessionalFilter">确定</button>
           </view>
         </view>
       </view>
@@ -201,7 +201,7 @@
           </view>
           
           <view class="button-container">
-            <button class="popup-button confirm-button" @click.stop="confirmSortFilter">确认</button>
+            <button class="popup-button" @click.stop="confirmSortFilter">确定</button>
           </view>
         </view>
       </view>
@@ -242,12 +242,16 @@
                     <view class="teacher-score">{{ teacher.teacherScore }}</view>
                   </view>
                 </view>
-                <!-- 竖直居中按钮 -->
-                <view class="card-right card-right-center">
-                  <button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">马上沟通</button>
+                <view class="price-tag-container card-right-center" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
+                  <view class="price-tag middle-text">￥</view>
+                  <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时</view>
+                  <view class="price-tag small-text">起</view>
                 </view>
-                <view class="price-tag-container" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
-                  <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时起</view>
+                <view class="card-right">
+                  <button class="communicate-btn" @click.stop="handleCommunicate(teacher.id)">
+                    <image class="communicate-icon" src="/pages_AI_Login_Match/static/match/communicate.png" mode="aspectFill" alt="沟通图标"></image>
+                    <text class="communicate-text">马上沟通</text>
+                  </button>
                 </view>
               </view>
             </view>
@@ -257,8 +261,6 @@
         <view class="empty-state" v-if="matchTeachers.length === 0 && !isLoading">
           <text>暂无匹配的老师信息</text>
         </view>
-        
-        <!-- 使用全局Lottie动画替代文本加载提示 -->
       </scroll-view>
     </view>
   </view>
@@ -270,6 +272,7 @@ import { useStore } from 'vuex'
 import { Navigator } from '@/router/Router.js'
 import GraduateStore from '/pages_AI_Login_Match/components/combobox/graduate_school_major.js'
 import Header from '@/components/navigationTitleBar/header'
+
 
 // 初始化 store
 const store = useStore()
@@ -318,9 +321,14 @@ const tabLabelMap = {
   other: '其他科目'
 }
 
+// 从store中获取匹配的老师列表
 const matchTeachers = computed(() => {
   return store.state.user.match.matchList || []
 })
+
+// 分页相关状态
+const currentPage = computed(() => store.state.user.match.currentPage)
+const hasMore = computed(() => store.state.user.match.hasMore)
 
 // 表单数据
 const formData = reactive({
@@ -730,7 +738,8 @@ const selectSchoolTemp = (idx, school) => {
  * 确认学校筛选
  */
 const confirmSchoolFilter = () => {
-  store.dispatch('user/match/updateSchoolList', formData.targetSchool)
+  // 直接使用 commit 修改状态
+  store.commit('user/match/SET_SCHOOL_LIST', formData.targetSchool)
   
   // 如果选择了学校，触发学校变更处理
   if (formData.targetSchool) {
@@ -811,7 +820,8 @@ const confirmProfessionalFilter = () => {
     formData.politicsIndex = -1
     formData.otherIndex = -1
     
-    store.dispatch('user/match/updateNonProfessionalList', {
+    // 直接使用 commit 修改状态
+    store.commit('user/match/SET_NON_PROFESSIONAL_LIST', {
       math: '',
       english: '',
       politics: '',
@@ -819,7 +829,8 @@ const confirmProfessionalFilter = () => {
     })
   }
   
-  store.dispatch('user/match/updateProfessionalList', selectedMajor)
+  // 直接使用 commit 修改状态
+  store.commit('user/match/SET_PROFESSIONAL_LIST', selectedMajor)
   
   // 清空关键词，以便下次打开时显示完整列表
   if (graduateStore.value) {
@@ -886,13 +897,15 @@ const confirmNonProfessionalFilter = () => {
     other: formData.otherIndex >= 0 ? otherOptions.value[formData.otherIndex] : ''
   }
   
-  store.dispatch('user/match/updateNonProfessionalList', updateObj)
+  // 直接使用 commit 修改状态
+  store.commit('user/match/SET_NON_PROFESSIONAL_LIST', updateObj)
   
   if (formData.mathIndex >= 0 || formData.englishIndex >= 0 || formData.politicsIndex >= 0 || formData.otherIndex >= 0) {
     formData.targetMajorIndex = -1
     formData.targetMajor = ''
     
-    store.dispatch('user/match/updateProfessionalList', '')
+    // 直接使用 commit 修改状态
+    store.commit('user/match/SET_PROFESSIONAL_LIST', '')
   }
   
   applyFilters()
@@ -917,7 +930,8 @@ const handleSortSelect = (index) => {
  */
 const confirmSortFilter = () => {
   const sortValue = formData.sortIndex >= 0 ? sortOptions.value[formData.sortIndex] : ''
-  store.dispatch('user/match/updateSortMode', sortValue)
+  // 直接使用 commit 修改状态
+  store.commit('user/match/SET_SORT_MODE', sortValue)
   
   applyFilters()
   showPopup.value = false
@@ -942,13 +956,30 @@ const handleCommunicate = (teacherId) => {
  * 加载更多老师数据
  */
 const loadMoreTeachers = () => {
-  if (isLoading.value) return
+  if (isLoading.value || !hasMore.value) return
   isLoading.value = true
   
-  store.dispatch('user/match/loadMoreTeachers')
-    .finally(() => {
-      isLoading.value = false
+  // 获取下一页数据
+  const payload = {
+    loadMore: true,
+    schoolList: store.state.user.match.schoolList,
+    professionalList: store.state.user.match.professionalList,
+    nonProfessionalList: store.state.user.match.nonProfessionalList,
+    sortMode: store.state.user.match.sortMode,
+    currentPage: currentPage.value + 1,
+    pageSize: store.state.user.match.pageSize
+  }
+  
+  // 模拟获取数据
+  setTimeout(() => {
+    // 增加页码
+    store.commit('user/match/SET_PAGINATION', {
+      currentPage: payload.currentPage,
+      hasMore: true // 假设还有更多数据
     })
+    
+    isLoading.value = false
+  }, 1000)
 }
 
 /**
@@ -985,10 +1016,25 @@ const getChoiceList = (key) => {
 const applyFilters = () => {
   isLoading.value = true
   
-  store.dispatch('user/match/fetchMatchTeachers')
-    .finally(() => {
-      isLoading.value = false
-    })
+  // 构建筛选参数
+  const payload = {
+    schoolList: store.state.user.match.schoolList,
+    professionalList: store.state.user.match.professionalList,
+    nonProfessionalList: store.state.user.match.nonProfessionalList,
+    sortMode: store.state.user.match.sortMode,
+    currentPage: 1 // 重置为第一页
+  }
+  
+  // 重置分页
+  store.commit('user/match/SET_PAGINATION', {
+    currentPage: payload.currentPage,
+    hasMore: true // 假设还有更多数据
+  })
+  
+  // 模拟数据加载
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1000)
 }
 
 // 筛选条件摘要
@@ -1034,7 +1080,8 @@ const resetProfessionalFilter = () => {
   formData.targetMajorIndex = -1
   formData.targetMajor = ''
   
-  store.dispatch('user/match/updateProfessionalList', '')
+  // 直接使用 commit 修改状态
+  store.commit('user/match/SET_PROFESSIONAL_LIST', '')
   
   if (formData.targetSchool && graduateStore.value) {
     GraduateStore.mutations.setMajorKeyword(graduateStore.value, '')
@@ -1043,24 +1090,7 @@ const resetProfessionalFilter = () => {
   updateFilteredMajorList()
 }
 
-/**
- * 重置排序方式筛选
- */
-const resetSortFilter = () => {
-  formData.sortIndex = -1
-}
 
-/**
- * 重置非专业课筛选
- */
-const resetNonProfessionalFilter = () => {
-  formData.mathIndex = -1
-  formData.englishIndex = -1
-  formData.politicsIndex = -1
-  formData.otherIndex = -1
-  
-  activeNonProTab.value = ''
-}
 const handleBack = () => {
   Navigator.toIndex()
 }
@@ -1077,7 +1107,17 @@ onMounted(() => {
       targetMajorList.value = majors
     }
   })
-  store.dispatch('user/match/fetchMatchTeachers')
+  
+  // 模拟初始数据加载
+  isLoading.value = true
+  setTimeout(() => {
+    // 重置分页状态
+    store.commit('user/match/SET_PAGINATION', {
+      currentPage: 1,
+      hasMore: true
+    })
+    isLoading.value = false
+  }, 1000)
 })
 </script>
 
@@ -1398,7 +1438,6 @@ onMounted(() => {
 
 .card-middle {
   flex: 1;
-  padding-right: 65px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1407,11 +1446,6 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-.card-middle-top {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
 
 .card-middle-top-row {
   display: flex;
@@ -1432,7 +1466,7 @@ onMounted(() => {
   font-size: 32rpx;
   line-height: 100%;
   letter-spacing: -0.55px;
-  color: #333333;
+  color: rgba(0, 0, 0, 1);
   margin-bottom: 20rpx;
   display: inline-flex;
   align-items: center;
@@ -1455,7 +1489,7 @@ onMounted(() => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20rpx;
+  gap:10rpx;
   margin-top:4rpx
 }
 .teacher-tags {
@@ -1472,65 +1506,77 @@ onMounted(() => {
 
 .price-tag-container {
   position: absolute;
-  right: 18rpx;
-  bottom: 18rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  right: 36rpx;
   z-index: 1;
+  padding: 8rpx 10rpx;
+  border-radius: 8rpx;
+  text-align: right;
 }
 
 .price-tag {
-  font-size: 13px;
-  color: #ff6b00;
-  background-color: rgba(255, 107, 0, 0.1);
-  padding: 4px 10px;
-  border-radius: 8rpx;
-  font-weight: 600;
-  display: inline-flex;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(255, 107, 0, 0.1);
-  border: 1px solid rgba(255, 107, 0, 0.2);
+  font-family: PingFang SC;
+  font-weight: 400;
+  font-size: 26rpx;
+  line-height: 100%;
+  letter-spacing: -1.1rpx;
+  color: rgba(70, 78, 248, 1);
+
+}
+.middle-text {
+  font-size: 20rpx;
+  margin-top:6rpx;
+}
+.small-text {
+  font-size: 16rpx;
+  margin-top:10rpx;
+  padding-right: 2rpx;
 }
 
 .card-right {
-  position: absolute;
-  top: 18px;
-  right: 18px;
+  position: relative;
+  right: 36rpx;
   z-index: 2;
+  margin-top:140rpx;
 }
 
 .card-right-center {
   position: absolute;
-  top: 50%;
-  right: 50rpx;
+  top: 55%;
   transform: translateY(-50%);
   z-index: 2;
 }
 
 .communicate-btn {
+  flex-direction: row;
   /**
    * 马上沟通按钮样式
    * 渐变背景，圆角，白色文字，指定文字样式
    */
   background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
-  color: #fff;
-  font-family: 'PingFang SC', sans-serif;
-  font-weight: 400;
-  font-size: 13px;
-  line-height: 100%;
-  letter-spacing: -0.68px;
-  text-align: center;
-  padding: 0 24rpx;
-  height: 52rpx;
-  border-radius: 8rpx;
-  border: none;
-  font-weight: 400;
-  min-width: 120rpx;
-  display: flex;
+  min-height: 52rpx;
+  padding: 0 28rpx;
   align-items: center;
   justify-content: center;
-  box-shadow: none;
-  cursor: pointer;
-}
 
+}
+.communicate-icon {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 20rpx;
+}
+.communicate-text {
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 400;
+  font-size: 24rpx;
+  line-height: 100%;
+  letter-spacing: -1.36rpx;
+  text-align: center;
+  color: rgba(255, 255, 255, 1);
+}
 .empty-state {
   text-align: center;
   padding: 30px 0;
@@ -1598,20 +1644,26 @@ onMounted(() => {
 
 /* 按钮容器 */
 .button-container {
-  width: 100%;
-  padding: 20rpx 0;
   position: relative;
+	padding: 10rpx 20rpx 10rpx;
+
 }
 
 /* 底部按钮样式 */
 .popup-button {
-  margin-left: 10%;
-  width: 80%;
-  height: 80rpx;
-  line-height: 80rpx;
-  text-align: center;
-  border-radius: 40rpx;
-  font-size: 28rpx;
+	width: 100%;
+	height: 76rpx;
+	background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
+	color: #ffffff;
+	border-radius: 45rpx;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 32rpx;
+	border-radius: 20rpx;
+	flex-direction: row;
+	margin-top: 10rpx;
+
 }
 
 
@@ -1630,7 +1682,6 @@ onMounted(() => {
   text-overflow: ellipsis;
   max-width: 140rpx;
   text-align: left;
-  margin-left: 20rpx;
 }
 
 /* 非专业课选项卡样式 */
@@ -1681,11 +1732,7 @@ onMounted(() => {
   background: #f0f8ff;
 }
 
-.confirm-button {
-  background-color: #007AFF;
-  color: #ffffff;
-  border: none;
-}
+
 
 /* 固定在选项卡下方的按钮容器 */
 .fixed-button-container {
@@ -1737,7 +1784,7 @@ onMounted(() => {
    */
   font-family: 'PingFang SC', sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 24rpx;
   line-height: 100%;
   letter-spacing: -0.55px;
   color: #666666;
@@ -1767,5 +1814,7 @@ onMounted(() => {
   margin-top: auto;
   padding-bottom: 25rpx;
 }
+
+
 
 </style>

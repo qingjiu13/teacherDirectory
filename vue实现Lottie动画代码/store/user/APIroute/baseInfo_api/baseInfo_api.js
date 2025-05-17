@@ -3,7 +3,7 @@
  * @module store/user/APIroute/baseInfo_api
  */
 
-import { USER_GET_USER_INFO_URL, USER_UPDATE_USER_INFO_URL } from '../API.js';
+import { USER_GET_USER_INFO_URL, USER_UPDATE_USER_INFO_URL } from '../../API.js';
 
 /**
  * 获取用户基本信息

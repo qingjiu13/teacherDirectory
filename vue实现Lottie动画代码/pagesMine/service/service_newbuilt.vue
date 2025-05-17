@@ -213,10 +213,14 @@
 </template>
 
 <script>
+<<<<<<< Updated upstream
 // 使用绝对路径
 import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox.vue'
 import Header from '@/components/navigationTitleBar/header'
 import { Navigator } from '@/router/Router.js'
+=======
+import ChoiceSelected from '@/pagesMine/components/combobox/combobox.vue'
+>>>>>>> Stashed changes
 
 export default {
   components: {

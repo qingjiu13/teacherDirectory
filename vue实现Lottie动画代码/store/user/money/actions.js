@@ -1,4 +1,4 @@
-import { getTransactionAPI } from '@/store/user/APIroute/money_api';
+import { getTransactionAPI } from '@/store/user/APIroute/money_api/money_api';
 
 export default {
     /**
