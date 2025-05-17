@@ -108,7 +108,7 @@
 .tab-bar {
 	display: flex;
 	flex-direction: row;
-	background-color: #ffffff;
+	background: linear-gradient(135deg, #f5f9ff, #edf3ff);
 	padding: 5rpx 0 0 0;
 	position: sticky;
 	top: 0;

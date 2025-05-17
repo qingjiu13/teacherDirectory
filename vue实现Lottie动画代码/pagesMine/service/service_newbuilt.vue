@@ -1,5 +1,11 @@
 <template>
   <view class="page-container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar"></view>
+    
+    <!-- 导航栏 -->
+    <Header :title="mode === 'edit' ? '修改信息' : '新增服务'" class="header-container" @back="goBack" />
+    
     <!-- 表单区域 -->
     <view class="form-container">
       <!-- 服务类型和节数在一行 -->
@@ -76,6 +82,7 @@
             type="text" 
             placeholder="请填写" 
             v-model="serviceName"
+            @input="trackChanges"
           />
         </view>
       </block>
@@ -127,6 +134,7 @@
             type="text" 
             placeholder="请填写" 
             v-model="multiServiceName"
+            @input="trackChanges"
           />
         </view>
       </block>
@@ -139,6 +147,7 @@
           type="text"
           placeholder="请输入服务名称"
           v-model="coursequantity"
+          @input="trackChanges"
         />
       </view>
       
@@ -149,6 +158,7 @@
           class="form-textarea" 
           placeholder="请填写" 
           v-model="description"
+          @input="trackChanges"
         />
       </view>
       
@@ -160,6 +170,7 @@
           type="text" 
           placeholder="按照元填写，如200元/h~" 
           v-model="price"
+          @input="trackChanges"
         />
       </view>
       
@@ -202,14 +213,19 @@
 </template>
 
 <script>
+// 使用绝对路径
 import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox.vue'
+import Header from '@/components/navigationTitleBar/header'
+import { Navigator } from '@/router/Router.js'
 
 export default {
   components: {
-    ChoiceSelected
+    'choice-selected': ChoiceSelected,
+    Header
   },
   data() {
     return {
+      hasEdited: false, // 用于跟踪表单是否被编辑过
       mode: 'add', // 默认为添加模式
       serviceId: '', // 当前编辑的服务ID
       coverUrls: [], // 修改：封面图片URL数组
@@ -245,27 +261,47 @@ export default {
       selectedMultiMinutesIndex: -1,
       multiServiceName: '',
       selectedPersonCountIndex: -1,
-      personCountOptions: ['2', '4', '6', '8', '10', '15', '20', '30']
+      personCountOptions: ['2', '4', '6', '8', '10', '15', '20', '30'],
+
+      // 状态栏高度
+      statusBarHeight: 0
     }
   },
   onLoad(options) {
+    console.log('===============================')
     console.log('service_newbuilt onLoad:', options)
+    
+    // 设置状态栏高度
+    this.setStatusBarHeight()
     
     // 设置模式和服务ID
     if (options && options.mode) {
       this.mode = options.mode
+      console.log('当前模式:', this.mode)
       
       if (options.mode === 'edit' && options.id) {
         // 编辑模式：获取服务ID
         this.serviceId = options.id
+        console.log('编辑服务ID:', this.serviceId)
+        
+        // 检查全局状态中是否有编辑服务数据
+        if (getApp().globalData && getApp().globalData.editingService) {
+          console.log('全局状态中存在编辑服务数据:', getApp().globalData.editingService)
+        } else {
+          console.log('全局状态中不存在编辑服务数据')
+        }
         
         // 加载待编辑的服务数据
         this.loadEditingService()
       }
+    } else {
+      console.log('未检测到模式参数，默认为新建模式')
+      this.mode = 'add'
     }
     
     // 初始化表单字段显示
     this.updateFormFields()
+    console.log('===============================')
   },
   onUnload() {
     // 移除事件监听
@@ -277,6 +313,19 @@ export default {
     }
   },
   methods: {
+    // 设置状态栏高度
+    setStatusBarHeight() {
+      // 获取系统信息
+      const systemInfo = uni.getSystemInfoSync()
+      // 设置状态栏高度（rpx单位）
+      this.statusBarHeight = systemInfo.statusBarHeight
+      
+      // 设置CSS变量
+      // 只在document存在的环境中执行DOM操作
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.style.setProperty('--status-bar-height', `${this.statusBarHeight}px`)
+      }
+    },
     chooseAvatar() {
       uni.chooseImage({
         count: 1,
@@ -303,36 +352,57 @@ export default {
         sourceType: ['album', 'camera'],
         success: (res) => {
           this.coverUrls = [...this.coverUrls, ...res.tempFilePaths]
+          this.hasEdited = true
         }
       })
     },
     deleteCover(index) {
       this.coverUrls.splice(index, 1)
+      this.hasEdited = true
     },
     loadEditingService() {
       try {
+        console.log('开始加载编辑服务数据...')
+        console.log('服务ID:', this.serviceId)
+        
         // 首先尝试从全局数据获取
         if (getApp().globalData && getApp().globalData.editingService) {
-          this.originalService = getApp().globalData.editingService
+          const editingService = getApp().globalData.editingService
+          console.log('从全局数据获取到编辑服务:', editingService)
           
-          // 使用服务数据填充表单
-          this.fillFormWithServiceData(this.originalService)
-          return
+          // 检查ID是否匹配
+          if (editingService.id.toString() === this.serviceId.toString()) {
+            console.log('ID匹配，使用全局数据')
+            this.originalService = editingService
+            
+            // 使用服务数据填充表单
+            this.fillFormWithServiceData(this.originalService)
+            console.log('表单填充完成')
+            return
+          } else {
+            console.warn('全局数据中的服务ID不匹配')
+          }
+        } else {
+          console.log('全局数据中不存在编辑服务数据')
         }
         
-        // 如果全局数据不存在，尝试从本地存储加载
+        // 如果全局数据不存在或ID不匹配，尝试从本地存储加载
         const servicesStr = uni.getStorageSync('services')
         if (servicesStr) {
           const services = JSON.parse(servicesStr)
+          console.log('从本地存储获取到服务列表，共', services.length, '条记录')
+          
           const service = services.find(s => s.id.toString() === this.serviceId.toString())
           
           if (service) {
+            console.log('在本地存储中找到匹配的服务:', service)
             this.originalService = service
             
             // 使用服务数据填充表单
             this.fillFormWithServiceData(service)
+            console.log('表单填充完成')
           } else {
-            // 找不到对应服务数据
+            console.error('在本地存储中找不到匹配的服务')
             uni.showToast({
               title: '找不到服务数据',
               icon: 'none'
@@ -343,6 +413,17 @@ export default {
               uni.navigateBack()
             }, 1500)
           }
+        } else {
+          console.error('本地存储中不存在服务数据')
+          uni.showToast({
+            title: '找不到服务数据',
+            icon: 'none'
+          })
+          
+          // 延迟返回上一页
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
         }
       } catch (error) {
         console.error('加载服务数据失败:', error)
@@ -458,7 +539,27 @@ export default {
       this.updateFormFields()
     },
     goBack() {
-      uni.navigateBack()
+      // 如果表单被编辑过，显示提示弹窗
+      if (this.hasEdited) {
+        uni.showModal({
+          title: '提示',
+          content: '是否保存已编辑的内容？',
+          cancelText: '不保存',
+          confirmText: '保存',
+          success: (res) => {
+            if (res.confirm) {
+              // 用户选择保存
+              this.submitForm();
+            } else {
+              // 用户选择不保存，直接返回
+              Navigator.toService();
+            }
+          }
+        });
+      } else {
+        // 表单未编辑过，直接返回
+        Navigator.toService();
+      }
     },
     handleServiceTypeSelect(index) {
       this.selectedServiceTypeIndex = index
@@ -482,24 +583,31 @@ export default {
       
       // 更新表单字段显示
       this.updateFormFields()
+      this.hasEdited = true
     },
     handleLessonsSelect(index) {
       this.selectedLessonsIndex = index
+      this.hasEdited = true
     },
     handleHoursSelect(index) {
       this.selectedHoursIndex = index
+      this.hasEdited = true
     },
     handleMinutesSelect(index) {
       this.selectedMinutesIndex = index
+      this.hasEdited = true
     },
     handleMultiHoursSelect(index) {
       this.selectedMultiHoursIndex = index
+      this.hasEdited = true
     },
     handleMultiMinutesSelect(index) {
       this.selectedMultiMinutesIndex = index
+      this.hasEdited = true
     },
     handlePersonCountSelect(index) {
       this.selectedPersonCountIndex = index
+      this.hasEdited = true
     },
     updateFormFields() {
       // 根据服务类型显示或隐藏某些表单项
@@ -516,6 +624,7 @@ export default {
         count: 1,
         success: (res) => {
           this.files = res.tempFilePaths
+          this.hasEdited = true
         }
       })
     },
@@ -755,15 +864,13 @@ export default {
           icon: 'success'
         })
         
+        // 重置编辑状态
+        this.hasEdited = false
+        
         // 延时返回上一页
         setTimeout(() => {
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              // 触发自定义事件通知上一页
-              uni.$emit('serviceAdded', newService)
-            }
-          })
+          // 使用Navigator进行导航
+          Navigator.toService();
         }, 1500)
       } catch (e) {
         console.error('保存服务失败', e)
@@ -809,15 +916,13 @@ export default {
           icon: 'success'
         })
         
+        // 重置编辑状态
+        this.hasEdited = false
+        
         // 延时返回上一页
         setTimeout(() => {
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              // 触发自定义事件通知上一页
-              uni.$emit('serviceEdited', updatedService)
-            }
-          })
+          // 使用Navigator进行导航
+          Navigator.toService();
         }, 1500)
       } catch (e) {
         console.error('更新服务失败', e)
@@ -830,17 +935,38 @@ export default {
     },
     handleServiceEdited(service) {
       console.log('Service edited', service)
+    },
+    trackChanges() {
+      this.hasEdited = true
     }
   }
 }
 </script>
 
 <style>
+.status-bar {
+  width: 100%;
+  height: var(--status-bar-height);
+  background-color: #fff;
+}
+
+.header-container {
+  width: 100%;
+  height: 220rpx;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  background-color: #fff;
+  z-index: 100;
+}
+
 /* 整体页面容器 */
 .page-container {
-  background-color: #f5f9ff;
+  background: #fff;
   min-height: 100vh;
-  padding: 30rpx;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 /* 表单容器 */
@@ -849,7 +975,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 30rpx;
-  padding: 20rpx;
+  padding: 30rpx;
+  margin-top: 20rpx;
   background-color: #ffffff;
   border-radius: 20rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);

@@ -1,5 +1,8 @@
 <template>
   <view class="service-container">
+    <!-- 导入Header组件作为顶部导航栏 -->
+    <Header class="header-container" :title="'我的服务'" @back="goBack" />
+
     <!-- 服务卡片区域 -->
     <view class="service-list">
       <!-- 当没有服务数据时显示提示 -->
@@ -14,18 +17,24 @@
         :class="{ 'active-card': service.checked }"
         @click="showServiceDetail(index)"
       >
-        <view class="service-info">
-          <view class="service-thumb" :style="{ backgroundImage: `url(${getServiceCover(service)})`, backgroundSize: 'cover' }"></view>
-          <view class="service-details">
-            <view class="service-name">{{ service.serviceName || service.name }}</view>
-            <view class="service-price">{{ service.price }}</view>
-          </view>
-          <view class="action-buttons" @click.stop>
-            <view class="edit-btn" @click.stop="editService(index)">
-              <image src='/static/image/style_for_pages/edit_botton.png' mode="aspectFit" class="action-icon"></image>
-            </view>
-            <view class="delete-btn" @click.stop="deleteService(index)">
-              <image src='/static/image/style_for_pages/delete_botton.png' mode="aspectFit" class="action-icon"></image>
+        <view class="service-card-outer">
+          <view class="service-card-outer-gradient">
+            <view class="service-card-inner">
+              <view class="service-info">
+                <view class="service-thumb" :style="{ backgroundImage: `url(${getServiceCover(service)})`, backgroundSize: 'cover' }"></view>
+                <view class="service-details">
+                  <view class="service-name">{{ service.serviceName || service.name }}</view>
+                  <view class="service-price">{{ service.price }}</view>
+                </view>
+                <view class="action-buttons" @click.stop>
+                  <view class="edit-btn" @click.stop="editService(index)">
+                    <image src='/static/image/style_for_pages/edit_botton.png' mode="aspectFit" class="action-icon"></image>
+                  </view>
+                  <view class="delete-btn" @click.stop="deleteService(index)">
+                    <image src='/static/image/style_for_pages/delete_botton.png' mode="aspectFit" class="action-icon"></image>
+                  </view>
+                </view>
+              </view>
             </view>
           </view>
         </view>
@@ -59,8 +68,11 @@
 </template>
 
 <script>
+import Header from '@/components/navigationTitleBar/header'
+import { Navigator } from '@/router/Router.js'
 export default {
   components: {
+    Header
   },
   data() {
     return {
@@ -136,7 +148,7 @@ export default {
   },
   methods: {
     goBack() {
-      uni.navigateBack()
+      Navigator.toMine()
     },
     toggleService(index) {
       this.services[index].checked = !this.services[index].checked
@@ -149,6 +161,7 @@ export default {
         })
         
         const currentService = this.services[index]
+        console.log('准备编辑服务:', currentService)
         
         // 将当前服务数据存储到全局状态，方便编辑页面获取
         getApp().globalData = getApp().globalData || {}
@@ -159,7 +172,7 @@ export default {
           // 隐藏加载提示
           uni.hideLoading()
           
-          // 跳转到新建/编辑服务页面（修复路径）
+          // 跳转到编辑服务页面
           uni.navigateTo({
             url: './service_newbuilt?mode=edit&id=' + currentService.id,
             success: () => {
@@ -245,6 +258,11 @@ export default {
       uni.showLoading({
         title: '加载中...'
       })
+      
+      // 清除全局状态中的编辑数据
+      if (getApp().globalData) {
+        getApp().globalData.editingService = null
+      }
       
       // 延迟执行，模拟网络请求
       setTimeout(() => {
@@ -424,6 +442,13 @@ export default {
 </script>
 
 <style>
+.header-container {
+  width: 100%;
+  height: 200rpx;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(135deg, #f5f9ff, #edf3ff);
+}
 /* 服务容器 */
 .service-container {
   padding: 30rpx;
@@ -439,28 +464,75 @@ export default {
 }
 /* 服务卡片 */
 .service-card {
-  background: #ffffff;
-  border-radius: 30rpx;
-  padding: 25rpx 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: row;
+  background-color: #ffffff;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.1);
   position: relative;
   min-height: 160rpx;
-  margin-bottom: 20rpx;
-  border: 1rpx solid rgba(74, 137, 220, 0.3);
 }
+
+/* 新增卡片样式 */
+.service-card-outer {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: transparent;
+}
+
+.service-card-outer-gradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  padding: 2rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+}
+
+.service-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  padding: 25rpx 30rpx;
+}
+
+.service-card-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
+  z-index: 1;
+}
+
 /* 选中服务卡片 */
-.active-card {
-  background: #f8fbff;
-  box-shadow: 0 4rpx 15rpx rgba(74, 111, 227, 0.1);
-  border: 1rpx solid rgba(74, 137, 220, 0.6);
+.active-card .service-card-outer-gradient {
+  background: linear-gradient(180deg, rgba(194, 221, 250, 1) 0%, rgba(70, 78, 248, 1) 100%);
 }
+
 /* 服务信息 */  
 .service-info {
   display: flex;
   flex-direction: row;
   align-items: center;
   width: 100%;
+  position: relative;
+  z-index: 2;
 }
 /* 头像框 */
 .service-thumb {
@@ -486,19 +558,22 @@ export default {
 }
 /* 服务名称 */
 .service-name {
-  font-size: 28rpx;
+  font-family: 'PingFang SC', sans-serif;
   font-weight: 600;
+  font-size: 28rpx;
   margin-bottom: 10rpx;
   color: #333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.55px;
 }
 /* 服务价格 */
 .service-price {
   font-size: 26rpx;
   color: #464EF8;
   font-weight: 500;
+  font-family: 'PingFang SC', sans-serif;
 }
 /* 操作按键容器 */
 .action-buttons {
@@ -508,6 +583,8 @@ export default {
   margin-left: auto;
   align-items: center;
   padding-left: 15rpx;
+  position: relative;
+  z-index: 3;
 }
 /* 修改按钮 */
 .edit-btn {

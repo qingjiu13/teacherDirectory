@@ -90,13 +90,15 @@
 				{
 					"path": "service/service",
 					"style": {
-						"navigationBarTitleText": "服务设置"
+						"navigationBarTitleText": "服务设置",
+						"navigationStyle": "custom"
 					}
 				},
 				{
 					"path": "course/course",
 					"style": {
-						"navigationBarTitleText": "我的课程"
+						"navigationBarTitleText": "我的课程",
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -108,7 +110,11 @@
 				{
 					"path": "service/service_newbuilt",
 					"style": {
-						"navigationBarTitleText": "新建服务"
+					"navigationBarTitleText": "新建服务",
+					"navigationStyle": "custom",
+					"componentPlaceholder": {
+						"choice-selected": "view"
+					}
 					}
 				},
 				{
@@ -120,13 +126,15 @@
 				{
 					"path": "order/order_common",
 					"style": {
-						"navigationBarTitleText": "我的订单"
+						"navigationBarTitleText": "我的订单",
+						"navigationStyle": "custom"
 					}
 				},
 				{
 					"path": "order/appraise",
 					"style": {
-						"navigationBarTitleText": "评价"
+						"navigationBarTitleText": "评价",
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -216,8 +224,13 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "研师录",
 		"navigationBarBackgroundColor": "#FFFFFF",
-		"backgroundColor": "#F8F8F8"
+		"backgroundColor": "#F8F8F8",
+		"componentPlaceholder": {
+		"choice-selected": "view"
+	}
+
 	},
+
 	"easycom": {
 		"autoscan": true,
 		"custom": {
@@ -226,7 +239,8 @@
 			"^filter-section$": "pages_AI_Login_Match/AI/ai-chat/FilterSection", 
 			"^mode-selector$": "pages_AI_Login_Match/AI/ai-chat/ModeSelector",
 			"^top-navbar$": "components/top-navbar/top-navbar",
-			"^choice-selected$": "pages_AI_Login_Match/components/combobox/combobox"
+			"^choice-selected$": "pages_AI_Login_Match/components/combobox/combobox",
+			"^header$": "components/navigationTitleBar/header"
 		}
 	},
 	"uniIdRouter": {},

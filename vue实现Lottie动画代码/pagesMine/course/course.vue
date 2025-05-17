@@ -1,5 +1,6 @@
 <template>
   <view class="container">
+    <Header  class="header-container" :title="'我的课程'" @back="goBack" />
     <!-- 学生界面 -->
     <block v-if="userRole === 'student'">
       <top-navbar @change="onTabChange" :navHeight="60" :userRole="userRole">
@@ -14,9 +15,7 @@
             <scroll-view class="course-list" scroll-y>
               <view v-for="(item, index) in pendingCourses" :key="index" class="course-item">
                 <view class="avatar-container">
-                  <view class="avatar-circle">
-                    <text class="avatar-text">人</text>
-                  </view>
+                  <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
                 </view>
                 <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
@@ -50,9 +49,7 @@
             <scroll-view class="course-list" scroll-y>
               <view v-for="(item, index) in reservedCourses" :key="index" class="course-item">
                 <view class="avatar-container">
-                  <view class="avatar-circle">
-                    <text class="avatar-text">人</text>
-                  </view>
+                  <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
                 </view>
                 <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
@@ -75,9 +72,7 @@
             <scroll-view class="course-list" scroll-y>
               <view v-for="(item, index) in completedCourses" :key="index" class="course-item">
                 <view class="avatar-container">
-                  <view class="avatar-circle">
-                    <text class="avatar-text">人</text>
-                  </view>
+                  <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
                 </view>
                 <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
@@ -110,9 +105,7 @@
             <scroll-view class="course-list" scroll-y>
               <view v-for="(item, index) in teacherPendingCourses" :key="index" class="course-item">
                 <view class="avatar-container">
-                  <view class="avatar-circle">
-                    <text class="avatar-text">人</text>
-                  </view>
+                  <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
                 </view>
                 <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
@@ -144,9 +137,7 @@
             <scroll-view class="course-list" scroll-y>
               <view v-for="(item, index) in teacherActiveCourses" :key="index" class="course-item">
                 <view class="avatar-container">
-                  <view class="avatar-circle">
-                    <text class="avatar-text">人</text>
-                  </view>
+                  <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
                 </view>
                 <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
@@ -170,9 +161,7 @@
             <scroll-view class="course-list" scroll-y>
               <view v-for="(item, index) in teacherCompletedCourses" :key="index" class="course-item">
                 <view class="avatar-container">
-                  <view class="avatar-circle">
-                    <text class="avatar-text">人</text>
-                  </view>
+                  <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
                 </view>
                 <view class="course-info">
                   <text class="course-name">{{item.name}}</text>
@@ -194,11 +183,15 @@
 </template>
 
 <script>
+import Header from '@/components/navigationTitleBar/header'
 // 导入顶部导航栏组件
 import topNavbar from '@/components/top-navbar/top-navbar.vue';
+// 导入导航工具
+import { Navigator } from '@/router/Router.js';
 
 export default {
   components: {
+    Header,
     topNavbar
   },
   data() {
@@ -989,16 +982,37 @@ export default {
         }
       });
     },
+
+    // 添加返回方法
+    goBack() {
+      // 使用Navigator工具而不是简单的navigateBack
+      Navigator.toMine();
+    },
+
+    // 老师端 - 修改课程时间
+    rescheduleClass(index) {
+      this.currentCourseIndex = index;
+      
+      // 显示日历选择器
+      this.$refs.teacherCalendar.open();
+    },
   }
 };
 </script>
 
 <style>
+.header-container {
+  width: 100%;
+  height: 200rpx;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(135deg, #f5f9ff, #edf3ff);
+}
 .container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f7f9fc;
+  background: linear-gradient(135deg, #f5f9ff, #edf3ff);
   font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -1052,54 +1066,110 @@ export default {
 .course-item {
   display: flex;
   flex-direction: row;
-  background-color: #ffffff;
-  height: 250rpx;
-  padding: 20rpx;
-  margin-bottom: 25rpx;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  margin-bottom: 15px;
   position: relative;
+  min-height: 160rpx;
+  padding: 0;
+}
+
+.course-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 40rpx;
+  padding: 2rpx;
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.course-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
+  z-index: 1;
+}
+
+/* 课程信息容器，完全按照service-info样式 */
+.course-item {
+  padding: 25rpx 30rpx;
+  box-sizing: border-box;
 }
 
 .avatar-container {
-  margin-right: 20rpx;
+  margin-right: 30rpx;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 0;
+  margin-left: 0;
+  border: none;
+}
+
+.avatar-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 15rpx;
+  background-color: #f0f0f0;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6rpx 15rpx rgba(0, 0, 0, 0.1);
+  border: none;
 }
 
 .avatar-circle {
-  width: 130rpx;
-  height: 130rpx;
-  border-radius: 50%;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 15rpx;
   background-color: #f0f0f0;
-  justify-content: center;
-  align-items: center;
-  display: flex;
-}
-
-.avatar-text {
-  font-size: 46rpx;
-  color: #666666;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6rpx 15rpx rgba(0, 0, 0, 0.1);
+  border: none;
 }
 
 .course-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding-top: 0;
+  justify-content: center;
+  padding: 0;
+  padding-left: 15rpx;
+  margin-top: 5rpx;
+  position: relative;
+  z-index: 2;
 }
 
 .course-name {
-  font-size: 38rpx;
-  color: #2c3e50;
-  font-weight: bold;
-  margin-bottom: 8rpx;
-  line-height: 1.1;
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 600;
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.55px;
   text-align: left;
 }
 
-.course-teacher, .course-type, .course-lessons {
+.course-teacher, .course-type, .course-lessons, .course-time {
   font-size: 26rpx;
-  color: #5d6b89;
+  color: #464EF8;
+  font-weight: 500;
+  font-family: 'PingFang SC', sans-serif;
   margin-bottom: 4rpx;
   line-height: 1.2;
   text-align: left;
@@ -1111,7 +1181,7 @@ export default {
   display: none;
 }
 
-.reserve-btn, .view-feedback-btn {
+.reserve-btn, .view-feedback-btn, .accept-btn, .confirm-class-btn, .modify-time-btn {
   position: absolute;
   right: 20rpx;
   bottom: 20rpx;
@@ -1121,24 +1191,15 @@ export default {
   line-height: 60rpx;
   font-size: 24rpx;
   font-weight: 500;
-  background-color: #999999;
+  background: linear-gradient(135deg, #4a89dc, #3a7bd5);
   color: white;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6rpx 20rpx rgba(58, 123, 213, 0.4);
+  z-index: 2;
 }
 
-.accept-btn {
-  position: absolute;
-  right: 20rpx;
-  bottom: 20rpx;
-  border-radius: 30rpx;
-  padding: 0 25rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  background-color: #3a86ff;
-  color: white;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+.reserve-btn:active, .view-feedback-btn:active, .accept-btn:active, .confirm-class-btn:active, .modify-time-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 3rpx 10rpx rgba(58, 123, 213, 0.3);
 }
 
 .course-time {
@@ -1150,27 +1211,6 @@ export default {
   line-height: 1.2;
   text-align: left;
   padding: 2rpx 0;
-}
-
-.confirm-class-btn, .modify-time-btn {
-  position: absolute;
-  right: 20rpx;
-  bottom: 20rpx;
-  border-radius: 30rpx;
-  padding: 0 25rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  background-color: #999999;
-  color: white;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
-}
-
-.confirm-class-btn {
-  position: absolute !important;
-  left: 20rpx !important;
-  right: auto !important;
 }
 
 .empty-tip {
