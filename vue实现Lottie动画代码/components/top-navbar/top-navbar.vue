@@ -1,22 +1,17 @@
 <template>
 	<view class="top-navbar">
-		<scroll-view 
-			class="tab-bar" 
-			scroll-x 
-			:scroll-into-view="'tab-' + currentTab"
-			:scroll-with-animation="true"
-		>
+		<view class="tab-container">
 			<view 
 				v-for="(tab, index) in tabList" 
 				:key="index"
-				:id="'tab-' + index"
 				class="tab-item"
 				:class="{ active: currentTab === index }"
 				@click="switchTab(index)"
 			>
-				{{ tab.name }}
+				<text>{{ tab.name }}</text>
+				<view v-if="currentTab === index" class="tab-line"></view>
 			</view>
-		</scroll-view>
+		</view>
 	
 		<view class="content-container">
 			<view v-if="currentTab === 0" class="tab-content">
@@ -105,50 +100,51 @@
 	font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 }
 
-.tab-bar {
+.tab-container {
 	display: flex;
 	flex-direction: row;
 	background: linear-gradient(135deg, #f5f9ff, #edf3ff);
-	padding: 5rpx 0 0 0;
-	position: sticky;
-	top: 0;
-	z-index: 100;
+	padding: 5rpx 0;
 	white-space: nowrap;
 	width: 100%;
-	border-bottom: none;
 	justify-content: center;
-	box-shadow: none;
-	height: 60rpx;
+	height: 80rpx;
 }
 
 .tab-item {
-	display: inline-block;
-	padding: 4rpx 30rpx;
-	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0 30rpx;
+	height: 80rpx;
+	position: relative;
+	margin: 0 20rpx;
+}
+
+.tab-item text {
 	font-size: 28rpx;
 	color: #5d6b89;
-	position: relative;
-	flex-shrink: 0;
-	margin: 0 25rpx;
-	border-radius: 30rpx;
-	transition: all 0.3s ease;
-	line-height: 1.5;
 }
 
-.tab-item.active {
-	color: #3a86ff;
+.tab-item.active text {
+	color: #464EF8;
 	font-weight: bold;
-	background-color: #f0f5ff;
 }
 
-.tab-item.active::after {
-	display: none;
+.tab-line {
+	position: absolute;
+	bottom: 8rpx;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 80%;
+	height: 8rpx;
+	background-color: #464EF8;
 }
 
 .content-container {
 	flex: 1;
 	width: 100%;
-	margin-top: 0;
 }
 
 .tab-content {
