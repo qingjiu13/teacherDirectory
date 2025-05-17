@@ -45,6 +45,7 @@ export default {
   align-items: flex-end;
   position: relative;
   background-color: #fff;
+  z-index: 100;
 }
 .nav-back {
   position: absolute;

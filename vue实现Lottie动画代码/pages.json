@@ -72,7 +72,7 @@
 				{
 					"path": "settings/settings",
 					"style": {
-						"navigationBarTitleText": "系统设置"
+						"navigationStyle": "custom"
 					}
 				},
 				{
