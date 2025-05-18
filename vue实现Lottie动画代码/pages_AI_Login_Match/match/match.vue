@@ -82,8 +82,11 @@
               </view>
             </scroll-view>
           </view>
-          <view class="button-container">
-            <button class="popup-button" @click.stop="confirmSchoolFilter">确定</button>
+          <view class="save-button-container">
+            <button class="save-button" @click.stop="confirmProfessionalFilter">
+              <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
+              <text class="save-button-text">确定</text>
+            </button>
           </view>
         </view>
       </view>
@@ -124,8 +127,11 @@
               </view>
             </scroll-view>
           </view>
-          <view class="button-container">
-            <button class="popup-button" @click.stop="confirmProfessionalFilter">确定</button>
+          <view class="save-button-container">
+            <button class="save-button" @click.stop="confirmProfessionalFilter">
+              <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
+              <text class="save-button-text">确定</text>
+            </button>
           </view>
         </view>
       </view>
@@ -168,9 +174,11 @@
               </view>
           </view>
           
-          <!-- 固定位置的确认按钮 -->
-          <view class="button-container">
-            <button class="popup-button" @click.stop="confirmNonProfessionalFilter">确定</button>
+          <view class="save-button-container">
+            <button class="save-button" @click.stop="confirmProfessionalFilter">
+              <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
+              <text class="save-button-text">确定</text>
+            </button>
           </view>
         </view>
       </view>
@@ -200,8 +208,11 @@
             </view>
           </view>
           
-          <view class="button-container">
-            <button class="popup-button" @click.stop="confirmSortFilter">确定</button>
+          <view class="save-button-container">
+            <button class="save-button" @click.stop="confirmProfessionalFilter">
+              <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
+              <text class="save-button-text">确定</text>
+            </button>
           </view>
         </view>
       </view>
@@ -1260,7 +1271,9 @@ onMounted(() => {
   flex: 1;
   overflow: hidden;
 }
-
+.filter-section{
+  min-height: 400rpx;
+}
 /* 顶部标题栏 */
 .popup-header {
   position: relative;
@@ -1610,10 +1623,10 @@ onMounted(() => {
   height:600rpx;
 }
 .filter-popup.sort-popup {
-  height: 41vh;
+  height: 38vh;
 }
 .filter-popup.non-professional-popup {
-  height: 50vh;
+  height: 46vh;
 }
 
 /* 筛选弹窗内容区 */
@@ -1782,7 +1795,7 @@ onMounted(() => {
    * 专业和评分字体样式
    * @font PingFang SC, 400, 12px, 100%, -0.55px
    */
-  font-family: 'PingFang SC', sans-serif;
+  font-family: 'PingFang SC';
   font-weight: 400;
   font-size: 24rpx;
   line-height: 100%;
@@ -1815,6 +1828,41 @@ onMounted(() => {
   padding-bottom: 25rpx;
 }
 
+.save-button-container {
+  padding-left: 10rpx;
+  padding-right: 10rpx;
+}
 
+.save-button {
+  width: 100%;
+  height: 76rpx;
+  background: linear-gradient(180deg, #A5A9F7 0%, rgba(70, 78, 248, 0.9) 100%);
+  color: #ffffff;
+  border-radius: 45rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32rpx;
+  border-radius: 20rpx;
+  flex-direction: row;
+  margin-top: 10rpx;
+
+}
+
+
+.save-button-image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 30rpx;
+}
+.save-button-text {
+  font-size: 32rpx;
+  color: rgba(255, 255, 255, 1);
+  font-family: PingFang SC;
+  font-weight: 400;
+  line-height: 100%;
+  letter-spacing: -0.68px;
+  text-align: center;
+}
 
 </style>
