@@ -83,7 +83,7 @@
             </scroll-view>
           </view>
           <view class="save-button-container">
-            <button class="save-button" @click.stop="confirmProfessionalFilter">
+            <button class="save-button" @click.stop="confirmSchoolFilter">
               <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
               <text class="save-button-text">确定</text>
             </button>
@@ -175,7 +175,7 @@
           </view>
           
           <view class="save-button-container">
-            <button class="save-button" @click.stop="confirmProfessionalFilter">
+            <button class="save-button" @click.stop="confirmNonProfessionalFilter">
               <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
               <text class="save-button-text">确定</text>
             </button>
@@ -209,7 +209,7 @@
           </view>
           
           <view class="save-button-container">
-            <button class="save-button" @click.stop="confirmProfessionalFilter">
+            <button class="save-button" @click.stop="confirmSortFilter">
               <image class="save-button-image" src="../static/match/submit.png" mode="aspectFill" alt="确定图标"></image>
               <text class="save-button-text">确定</text>
             </button>
@@ -250,7 +250,6 @@
                   <!-- 专业和评分同一行 -->
                   <view class="teacher-major-score">
                     <view class="teacher-major">{{ teacher.major }}</view>
-                    <view class="teacher-score">{{ teacher.teacherScore }}</view>
                   </view>
                 </view>
                 <view class="price-tag-container card-right-center" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
@@ -1790,7 +1789,7 @@ onMounted(() => {
 
 
 
-.teacher-major, .teacher-score {
+.teacher-major {
   /**
    * 专业和评分字体样式
    * @font PingFang SC, 400, 12px, 100%, -0.55px

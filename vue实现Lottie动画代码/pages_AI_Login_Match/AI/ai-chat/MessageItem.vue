@@ -227,7 +227,7 @@
 		top: 0;
 		width: 100%;
 		height: 100%;
-		border-radius: 40rpx;
+		border-radius: 39rpx;
 		pointer-events: none;
 		background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
 		z-index: 1;
@@ -243,7 +243,7 @@
 		top: 0;
 		width: 100%;
 		height: 100%;
-		border-radius: 40rpx;
+		border-radius: 39rpx;
 		pointer-events: none;
 		background: linear-gradient(180deg, rgba(224, 212, 255, 0.2) 11.54%, rgba(95, 38, 247, 0.2) 111.54%);
 		z-index: 1;

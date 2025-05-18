@@ -31,7 +31,7 @@
           
           <!-- 学校专业信息 -->
           <view class="education-info">
-            {{teacherData.school}} | {{teacherData.major}} | {{teacherData.teacherScore}}
+            {{teacherData.school}} | {{teacherData.major}}
           </view>
           
           <!-- 个人简介 -->
@@ -185,7 +185,6 @@ export default {
           avatar: '/static/image/defaultAvatar/teacher-man.png',
           school: '',
           major: '',
-          teacherScore: 0, 
           certificate: 0,
           selfIntroduction: '暂无数据',
           service: []
