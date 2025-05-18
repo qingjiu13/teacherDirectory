@@ -21,7 +21,7 @@
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
-                  <text class="course-lessons">课程节数：第2节/共10节</text>
+                  <text class="course-lessons">课程节数：2/10</text>
                   <text v-if="item.isTeacherReservation" class="course-time">老师已选时间：{{item.time}}</text>
                 </view>
                 <button v-if="item.isTeacherReservation" class="accept-btn" @click="acceptReservation(index)">接受预约</button>
@@ -111,7 +111,7 @@
                   <text class="course-name">{{item.name}}</text>
                   <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
-                  <text class="course-lessons">课程节数：第2节/共10节</text>
+                  <text class="course-lessons">课程节数：2/10</text>
                 </view>
                 <button class="reserve-btn" @click="teacherReserve(index)">发起预约</button>
               </view>
@@ -1155,7 +1155,7 @@ export default {
 .course-name {
   font-family: 'PingFang SC', sans-serif;
   font-weight: 600;
-  font-size: 28rpx;
+  font-size: 27rpx;
   margin-bottom: 10rpx;
   color: #333;
   white-space: nowrap;
@@ -1166,8 +1166,8 @@ export default {
 }
 
 .course-teacher, .course-type, .course-lessons, .course-time {
-  font-size: 26rpx;
-  color: #464EF8;
+  font-size: 20rpx;
+  color: #000000;
   font-weight: 500;
   font-family: 'PingFang SC', sans-serif;
   margin-bottom: 4rpx;
@@ -1183,23 +1183,22 @@ export default {
 
 .reserve-btn, .view-feedback-btn, .accept-btn, .confirm-class-btn, .modify-time-btn {
   position: absolute;
-  right: 20rpx;
+  right: 30rpx;
   bottom: 20rpx;
-  border-radius: 30rpx;
-  padding: 0 25rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 24rpx;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 22rpx;
   font-weight: 500;
-  background: linear-gradient(135deg, #4a89dc, #3a7bd5);
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8);
   color: white;
-  box-shadow: 0 6rpx 20rpx rgba(58, 123, 213, 0.4);
   z-index: 2;
 }
 
 .reserve-btn:active, .view-feedback-btn:active, .accept-btn:active, .confirm-class-btn:active, .modify-time-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 3rpx 10rpx rgba(58, 123, 213, 0.3);
+  box-shadow: 0 3rpx 10rpx rgba(122, 95, 190, 0.3);
 }
 
 .course-time {
