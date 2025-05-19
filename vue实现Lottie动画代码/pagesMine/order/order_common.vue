@@ -1,94 +1,225 @@
 <template>
   <view class="container">
-    <!-- Tab栏 -->
-    <block v-if="userRole === 'student'">
-    <view class="tab-container">
-      <view 
-        v-for="(tab, index) in tabs" 
-        :key="index"
-        class="tab-item"
-        :class="{ active: currentTab === index }"
-        @click="switchTab(index)"
-      >
-        <text>{{ tab }}</text>
-      </view>
-    </view>
-  </block>
-  <!-- 老师tab -->
-  <block v-if="userRole === 'teacher'">
-    <view class="tab-container">
-      <view 
-        v-for="(tab, index) in teacherTabs" 
-        :key="index"
-        class="tab-item"
-        :class="{ active: teacherCurrentTab === index }"
-        @click="switchTab(index)"
-      >
-        <text>{{ tab }}</text>
-      </view>
-    </view>
-  </block>
-
-    <!-- 订单列表 -->
-    <scroll-view class="order-list" scroll-y>
-      <!-- 学生订单内容 -->
-      <block v-if="userRole === 'student'">
-        <view v-for="(order, index) in orders" :key="index" class="order-item">
-          <view class="order-content">
-            <view class="avatar-container">
-              <view class="avatar-circle">
-                <text class="avatar-text">人</text>
+    <!-- 顶部导航 -->
+    <Header class="header-container" :title="'我的订单'" @back="goBack" />
+    
+    <!-- 使用top-navbar组件 -->
+    <top-navbar 
+      @change="onTabChange" 
+      :navHeight="60" 
+      :userRole="userRole"
+      :customTabs="userRole === 'student' ? tabs.map(tab => ({name: tab})) : teacherTabs.map(tab => ({name: tab}))"
+    >
+      <!-- 学生：待支付tab内容 -->
+      <template v-slot:page1>
+        <view class="page-content">
+          <scroll-view class="order-list" scroll-y>
+            <!-- 学生订单内容 -->
+            <block v-if="userRole === 'student'">
+              <view v-for="(order, index) in orders" :key="index" class="order-item" v-show="currentTab === 0">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                      <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-teacher">授课教师：{{ order.teacherName || '暂无' }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="cancel-btn" @click="cancelOrder(order)">取消订单</button>
+                  <button class="pay-btn" @click="payOrder(order)">马上付款</button>
+                </view>
               </view>
-            </view>
-            <view class="order-info">
-              <text class="order-title">{{ order.title }}</text>
-              <text class="order-teacher">授课教师：{{ order.teacherName || '暂无' }}</text>
-              <text class="order-type">服务类型：一对一课程</text>
-            </view>
-          </view>
-          <view class="order-price-container">
-            <text class="order-price-label">金额：</text>
-            <text class="order-price">{{ order.price }}元</text>
-          </view>
-          <view class="order-footer">
-            <view class="button-group">
-              <button v-if="currentTab === 0" class="cancel-btn" @click="cancelOrder(order)">取消订单</button>
-              <button v-if="currentTab === 0" class="pay-btn" @click="payOrder(order)">马上付款</button>
-              <button v-if="currentTab === 1" class="appraise-btn small-btn" @click="cancelOrder(order)">取消订单</button>
-              <button v-if="currentTab === 2" class="detail-btn small-btn" @click="abnormalAppeal(order)">异常申诉</button>
-              <button v-if="currentTab === 3" class="delete-btn small-btn" @click="payOrder(order)">再次付款</button>
-            </view>
-          </view>
+            </block>
+            
+            <!-- 老师订单内容 -->
+            <block v-else>
+              <view v-for="(order, index) in teacherOrders" :key="index" class="order-item" v-show="teacherCurrentTab === 0">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                      <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-student">学生：{{ order.studentName }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="confirm-btn" @click="confirmOrder(order)">取消订单</button>
+                </view>
+              </view>
+            </block>
+          </scroll-view>
         </view>
-      </block>
+      </template>
       
-      <!-- 教师订单内容 -->
-      <block v-else>
-        <view v-for="(order, index) in teacherOrders" :key="index" class="order-item">
-          <view class="order-content">
-            <view class="avatar-container">
-              <view class="avatar-circle">
-                <text class="avatar-text">人</text>
+      <!-- 已支付/已完成tab内容 -->
+      <template v-slot:page2>
+        <view class="page-content">
+          <scroll-view class="order-list" scroll-y>
+            <!-- 学生订单内容 -->
+            <block v-if="userRole === 'student'">
+              <view v-for="(order, index) in orders" :key="index" class="order-item" v-show="currentTab === 1">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                        <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-teacher">授课教师：{{ order.teacherName || '暂无' }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="appraise-btn" @click="goToAppraise(order)">去评价</button>
+                </view>
               </view>
-            </view>
-            <view class="order-info">
-              <text class="order-title">{{ order.title }}</text>
-              <text class="order-student">学生：{{ order.studentName }}</text>
-              <text class="order-type">服务类型：一对一课程</text>
-            </view>
-          </view>
-          <view class="order-price-container">
-            <text class="order-price-label">金额：</text>
-            <text class="order-price">{{ order.price }}元</text>
-          </view>
-          <view class="order-footer">
-            <view class="button-group">
-              <button v-if="teacherCurrentTab === 0" class="confirm-btn" @click="cancelOrder(order)">取消订单</button>
-            </view>
-          </view>
+            </block>
+            
+            <!-- 老师订单内容 -->
+            <block v-else>
+              <view v-for="(order, index) in teacherOrders" :key="index" class="order-item" v-show="teacherCurrentTab === 1">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                      <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-student">学生：{{ order.studentName }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="detail-btn" @click="viewDetail(order)">查看详情</button>
+                </view>
+              </view>
+            </block>
+          </scroll-view>
         </view>
-      </block>
-    </scroll-view>
+      </template>
+      
+      <!-- 已完成/已取消tab内容 -->
+      <template v-slot:page3>
+        <view class="page-content">
+          <scroll-view class="order-list" scroll-y>
+            <!-- 学生订单内容 -->
+            <block v-if="userRole === 'student'">
+              <view v-for="(order, index) in orders" :key="index" class="order-item" v-show="currentTab === 2">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                      <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-teacher">授课教师：{{ order.teacherName || '暂无' }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="detail-btn" @click="viewDetail(order)">查看详情</button>
+                </view>
+              </view>
+            </block>
+            
+            <!-- 老师订单内容 -->
+            <block v-else>
+              <view v-for="(order, index) in teacherOrders" :key="index" class="order-item" v-show="teacherCurrentTab === 2">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                      <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-student">学生：{{ order.studentName }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="delete-btn" @click="deleteOrder(order)">删除订单</button>
+                </view>
+              </view>
+            </block>
+          </scroll-view>
+        </view>
+      </template>
+      
+      <!-- 学生：已取消tab内容 -->
+      <template v-slot:page4>
+        <view class="page-content">
+          <scroll-view class="order-list" scroll-y>
+            <block v-if="userRole === 'student'">
+              <view v-for="(order, index) in orders" :key="index" class="order-item" v-show="currentTab === 3">
+                <text class="order-time">{{ order.time }}</text>
+                <view class="order-content">
+                  <view class="avatar-container">
+                    <view class="avatar-circle">
+                      <image :src="'/static/image/style_for_pages/avatar.png'" class="avatar-image"></image>
+                    </view>
+                  </view>
+                  <view class="order-info">
+                    <text class="order-title">{{ order.title }}</text>
+                    <text class="order-teacher">授课教师：{{ order.teacherName || '暂无' }}</text>
+                    <text class="order-type">服务类型：一对一课程</text>
+                  </view>
+                </view>
+                <view class="order-price-container">
+                  <text class="order-price-label">¥</text>
+                  <text class="order-price">{{ order.price }}</text>
+                </view>
+                <view class="order-footer">
+                  <button class="delete-btn" @click="deleteOrder(order)">删除订单</button>
+                </view>
+              </view>
+            </block>
+          </scroll-view>
+        </view>
+      </template>
+    </top-navbar>
 
     <!-- 取消订单确认弹窗 -->
     <view class="modal" v-if="showCancelModal">
@@ -203,9 +334,15 @@
 /**
  * @description 订单管理页面（通用）
  */
-import { Navigator, MineRoutes } from '@/router/Router.js';
+import { Navigator} from '@/router/Router.js';
+import Header from '@/components/navigationTitleBar/header.vue';
+import topNavbar from '@/components/top-navbar/top-navbar.vue';
 
 export default {
+  components: {
+    Header,
+    topNavbar
+  },
   data() {
     return {
       userRole: 'student', // 默认为学生角色
@@ -334,6 +471,21 @@ export default {
   },
   methods: {
     /**
+     * @description 处理导航栏标签变化
+     * @param {Number} index 新的tab索引
+     */
+    onTabChange(index) {
+      console.log('切换到标签:', index);
+      if (this.userRole === 'teacher') {
+        this.teacherCurrentTab = index;
+      } else {
+        this.currentTab = index;
+      }
+      // 根据tab加载不同数据
+      this.loadOrderData();
+    },
+    
+    /**
      * @description 加载用户数据
      */
     loadUserData() {
@@ -377,17 +529,11 @@ export default {
     },
     
     /**
-     * @description 切换标签页
+     * @description 切换标签页 (兼容旧代码)
      * @param {Number} index 标签索引
      */
     switchTab(index) {
-      // 根据当前用户角色更新不同的currentTab
-      if (this.userRole === 'teacher') {
-        this.teacherCurrentTab = index;
-      } else {
-        this.currentTab = index;
-      }
-      // 这里可以根据tab切换加载不同的订单数据
+      this.onTabChange(index);
     },
     
     /**
@@ -552,7 +698,9 @@ export default {
       // 跳转到评价页面
       Navigator.toAppraise(order.id);
     },
-    
+      goBack() {
+      Navigator.toMine()
+    },
     /**
      * @description 教师确认订单
      * @param {Object} order 订单对象
@@ -578,63 +726,116 @@ export default {
 </script>
 
 <style>
+.header-container {
+  width: 100%;
+  height: 200rpx;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(135deg, #f5f9ff, #edf3ff);
+}
+
 .container {
-  flex: 1;
-  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(135deg, #f5f9ff, #edf3ff);
+  font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 }
 
-.tab-container {
-  flex-direction: row;
-  height: 88rpx;
-  background-color: #ffffff;
-  border-bottom-width: 1rpx;
-  border-bottom-color: #eeeeee;
-}
-
-.tab-item {
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-}
-
-.tab-item text {
-  font-size: 28rpx;
-  color: #666666;
-}
-
-.tab-item.active text {
-  color: #007AFF;
-  font-weight: bold;
+.page-content {
+  padding: 10rpx 30rpx;
+  position: relative;
+  z-index: 10;
 }
 
 .order-list {
-  flex: 1;
-  padding: 20rpx;
+  height: calc(100vh - 150rpx);
+  margin-top: 5rpx;
 }
 
 .order-item {
-  background-color: #ffffff;
-  height: 300rpx;
-  border-radius: 12rpx;
-  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
   margin-bottom: 20rpx;
+  position: relative;
+   height: 250rpx;
+  padding: 15rpx 30rpx 60rpx 30rpx;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.order-time {
+  position: absolute;
+  top: 15rpx;
+  left: 30rpx;
+  font-size: 24rpx;
+  color: #2288F9;
+  font-weight: 400;
+}
+
+.order-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 40rpx;
+  padding: 2rpx;
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.order-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
+  z-index: 1;
 }
 
 .order-content {
+  display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-top: 45rpx;
+  margin-bottom: 5rpx;
+  position: relative;
+  z-index: 2;
+  width: 100%;
 }
 
 .avatar-container {
-  margin-right: 20rpx;
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 30rpx;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 0;
+  margin-left: 0;
+  border: none;
 }
 
 .avatar-circle {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 15rpx;
   background-color: #f0f0f0;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6rpx 15rpx rgba(0, 0, 0, 0.1);
+  border: none;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
@@ -646,106 +847,165 @@ export default {
 
 .order-info {
   flex: 1;
-  padding-right: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  padding-left: 15rpx;
+  margin-top: 5rpx;
+  position: relative;
+  z-index: 2;
 }
 
 .order-title {
-  font-size: 32rpx;
-  color: #333333;
-  font-weight: 500;
+  font-family: 'PingFang SC', sans-serif;
+  font-weight: 600;
+  font-size: 27rpx;
   margin-bottom: 10rpx;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.55px;
+  text-align: left;
 }
 
 .order-teacher, .order-student, .order-type {
-  font-size: 26rpx;
-  color: #666666;
-  margin-bottom: 6rpx;
+  font-size: 20rpx;
+  color: #000000;
+  font-weight: 500;
+  font-family: 'PingFang SC', sans-serif;
+  margin-bottom: 4rpx;
+  line-height: 1.2;
+  text-align: left;
+  padding: 2rpx 0;
 }
 
 .order-price-container {
   position: relative;
+  bottom:65rpx;
+  right:20rpx;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   align-items: center;
-  height: 40rpx;
+  height: rpx;
   margin-top: 10rpx;
-  z-index: 1;
+  z-index: 2;
 }
 
 .order-price-label {
-  font-size: 28rpx;
-  color: #333333;
+  position: relative;  
+  font-size: 25rpx;
+  color: #464EF8;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .order-price {
-  font-size: 30rpx;
-  color: #333333;
+  position: relative;
+  font-size: 25rpx;
+  color: #464EF8;
   font-weight: bold;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .order-footer {
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-top: 10rpx;
+  position: relative;
+  bottom: 85rpx;
+  left: 30rpx;
+  width: 100%;
+  height: 80rpx;
+  z-index: 50;
+  margin-top: 5rpx;
 }
 
 .button-group {
-  width: 800rpx;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 20rpx;
+  position: static;
+  width: 100%;
+  height: 60rpx;
 }
 
-.cancel-btn, .pay-btn, .confirm-btn {
-  padding: 0 20rpx;
-  height: 50rpx;
-  line-height: 50rpx;
-  border-radius: 25rpx;
-  font-size: 22rpx;
+.cancel-btn, .pay-btn, .confirm-btn, .appraise-btn, .detail-btn, .delete-btn {
+  border-radius: 10rpx ;
+  padding: 0 30rpx ;
+  height: 40rpx ;
+  width: 140rpx;
+  line-height: 40rpx ;
+  font-size: 18rpx ;
+  font-weight: 400 ;
+  z-index: 100 ;
 }
 
 .cancel-btn {
-  position: relative;
-  right: 400rpx;
-  background-color: #ffffff;
-  color: #666666;
-  border-width: 1rpx;
-  border-color: #dddddd;
-  margin-right: 16rpx;
+  position: absolute !important;
+  right: 180rpx !important;
+  bottom: 20rpx !important;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
+  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  border-style: none !important;
 }
 
-.pay-btn, .confirm-btn {
-  background-color: #007AFF;
-  color: #ffffff;
+.pay-btn {
+  position: absolute !important;
+  right: 30rpx !important;
+  bottom: 20rpx !important;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
+}
+
+.confirm-btn {
+  position: absolute !important;
+  right: 30rpx !important;
+  bottom: 20rpx !important;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
+}
+
+.appraise-btn, .detail-btn, .delete-btn {
+  position: absolute !important;
+  right: 30rpx !important;
+  bottom: 20rpx !important;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
 }
 
 .appraise-btn {
-  background-color: #ffffff;
-  color: #FFA500;
-  border-width: 1rpx;
-  border-color: #FFA500;
-  margin-right: 16rpx;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  border-style: none !important;
+  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
 }
 
 .detail-btn {
-  background-color: #ffffff;
-  color: #007AFF;
-  border-width: 1rpx;
-  border-color: #007AFF;
-  margin-right: 16rpx;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  border-style: none !important;
+  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
 }
 
 .delete-btn {
-  background-color: #ffffff;
-  color: #FF6B6B;
-  border-width: 1rpx;
-  border-color: #FF6B6B;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+  color: white !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  border-style: none !important;
+  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
+}
+
+.cancel-btn:active, .pay-btn:active, .confirm-btn:active, .appraise-btn:active, .detail-btn:active, .delete-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 3rpx 10rpx rgba(122, 95, 190, 0.3);
 }
 
 /* 弹窗样式 */
@@ -755,7 +1015,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
   z-index: 9999;
@@ -966,13 +1226,6 @@ export default {
 }
 
 /* 小按钮样式 */
-.small-btn {
-  padding: 0 20rpx;
-  height: 50rpx;
-  line-height: 50rpx;
-  border-radius: 25rpx;
-  font-size: 22rpx;
-}
 
 /* 支付弹窗样式补充 */
 .price-text {
@@ -987,18 +1240,5 @@ export default {
 .payment-wrapper {
   padding: 0 20rpx;
   margin-bottom: 20rpx;
-}
-
-/* 删除二维码相关样式 */
-.qrcode-container,
-.qrcode-placeholder,
-.qrcode-placeholder text {
-  display: none;
-}
-
-/* 修改确认按钮颜色为微信绿色 */
-.pay-btn, .confirm-btn {
-  background-color: #07C160;
-  color: #ffffff;
 }
 </style>
