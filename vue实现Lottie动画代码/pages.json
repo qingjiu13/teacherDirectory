@@ -111,13 +111,16 @@
 					"path": "service/service_newbuilt",
 					"style": {
 					"navigationBarTitleText": "新建服务",
-						"navigationStyle": "custom"
+					"navigationStyle": "custom",
+					"componentPlaceholder": {
+						"choice-selected": "view"
+					}
 					}
 				},
 				{
-					"path": "modify/modify",
+					"path":"modify/modify",
 					"style": {
-						"navigationBarTitleText": "修改资料"
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -130,7 +133,8 @@
 				{
 					"path": "order/appraise",
 					"style": {
-						"navigationBarTitleText": "评价"
+						"navigationBarTitleText": "评价",
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -235,8 +239,8 @@
 			"^filter-section$": "pages_AI_Login_Match/AI/ai-chat/FilterSection", 
 			"^mode-selector$": "pages_AI_Login_Match/AI/ai-chat/ModeSelector",
 			"^top-navbar$": "components/top-navbar/top-navbar",
-			"^header$": "components/navigationTitleBar/header",
-			"^choice-selected$": "pagesMine/components/combobox/combobox"
+			"^choice-selected$": "pagesMine/components/combobox/combobox",
+			"^header$": "components/navigationTitleBar/header"
 		}
 	},
 	"uniIdRouter": {},

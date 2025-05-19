@@ -47,7 +47,7 @@ const animationCache = new Map();
 
 const cLottieRef = ref()
 const animationSrc = ref('')
-const defaultSrc = 'https://lottie.host/aa045d36-86ee-46d3-9705-1eeb65b38465/V6aAFX4Fmk.json'
+const defaultSrc = 'https://lottie.host/b43a7279-b25d-460a-b48c-60e2a24ecf2f/GDx9VFTMQr.json'
 const animationLoaded = ref(false)
 const loading = ref(false)
 const pageReady = ref(false)

@@ -15,7 +15,6 @@
           </view>
           <view class="nickname-row">
             <text class="login-text" @click="handleClick">{{ userData.name || storeName || '登录' }}</text>
-            <image class="edit-profile-icon" src="../static/mine/edit.png" mode="widthFix" @click="navModify"></image>
           </view>
           <!-- 是否认证 -->
           <view class="certification-row">
@@ -319,18 +318,9 @@ export default {
      * @description 处理头像点击
      */
     handleClick() {
-      if (this.isLoggedIn) {
-        Navigator.toModify();
-      } else {
-        // 未登录时导航到登录页
+      if (!this.isLoggedIn) {
         Navigator.toWechatLogin();
       }
-    },
-    /**
-     * @description 跳转到修改页面
-     */
-    navModify(){
-      Navigator.toModify();
     },
     /**
      * @description 页面跳转方法
@@ -502,13 +492,6 @@ export default {
   font-weight: 550;
   line-height: 100%;
   letter-spacing: -1.26rpx;
-}
-.edit-profile-icon{
-  width: 40rpx;
-  height: 40rpx;
-  position: absolute;
-  margin-left: 130rpx;
-  margin-top: -8rpx;
 }
 
 .middle-list{

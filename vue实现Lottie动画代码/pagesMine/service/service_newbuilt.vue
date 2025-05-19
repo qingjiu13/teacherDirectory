@@ -213,11 +213,11 @@
 </template>
 
 <script>
-// 使用相对路径
-import ChoiceSelected from '@/pagesMine/components/combobox/combobox.vue'
+// 使用绝对路径
+import ChoiceSelected from '/pagesMine/components/combobox/combobox.vue'
 import Header from '@/components/navigationTitleBar/header'
-// 导入导航器模块
 import { Navigator } from '@/router/Router.js'
+
 export default {
   components: {
     'choice-selected': ChoiceSelected,

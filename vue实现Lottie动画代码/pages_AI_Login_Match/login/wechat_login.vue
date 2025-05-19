@@ -1,4 +1,18 @@
 <template>
+  <view class="background-image">
+    <image
+      class="background-image-img"
+      src="/static/image/bgPicture/background1.png"
+      mode="aspectFill" alt="背景图"
+    />
+  </view>
+  <view class="background-image">
+    <image
+      class="background-image-img"
+      src="/static/image/bgPicture/background.png"
+      mode="aspectFill" alt="背景图"
+    />
+  </view>
   <image
       class="nav-back"
       src="/static/image/navBack.png"
@@ -6,15 +20,8 @@
       @click="goBack"
   />
   <view class="login-container">
-    <!-- 顶部背景图 -->
-    <view class="header-bg">
-      <image class="bg-image" src="/pagesMine/static/mine/topImage.png" mode="widthFix"></image>
-    </view>
-    
     <!-- 内容区域 -->
     <view class="content">
-      <!-- 底部模糊背景层 -->
-      <image class="blur-bottom-bg" src="../static/login/blur_bg.png" mode="widthFix"></image>
       <!-- 欢迎文案 -->
       <view class="welcome-text">
         <text class="title">欢迎使用</text>
@@ -23,7 +30,10 @@
       
       <!-- 用户头像占位 -->
       <view class="avatar-container">
-        <image class="avatar" :src="userInfo.avatarUrl || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+        <view class="avatar-mask-outer">
+          <view class="avatar-mask-inner"></view>
+          <image class="avatar-img" :src="userInfo.avatarUrl || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+        </view>
         <text class="nickname" v-if="userInfo.nickName">{{userInfo.nickName}}</text>
         <text class="nickname" v-else>未登录</text>
       </view>
@@ -438,34 +448,49 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style>
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+.background-image-img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
+}
 .login-container {
-  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-color: transparent;
+}
+.login-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8f8f8;
-  position: relative;
-  overflow: hidden;
-  
-  .header-bg {
-    width: 100%;
-    height: 600rpx;
-    position: absolute;
-    top: 0;
-    left: 0;
-    
-    .bg-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
+  background-color: transparent;
 }
-
-.content {
+.header-bg {
+  width: 100%;
+  height: 600rpx;
   position: absolute;
-  top: 600rpx;
+  top: 0;
+  left: 0;
+}
+.bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.content {
+  position: relative;
   left: 0;
   right: 0;
   bottom: 0;
@@ -474,8 +499,8 @@ export default {
   flex-direction: column;
   align-items: center;
   z-index: 1;
+  background-color: transparent;
 }
-
 .blur-bottom-bg {
   position: absolute;
   top: 0;
@@ -498,348 +523,326 @@ export default {
   height: 62rpx;
   z-index: 100;
 }
-.login-container {
-  height: 100vh;
+.welcome-text {
   display: flex;
   flex-direction: column;
-  background-color: #f8f8f8;
-  
-  .welcome-text {
-    margin-top: 40rpx;
-    margin-bottom: 80rpx;
-    text-align: center;
-    
-    .title {
-      display: block;
-      font-size: 48rpx;
-      font-weight: bold;
-      color: #333;
-    }
-    
-    .subtitle {
-      display: block;
-      font-size: 28rpx;
-      color: #999;
-      margin-top: 20rpx;
-    }
-  }
-  
-  .avatar-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 80rpx;
-    
-    .avatar {
-      width: 140rpx;
-      height: 140rpx;
-      border-radius: 50%;
-      border: 4rpx solid #fff;
-      box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
-    }
-    
-    .nickname {
-      margin-top: 20rpx;
-      font-size: 32rpx;
-      color: #333;
-    }
-  }
-  
-  .login-btn {
-    width: 318rpx;
-    height: 88rpx;
-    line-height: 50rpx;
-    border-radius: 20rpx;
-    background: rgba(22, 217, 26, 1);
-    color: #fff;
-    font-size: 32rpx;
-    padding: 0;
-    border: none;
-    box-shadow: 0 10rpx 20rpx rgba(7, 193, 96, 0.3);
-    
-    &.logged-in {
-      background: linear-gradient(to right, #1989fa, #3194fa);
-      box-shadow: 0 10rpx 20rpx rgba(25, 137, 250, 0.3);
-    }
+  margin-left: 100rpx;
+  margin-top: 270rpx;
+  width: 100%;
+}
+.welcome-text .title {
+  font-family: 'PingFang SC';
+  font-weight: 400;
+  font-size: 48rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
+  color: rgba(0, 0, 0, 1);
 
-    .btn-content {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .wechat-icon {
-      width: 48rpx;
-      height: 38rpx;
-      margin-right: 40rpx;
-    }
+}
+.welcome-text .subtitle {
+  font-family: 'PingFang SC';
+  font-weight: 400;
+  font-size: 32rpx;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
+  color: #666;
+  text-align: left;
+}
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 80rpx;
+  margin-top: 220rpx;
+}
+.avatar-mask-outer {
+  position: relative;
+  width: 180rpx; /* 外层尺寸 */
+  height: 180rpx;
+  border-radius: 30rpx; /* 外层圆角 */
+  background: rgba(95, 38, 247, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-mask-inner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 168rpx; /* 内层尺寸 */
+  height: 168rpx;
+  border-radius: 24rpx; /* 内层圆角 */
+  z-index: 2;
+  /* 关键：内层透明，遮住外层 */
+  background: rgba(255, 255, 255, 1);
+  transform: translate(-50%, -50%);
+}
+.avatar-img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 168rpx; /* 头像尺寸略小于内层 */
+  height: 168rpx;
+  border-radius: 24rpx;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+.avatar-container .nickname {
+  margin-top: 20rpx;
+  font-size: 36rpx;
+  color: rgba(0, 0, 0, 1);
+  font-family: PingFang SC;
+  font-weight: 400;
+  line-height: 70rpx;
+  letter-spacing: -1.1rpx;
 
-    .login-text {
-      font-family: PingFang SC;
-      font-weight: 400;
-      font-size: 18px;
-      line-height: 100%;
-      letter-spacing: -0.68px;
-      text-align: center;
-    }
-  }
-  
-  .agreement {
-    margin-top: 40rpx;
-    font-size: 24rpx;
-    color: #999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: nowrap;
-    flex-direction: row;
+}
+.login-btn {
+  width: 318rpx;
+  height: 88rpx;
+  line-height: 50rpx;
+  border-radius: 20rpx;
+  background: rgba(22, 217, 26, 1);
+  color: #fff;
+  font-size: 32rpx;
+}
 
-    .link-group {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      gap: 6rpx; // 控制《用户协议》和之间的间距
-      margin-left: 8rpx;
-    }
-
-    .link {
-      color: #1989fa;
-    }
-  }
-  
-  // 弹窗样式
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
-  
-  .modal-content {
-    width: 80%;
-    max-height: 70vh;
-    background-color: #fff;
-    border-radius: 20rpx;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .modal-title {
-    text-align: center;
-    font-size: 36rpx;
-    font-weight: bold;
-    padding: 30rpx 0;
-    color: #333;
-    border-bottom: 1px solid #f0f0f0;
-  }
-  
-  .modal-body {
-    padding: 30rpx;
-    flex: 1;
-    overflow-y: auto;
-  }
-  
-  .agreement-text {
-    font-size: 28rpx;
-    color: #333;
-    line-height: 1.6;
-  }
-  
-  .agreement-item {
-    margin-bottom: 20rpx;
-    
-  }
-  
-  .modal-footer {
-    padding: 20rpx 30rpx 40rpx;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    
-    .agree-btn {
-      width: 80%;
-      height: 80rpx;
-      line-height: 80rpx;
-      text-align: center;
-      background: linear-gradient(to right, #1989fa, #3194fa);
-      color: #fff;
-      font-size: 30rpx;
-      border-radius: 40rpx;
-      border: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 0;
-    }
-  }
-  
-  // 新增授权弹窗样式
-  .auth-popup {
-    display: none;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 999;
-    transform: translateY(100%);
-    transition: all 0.3s ease;
-
-    &.auth-popup-show {
-      display: block;
-      transform: translateY(0);
-    }
-    
-    .auth-popup-mask {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-    
-    .auth-popup-content {
-      position: relative;
-      background-color: #fff;
-      border-radius: 24rpx 24rpx 0 0;
-      padding: 30rpx;
-      
-      .auth-popup-header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        padding-bottom: 30rpx;
-        border-bottom: 1px solid #f0f0f0;
-        
-        .auth-popup-title {
-          font-size: 32rpx;
-          font-weight: bold;
-          color: #333;
-        }
-        
-        .auth-popup-close {
-          position: absolute;
-          right: 0;
-          top: 0;
-          font-size: 40rpx;
-          color: #999;
-          padding: 10rpx;
-        }
-      }
-    }
-  }
-  
-  // 头像选择步骤样式
-  .auth-step {
-    padding: 40rpx 0;
-    
-    .auth-desc {
-      text-align: center;
-      font-size: 28rpx;
-      color: #666;
-      margin-bottom: 30rpx;
-    }
-    
-    .avatar-btn {
-      width: 100%;
-      height: 90rpx;
-      line-height: 90rpx;
-      border-radius: 45rpx;
-      background-color: #07C160;
-      color: #fff;
-      font-size: 32rpx;
-      margin-bottom: 30rpx;
-    }
-    
-    .auth-next-btn {
-      width: 100%;
-      height: 90rpx;
-      line-height: 90rpx;
-      border-radius: 45rpx;
-      background-color: #1989fa;
-      color: #fff;
-      font-size: 32rpx;
-      
-      &[disabled] {
-        background-color: #cccccc;
-        color: #ffffff;
-        opacity: 0.6;
-      }
-    }
-    
-    // 昵称输入样式
-    .nickname-input-wrap {
-      margin-bottom: 40rpx;
-      
-      .input-label {
-        display: block;
-        font-size: 28rpx;
-        color: #333;
-        margin-bottom: 20rpx;
-      }
-      
-      .nickname-input {
-        width: 100%;
-        height: 90rpx;
-        border: 1px solid #e5e5e5;
-        border-radius: 8rpx;
-        padding: 0 20rpx;
-        font-size: 28rpx;
-      }
-    }
-    
-    // 手机号授权样式
-    .phone-auth-desc {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 40rpx;
-      
-      .phone-icon {
-        font-size: 60rpx;
-        margin-bottom: 20rpx;
-      }
-      
-      .phone-text {
-        font-size: 32rpx;
-        font-weight: bold;
-        margin-bottom: 10rpx;
-      }
-      
-      .phone-tip {
-        font-size: 24rpx;
-        color: #999;
-      }
-    }
-    
-    .phone-btn {
-      width: 100%;
-      height: 90rpx;
-      line-height: 90rpx;
-      border-radius: 45rpx;
-      background-color: #07C160;
-      color: #fff;
-      font-size: 32rpx;
-      margin-bottom: 20rpx;
-    }
-    
-    .phone-skip {
-      text-align: center;
-      font-size: 28rpx;
-      color: #999;
-      padding: 20rpx;
-    }
-  }
+.login-btn .btn-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.login-btn .wechat-icon {
+  width: 48rpx;
+  height: 38rpx;
+  margin-right: 40rpx;
+}
+.login-btn .login-text {
+  font-family: PingFang SC;
+  font-weight: 400;
+  font-size: 36rpx;
+  line-height: 100%;
+  letter-spacing: -0.68px;
+  text-align: center;
+}
+.agreement {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-direction: row;
+}
+.agreement .link-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 6rpx;
+  margin-left: 8rpx;
+}
+.agreement .link {
+  color: #1989fa;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modal-content {
+  width: 80%;
+  max-height: 70vh;
+  background-color: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.modal-title {
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  padding: 30rpx 0;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+.modal-body {
+  padding: 30rpx;
+  flex: 1;
+  overflow-y: auto;
+}
+.agreement-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+.agreement-item {
+  margin-bottom: 20rpx;
+}
+.modal-footer {
+  padding: 20rpx 30rpx 40rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-footer .agree-btn {
+  width: 80%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background: linear-gradient(to right, #1989fa, #3194fa);
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+.auth-popup {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+}
+.auth-popup.auth-popup-show {
+  display: block;
+  transform: translateY(0);
+}
+.auth-popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.auth-popup-content {
+  position: relative;
+  background-color: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 30rpx;
+}
+.auth-popup-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding-bottom: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+.auth-popup-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+.auth-popup-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 40rpx;
+  color: #999;
+  padding: 10rpx;
+}
+.auth-step {
+  padding: 40rpx 0;
+}
+.auth-step .auth-desc {
+  text-align: center;
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+}
+.auth-step .avatar-btn {
+  width: 100%;
+  height: 90rpx;
+  line-height: 90rpx;
+  border-radius: 45rpx;
+  background-color: #07C160;
+  color: #fff;
+  font-size: 32rpx;
+  margin-bottom: 30rpx;
+}
+.auth-step .auth-next-btn {
+  width: 100%;
+  height: 90rpx;
+  line-height: 90rpx;
+  border-radius: 45rpx;
+  background-color: #1989fa;
+  color: #fff;
+  font-size: 32rpx;
+}
+.auth-step .auth-next-btn[disabled] {
+  background-color: #cccccc;
+  color: #ffffff;
+  opacity: 0.6;
+}
+.auth-step .nickname-input-wrap {
+  margin-bottom: 40rpx;
+}
+.auth-step .nickname-input-wrap .input-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+.auth-step .nickname-input-wrap .nickname-input {
+  width: 100%;
+  height: 90rpx;
+  border: 1px solid #e5e5e5;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+.auth-step .phone-auth-desc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+.auth-step .phone-auth-desc .phone-icon {
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+}
+.auth-step .phone-auth-desc .phone-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+.auth-step .phone-auth-desc .phone-tip {
+  font-size: 24rpx;
+  color: #999;
+}
+.auth-step .phone-btn {
+  width: 100%;
+  height: 90rpx;
+  line-height: 90rpx;
+  border-radius: 45rpx;
+  background-color: #07C160;
+  color: #fff;
+  font-size: 32rpx;
+  margin-bottom: 20rpx;
+}
+.auth-step .phone-skip {
+  text-align: center;
+  font-size: 28rpx;
+  color: #999;
+  padding: 20rpx;
 }
 </style> 

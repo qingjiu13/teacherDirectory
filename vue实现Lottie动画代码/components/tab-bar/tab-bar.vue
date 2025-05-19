@@ -1,9 +1,13 @@
 <template>
 	<view class="tab-bar-wrapper">
 		<view class="tab-bar">
-			<view class="tab-item index-tab" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
+			<!-- <view class="tab-item index-tab" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
 				<image class="nav-icon index-icon" :src="getIconPath('index')"></image>
 				<text class="index-tab tab-text">精准匹配</text>
+			</view> -->
+			<view class="tab-item index-tab" :class="{ active: pageName === 'index' }" @click="switchPage('index')">
+				<image class="nav-icon" :src="getIconPath('index')"></image>
+				<text class="tab-text">主页</text>
 			</view>
 			<view class="tab-item message-tab" :class="{ active: pageName === 'message' }" @click="switchPage('message')">
 				<image class="nav-icon" :src="getIconPath('message')"></image>
@@ -50,8 +54,8 @@
 				 */
 				iconPaths: {
 					'index': {
-						normal: '/static/image/tab-bar/index.png',
-						active: '/static/image/tab-bar/index.png'
+						normal: '/static/image/tab-bar/indexDown.png',
+						active: '/static/image/tab-bar/indexUp.png'
 					},
 					'AI': {
 						normal: '/static/image/tab-bar/AI.png',
@@ -196,15 +200,15 @@
 		margin-bottom: 6rpx;
 	}
 		/* 增加图片大小，并上移部分 */
-	.index-tab .nav-icon {
+	/* .index-tab .nav-icon {
 		width: 232rpx;
 		height: 140rpx;
 		position: absolute;
 		top: -50rpx; /* 控制图片上浮，增加上浮距离 */
-		left: 50%; /* 水平居中定位 */
-		transform: translateX(-50%); /* 确保真正居中 */
-		z-index: 1000;
-	}
+		/* left: 50%; 水平居中定位 */
+		/* transform: translateX(-50%); 确保真正居中 */
+		/* z-index: 1000; */
+	/* }  */
 
 	.tab-text {
 		font-family: 'PingFang SC';
@@ -213,7 +217,7 @@
 		line-height: 100%;
 		letter-spacing: -1.26rpx;
 		text-align: center;
-		color: #000000;
+		color: rgba(151, 151, 151, 1);
 
 	}
 	.index-tab .tab-text {
@@ -225,15 +229,15 @@
 	}
 	
 	.tab-item.ai-tab {
-		width: 20%;
+		width: 25%;
 	}
 	.tab-item.index-tab {
-		width: 40%;
+		width: 25%;
 	}
 	.tab-item.message-tab {
-		width: 20%;
+		width: 25%;
 	}
 	.tab-item.mine-tab {
-		width: 20%;
+		width: 25%;
 	}
 </style> 
