@@ -4,209 +4,146 @@
     <view class="status-bar"></view>
     
     <!-- 导航栏 -->
-    <Header :title="mode === 'edit' ? '修改信息' : '新增服务'" class="header-container" @back="goBack" />
+    <Header :title="mode === 'edit' ? '修改信息' : '新建服务'" class="header-container" @back="goBack" />
     
     <!-- 表单区域 -->
     <view class="form-container">
-      <!-- 服务类型和节数在一行 -->
-      <view class="row-container">
-        <!-- 服务类型 -->
-        <view class="form-item1">
-          <view class="form-label">服务类型</view>
-          <choice-selected
-            :choiceIndex="selectedServiceTypeIndex"
-            :choiceList="serviceTypes"
-            :defaultText="'请选择服务类型'"
-            @onChoiceClick="handleServiceTypeSelect"
-          ></choice-selected>
-        </view>
-        
-        <!-- 节数 (一对一课程) -->
-        <view class="form-item1" v-if="selectedServiceType === '一对一课程'">
-          <view class="form-label"></view>
-          <choice-selected
-          class="combobox-container"
-            :choiceIndex="selectedLessonsIndex"
-            :choiceList="lessonOptions"
-            :defaultText="'请选择节数'"
-            @onChoiceClick="handleLessonsSelect"
-          ></choice-selected>
-        </view>
-        
-        <!-- 课时 (一对多课程) -->
-        <view class="form-item1" v-if="selectedServiceType === '一对多课程'">
-          <view class="form-label"></view>
-          <choice-selected
-            class="combobox-container"
-            :choiceIndex="selectedLessonsIndex"
-            :choiceList="lessonOptions"
-            :defaultText="'请选择节数'"
-            @onChoiceClick="handleLessonsSelect"
-          ></choice-selected>
-        </view>
-      </view>
-      
-      <!-- 一对一课程专用字段 -->
-      <block v-if="selectedServiceType === '一对一课程'">
-        <!-- 课程总时长 -->
-        <view class="row-container">
-          <!-- 小时 -->
-          <view class="form-item1">
-            <view class="form-label">课程总时长</view>
-            <choice-selected
-              :choiceIndex="selectedHoursIndex"
-              :choiceList="hourOptions"
-              :defaultText="'小时'"
-              @onChoiceClick="handleHoursSelect"
-            ></choice-selected>
-          </view>
+      <!-- 基本信息区块 -->
+      <view class="form-section-wrapper">
+        <view class="form-section">
+          <view class="section-title">基本信息</view>
           
-          <!-- 分钟 -->
-          <view class="form-item1">
-            <view class="form-label"></view> 
-            <choice-selected
-              class="combobox-container"
-              :choiceIndex="selectedMinutesIndex"
-              :choiceList="minuteOptions"
-              :defaultText="'分钟'"
-              @onChoiceClick="handleMinutesSelect"
-            ></choice-selected>
-          </view>
-        </view>
-        
-        <!-- 服务名称 -->
-        <view class="form-item">
-          <view class="form-label">服务名称</view>
-          <input 
-            class="form-input" 
-            type="text" 
-            placeholder="请填写" 
-            v-model="serviceName"
-            @input="trackChanges"
-          />
-        </view>
-      </block>
-      
-      <!-- 一对多课程专用字段 -->
-      <block v-if="selectedServiceType === '一对多课程'">
-        <!-- 课程总时长 -->
-        <view class="row-container">
-          <!-- 小时 -->
-          <view class="form-item1">
-            <view class="form-label">课程总时长</view>
-            <choice-selected
-              :choiceIndex="selectedMultiHoursIndex"
-              :choiceList="hourOptions"
-              :defaultText="'小时'"
-              @onChoiceClick="handleMultiHoursSelect"
-            ></choice-selected>
-          </view>
-          
-          <!-- 分钟 -->
-          <view class="form-item1">
-            <view class="form-label"></view> 
-            <choice-selected
-            class="combobox-container"
-              :choiceIndex="selectedMultiMinutesIndex"
-              :choiceList="minuteOptions"
-              :defaultText="'分钟'"
-              @onChoiceClick="handleMultiMinutesSelect"
-            ></choice-selected>
-          </view>
-        </view>
-        
-        <!-- 课程人数 -->
-        <view class="form-item">
-          <view class="form-label">课程人数</view>
-          <choice-selected
-            :choiceIndex="selectedPersonCountIndex"
-            :choiceList="personCountOptions"
-            :defaultText="'请选择课程人数'"
-            @onChoiceClick="handlePersonCountSelect"
-          ></choice-selected>
-        </view>
-        
-        <!-- 服务名称 -->
-        <view class="form-item">
-          <view class="form-label">服务名称</view>
-          <input 
-            class="form-input" 
-            type="text" 
-            placeholder="请填写" 
-            v-model="multiServiceName"
-            @input="trackChanges"
-          />
-        </view>
-      </block>
-      
-      <!-- 学习资料类型字段 -->
-      <view class="form-item" v-if="selectedServiceType === '学习资料'">
-        <view class="form-label">服务名称</view>
-        <input
-          class="form-input"
-          type="text"
-          placeholder="请输入服务名称"
-          v-model="coursequantity"
-          @input="trackChanges"
-        />
-      </view>
-      
-      <!-- 服务介绍 -->
-      <view class="form-item">
-        <view class="form-label">服务介绍</view>
-        <textarea 
-          class="form-textarea" 
-          placeholder="请填写" 
-          v-model="description"
-          @input="trackChanges"
-        />
-      </view>
-      
-      <!-- 服务价格 -->
-      <view class="form-item">
-        <view class="form-label">服务价格(每小时价格/h)</view>
-        <input 
-          class="form-input" 
-          type="text" 
-          placeholder="按照元填写，如200元/h~" 
-          v-model="price"
-          @input="trackChanges"
-        />
-      </view>
-      
-      <!-- 附件上传 -->
-      <view class="form-item" v-if="showAttachment">
-        <view class="form-label">附件上传 (学习资料显示)</view>
-        <view class="upload-area" @click="chooseFile">
-          <text class="plus-icon">+</text>
-        </view>
-      </view>
-
-      <!-- 封面上传 -->
-      <view class="form-item">
-        <view class="form-label">封面上传</view>
-        <view class="cover-grid">
-          <!-- 已上传的图片 -->
-          <block v-for="(url, index) in coverUrls" :key="index">
-            <view class="cover-item">
-              <image :src="url" class="cover-image" mode="aspectFill"></image>
-              <view class="delete-icon" @click.stop="deleteCover(index)">×</view>
+          <!-- 服务名称 -->
+          <view class="form-item horizontal-item">
+            <view class="form-label-horizontal">
+              <view>服务名称</view>
             </view>
-          </block>
+            <input 
+              class="form-input-horizontal" 
+              type="text" 
+              placeholder="请输入服务名称" 
+              v-model="serviceNameModel"
+            />
+          </view>
           
-          <!-- 上传按钮 -->
-          <view class="cover-item add-button" @click="chooseCover" v-if="coverUrls.length < 9">
-            <text class="add-icon">+</text>
+          <!-- 服务类型 -->
+          <view class="form-item horizontal-item">
+            <view class="form-label-horizontal">服务类型</view>
+            <view class="select-container">
+              <choice-selected
+                :choiceIndex="selectedServiceTypeIndex"
+                :choiceList="serviceTypes"
+                :defaultText="'请选择服务类型'"
+                @onChoiceClick="handleServiceTypeSelect"
+              ></choice-selected>
+            </view>
+          </view>
+          
+          <!-- 课程时长 -->
+          <view class="form-item horizontal-item">
+            <view class="form-label-horizontal">课程时长</view>
+            <view class="time-wrapper">
+              <view class="time-selector">
+                <choice-selected
+                  :choiceIndex="selectedServiceType === '一对多课程' ? selectedMultiHoursIndex : selectedHoursIndex"
+                  :choiceList="hourOptions"
+                  :defaultText="'小时'"
+                  @onChoiceClick="(index) => selectedServiceType === '一对多课程' ? handleMultiHoursSelect(index) : handleHoursSelect(index)"
+                ></choice-selected>
+              </view>
+              <view class="time-selector">
+                <choice-selected
+                  :choiceIndex="selectedServiceType === '一对多课程' ? selectedMultiMinutesIndex : selectedMinutesIndex"
+                  :choiceList="minuteOptions"
+                  :defaultText="'分钟'"
+                  @onChoiceClick="(index) => selectedServiceType === '一对多课程' ? handleMultiMinutesSelect(index) : handleMinutesSelect(index)"
+                ></choice-selected>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 课程人数 (一对多课程) -->
+          <view class="form-item horizontal-item" v-if="selectedServiceType === '一对多课程'">
+            <view class="form-label-horizontal">课程人数</view>
+            <view class="select-container">
+              <choice-selected
+                :choiceIndex="selectedPersonCountIndex"
+                :choiceList="personCountOptions"
+                :defaultText="'请选择课程人数'"
+                @onChoiceClick="handlePersonCountSelect"
+              ></choice-selected>
+            </view>
+          </view>
+          
+          <!-- 服务价格 -->
+          <view class="form-item horizontal-item">
+            <view class="form-label-horizontal">
+              <view>服务价格</view>
+              <view class="price-hint">每小时价格/h</view>
+            </view>
+            <input 
+              class="form-input-horizontal price-input" 
+              type="text" 
+              placeholder="如200元/h" 
+              v-model="price"
+              @input="trackChanges"
+            />
           </view>
         </view>
-        <text class="tip-text">最多可上传9张图片，建议比例1:1</text>
+      </view>
+      
+      <!-- 具体内容区块 -->
+      <view class="form-section-wrapper">
+        <view class="form-section">
+          <view class="section-title">具体内容</view>
+          
+          <!-- 服务介绍 -->
+          <view class="form-item">
+            <view class="form-label-small">服务介绍 <text class="max-count">(限200字)</text></view>
+            <textarea 
+              class="form-textarea" 
+              placeholder="请输入服务介绍" 
+              v-model="description"
+              @input="trackChanges"
+            />
+          </view>
+          
+          <!-- 封面上传 -->
+          <view class="form-item">
+            <view class="form-label-small">上传封面</view>
+            <view class="upload-item">
+              <view class="upload-btn" @click="chooseCover">
+                <text class="plus-icon">+</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 附件上传 -->
+          <view class="form-item" v-if="showAttachment">
+            <view class="form-label-small">上传附件</view>
+            <view class="upload-item">
+              <view class="upload-btn" @click="chooseFile">
+                <text class="plus-icon">+</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 已上传封面预览 -->
+          <view class="cover-grid" v-if="coverUrls.length > 0">
+            <block v-for="(url, index) in coverUrls" :key="index">
+              <view class="cover-item">
+                <image :src="url" class="cover-image" mode="aspectFill"></image>
+                <view class="delete-icon" @click.stop="deleteCover(index)">×</view>
+              </view>
+            </block>
+          </view>
+        </view>
       </view>
     </view>
     
     <!-- 底部按钮 -->
-    <view class="submit-btn" @click="submitForm">
-      <text v-if="mode === 'add'">提交信息</text>
-      <text v-else>完成修改</text>
+    <view class="bottom-btn-area">
+      <view class="confirm-btn" @click="submitForm">确定</view>
     </view>
     
   </view>
@@ -249,8 +186,6 @@ export default {
       
       // 一对一课程相关数据
       serviceName: '',
-      selectedLessonsIndex: -1,
-      lessonOptions: ['1', '2', '3', '4', '5', '6', '8', '10', '12', '16', '20'],
       selectedHoursIndex: -1,
       hourOptions: ['1', '2', '4', '6', '8', '10', '12', '24', '48', '60', '120'],
       selectedMinutesIndex: -1,
@@ -459,13 +394,6 @@ export default {
         // 设置服务名称 (优先使用serviceName字段，如果没有则使用name)
         this.serviceName = serviceData.serviceName || serviceData.name || ''
         
-        // 设置节数
-        if (serviceData.lessons) {
-          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => l === serviceData.lessons.toString())
-        } else if (serviceData.type && serviceData.type.coursenum) {
-          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => parseInt(l) === serviceData.type.coursenum)
-        }
-        
         // 解析总时长的小时和分钟
         if (serviceData.totalDuration) {
           const match = serviceData.totalDuration.match(/(\d+)小时(\d+)分钟/)
@@ -492,13 +420,6 @@ export default {
       } else if (this.selectedServiceType === '一对多课程') {
         // 设置服务名称
         this.multiServiceName = serviceData.serviceName || serviceData.name || ''
-        
-        // 设置课时
-        if (serviceData.lessons) {
-          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => l === serviceData.lessons.toString())
-        } else if (serviceData.type && serviceData.type.coursenum) {
-          this.selectedLessonsIndex = this.lessonOptions.findIndex(l => parseInt(l) === serviceData.type.coursenum)
-        }
         
         // 解析总时长的小时和分钟
         if (serviceData.totalDuration) {
@@ -567,12 +488,10 @@ export default {
       
       // 切换服务类型时，重置相关字段
       if (this.selectedServiceType === '一对一课程') {
-        this.selectedLessonsIndex = -1
         this.selectedHoursIndex = -1
         this.selectedMinutesIndex = -1
         this.serviceName = ''
       } else if (this.selectedServiceType === '一对多课程') {
-        this.selectedLessonsIndex = -1
         this.selectedMultiHoursIndex = -1
         this.selectedMultiMinutesIndex = -1
         this.multiServiceName = ''
@@ -583,10 +502,6 @@ export default {
       
       // 更新表单字段显示
       this.updateFormFields()
-      this.hasEdited = true
-    },
-    handleLessonsSelect(index) {
-      this.selectedLessonsIndex = index
       this.hasEdited = true
     },
     handleHoursSelect(index) {
@@ -655,15 +570,6 @@ export default {
       
       // 一对一课程的特殊验证
       if (this.selectedServiceType === '一对一课程') {
-        if (this.selectedLessonsIndex === -1) {
-          uni.showToast({
-            title: '请选择课程节数',
-            icon: 'none'
-          })
-          uni.hideLoading()
-          return
-        }
-        
         if (this.selectedHoursIndex === -1 || this.selectedMinutesIndex === -1) {
           uni.showToast({
             title: '请选择课程时长',
@@ -684,15 +590,6 @@ export default {
       } 
       // 一对多课程的特殊验证
       else if (this.selectedServiceType === '一对多课程') {
-        if (this.selectedLessonsIndex === -1) {
-          uni.showToast({
-            title: '请选择课程节数',
-            icon: 'none'
-          })
-          uni.hideLoading()
-          return
-        }
-        
         if (this.selectedMultiHoursIndex === -1 || this.selectedMultiMinutesIndex === -1) {
           uni.showToast({
             title: '请选择课程时长',
@@ -775,13 +672,11 @@ export default {
       // 为一对一课程添加特殊字段
       if (this.selectedServiceType === '一对一课程') {
         serviceData.serviceName = this.serviceName
-        serviceData.lessons = this.lessonOptions[this.selectedLessonsIndex]
         serviceData.totalDuration = `${this.hourOptions[this.selectedHoursIndex]}小时${this.minuteOptions[this.selectedMinutesIndex]}分钟`
         
         // 添加类型信息
         serviceData.type = {
           typename: '一对一课程',
-          coursenum: parseInt(this.lessonOptions[this.selectedLessonsIndex]),
           fulllength: {
             hours: `${this.hourOptions[this.selectedHoursIndex]}小时`,
             minutes: `${this.minuteOptions[this.selectedMinutesIndex]}分钟`
@@ -791,14 +686,12 @@ export default {
       // 为一对多课程添加特殊字段
       else if (this.selectedServiceType === '一对多课程') {
         serviceData.serviceName = this.multiServiceName
-        serviceData.lessons = this.lessonOptions[this.selectedLessonsIndex]
         serviceData.totalDuration = `${this.hourOptions[this.selectedMultiHoursIndex]}小时${this.minuteOptions[this.selectedMultiMinutesIndex]}分钟`
         serviceData.personCount = this.personCountOptions[this.selectedPersonCountIndex]
         
         // 添加类型信息
         serviceData.type = {
           typename: '一对多课程',
-          coursenum: parseInt(this.lessonOptions[this.selectedLessonsIndex]),
           fulllength: {
             hours: `${this.hourOptions[this.selectedMultiHoursIndex]}小时`,
             minutes: `${this.minuteOptions[this.selectedMultiMinutesIndex]}分钟`
@@ -939,6 +832,21 @@ export default {
     trackChanges() {
       this.hasEdited = true
     }
+  },
+  computed: {
+    serviceNameModel: {
+      get() {
+        return this.selectedServiceType === '一对多课程' ? this.multiServiceName : this.serviceName;
+      },
+      set(value) {
+        if (this.selectedServiceType === '一对多课程') {
+          this.multiServiceName = value;
+        } else {
+          this.serviceName = value;
+        }
+        this.trackChanges();
+      }
+    }
   }
 }
 </script>
@@ -952,12 +860,13 @@ export default {
 
 .header-container {
   width: 100%;
-  height: 220rpx;
+  height: 60rpx; /* 减少高度，使导航栏更贴近顶部 */
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   position: relative;
   background-color: #fff;
   z-index: 100;
+  margin-bottom: 10rpx; /* 减少底部间距 */
 }
 
 /* 整体页面容器 */
@@ -974,12 +883,33 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 30rpx;
+  gap: 20rpx;
+  padding: 20rpx;
+  background-color: #fff;
+}
+
+/* 表单区块包装器 */
+.form-section-wrapper {
+  position: relative;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  padding: 1px; /* 为边框留出空间 */
+  background: linear-gradient(to bottom, #E9EAFF, #b096f7); /* 边框渐变色 */
+}
+
+/* 表单区块 */
+.form-section {
+  background: linear-gradient(to bottom,#fff 5%,#E9EAFF 60%, #cfb1f7 ); /* 使用上下渐变背景 */
+  border-radius: 16rpx;
   padding: 30rpx;
-  margin-top: 20rpx;
-  background-color: #ffffff;
-  border-radius: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  margin: 0; /* 移除底部外边距，由wrapper控制 */
+}
+
+/* 区块标题 */
+.section-title {
+  font-size: 30rpx;
+  color: #9A63FF;
+  margin-bottom: 30rpx;
 }
 
 /* 一行布局容器 */
@@ -1015,6 +945,13 @@ export default {
   margin-bottom: 16rpx;
 }
 
+/* 最大字数提示 */
+.max-count {
+  font-size: 22rpx;
+  color: #999;
+  font-weight: normal;
+}
+
 /* 必填项标记 */
 .required::after {
   content: '*';
@@ -1027,15 +964,22 @@ export default {
 
 /* 表单输入框 */
 .form-input, .form-select{
-  height: 90rpx;
+  height: 70rpx;
   background-color: #fff;
   border-radius: 10rpx;
   padding: 0 20rpx;
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #333;
-  border: 2rpx solid #eee;
-  width: calc(100% - 40rpx);
-  align-self: stretch;
+  border: 2rpx solid #979797;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 价格输入框 */
+.price-input {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 表单文本域 */
@@ -1044,11 +988,11 @@ export default {
   background-color: #fff;
   border-radius: 10rpx;
   padding: 20rpx;
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: #333;
-  border: 2rpx solid #eee;
-  width: calc(100% - 40rpx);
-  align-self: stretch;
+  border: 2rpx solid #979797;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 错误提示样式 */
@@ -1066,34 +1010,56 @@ export default {
 /* 表单选择器容器 */
 .combobox-container {
   position: relative; 
-  top:10rpx;
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-top: 30rpx;
 }
 
-/* 提交按钮 */
-.submit-btn {
-  height: 90rpx;
-  background: linear-gradient(135deg, #4a89dc, #3a7bd5);
-  border-radius: 45rpx;
+/* 上传项容器 */
+.upload-item {
+  margin-top: 10rpx;
+}
+
+/* 上传按钮 */
+.upload-btn {
+  width: 160rpx;
+  height: 160rpx;
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #979797;
+}
+
+/* 上传图标 */
+.plus-icon {
+  font-size: 72rpx;
+  color: #ccc;
+  font-weight: 300;
+}
+
+/* 底部按钮区域 */
+.bottom-btn-area {
+  padding: 30rpx;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 确认按钮 */
+.confirm-btn {
+  height: 70rpx;
+  width: 180rpx;
+  background:linear-gradient(to bottom,#A5A9F7,#464EF8 90%);
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-size: 32rpx;
-  font-weight: 500;
-  margin-top: 40rpx;
-  position: relative;
-  transition: all 0.3s ease;
-  align-self: stretch;
-}
-
-/* 提交按钮点击效果 */  
-.submit-btn:active {
-  transform: scale(0.98);
-  box-shadow: 0 3rpx 10rpx rgba(74, 111, 227, 0.2);
+  font-weight: 100;
 }
 
 /* 封面图片网格 */
@@ -1134,44 +1100,98 @@ export default {
   border-bottom-left-radius: 8rpx;
 }
 
-.add-button {
-  border: 2rpx dashed #ddd;
+/* 时间选择器包装容器 */
+.time-wrapper {
   display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 20rpx;
+}
+
+/* 单个时间选择器 */
+.time-selector {
+  flex: 1;
+  width: 0; /* 让flex:1生效 */
+}
+
+/* 水平排列的表单项 */
+.horizontal-item {
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  background-color: #f9f9f9;
+  margin-bottom: 25rpx;
+}
+
+/* 水平排列的标签 */
+.form-label-horizontal {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #333;
+  width: 150rpx;
+  text-align: left;
+}
+
+/* 水平排列的输入框 */
+.form-input-horizontal {
+  height: 70rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  font-size: 24rpx;
+  color: #333;
+  border: 2rpx solid #979797;
+  flex: 1;
   box-sizing: border-box;
 }
 
-.add-icon {
-  font-size: 80rpx;
-  color: #ccc;
-  font-weight: 200;
+/* 选择器容器 */
+.select-container {
+  flex: 1;
 }
 
-.tip-text {
+/* 价格提示文字 */
+.price-hint {
+  font-size: 20rpx;
+  color: #979797;
+  margin-top: 5rpx;
+}
+
+/* 具体内容区域的标签 */
+.form-label-small {
   font-size: 24rpx;
-  color: #999;
-  margin-top: 10rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16rpx;
 }
 
-/* 附件上传区域 */
-.upload-area {
-  width: 200rpx;
+/* 表单输入框占位符 */
+.form-input::placeholder, .form-textarea::placeholder {
+  font-size: 24rpx;
+  color: #979797;
+}
+
+/* 表单文本域 */
+.form-textarea {
   height: 200rpx;
   background-color: #fff;
   border-radius: 10rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10rpx;
-  border: 2rpx solid #ddd;
+  padding: 20rpx;
+  font-size: 24rpx;
+  color: #333;
+  border: 2rpx solid #979797;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* 附件上传图标 */
-.plus-icon {
-  font-size: 72rpx;
-  color: #ddd;
-  font-weight: 300;
+/* 确保下拉框中的文字大小与输入框一致 */
+.choice-text {
+  font-size: 24rpx !important;
+}
+
+/* 确保所有下拉框中的文字大小统一 */
+::v-deep .choice-container,
+::v-deep .choice-text,
+::v-deep .choice-item {
+  font-size: 24rpx !important;
 }
 </style>

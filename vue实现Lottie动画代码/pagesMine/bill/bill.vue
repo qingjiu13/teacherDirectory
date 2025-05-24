@@ -56,18 +56,43 @@
 import moneyState from '@/store/user/money/state.js';
 
 export default {
-	data() {		return {			refreshing: false,			// 直接使用模拟数据			localTransactionList: moneyState.transactionList,			isLoading: false,			hasMore: false		}	},
+	data() {
+		return {
+			refreshing: false,
+			// 直接使用模拟数据
+			localTransactionList: moneyState.transactionList,
+			isLoading: false,
+			hasMore: false
+		}
+	},
 	computed: {
 		// 使用本地数据
 		transactionList() {
 			return this.localTransactionList;
 		},
 		
-		// 按日期分组的交易记录 - 显示所有记录，不再按月筛选		groupedTransactions() {			const grouped = {};						// 直接使用所有交易记录，不再按月筛选			this.transactionList.forEach(item => {				const date = this.formatDate(item.date);				if (!grouped[date]) {					grouped[date] = [];				}				grouped[date].push(item);			});						return grouped;		}
+		// 按日期分组的交易记录 - 显示所有记录，不再按月筛选
+		groupedTransactions() {
+			const grouped = {};
+			
+			// 直接使用所有交易记录，不再按月筛选
+			if (this.transactionList && this.transactionList.length > 0) {
+				this.transactionList.forEach(item => {
+					const date = this.formatDate(item.date);
+					if (!grouped[date]) {
+						grouped[date] = [];
+					}
+					grouped[date].push(item);
+				});
+			}
+			
+			return grouped;
+		}
 	},
 	onLoad() {
-		// 初始化加载交易记录 - 模拟数据已加载
+		// 初始化加载交易记录
 		console.log('加载交易记录:', this.transactionList);
+		this.fetchData();
 	},
 	// 下拉触底加载更多
 	onReachBottom() {
@@ -80,13 +105,23 @@ export default {
 			this.isLoading = true;
 			
 			setTimeout(() => {
-				// 已直接在data中设置了模拟数据，这里只需重置加载状态
+				// 确保交易记录数据已正确加载
+				if (!this.localTransactionList || this.localTransactionList.length === 0) {
+					this.localTransactionList = moneyState.transactionList || [];
+				}
+				
+				// 重置加载状态
 				this.isLoading = false;
+				// 设置是否有更多数据
+				this.hasMore = moneyState.hasMore;
 			}, 500);
 		},
 		
 		// 加载更多交易数据
 		loadMore() {
+			// 如果没有更多数据或正在加载中，则不执行
+			if (!this.hasMore || this.isLoading) return;
+			
 			// 模拟加载更多 - 实际应用中应该调用API
 			this.isLoading = true;
 			
@@ -101,6 +136,8 @@ export default {
 		refresh() {
 			this.refreshing = true;
 			setTimeout(() => {
+				// 重新获取数据
+				this.fetchData();
 				// 模拟刷新完成
 				this.refreshing = false;
 			}, 1000);
@@ -124,7 +161,7 @@ export default {
 			return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 		}
 	}
-}
+};
 </script>
 
 <style lang="scss">
