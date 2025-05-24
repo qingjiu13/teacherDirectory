@@ -112,7 +112,7 @@ export default {
                 targetMajor: state.userInfo.targetMajor,
                 studentGrade: state.userInfo.studentGrade,
                 teacherGrade: state.userInfo.teacherGrade,
-                teacherScore: state.userInfo.teacherScore
+
             }
         };
     }

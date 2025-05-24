@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "服务设置",
-  "usingComponents": {}
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "header": "../../components/navigationTitleBar/header"
+  }
 }

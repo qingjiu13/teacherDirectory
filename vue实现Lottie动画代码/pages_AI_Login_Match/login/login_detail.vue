@@ -717,8 +717,6 @@ export default {
             major: this.formData.majorIndex >= 0 ? this.majorList[this.formData.majorIndex] : this.userMajor,
             studentGrade: (currentRole === '学生' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : this.userStudentGrade,
             teacherGrade: (currentRole === '老师' && this.formData.gradeIndex >= 0) ? this.gradeList[this.formData.gradeIndex] : this.userTeacherGrade,
-            // 保留原有的考研成绩
-            teacherScore: this.$store.state.user.baseInfo.userInfo.teacherScore,
             // 新增昵称和头像
             nickname: this.formData.nickname,
             avatar: this.formData.avatar

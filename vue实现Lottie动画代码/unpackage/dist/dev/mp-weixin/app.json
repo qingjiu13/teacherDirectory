@@ -42,7 +42,10 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "研师录",
     "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F8F8F8"
+    "backgroundColor": "#F8F8F8",
+    "componentPlaceholder": {
+      "choice-selected": "view"
+    }
   },
   "preloadRule": {
     "pagesMine/mine/mine_common": {

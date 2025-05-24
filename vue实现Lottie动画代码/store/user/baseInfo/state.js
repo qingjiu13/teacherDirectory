@@ -24,6 +24,5 @@ export default {
         targetMajor: '计算机科学与技术',//目标专业
         studentGrade: '大三',//学生年级
         teacherGrade: '研一',//老师年级
-        teacherScore:0,//老师考研成绩
     }
 };

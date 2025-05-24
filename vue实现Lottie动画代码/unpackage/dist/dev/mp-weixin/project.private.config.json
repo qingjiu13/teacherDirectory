@@ -9,6 +9,41 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages_AI_Login_Match/login/wechat_login",
+          "pathName": "pages_AI_Login_Match/login/login",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pagesMine/teacher/teacher",
+          "pathName": "pagesMine/teacher/teacher",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages_AI_Login_Match/match/match",
+          "pathName": "pages_AI_Login_Match/match/match",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pagesMine/service/service_newbuilt",
+          "pathName": "pagesMine/service/service_newbuilt",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pagesMine/settings/settings",
+          "pathName": "pagesMine/settings/settings",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages_AI_Login_Match/match/match",
           "pathName": "pages_AI_Login_Match/match/match",
           "query": "",

@@ -110,11 +110,7 @@
 				{
 					"path": "service/service_newbuilt",
 					"style": {
-					"navigationBarTitleText": "新建服务",
-					"navigationStyle": "custom",
-					"componentPlaceholder": {
-						"choice-selected": "view"
-					}
+					"navigationStyle": "custom"
 					}
 				},
 				{

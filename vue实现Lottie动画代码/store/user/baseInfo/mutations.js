@@ -212,7 +212,6 @@ export default {
             targetMajor: '',
             studentGrade: '',
             teacherGrade: '',
-            teacherScore: 0,
         };
         
         console.log('清除后state:', {

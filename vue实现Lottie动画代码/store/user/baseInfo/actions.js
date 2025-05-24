@@ -27,7 +27,6 @@ const { getUserInfo, updateUserInfo, updateRole } = {
                 targetMajor: '计算机科学与技术',
                 studentGrade: '大三',
                 teacherGrade: '研一',
-                teacherScore: 0,
             }
         } 
     }),

@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "header": "../../components/navigationTitleBar/header"
+    "header": "../../components/navigationTitleBar/header",
+    "loading-animation": "../../components/loading/LoadingAnimation"
   }
 }

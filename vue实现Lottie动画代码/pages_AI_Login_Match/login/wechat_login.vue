@@ -32,14 +32,14 @@
       <view class="avatar-container">
         <view class="avatar-mask-outer">
           <view class="avatar-mask-inner"></view>
-          <image class="avatar-img" :src="userInfo.avatarUrl || '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
+          <image class="avatar-img" :src="userInfo && userInfo.avatarUrl ? userInfo.avatarUrl : '/static/image/defaultAvatar/teacher-man.png'" mode="aspectFill"></image>
         </view>
-        <text class="nickname" v-if="userInfo.nickName">{{userInfo.nickName}}</text>
+        <text class="nickname" v-if="userInfo && userInfo.nickName">{{userInfo.nickName}}</text>
         <text class="nickname" v-else>未登录</text>
       </view>
       
       <!-- 微信登录按钮 -->
-      <button class="login-btn" @click="onWxLogin" v-if="!hasLogin">
+      <button class="login-btn" @click="onGotUserInfo" v-if="!loginstate">
         <view class="btn-content">
           <image class="wechat-icon" src="../static/login/wechat.png"></image>
           <text class="login-text">微信登录</text>
@@ -100,46 +100,18 @@
       </view>
     </view>
     
-    <!-- 微信授权弹窗（底部弹出） -->
-    <view class="auth-popup" :class="{'auth-popup-show': showAuthPopup}">
-      <view class="auth-popup-mask" @click="cancelAuth"></view>
-      <view class="auth-popup-content">
-        <view class="auth-popup-header">
-          <text class="auth-popup-title">{{authPopupTitle}}</text>
-          <text class="auth-popup-close" @click="cancelAuth">×</text>
-        </view>
-        
-        <!-- 头像授权步骤 -->
-        <view class="auth-step" v-if="authStep === 'avatar'">
-          <view class="auth-desc">请选择您的头像</view>
-          <button class="avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
-            选择头像
-          </button>
-          <button class="auth-next-btn" @click="goToNicknameStep">跳过</button>
-        </view>
-        
-        <!-- 昵称授权步骤 -->
-        <view class="auth-step" v-if="authStep === 'nickname'">
-          <view class="nickname-input-wrap">
-            <text class="input-label">昵称</text>
-            <input class="nickname-input" type="nickname" placeholder="请输入您的昵称" :value="tempUserInfo.nickName" @input="onInputNickname" />
+    <!-- 微信授权手机号弹窗 -->
+    <view class="modal-overlay" v-if="showModal">
+      <view class="modal-content">
+        <view class="modal-title">授权获取手机号</view>
+        <view class="modal-body">
+          <view class="agreement-text">
+            <view class="agreement-item">应用将获取您微信绑定的手机号用于账号登录</view>
           </view>
-          <button class="auth-next-btn" @click="goToPhoneStep" :disabled="!tempUserInfo.nickName">下一步</button>
         </view>
-        
-        <!-- 手机号授权步骤 -->
-        <view class="auth-step" v-if="authStep === 'phone'">
-          <view class="phone-auth-desc">
-            <view class="phone-icon">📱</view>
-            <view class="phone-text">授权获取手机号</view>
-            <view class="phone-tip">应用将获取您微信绑定的手机号</view>
-          </view>
-          <button class="phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
-            一键授权手机号
-          </button>
-          <view class="phone-skip" @click="skipPhoneAuth">
-            <text>暂不授权</text>
-          </view>
+        <view class="modal-footer">
+          <button class="phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">一键授权手机号</button>
+          <button class="cancel-btn" @click="hideModal">取消</button>
         </view>
       </view>
     </view>
@@ -153,94 +125,439 @@ import { mapState, mapMutations, mapActions } from 'vuex';
 export default {
   data() {
     return {
-      hasLogin: false,
-      userInfo: {
-        nickName: '',
-        avatarUrl: ''
-      },
+      openid: "",
+      userEntity: null,
+      terminal: "",
+      osVersion: "",
+      phoneNumber: "",
+      userInfo: null,
+      loginstate: "",
+      showModal: false, // 定义登录弹窗
       showAgreementModal: false,
       showPrivacyModal: false,
-      // 新增授权相关数据
-      showAuthPopup: false,
-      authStep: 'avatar', // 'avatar', 'nickname', 'phone'
-      tempUserInfo: {
-        nickName: '',
-        avatarUrl: '',
-        phoneNumber: ''
-      },
-      wxLoginCode: '', // 存储微信登录的code
     }
   },
-  computed: {
-    ...mapState('user/baseInfo', ['isRegistered', 'id', 'avatar', 'name', 'phoneNumber']),
-    
-    /**
-     * 根据当前授权步骤返回弹窗标题
-     * @returns {string} 弹窗标题
-     */
-    authPopupTitle() {
-      const titles = {
-        'avatar': '选择头像',
-        'nickname': '设置昵称',
-        'phone': '绑定手机号'
-      };
-      return titles[this.authStep] || '微信授权';
-    }
-  },
+  
+  // 在页面加载的时候，判断缓存中是否有内容，如果有，存入到对应的字段里
   onLoad() {
-    this.checkLoginStatus();
-  },
-  methods: {
-    ...mapMutations('user/baseInfo', ['SET_USER_INFO']),
-    ...mapActions('user/baseInfo', ['updateUserInfo']),
-    
-    // 检查登录状态
-    checkLoginStatus() {
-      const token = uni.getStorageSync('token');
-      
-      if (token && this.isRegistered) {
-        this.hasLogin = true;
-        
-        // 从Vuex获取用户信息
-        this.userInfo = {
-          nickName: this.name,
-          avatarUrl: this.avatar
-        };
+    // 获取openid
+    uni.getStorage({
+      key: 'openid',
+      success: (res) => {
+        this.openid = res.data;
+      },
+      fail: () => {
+        this.getcode();
       }
+    });
+    
+    // 获取用户信息
+    uni.getStorage({
+      key: 'userEntity',
+      success: (res) => {
+        this.userEntity = res.data;
+      },
+      fail: () => {
+        console.log("fail1");
+      }
+    });
+    
+    // 获取登录状态
+    uni.getStorage({
+      key: 'loginstate',
+      success: (res) => {
+        this.loginstate = res.data;
+      }, 
+      fail: () => {
+        console.log("fail2");
+      }
+    });
+    
+    // 获取用户信息
+    uni.getStorage({
+      key: 'userinfo',
+      success: (res) => {
+        this.userInfo = res.data;
+      }
+    });
+  },
+  
+  methods: {
+    /**
+     * 用户点击登录按钮，获取用户信息授权
+     * @param {Object} e - 事件对象
+     */
+    onGotUserInfo(e) {
+      // 显示提示，说明需要获取的信息
+      uni.showModal({
+        title: '授权提示',
+        content: '应用需要获取您的昵称、头像、地区及性别等信息',
+        success: (res) => {
+          if (res.confirm) {
+            // 用户点击确定，开始授权流程
+            this.getUserProfileInfo();
+          } else if (res.cancel) {
+            // 用户点击取消
+            uni.showToast({
+              title: '您取消了授权',
+              icon: 'none'
+            });
+          }
+        }
+      });
     },
     
     /**
-     * 微信登录方法 - 更新为新流程
-     * @returns {void}
+     * 获取用户信息
      */
-    onWxLogin() {
+    getUserProfileInfo() {
       uni.showLoading({
-        title: '登录中...'
+        title: '加载中...'
       });
       
+      // 调用uni-app的getUserProfile接口
+      uni.getUserProfile({
+        desc: '用于完善会员资料',
+        lang: 'zh_CN',
+        success: (res) => {
+          uni.hideLoading();
+          if (res.userInfo) {
+            // 获取到用户信息
+            const userInfo = res.userInfo;
+            
+            // 存储用户信息到本地
+            uni.setStorage({
+              key: "userinfo",
+              data: userInfo
+            });
+            
+            // 更新当前页面的用户信息
+            this.userInfo = userInfo;
+            
+            console.log('获取用户信息成功', userInfo);
+            
+            // 提示用户授权成功
+            uni.showToast({
+              title: '授权成功',
+              icon: 'success',
+              duration: 1500
+            });
+            
+            // 获取用户信息成功后，请求手机号
+            setTimeout(() => {
+              this.showDialogBtn();
+            }, 1500);
+          }
+        },
+        fail: (err) => {
+          uni.hideLoading();
+          console.error('获取用户信息失败', err);
+          uni.showToast({
+            title: '获取信息失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+    
+    /**
+     * 获取微信code码
+     */
+    getcode() {
       uni.login({
         provider: 'weixin',
         success: (res) => {
-          uni.hideLoading();
           if (res.code) {
-            // 保存code用于后续请求
-            this.wxLoginCode = res.code;
+            uni.request({
+              url: '登录接口', // 需替换为实际接口
+              method: 'POST',
+              data: {
+                account: '1514382701',
+                jscode: res.code
+              },
+              header: {
+                'content-type': 'application/json'
+              },
+              success: (res) => {
+                if (res.data.r == "T") {
+                  uni.setStorage({
+                    key: "openid",
+                    data: res.data.openid
+                  });
+                  uni.setStorage({
+                    key: "sessionkey",
+                    data: res.data.sessionkey
+                  });
+                  this.openid = res.data.openid;
+                }
+              }
+            });
+          }
+        }
+      });
+    },
+    
+    /**
+     * 显示一键获取手机号弹窗
+     */
+    showDialogBtn() {
+      this.showModal = true; // 修改弹窗状态为true，即显示
+    },
+    
+    /**
+     * 隐藏一键获取手机号弹窗
+     */
+    hideModal() {
+      this.showModal = false; // 修改弹窗状态为false，即隐藏
+    },
+    
+    /**
+     * 处理登录信息并提交到服务器
+     * @param {String} openid - 用户openid
+     * @param {Object} userInfo - 用户信息
+     * @param {String} phoneNumber - 用户手机号
+     */
+    onshow(openid, userInfo, phoneNumber) {
+      // 获取系统信息
+      uni.getSystemInfo({
+        success: (res) => {
+          this.terminal = res.model;
+          this.osVersion = res.system;
+        }
+      });
+      
+      // 发送登录请求
+      uni.request({
+        url: '登录接口', // 需替换为实际接口
+        method: 'POST',
+        header: {
+          'content-type': 'application/json'
+        },
+        data: {
+          username: phoneNumber,
+          parentuser: 'xudeihai',
+          wximg: userInfo.avatarUrl,
+          nickname: userInfo.nickName,
+          identity: "",
+          terminal: this.terminal,
+          osVersion: this.osVersion,
+          logintype: "10", // 微信登录
+          openid: this.openid,
+        },
+        success: (res) => {
+          if (res.data.r == "T") {
+            this.userEntity = res.data.d;
+            uni.setStorage({
+              key: "userEntity",
+              data: res.data.d
+            });
+            this.loginstate = "1";
+            uni.setStorage({
+              key: "loginstate",
+              data: "1"
+            });
+            uni.setStorage({
+              key: 'userinfo',
+              data: userInfo // 保存完整的用户信息对象
+            });
             
-            // 显示授权弹窗
-            this.showAuthPopup = true;
-            this.authStep = 'avatar';
-          } else {
+            // 登录成功，跳转到首页
             uni.showToast({
-              title: '微信登录失败，请重试',
+              title: '登录成功',
+              icon: 'success',
+              duration: 1500
+            });
+            
+            // 延迟跳转
+            setTimeout(() => {
+              this.toHome();
+            }, 1500);
+          }
+        },
+        fail(res) {
+          console.log(res);
+          uni.showToast({
+            title: '登录失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+    
+    /**
+     * 获取手机号
+     * @param {Object} e - 事件对象，包含加密数据
+     */
+    getPhoneNumber(e) {
+      this.hideModal();
+      
+      if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+        uni.showToast({
+          title: '未授权手机号',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 显示加载中
+      uni.showLoading({
+        title: '处理中...'
+      });
+      
+      // 检查会话是否有效
+      uni.checkSession({
+        success: () => {
+          this.requestPhoneNumber(e);
+        },
+        fail: () => {
+          // 会话失效，重新登录
+          uni.login({
+            provider: 'weixin',
+            success: (res) => {
+              uni.request({
+                url: '自己的登录接口', // 需替换为实际接口
+                data: {
+                  account: '1514382701',
+                  jscode: res.code
+                },
+                method: "POST",
+                header: {
+                  'content-type': 'application/json'
+                },
+                success: (res) => {
+                  if (res.data.r == "T") {
+                    uni.setStorage({
+                      key: "openid",
+                      data: res.data.openid
+                    });
+                    uni.setStorage({
+                      key: "sessionkey",
+                      data: res.data.sessionkey
+                    });
+                    this.decryptPhoneNumber(e, res.data.sessionkey);
+                  } else {
+                    uni.hideLoading();
+                    uni.showToast({
+                      title: '登录失败',
+                      icon: 'none'
+                    });
+                  }
+                },
+                fail: () => {
+                  uni.hideLoading();
+                  uni.showToast({
+                    title: '网络请求失败',
+                    icon: 'none'
+                  });
+                }
+              });
+            },
+            fail: () => {
+              uni.hideLoading();
+              uni.showToast({
+                title: '登录失败',
+                icon: 'none'
+              });
+            }
+          });
+        }
+      });
+    },
+    
+    /**
+     * 请求手机号（会话有效时）
+     * @param {Object} e - 事件对象
+     */
+    requestPhoneNumber(e) {
+      uni.login({
+        provider: 'weixin',
+        success: (res) => {
+          uni.request({
+            url: '自己的登录接口', // 需替换为实际接口
+            data: {
+              account: '1514382701',
+              jscode: res.code
+            },
+            method: "POST",
+            header: {
+              'content-type': 'application/json'
+            },
+            success: (res) => {
+              if (res.data.r == "T") {
+                uni.setStorage({
+                  key: "openid",
+                  data: res.data.openid
+                });
+                uni.setStorage({
+                  key: "sessionkey",
+                  data: res.data.sessionkey
+                });
+                
+                // 获取本地存储的sessionkey
+                uni.setStorageSync("sessionkey", res.data.sessionkey);
+                this.decryptPhoneNumber(e, uni.getStorageSync("sessionkey"));
+              } else {
+                uni.hideLoading();
+                uni.showToast({
+                  title: '登录失败',
+                  icon: 'none'
+                });
+              }
+            },
+            fail: () => {
+              uni.hideLoading();
+              uni.showToast({
+                title: '网络请求失败',
+                icon: 'none'
+              });
+            }
+          });
+        },
+        fail: () => {
+          uni.hideLoading();
+          uni.showToast({
+            title: '登录失败',
+            icon: 'none'
+          });
+        }
+      });
+    },
+    
+    /**
+     * 解密手机号
+     * @param {Object} e - 事件对象
+     * @param {String} sessionkey - 会话密钥
+     */
+    decryptPhoneNumber(e, sessionkey) {
+      uni.request({
+        url: '自己的解密接口', // 需替换为实际接口
+        data: {
+          encryptedData: e.detail.encryptedData,
+          iv: e.detail.iv,
+          code: sessionkey
+        },
+        method: "post",
+        header: {
+          'content-type': 'application/json'
+        },
+        success: (res) => {
+          uni.hideLoading();
+          if (res.data.r == "T") {
+            this.onshow(this.openid, this.userInfo, res.data.d.phoneNumber);
+            console.log("登录成功");
+            console.log(res.data.d.phoneNumber); // 成功后打印微信手机号
+          } else {
+            console.log(res);
+            uni.showToast({
+              title: '获取手机号失败',
               icon: 'none'
             });
           }
         },
-        fail: (err) => {
-          console.error('微信登录失败', err);
+        fail: () => {
           uni.hideLoading();
           uni.showToast({
-            title: '登录失败，请重试',
+            title: '网络请求失败',
             icon: 'none'
           });
         }
@@ -248,169 +565,14 @@ export default {
     },
     
     /**
-     * 处理用户选择头像事件
-     * @param {Object} e - 微信返回的头像信息
+     * 跳转到首页
      */
-    onChooseAvatar(e) {
-      if (e.detail && e.detail.avatarUrl) {
-        this.tempUserInfo.avatarUrl = e.detail.avatarUrl;
-        // 同时更新顶部头像显示
-        this.userInfo.avatarUrl = e.detail.avatarUrl;
-        
-        // 自动跳转到昵称步骤
-        this.goToNicknameStep();
-      }
+    toHome() {
+      Navigator.toIndex();
     },
     
     /**
-     * 处理用户输入昵称事件
-     * @param {Object} e - 输入事件对象
-     */
-    onInputNickname(e) {
-      this.tempUserInfo.nickName = e.detail.value;
-      // 同时更新顶部昵称显示
-      this.userInfo.nickName = e.detail.value;
-    },
-    
-    /**
-     * 进入昵称设置步骤
-     */
-    goToNicknameStep() {
-      this.authStep = 'nickname';
-    },
-    
-    /**
-     * 进入手机号授权步骤
-     */
-    goToPhoneStep() {
-      this.authStep = 'phone';
-    },
-    
-    /**
-     * 获取微信绑定手机号
-     * @param {Object} e - 微信返回的加密数据
-     */
-    getPhoneNumber(e) {
-      if (e.detail.errMsg === 'getPhoneNumber:ok') {
-        // 准备提交所有用户信息到后端
-        this.submitUserInfo({
-          code: this.wxLoginCode,
-          encryptedData: e.detail.encryptedData,
-          iv: e.detail.iv,
-          avatarUrl: this.tempUserInfo.avatarUrl,
-          nickName: this.tempUserInfo.nickName
-        });
-      } else {
-        uni.showToast({
-          title: '未授权手机号，请重试',
-          icon: 'none'
-        });
-      }
-    },
-    
-    /**
-     * 跳过手机号授权
-     */
-    skipPhoneAuth() {
-      // 只提交头像和昵称
-      this.submitUserInfo({
-        code: this.wxLoginCode,
-        avatarUrl: this.tempUserInfo.avatarUrl,
-        nickName: this.tempUserInfo.nickName
-      });
-      Navigator.toLogin();
-    },
-    
-    /**
-     * 提交用户信息到后端
-     * @param {Object} data - 要提交的用户数据
-     */
-    async submitUserInfo(data) {
-      uni.showLoading({
-        title: '提交中...'
-      });
-      
-      try {
-        const result = await uni.request({
-          method: "POST",
-          url: "http://localhost:8080/users/auth/wechat/profile",
-          data: data
-        });
-        
-        if (result.statusCode === 200 && result.data) {
-          // 存储token到本地
-          uni.setStorageSync('token', result.data.token);
-          
-          // 存储用户信息
-          if (result.data.userId) {
-            uni.setStorageSync('userId', result.data.userId);
-            
-            // 使用Vuex更新用户信息
-            this.SET_USER_INFO({
-              id: result.data.userId,
-              isRegistered: 1,
-              name: this.tempUserInfo.nickName,
-              avatar: this.tempUserInfo.avatarUrl,
-              phoneNumber: result.data.phoneNumber || ''
-            });
-            
-            // 更新本地显示的用户信息
-            this.userInfo = {
-              nickName: this.tempUserInfo.nickName,
-              avatarUrl: this.tempUserInfo.avatarUrl
-            };
-          }
-          
-          uni.hideLoading();
-          
-          // 提示登录成功
-          uni.showToast({
-            title: '登录成功',
-            icon: 'success',
-            duration: 1500
-          });
-          
-          // 设置登录状态并关闭弹窗
-          this.hasLogin = true;
-          this.showAuthPopup = false;
-          
-          // 延迟跳转
-          setTimeout(() => {
-            Navigator.toIndex();
-          }, 1500);
-        } else {
-          uni.hideLoading();
-          uni.showToast({
-            title: '登录失败，请重试',
-            icon: 'none'
-          });
-        }
-      } catch (error) {
-        console.error('提交用户信息失败', error);
-        uni.hideLoading();
-        uni.showToast({
-          title: '登录失败，请重试',
-          icon: 'none'
-        });
-      }
-    },
-    
-    /**
-     * 取消授权，关闭弹窗
-     */
-    cancelAuth() {
-      this.showAuthPopup = false;
-      this.wxLoginCode = '';
-      this.tempUserInfo = {
-        nickName: '',
-        avatarUrl: '',
-        phoneNumber: ''
-      };
-    },
-    
-    /**
-     * 根据注册状态跳转到相应页面
-     * @returns {void}
+     * 返回上一页
      */
     goBack() {
       Navigator.toIndex();
@@ -418,7 +580,6 @@ export default {
     
     /**
      * 显示用户协议弹窗
-     * @returns {void}
      */
     showAgreement() {
       this.showAgreementModal = true;
@@ -426,7 +587,6 @@ export default {
     
     /**
      * 显示隐私政策弹窗
-     * @returns {void}
      */
     showPrivacy() {
       this.showPrivacyModal = true;
@@ -435,7 +595,6 @@ export default {
     /**
      * 关闭弹窗
      * @param {string} type - 要关闭的弹窗类型（'agreement'或'privacy'）
-     * @returns {void}
      */
     closeModal(type) {
       if (type === 'agreement') {
@@ -465,16 +624,10 @@ export default {
   display: block;
 }
 .login-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background-color: transparent;
-}
-.login-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
   background-color: transparent;
 }
 .header-bg {
@@ -703,6 +856,38 @@ export default {
   text-align: center;
   background: linear-gradient(to right, #1989fa, #3194fa);
   color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+/* 一键获取手机号弹窗 */
+.phone-btn {
+  width: 80%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background: #07C160;
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin-bottom: 20rpx;
+}
+.cancel-btn {
+  width: 80%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background: #f0f0f0;
+  color: #333;
   font-size: 30rpx;
   border-radius: 40rpx;
   border: none;
