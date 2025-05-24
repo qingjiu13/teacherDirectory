@@ -7,7 +7,14 @@
     <view class="service-list">
       <!-- 当没有服务数据时显示提示 -->
       <view class="empty-tip" v-if="services.length === 0">
-        <text class="empty-text">暂无服务数据，点击右下角添加按钮新增服务</text>
+        <view class="empty-card-outer">
+          <view class="empty-card-outer-gradient">
+            <view class="empty-card">
+              <view class="empty-title">暂无服务类型</view>
+              <view class="empty-subtitle">点击右下角添加按钮新增服务</view>
+            </view>
+          </view>
+        </view>
       </view>
       
       <view 
@@ -461,6 +468,7 @@ export default {
   flex-direction: column;
   gap: 15rpx;
   padding: 10rpx 0;
+  min-height: 80vh;
 }
 /* 服务卡片 */
 .service-card {
@@ -763,7 +771,7 @@ export default {
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4a89dc, #3a7bd5);
+  background:linear-gradient(to bottom,#2288F9,#5F26F7 );
   box-shadow: 0 6rpx 20rpx rgba(58, 123, 213, 0.4);
   transition: all 0.3s ease;
   display: flex;
@@ -787,16 +795,72 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300rpx;
-  background-color: #ffffff;
-  border-radius: 20rpx;
-  margin-bottom: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 30rpx;
+  width: 100%;
+  flex: 1;
+  min-height: 60vh;
+  margin-top: -10vh; /* 向上移动 */
 }
 
-.empty-text {
-  font-size: 28rpx;
-  color: #999;
+/* 空卡片外层容器 */
+.empty-card-outer {
+  width: 80%;
+  max-width: 600rpx;
+  border-radius: 40rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: transparent;
+}
+
+/* 空卡片渐变边框 */
+.empty-card-outer-gradient {
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  padding: 2rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(228, 241, 255, 1) 0%, rgba(34, 136, 249, 1) 100%);
+}
+
+/* 空卡片内容 */
+.empty-card {
+  width: 100%;
+  border-radius: 40rpx;
+  padding: 40rpx 20rpx;
   text-align: center;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.empty-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40rpx;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(194, 221, 250, 0.2) 11.54%, rgba(34, 136, 249, 0.2) 111.54%);
+  z-index: 1;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+  position: relative;
+  z-index: 2;
+}
+
+.empty-subtitle {
+  font-size: 26rpx;
+  color: #666;
+  position: relative;
+  z-index: 2;
 }
 </style>
