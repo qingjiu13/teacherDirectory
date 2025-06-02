@@ -1,15 +1,90 @@
 <template>
   <view class="container">
     <Header  class="header-container" :title="'我的课程'" @back="goBack" />
+    
+    <!-- 修复日期时间选择器组件 -->
+    <uni-datetime-picker 
+      ref="datetimePicker"
+      type="datetime"
+      :clearIcon="true"
+      v-model="selectedTimestamp"
+      @change="onDatetimeChange"
+      @maskClick="closeDatePicker"
+      :start="getToday()"
+    />
+    
+    <uni-datetime-picker 
+      ref="teacherDatetimePicker"
+      type="datetime"
+      :clearIcon="true"
+      v-model="teacherSelectedTimestamp"
+      @change="onTeacherDatetimeChange"
+      @maskClick="closeTeacherDatePicker"
+      :start="getToday()"
+    />
+    
+    <!-- 课程时长选择弹窗 -->
+    <view class="duration-picker-mask" v-if="showDurationPicker" @click="closeDurationPicker"></view>
+    <view class="duration-picker-container" v-if="showDurationPicker">
+      <view class="duration-picker-header">
+        <text>课程时长</text>
+      </view>
+      <picker-view class="duration-picker" :value="[durationIndex]" @change="onDurationPickerChange">
+        <picker-view-column>
+          <view class="duration-picker-item" v-for="(item, index) in durationOptions" :key="index">{{item}}</view>
+        </picker-view-column>
+      </picker-view>
+      <view class="duration-picker-footer">
+        <view class="duration-picker-btn duration-picker-cancel" @click="closeDurationPicker">取消</view>
+        <view class="duration-picker-btn duration-picker-confirm" @click="confirmDurationSelection">确定</view>
+      </view>
+    </view>
+    
     <!-- 学生界面 -->
     <block v-if="userRole === 'student'">
       <top-navbar @change="onTabChange" :navHeight="60" :userRole="userRole">
         <template v-slot:page1>
           <view class="page-content">
-            <view class="selected-date-info" v-if="selectedDate">
-              <text class="date-info-title">已选择日期：</text>
-              <text class="date-info-content">{{selectedDate}}</text>
-              <button class="reset-btn" @click="resetDateSelection">重选</button>
+            <!-- 删除已选择日期信息显示 -->
+            
+            <!-- 添加直接显示的可预约时间段 -->
+            <view class="available-time-slots" v-if="!selectedDate && showAvailableSlots">
+              <view class="slots-title">
+                <text>可预约时间</text>
+                <text class="close-slots" @click="showAvailableSlots = false">×</text>
+              </view>
+              <view class="date-selector">
+                <view 
+                  v-for="(date, idx) in availableDates" 
+                  :key="idx" 
+                  class="date-item" 
+                  :class="{'date-selected': selectedDateIndex === idx}"
+                  @click="selectAvailableDate(idx)"
+                >
+                  <text class="date-day">{{formatDay(date)}}</text>
+                  <text class="date-date">{{formatDate(date)}}</text>
+                </view>
+              </view>
+              <view class="time-slots-container">
+                <view 
+                  v-for="(slot, idx) in filteredTimeSlots" 
+                  :key="idx"
+                  class="time-slot-item"
+                  :class="{'time-slot-selected': selectedTimeIndex === idx}"
+                  @click="selectTimeSlot(idx)"
+                >
+                  <text>{{slot}}</text>
+                </view>
+              </view>
+              <view class="duration-row">
+                <text class="duration-label">选择时长：</text>
+                <picker @change="onDurationChange" :value="durationIndex" :range="durationOptions">
+                  <view class="duration-value">
+                    {{durationOptions[durationIndex]}}
+                  </view>
+                </picker>
+              </view>
+              <button class="confirm-selection-btn" @click="confirmDirectSelection" :disabled="!canConfirmSelection">确认预约</button>
             </view>
             
             <scroll-view class="course-list" scroll-y>
@@ -25,21 +100,12 @@
                   <text v-if="item.isTeacherReservation" class="course-time">老师已选时间：{{item.time}}</text>
                 </view>
                 <button v-if="item.isTeacherReservation" class="accept-btn" @click="acceptReservation(index)">接受预约</button>
-                <button v-else class="reserve-btn" @click="handleReserve(index)">提醒预约</button>
+                <button v-else class="reserve-btn" @click="handleReserve(index)">预约</button>
               </view>
               <view v-if="pendingCourses.length === 0" class="empty-tip">
                 <text>暂无待预约课程</text>
               </view>
             </scroll-view>
-            
-            <!-- 日历选择器（弹出式） -->
-            <uni-calendar 
-              ref="calendar"
-              :insert="false"
-              :start-date="getToday()"
-              :end-date="getNextMonth()"
-              @confirm="onCalendarConfirm"
-            />
           </view>
         </template>
         
@@ -56,6 +122,7 @@
                   <text class="course-teacher">服务老师：{{item.teacher}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
                   <text class="course-lessons">预约时间：{{item.reservedTime}}</text>
+                  <text class="course-duration" v-if="item.duration">课程时长：{{item.duration}}</text>
                 </view>
                 <button class="modify-time-btn" @click="modifyReservationTime(index)">修改时间</button>
               </view>
@@ -119,15 +186,6 @@
                 <text>暂无待接受课程</text>
               </view>
             </scroll-view>
-            
-            <!-- 老师端日历选择器 -->
-            <uni-calendar 
-              ref="teacherCalendar"
-              :insert="false"
-              :start-date="getToday()"
-              :end-date="getNextMonth()"
-              @confirm="onTeacherCalendarConfirm"
-            />
           </view>
         </template>
         
@@ -144,6 +202,7 @@
                   <text class="course-teacher">学生：{{item.studentName || '暂无'}}</text>
                   <text class="course-type">服务类型：一对一课程</text>
                   <text class="course-lessons">上课时间：{{item.classTime}}</text>
+                  <text class="course-duration" v-if="item.duration">课程时长：{{item.duration}}</text>
                 </view>
                 <button class="confirm-class-btn" @click="completeClass(index)">确认下课</button>
                 <button class="modify-time-btn" @click="rescheduleClass(index)">修改时间</button>
@@ -188,11 +247,13 @@ import Header from '@/components/navigationTitleBar/header'
 import topNavbar from '@/components/top-navbar/top-navbar.vue';
 // 导入导航工具
 import { Navigator } from '@/router/Router.js';
+import uniDatetimePicker from '@/uni_modules/uni-datetime-picker/components/uni-datetime-picker/uni-datetime-picker.vue';
 
 export default {
   components: {
     Header,
-    topNavbar
+    topNavbar,
+    uniDatetimePicker
   },
   data() {
     return {
@@ -206,6 +267,28 @@ export default {
       ],
       selectedTimeSlot: '',
       selectedTimePeriod: '',
+      
+      // 添加日期时间选择相关数据
+      selectedTimestamp: Date.now(), // 学生端选择的时间戳
+      teacherSelectedTimestamp: Date.now(), // 老师端选择的时间戳
+      durationOptions: ['30分钟', '45分钟', '60分钟', '90分钟', '120分钟'], // 时长选项
+      durationIndex: 2, // 默认选择60分钟
+      teacherDurationIndex: 2, // 老师端默认选择60分钟
+      durationMinutes: 60, // 默认时长（分钟）
+      teacherDurationMinutes: 60, // 老师端默认时长（分钟）
+      
+      // 添加控制日期时间选择器显示的变量
+      datePickerVisible: false,
+      teacherDatePickerVisible: false,
+      
+      // 添加可用时间段直接显示相关数据
+      showAvailableSlots: false,
+      availableDates: [],
+      selectedDateIndex: -1,
+      selectedTimeIndex: -1,
+      currentCourseForDirect: null,
+      allTimeSlots: [], // 存储所有时间段
+      
       // 待预约课程数据 - 修改为考研相关课程
       pendingCourses: [
         {
@@ -295,8 +378,54 @@ export default {
       isLoggedIn: false,
       teacherPendingCourses: [],
       teacherActiveCourses: [],
-      teacherCompletedCourses: []
+      teacherCompletedCourses: [],
+      showDurationPicker: false,
+      durationIndex: 2,
+      durationMinutes: 60,
+      currentOperation: null
     };
+  },
+  computed: {
+    // 将方法改为计算属性
+    filteredTimeSlots() {
+      if (this.selectedDateIndex === -1) return [];
+      
+      // 如果allTimeSlots为空，则初始化
+      if (this.allTimeSlots.length === 0) {
+        this.timeSlots.forEach(slot => {
+          this.allTimeSlots.push(...slot.slots);
+        });
+      }
+      
+      // 如果是今天，只显示当前时间之后的时间段
+      if (this.selectedDateIndex === 0) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        return this.allTimeSlots.filter(slot => {
+          const slotStartTime = slot.split('-')[0];
+          const [slotHour, slotMinute] = slotStartTime.split(':').map(Number);
+          
+          // 如果小时大于当前小时，则可选
+          if (slotHour > currentHour) {
+            return true;
+          }
+          // 如果小时等于当前小时，但分钟大于当前分钟，则可选
+          if (slotHour === currentHour && slotMinute > currentMinute) {
+            return true;
+          }
+          return false;
+        });
+      }
+      
+      return this.allTimeSlots;
+    },
+    
+    // 是否可以确认选择
+    canConfirmSelection() {
+      return this.selectedDateIndex !== -1 && this.selectedTimeIndex !== -1;
+    }
   },
   onLoad(options) {
     console.log('课程页面 onLoad', options);
@@ -459,27 +588,69 @@ export default {
       this.selectedTimePeriod = '';
     },
     
-    // 处理预约 - 修改为显示日历
+    // 处理预约 - 修改为使用日期选择器
     handleReserve(index) {
       this.currentCourseIndex = index;
+      this.currentCourseForDirect = this.pendingCourses[index];
+      this.currentOperation = 'student_reserve';
       
-      // 如果已经选择了日期，则显示时间选择弹窗
-      if (this.selectedDate) {
-        this.showTimeSelectionDialog();
-      } else {
-        // 显示日历选择器
-        this.$refs.calendar.open();
+      // 显示日期时间选择器
+      this.$refs.datetimePicker.show();
+    },
+    
+    // 生成可用日期
+    generateAvailableDates() {
+      const dates = [];
+      const today = new Date();
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        dates.push(date);
+      }
+      
+      this.availableDates = dates;
+    },
+    
+    // 格式化日期显示的星期
+    formatDay(date) {
+      const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      return days[date.getDay()];
+    },
+    
+    // 格式化日期显示的日期
+    formatDate(date) {
+      return `${date.getMonth() + 1}月${date.getDate()}日`;
+    },
+    
+    // 选择可用日期
+    selectAvailableDate(index) {
+      this.selectedDateIndex = index;
+      this.selectedTimeIndex = -1; // 重置时间选择
+      
+      // 如果选择的是今天，检查并滚动到可见的第一个时间段
+      if (index === 0 && this.filteredTimeSlots.length > 0) {
+        // 在下一个UI循环中，确保时间段列表已经更新
+        this.$nextTick(() => {
+          const timeSlotItems = document.querySelectorAll('.time-slot-item');
+          if (timeSlotItems.length > 0) {
+            timeSlotItems[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
       }
     },
     
-    // 日历确认事件
-    onCalendarConfirm(e) {
-      this.selectedDate = e.fulldate;
-      
-      // 选择日期后立即显示时间选择弹窗
-      this.$nextTick(() => {
-        this.showTimeSelectionDialog();
-      });
+    // 选择时间段
+    selectTimeSlot(index) {
+      this.selectedTimeIndex = index;
+    },
+    
+    // 时长选择变化事件
+    onDurationChange(e) {
+      this.durationIndex = e.detail.value;
+      // 根据选择的索引确定时长分钟数
+      const durationValues = [30, 45, 60, 90, 120];
+      this.durationMinutes = durationValues[this.durationIndex];
     },
     
     // 显示时间选择弹窗
@@ -513,17 +684,19 @@ export default {
     // 确认预约
     confirmReservation() {
       const course = this.pendingCourses[this.currentCourseIndex];
+      const durationText = this.durationOptions[this.durationIndex];
       
       // 显示确认弹窗
       uni.showModal({
         title: '确认预约',
-        content: `课程：${course.name}\n日期：${this.selectedDate}\n时间：${this.selectedTimeSlot}`,
+        content: `课程：${course.name}\n日期时间：${this.selectedDate}\n时长：${durationText}`,
         success: (res) => {
           if (res.confirm) {
             // 将预约成功的课程添加到已预约列表
             this.reservedCourses.push({
               ...course,
-              reservedTime: `${this.selectedDate} ${this.selectedTimeSlot}`
+              reservedTime: this.selectedDate,
+              duration: durationText
             });
             
             // 从待预约列表中删除
@@ -538,8 +711,6 @@ export default {
             // 重置状态
             this.currentCourseIndex = null;
             this.selectedDate = null;
-            this.selectedTimeSlot = '';
-            this.selectedTimePeriod = '';
           }
         }
       });
@@ -591,14 +762,10 @@ export default {
     // 修改预约时间
     modifyReservationTime(index) {
       this.currentCourseIndex = index;
+      this.currentOperation = 'student_modify';
       
-      // 如果已经选择了日期，则显示时间选择弹窗
-      if (this.selectedDate) {
-        this.showTimeSelectionDialog();
-      } else {
-        // 显示日历选择器
-        this.$refs.calendar.open();
-      }
+      // 显示日期时间选择器
+      this.$refs.datetimePicker.show();
     },
     
     // 查看回访/回放
@@ -621,20 +788,6 @@ export default {
           url: `/pages/mine/order/appraise/appraise?courseId=${course.id}&courseName=${course.name}&teacherName=${course.teacher}&price=${course.price}`
         });
       }
-    },
-    
-    // 获取今天的日期
-    getToday() {
-      const today = new Date();
-      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    },
-    
-    // 获取一个月后的日期（日历结束日期）
-    getNextMonth() {
-      const today = new Date();
-      const nextMonth = new Date(today);
-      nextMonth.setMonth(today.getMonth() + 1);
-      return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-${String(nextMonth.getDate()).padStart(2, '0')}`;
     },
     
     // 加载课程数据
@@ -726,56 +879,101 @@ export default {
     // 老师端 - 发起预约
     teacherReserve(index) {
       this.currentCourseIndex = index;
-      // 显示日历选择器
-      this.$refs.teacherCalendar.open();
+      // 显示日期时间选择器
+      this.$refs.teacherDatetimePicker.show();
     },
     
-    // 老师端 - 日历确认事件
-    onTeacherCalendarConfirm(e) {
-      this.selectedDate = e.fulldate;
+    // 老师端 - 日期时间选择器变化事件
+    onTeacherDatetimeChange(e) {
+      this.teacherDatePickerVisible = false; // 选择后自动关闭
+      // 将时间戳转换为可读格式的日期时间
+      this.teacherSelectedTimestamp = e;
+      const date = new Date(e);
+      this.selectedDate = this.formatDateTime(date);
       
-      // 选择日期后立即显示时间选择弹窗
-      this.$nextTick(() => {
-        this.showTeacherTimeSelectionDialog();
-      });
+      // 设置当前操作标记，用于区分是发起预约还是修改时间
+      if (this.teacherCurrentTab === 0) {
+        this.currentOperation = 'reserve';
+      } else if (this.teacherCurrentTab === 1) {
+        this.currentOperation = 'reschedule';
+      }
+      
+      // 老师端始终显示时长选择弹窗
+      this.showDurationPicker = true;
     },
     
-    // 老师端 - 显示时间选择弹窗
-    showTeacherTimeSelectionDialog() {
-      // 构建时间段选项
-      const periodOptions = this.timeSlots.map(item => item.period);
+    // 处理课程时长选择变化
+    onDurationPickerChange(e) {
+      const index = e.detail.value[0];
+      if (this.currentOperation === 'reserve') {
+        this.teacherDurationIndex = index;
+      } else {
+        this.durationIndex = index;
+      }
+    },
+    
+    // 关闭课程时长选择弹窗
+    closeDurationPicker() {
+      this.showDurationPicker = false;
+    },
+    
+    // 确认课程时长选择
+    confirmDurationSelection() {
+      // 根据当前操作类型确定调用哪个确认方法
+      if (this.currentOperation === 'reserve') {
+        // 更新时长分钟数
+        const durationValues = [30, 45, 60, 90, 120];
+        this.teacherDurationMinutes = durationValues[this.teacherDurationIndex];
+        
+        // 发起预约
+        this.confirmTeacherReservation();
+      } else if (this.currentOperation === 'reschedule') {
+        // 更新时长分钟数
+        const durationValues = [30, 45, 60, 90, 120];
+        this.durationMinutes = durationValues[this.durationIndex];
+        
+        // 修改时间
+        this.confirmRescheduleClass();
+      } else if (this.currentOperation === 'student_reserve') {
+        // 更新时长分钟数
+        const durationValues = [30, 45, 60, 90, 120];
+        this.durationMinutes = durationValues[this.durationIndex];
+        
+        // 学生预约确认
+        this.confirmReservation();
+      } else if (this.currentOperation === 'student_modify') {
+        // 更新时长分钟数
+        const durationValues = [30, 45, 60, 90, 120];
+        this.durationMinutes = durationValues[this.durationIndex];
+        
+        // 学生修改预约时间确认
+        this.confirmModifyReservation();
+      }
       
-      // 先选择时间段（上午/下午/晚上）
-      uni.showActionSheet({
-        itemList: periodOptions,
-        success: (res) => {
-          this.selectedTimePeriod = periodOptions[res.tapIndex];
-          const selectedPeriod = this.timeSlots[res.tapIndex];
-          
-          // 然后选择具体时间
-          setTimeout(() => {
-            uni.showActionSheet({
-              itemList: selectedPeriod.slots,
-              success: (timeRes) => {
-                this.selectedTimeSlot = selectedPeriod.slots[timeRes.tapIndex];
-                
-                // 选择完时间后显示确认预约弹窗
-                this.confirmTeacherReservation();
-              }
-            });
-          }, 300);
-        }
-      });
+      // 关闭弹窗
+      this.showDurationPicker = false;
+    },
+    
+    // 格式化日期时间为易读格式
+    formatDateTime(date) {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
     },
     
     // 老师端 - 确认预约
     confirmTeacherReservation() {
       const course = this.teacherPendingCourses[this.currentCourseIndex];
+      const durationText = this.durationOptions[this.teacherDurationIndex];
       
       // 显示确认弹窗
       uni.showModal({
         title: '确认发起预约',
-        content: `课程：${course.name}\n学生：${course.studentName}\n日期：${this.selectedDate}\n时间：${this.selectedTimeSlot}`,
+        content: `课程：${course.name}\n学生：${course.studentName}\n日期时间：${this.selectedDate}\n时长：${durationText}`,
         success: (res) => {
           if (res.confirm) {
             // 模拟将预约信息发送给学生
@@ -793,8 +991,6 @@ export default {
             // 重置状态
             this.currentCourseIndex = null;
             this.selectedDate = null;
-            this.selectedTimeSlot = '';
-            this.selectedTimePeriod = '';
           }
         }
       });
@@ -804,6 +1000,8 @@ export default {
     sendReservationToStudent(course) {
       // 真实场景中，这里应该是通过API发送预约信息
       console.log('发送预约信息到学生:', course.studentName);
+      
+      const durationText = this.durationOptions[this.teacherDurationIndex];
       
       // 模拟更新全局状态或本地存储
       const globalData = getApp().globalData || {};
@@ -816,7 +1014,8 @@ export default {
         id: Date.now(),
         name: course.name,
         teacher: '我', // 当前登录的老师
-        time: `${this.selectedDate} ${this.selectedTimeSlot}`,
+        time: this.selectedDate,
+        duration: durationText,
         price: course.price,
         image: course.image || "/static/images/default_avatar.png",
         description: `由老师发起的预约：${course.name}`,
@@ -826,7 +1025,8 @@ export default {
       // 将课程添加到老师的进行中课程
       this.teacherActiveCourses.push({
         ...course,
-        classTime: `${this.selectedDate} ${this.selectedTimeSlot}`
+        classTime: this.selectedDate,
+        duration: durationText
       });
     },
     
@@ -961,13 +1161,14 @@ export default {
       // 显示确认接受预约的弹窗
       uni.showModal({
         title: '接受预约',
-        content: `确认接受${course.teacher}的预约吗？\n课程：${course.name}\n时间：${course.time}`,
+        content: `确认接受${course.teacher}的预约吗？\n课程：${course.name}\n时间：${course.time}\n时长：${course.duration || '60分钟'}`,
         success: (res) => {
           if (res.confirm) {
             // 将预约添加到已预约列表
             this.reservedCourses.push({
               ...course,
-              reservedTime: course.time
+              reservedTime: course.time,
+              duration: course.duration || '60分钟'
             });
             
             // 从待预约列表中删除
@@ -993,8 +1194,154 @@ export default {
     rescheduleClass(index) {
       this.currentCourseIndex = index;
       
-      // 显示日历选择器
-      this.$refs.teacherCalendar.open();
+      // 显示日期时间选择器，后续会在onTeacherDatetimeChange方法中处理选择的时间和时长
+      this.$refs.teacherDatetimePicker.show();
+    },
+
+    // 老师端 - 确认修改课程时间
+    confirmRescheduleClass() {
+      const course = this.teacherActiveCourses[this.currentCourseIndex];
+      const durationText = this.durationOptions[this.durationIndex];
+      
+      // 显示确认弹窗
+      uni.showModal({
+        title: '确认修改时间',
+        content: `课程：${course.name}\n学生：${course.studentName}\n新时间：${this.selectedDate}\n时长：${durationText}`,
+        success: (res) => {
+          if (res.confirm) {
+            // 更新课程时间和时长
+            this.teacherActiveCourses[this.currentCourseIndex].classTime = this.selectedDate;
+            this.teacherActiveCourses[this.currentCourseIndex].duration = durationText;
+            
+            uni.showToast({
+              title: '时间已修改',
+              icon: 'success',
+              duration: 2000
+            });
+            
+            // 重置状态
+            this.currentCourseIndex = null;
+            this.selectedDate = null;
+          }
+        }
+      });
+    },
+
+    // 关闭日期选择器
+    closeDatePicker() {
+      this.datePickerVisible = false;
+    },
+    
+    // 关闭老师端日期选择器
+    closeTeacherDatePicker() {
+      this.teacherDatePickerVisible = false;
+    },
+
+    // 添加缺失的确认直接选择方法
+    confirmDirectSelection() {
+      if (!this.canConfirmSelection) return;
+      
+      const selectedDate = this.availableDates[this.selectedDateIndex];
+      const selectedTime = this.filteredTimeSlots[this.selectedTimeIndex];
+      
+      // 创建完整的日期时间字符串
+      const year = selectedDate.getFullYear();
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+      const day = selectedDate.getDate().toString().padStart(2, '0');
+      
+      this.selectedDate = `${year}-${month}-${day} ${selectedTime.split('-')[0]}`;
+      
+      // 关闭时间段选择
+      this.showAvailableSlots = false;
+      
+      // 显示确认弹窗
+      this.$nextTick(() => {
+        this.confirmReservation();
+      });
+    },
+
+    // 添加缺失的日期时间选择器变化事件
+    onDatetimeChange(e) {
+      this.datePickerVisible = false; // 选择后自动关闭
+      // 将时间戳转换为可读格式的日期时间
+      this.selectedTimestamp = e;
+      const date = new Date(e);
+      this.selectedDate = this.formatDateTime(date);
+      
+      // 学生端直接确认预约，不再显示时长选择
+      if (this.currentOperation === 'student_reserve' || this.currentOperation === 'student_modify') {
+        // 设置默认时长（60分钟）
+        this.durationIndex = 2; // 对应60分钟
+        this.durationMinutes = 60;
+        
+        // 直接执行确认操作
+        if (this.currentOperation === 'student_reserve') {
+          this.confirmReservation();
+        } else if (this.currentOperation === 'student_modify') {
+          this.confirmModifyReservation();
+        }
+      } else {
+        // 老师端继续显示时长选择弹窗
+        this.showDurationPicker = true;
+      }
+    },
+
+    // 添加缺失的今日和下月方法
+    getToday() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const hours = String(today.getHours()).padStart(2, '0');
+      const minutes = String(today.getMinutes()).padStart(2, '0');
+      
+      // 返回当前日期时间，格式为YYYY-MM-DD HH:MM
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    },
+
+    // 获取一个月后的日期（日历结束日期）
+    getNextMonth() {
+      const today = new Date();
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(today.getMonth() + 1);
+      return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-${String(nextMonth.getDate()).padStart(2, '0')}`;
+    },
+
+    // 老师端 - 时长选择变化事件
+    onTeacherDurationChange(e) {
+      this.teacherDurationIndex = e.detail.value;
+      // 根据选择的索引确定时长分钟数
+      const durationValues = [30, 45, 60, 90, 120];
+      this.teacherDurationMinutes = durationValues[this.teacherDurationIndex];
+    },
+
+    // 学生端 - 确认修改预约时间
+    confirmModifyReservation() {
+      const course = this.reservedCourses[this.currentCourseIndex];
+      const durationText = this.durationOptions[this.durationIndex];
+      
+      // 显示确认弹窗
+      uni.showModal({
+        title: '确认修改预约时间',
+        content: `课程：${course.name}\n新时间：${this.selectedDate}\n时长：${durationText}`,
+        success: (res) => {
+          if (res.confirm) {
+            // 更新课程预约时间和时长
+            this.reservedCourses[this.currentCourseIndex].reservedTime = this.selectedDate;
+            this.reservedCourses[this.currentCourseIndex].duration = durationText;
+            
+            uni.showToast({
+              title: '时间已修改',
+              icon: 'success',
+              duration: 2000
+            });
+            
+            // 重置状态
+            this.currentCourseIndex = null;
+            this.selectedDate = null;
+          }
+        }
+      });
     },
   }
 };
@@ -1165,7 +1512,7 @@ export default {
   text-align: left;
 }
 
-.course-teacher, .course-type, .course-lessons, .course-time {
+.course-teacher, .course-type, .course-lessons, .course-time, .course-duration {
   font-size: 20rpx;
   color: #000000;
   font-weight: 500;
@@ -1174,6 +1521,11 @@ export default {
   line-height: 1.2;
   text-align: left;
   padding: 2rpx 0;
+}
+
+.course-duration {
+  color: #3a86ff;
+  font-weight: 600;
 }
 
 .price-container, .price-label, .course-price {
@@ -1191,7 +1543,7 @@ export default {
   line-height: 50rpx;
   font-size: 22rpx;
   font-weight: 500;
-  background: linear-gradient(to bottom, #A5A9F7, #464EF8);
+  background: linear-gradient(to right, #7F86F5, #464EF8);
   color: white;
   z-index: 2;
 }
@@ -1227,5 +1579,233 @@ export default {
   background-color: #ffffff;
   border-bottom-width: 1rpx;
   border-bottom-color: #eeeeee;
+}
+
+/* 添加时长选择器样式 */
+.duration-selector {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  margin: 15rpx 0;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border-left: 8rpx solid #3a86ff;
+}
+
+.duration-label {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.duration-value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  padding: 8rpx 30rpx;
+  border-radius: 30rpx;
+  background-color: #f0f5ff;
+  border: 1px solid #d0e1ff;
+}
+
+/* 可预约时间段样式 */
+.available-time-slots {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin: 20rpx 0;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.slots-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.slots-title text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-slots {
+  font-size: 40rpx;
+  color: #999;
+  padding: 0 10rpx;
+}
+
+.date-selector {
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  padding: 20rpx 0;
+}
+
+.date-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 100rpx;
+  height: 120rpx;
+  margin-right: 20rpx;
+  padding: 0 10rpx;
+  border-radius: 12rpx;
+  background-color: #f9f9f9;
+}
+
+.date-selected {
+  background-color: #e6f1ff;
+  border: 1px solid #3a86ff;
+}
+
+.date-day {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.date-date {
+  font-size: 24rpx;
+  color: #333;
+}
+
+.time-slots-container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 20rpx 0;
+}
+
+.time-slot-item {
+  width: 30%;
+  margin: 10rpx 1.66%;
+  height: 70rpx;
+  line-height: 70rpx;
+  text-align: center;
+  border-radius: 8rpx;
+  background-color: #f9f9f9;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.time-slot-selected {
+  background-color: #3a86ff;
+  color: white;
+}
+
+.duration-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-top: 1px solid #f0f0f0;
+}
+
+.confirm-selection-btn {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  color: white;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(to right, #7F86F5, #464EF8);
+  margin-top: 20rpx;
+}
+
+.confirm-selection-btn:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+.confirm-selection-btn[disabled] {
+  opacity: 0.6;
+  background: #cccccc;
+}
+
+/* 课程时长选择弹窗样式 */
+.duration-picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.duration-picker-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 20rpx 20rpx 0 0;
+  padding: 30rpx;
+  z-index: 1001;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.duration-picker-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 20rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.duration-picker-header text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.duration-picker {
+  width: 100%;
+  height: 400rpx;
+  margin: 30rpx 0;
+}
+
+.duration-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  font-size: 32rpx;
+  color: #333;
+}
+
+.duration-picker-footer {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  padding: 20rpx 30rpx 40rpx 30rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.duration-picker-btn {
+  width: 48% !important;
+  height: 90rpx;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 45rpx;
+  flex-shrink: 0;
+}
+
+.duration-picker-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.duration-picker-confirm {
+  background: linear-gradient(to right, #7F86F5, #464EF8);
+  color: white;
 }
 </style>    

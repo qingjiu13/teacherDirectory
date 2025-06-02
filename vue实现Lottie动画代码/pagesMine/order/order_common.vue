@@ -316,14 +316,14 @@
     <view class="modal" v-if="showConfirmOrderModal">
       <view class="modal-content">
         <view class="modal-title">
-          <text>确认订单</text>
+          <text>确认取消订单</text>
         </view>
         <view class="modal-body">
-          <text>确认接受该订单吗？确认后将无法取消。</text>
+          <text>确认取消该订单吗？取消后将无法恢复。</text>
         </view>
         <view class="modal-footer">
           <button class="modal-btn cancel" @click="showConfirmOrderModal = false">取消</button>
-          <button class="modal-btn confirm" @click="confirmOrderAction">确认接受</button>
+          <button class="modal-btn confirm" @click="confirmOrderAction">确认取消</button>
         </view>
       </view>
     </view>
@@ -769,7 +769,7 @@ export default {
   position: absolute;
   top: 15rpx;
   left: 30rpx;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #2288F9;
   font-weight: 400;
 }
@@ -840,6 +840,14 @@ export default {
   align-items: center;
 }
 
+.avatar-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 15rpx;
+  background-color: #f0f0f0;
+  overflow: hidden;
+}
+
 .avatar-text {
   font-size: 36rpx;
   color: #666666;
@@ -858,9 +866,11 @@ export default {
 }
 
 .order-title {
+  position: relative;
+  bottom: 5rpx;  
   font-family: 'PingFang SC', sans-serif;
   font-weight: 600;
-  font-size: 27rpx;
+  font-size: 29rpx;
   margin-bottom: 10rpx;
   color: #333;
   white-space: nowrap;
@@ -871,7 +881,9 @@ export default {
 }
 
 .order-teacher, .order-student, .order-type {
-  font-size: 20rpx;
+  position: relative;
+  bottom: 10rpx;
+  font-size: 22rpx;
   color: #000000;
   font-weight: 500;
   font-family: 'PingFang SC', sans-serif;
@@ -883,8 +895,8 @@ export default {
 
 .order-price-container {
   position: relative;
-  bottom:65rpx;
-  right:20rpx;
+  bottom: 95rpx;
+  right: 20rpx;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
@@ -896,7 +908,7 @@ export default {
 
 .order-price-label {
   position: relative;  
-  font-size: 25rpx;
+  font-size: 28rpx;
   color: #464EF8;
   position: relative;
   z-index: 2;
@@ -904,7 +916,7 @@ export default {
 
 .order-price {
   position: relative;
-  font-size: 25rpx;
+  font-size: 28rpx;
   color: #464EF8;
   font-weight: bold;
   position: relative;
@@ -913,7 +925,7 @@ export default {
 
 .order-footer {
   position: relative;
-  bottom: 85rpx;
+  bottom: 100rpx;
   left: 30rpx;
   width: 100%;
   height: 80rpx;
@@ -928,52 +940,43 @@ export default {
 }
 
 .cancel-btn, .pay-btn, .confirm-btn, .appraise-btn, .detail-btn, .delete-btn {
-  border-radius: 10rpx ;
-  padding: 0 30rpx ;
-  height: 40rpx ;
-  width: 140rpx;
-  line-height: 40rpx ;
-  font-size: 18rpx ;
-  font-weight: 400 ;
-  z-index: 100 ;
+  position: absolute;
+  right: 30rpx;
+  bottom: 35rpx;
+  border-radius: 10rpx;
+  padding: 0 20rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  background: linear-gradient(to bottom, #A5A9F7, #464EF8);
+  color: white;
+  z-index: 100;
+  width: auto;
 }
 
 .cancel-btn {
-  position: absolute !important;
-  right: 180rpx !important;
-  bottom: 20rpx !important;
-  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
-  color: white !important;
-  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
-  border: none !important;
-  border-width: 0 !important;
-  border-color: transparent !important;
-  border-style: none !important;
+  position: absolute;
+  bottom: 20rpx;
+  right: 180rpx;
 }
 
 .pay-btn {
-  position: absolute !important;
-  right: 30rpx !important;
-  bottom: 20rpx !important;
-  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
-  color: white !important;
+  position: absolute;
+  right: 30rpx;
+  bottom: 20rpx;
 }
 
 .confirm-btn {
-  position: absolute !important;
-  right: 30rpx !important;
-  bottom: 20rpx !important;
-  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
-  background-image: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
-  color: white !important;
+  position: absolute;
+  right: 30rpx;
+  bottom: 20rpx;
 }
 
 .appraise-btn, .detail-btn, .delete-btn {
-  position: absolute !important;
-  right: 30rpx !important;
-  bottom: 20rpx !important;
-  background: linear-gradient(to bottom, #A5A9F7, #464EF8) !important;
-  color: white !important;
+  position: absolute;
+  right: 30rpx;
+  bottom: 20rpx;
 }
 
 .appraise-btn {

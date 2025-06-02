@@ -84,7 +84,7 @@
 				{
 					"path": "bill/bill",
 					"style": {
-						"navigationBarTitleText": "我的钱包"
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -110,6 +110,7 @@
 				{
 					"path": "service/service_newbuilt",
 					"style": {
+						"navigationBarTitleText": "服务设置",
 						"navigationStyle": "custom"
 					}
 				},
