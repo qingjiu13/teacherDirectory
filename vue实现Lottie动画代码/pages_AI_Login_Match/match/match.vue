@@ -70,16 +70,17 @@
             </view>
           </view>
           <view class="scroll-container">
-            <scroll-view class="result-list" scroll-y="true">
+            <scroll-view class="result-list" scroll-y="true" @scrolltolower="loadMoreSchools">
               <view
-                v-for="(school, idx) in filteredSchoolList"
-                :key="school"
+                v-for="(school, idx) in schoolOptions"
+                :key="school.id"
                 class="result-item"
-                :class="{active: idx === formData.targetSchoolIndex}"
-                @click="selectSchoolTemp(idx, school)"
+                :class="{active: school.id === selectedSchoolId}"
+                @click="selectSchoolTemp(school)"
               >
-                {{ school }}
+                {{ school.name }}
               </view>
+              <view v-if="schoolLoading" class="loading-item">加载中...</view>
             </scroll-view>
           </view>
           <view class="save-button-container">
@@ -105,9 +106,9 @@
             <view class="input-wrapper">
               <input
                 v-model="majorInput"
-                :placeholder="formData.targetSchool ? '请输入专业名称' : '请先选择学校'"
+                :placeholder="selectedSchoolId ? '请输入专业名称' : '请先选择学校'"
                 class="search-input"
-                :disabled="!formData.targetSchool"
+                :disabled="!selectedSchoolId"
                 @input="onMajorInput"
                 @click.stop
               />
@@ -117,13 +118,13 @@
           <view class="scroll-container">
             <scroll-view class="result-list" scroll-y="true">
               <view
-                v-for="(major, idx) in filteredMajorList"
-                :key="major"
+                v-for="(major, idx) in majorOptions"
+                :key="major.id"
                 class="result-item"
-                :class="{active: idx === formData.targetMajorIndex}"
-                @click="selectMajorTemp(idx, major)"
+                :class="{active: major.id === selectedMajorId}"
+                @click="selectMajorTemp(major)"
               >
-                {{ major }}
+                {{ major.name }}
               </view>
             </scroll-view>
           </view>
@@ -163,13 +164,13 @@
               <text class="filter-label">{{ tabLabelMap[activeNonProTab] }}</text>
               <view class="option-buttons">
                 <view 
-                  v-for="(option, index) in getChoiceList(activeNonProTab)" 
-                  :key="index"
+                  v-for="(option, index) in nonProOptions" 
+                  :key="option.id"
                   class="option-button"
-                  :class="{'option-button-active': index === getChoiceIndex(activeNonProTab)}"
-                  @click.stop="handleChoiceSelect(activeNonProTab, index)"
+                  :class="{'option-button-active': option.id === selectedNonProId}"
+                  @click.stop="selectNonProOption(option)"
                 >
-                  {{ option }}
+                  {{ option.name }}
                 </view>
               </view>
           </view>
@@ -198,12 +199,12 @@
             <view class="option-buttons">
               <view 
                 v-for="(option, index) in sortOptions" 
-                :key="index"
+                :key="option.id"
                 class="option-button"
-                :class="{'option-button-active': index === formData.sortIndex}"
-                @click.stop="handleSortSelect(index)"
+                :class="{'option-button-active': option.id === selectedSortId}"
+                @click.stop="selectSortOption(option)"
               >
-                {{ option }}
+                {{ option.name }}
               </view>
             </view>
           </view>
@@ -252,9 +253,9 @@
                     <view class="teacher-major">{{ teacher.major }}</view>
                   </view>
                 </view>
-                <view class="price-tag-container card-right-center" v-if="oneToOneMatchPrice(matchTeachers)[teacher.id]">
+                <view class="price-tag-container card-right-center" v-if="teacher.hourPrice">
                   <view class="price-tag middle-text">￥</view>
-                  <view class="price-tag">{{ oneToOneMatchPrice(matchTeachers)[teacher.id].hourlyPrice }}元/小时</view>
+                  <view class="price-tag">{{ teacher.hourPrice }}元/小时</view>
                   <view class="price-tag small-text">起</view>
                 </view>
                 <view class="card-right">
@@ -277,12 +278,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted} from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick} from 'vue'
 import { useStore } from 'vuex'
 import { Navigator } from '@/router/Router.js'
-import GraduateStore from '/pages_AI_Login_Match/components/combobox/graduate_school_major.js'
 import Header from '@/components/navigationTitleBar/header'
-
 
 // 初始化 store
 const store = useStore()
@@ -307,7 +306,7 @@ const showPopup = ref(false)
 const isLoading = ref(false)
 
 // 非专业课相关配置
-const activeNonProTab = ref('')
+const activeNonProTab = ref('math')
 
 /**
  * 非专业课四个tab选项
@@ -340,82 +339,33 @@ const matchTeachers = computed(() => {
 const currentPage = computed(() => store.state.user.match.currentPage)
 const hasMore = computed(() => store.state.user.match.hasMore)
 
-// 表单数据
-const formData = reactive({
-  targetSchoolIndex: -1,
-  targetMajorIndex: -1,
-  targetSchool: '',
-  targetMajor: '',
-  
-  // 非专业课筛选数据
-  mathIndex: -1,
-  englishIndex: -1,
-  politicsIndex: -1,
-  otherIndex: -1,
-  
-  // 排序方式
-  sortIndex: -1,
-})
-
-// 学校和专业列表数据
-const targetSchoolList = ref([])
-const targetMajorList = ref([])
-const graduateStore = ref(null)
-
-// 下拉选项列表
-const mathOptions = ref(['数学一', '数学二', '数学三'])
-const englishOptions = ref(['英语一', '英语二'])
-const politicsOptions = ref(['政治必修', '政治选修'])
-const otherOptions = ref(['经济学', '管理学', '教育学', '历史学'])
-const sortOptions = ref(['综合评分从高到低', '价格从低到高', '价格从高到低', '最新发布'])
-
-// 新增响应式变量
+// 学校相关数据
 const schoolInput = ref('')
+const schoolOptions = computed(() => store.state.user.match.schoolList.options)
+const schoolLoading = computed(() => store.state.user.match.schoolList.isLoading)
+const schoolHasMore = computed(() => store.state.user.match.schoolList.hasMore)
+const selectedSchoolId = ref(null)
+const selectedSchoolName = ref('')
+
+// 专业相关数据
 const majorInput = ref('')
+const majorOptions = computed(() => store.state.user.match.professionalList.options)
+const selectedMajorId = ref(null)
+const selectedMajorName = ref('')
 
-// 筛选结果列表
-const filteredSchoolList = ref([])
-const filteredMajorList = ref([])
+// 非专业课相关数据
+const nonProOptions = ref([])
+const selectedNonProId = ref(null)
+const selectedNonProName = ref('')
+const selectedNonProType = ref('')
 
-/**
- * 获取教师一对一课程的每小时价格
- * @param {Array} matchTeachers - 匹配的教师列表
- * @returns {Object} - 包含每小时价格信息的对象
- */
-const oneToOneMatchPrice = (matchTeachers) => {
-  const result = {};
-  
-  if (!matchTeachers || !Array.isArray(matchTeachers)) {
-    return result;
-  }
-  
-  matchTeachers.forEach(teacher => {
-    const oneToOneService = teacher.service?.find(
-      service => service.type?.typename === '一对一课程'
-    );
-    
-    if (oneToOneService) {
-      const priceValue = parseFloat(oneToOneService.price.replace(/[^0-9.]/g, ''));
-      const hourValue = parseFloat(
-        oneToOneService.type.fulllength.hours.replace(/[^0-9.]/g, '')
-      );
-      const minuteValue = parseFloat(
-        oneToOneService.type.fulllength.minutes.replace(/[^0-9.]/g, '')
-      );
-      
-      const totalHours = hourValue + (minuteValue / 60);
-      
-      if (totalHours > 0) {
-        result[teacher.id] = {
-          name: teacher.name,
-          hourlyPrice: (priceValue / totalHours).toFixed(2)
-        };
-      }
-    }
-  });
-  
-  return result;
-};
+// 排序相关数据
+const sortOptions = computed(() => store.state.user.match.sortMode.options)
+const selectedSortId = ref(null)
+const selectedSortName = ref('')
+
+// 防抖定时器
+let searchTimer = null
 
 /**
  * 判断选项是否处于活跃状态
@@ -424,20 +374,21 @@ const oneToOneMatchPrice = (matchTeachers) => {
  */
 const isActive = (key) => {
   if (key === 'school') {
-    return !!store.state.user.match.schoolList
+    return !!store.state.user.match.schoolList.selectedSchool
   }
   
   if (key === 'professional') {
-    return !!store.state.user.match.professionalList
+    return !!store.state.user.match.professionalList.selectedMajor
   }
   
   if (key === 'nonProfessional') {
     const nonProfList = store.state.user.match.nonProfessionalList
-    return !!(nonProfList.math || nonProfList.english || nonProfList.politics || nonProfList.other)
+    return !!(nonProfList.math.selected || nonProfList.english.selected || 
+              nonProfList.politics.selected || nonProfList.other.selected)
   }
   
   if (key === 'sort') {
-    return !!store.state.user.match.sortMode
+    return !!store.state.user.match.sortMode.selected
   }
   
   return currentOption.value === key
@@ -457,78 +408,69 @@ const onOptionClick = (key) => {
   currentOption.value = key
   showPopup.value = true
   
-  syncStateToForm(key)
+  // 初始化对应的筛选数据
+  initFilterData(key)
 }
 
 /**
- * 从Vuex状态同步特定筛选项的数据到表单
+ * 初始化筛选数据
  * @param {String} key - 筛选项键名
  */
-const syncStateToForm = (key) => {
+const initFilterData = async (key) => {
   if (key === 'school') {
-    const schoolList = store.state.user.match.schoolList
-    schoolInput.value = schoolList || ''
-    if (schoolList) {
-      formData.targetSchool = schoolList
-      const idx = filteredSchoolList.value.findIndex(s => s === schoolList)
-      if (idx >= 0) {
-        formData.targetSchoolIndex = idx
-      }
+    // 同步当前选中的学校
+    const schoolState = store.state.user.match.schoolList
+    selectedSchoolId.value = schoolState.selectedSchoolId
+    selectedSchoolName.value = schoolState.selectedSchool
+    schoolInput.value = schoolState.searchKeyword || ''
+    
+    // 如果没有选项，触发搜索
+    if (schoolOptions.value.length === 0) {
+      searchSchools('')
     }
-    updateFilteredSchoolList()
   }
   
   if (key === 'professional') {
-    const professionalList = store.state.user.match.professionalList
-    majorInput.value = professionalList || ''
-    if (professionalList) {
-      formData.targetMajor = professionalList
-      const idx = filteredMajorList.value.findIndex(m => m === professionalList)
-      if (idx >= 0) {
-        formData.targetMajorIndex = idx
-      }
+    // 同步当前选中的专业
+    const professionalState = store.state.user.match.professionalList
+    selectedMajorId.value = professionalState.selectedMajorId
+    selectedMajorName.value = professionalState.selectedMajor
+    majorInput.value = professionalState.searchKeyword || ''
+    
+    // 检查是否已选择学校
+    if (!store.state.user.match.schoolList.selectedSchoolId) {
+      majorInput.value = ''
+      return
     }
-    updateFilteredMajorList()
+    
+    // 如果没有选项，触发搜索
+    if (majorOptions.value.length === 0) {
+      searchMajors('')
+    }
   }
   
   if (key === 'nonProfessional') {
-    const nonProfList = store.state.user.match.nonProfessionalList
+    // 初始化非专业课选项
+    await loadNonProfessionalOptions(activeNonProTab.value)
     
-    if (nonProfList.math) {
-      const idx = mathOptions.value.findIndex(opt => opt === nonProfList.math)
-      if (idx >= 0) {
-        formData.mathIndex = idx
-        activeNonProTab.value = 'math'
-      }
-    } else if (nonProfList.english) {
-      const idx = englishOptions.value.findIndex(opt => opt === nonProfList.english)
-      if (idx >= 0) {
-        formData.englishIndex = idx
-        activeNonProTab.value = 'english'
-      }
-    } else if (nonProfList.politics) {
-      const idx = politicsOptions.value.findIndex(opt => opt === nonProfList.politics)
-      if (idx >= 0) {
-        formData.politicsIndex = idx
-        activeNonProTab.value = 'politics'
-      }
-    } else if (nonProfList.other) {
-      const idx = otherOptions.value.findIndex(opt => opt === nonProfList.other)
-      if (idx >= 0) {
-        formData.otherIndex = idx
-        activeNonProTab.value = 'other'
-      }
+    // 同步当前选中的非专业课
+    const nonProfState = store.state.user.match.nonProfessionalList
+    const currentTab = activeNonProTab.value
+    if (nonProfState[currentTab] && nonProfState[currentTab].selected) {
+      selectedNonProId.value = nonProfState[currentTab].selectedId
+      selectedNonProName.value = nonProfState[currentTab].selected
+      selectedNonProType.value = currentTab
     }
   }
   
   if (key === 'sort') {
-    const sortMode = store.state.user.match.sortMode
-    if (sortMode) {
-      const idx = sortOptions.value.findIndex(opt => opt === sortMode)
-      if (idx >= 0) {
-        formData.sortIndex = idx
-      }
-    }
+    // 加载排序选项
+    await store.dispatch('user/match/fetchSortModeOptions')
+    
+    // 同步当前选中的排序方式
+    const sortState = store.state.user.match.sortMode
+    selectedSortId.value = sortState.selectedId
+    selectedSortName.value = sortState.selected
   }
 }
 
@@ -541,381 +483,210 @@ const onPopupClose = () => {
 }
 
 /**
- * 处理学校变更，更新专业列表
- * @param {String} school - 变更后的学校名称
- */
-const handleSchoolChange = async (school) => {
-  if (!school) {
-    resetMajorSelection()
-    return
-  }
-  
-  GraduateStore.actions.selectSchool({
-    commit: (mutation, payload) => {
-      GraduateStore.mutations[mutation](graduateStore.value, payload)
-    }
-  }, school)
-  
-  if (graduateStore.value.schools[school]) {
-    const majorsCount = graduateStore.value.schools[school].length
-    targetMajorList.value = graduateStore.value.schools[school].slice(0, 100)
-    
-    if (store.state.user.match.professionalList) {
-      const savedMajor = store.state.user.match.professionalList
-      const majorIndex = targetMajorList.value.findIndex(
-        major => major === savedMajor
-      )
-      
-      if (majorIndex >= 0) {
-        formData.targetMajorIndex = majorIndex
-        formData.targetMajor = savedMajor
-      } else {
-        resetMajorSelection()
-        store.dispatch('user/match/updateProfessionalList', '')
-      }
-    }
-  } else {
-    resetMajorSelection()
-  }
-}
-
-/**
- * 初始化研究生学校专业数据
- */
-const initGraduateData = async () => {
-  try {
-    graduateStore.value = JSON.parse(JSON.stringify(GraduateStore.state))
-    GraduateStore.mutations.initSchoolFuse(graduateStore.value)
-    const schools = Object.keys(graduateStore.value.schools).slice(0, 50)
-    targetSchoolList.value = schools
-  } catch (error) {
-    targetSchoolList.value = ["北京大学", "清华大学", "复旦大学"]
-  }
-}
-
-/**
- * 处理学校输入
+ * 学校输入处理（防抖）
  * @param {Event} e
  */
 const onSchoolInput = (e) => {
   const keyword = e.detail.value || schoolInput.value
   
-  GraduateStore.mutations.setSchoolKeyword(graduateStore.value, keyword)
+  // 清除之前的定时器
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
   
-  if (!keyword) {
-    formData.targetSchoolIndex = -1
-    formData.targetSchool = ''
-    
-    majorInput.value = ''
-    formData.targetMajorIndex = -1
-    formData.targetMajor = ''
-  } 
-  updateFilteredSchoolList()
+  // 设置新的定时器
+  searchTimer = setTimeout(() => {
+    searchSchools(keyword)
+  }, 500) // 500ms防抖
 }
 
 /**
- * 处理专业输入
+ * 专业输入处理（防抖）
  * @param {Event} e
  */
 const onMajorInput = (e) => {
-  if (!formData.targetSchool) return
-  
   const keyword = e.detail.value || majorInput.value
   
-  // 确保关键词正确设置到GraduateStore中
-  GraduateStore.mutations.setMajorKeyword(graduateStore.value, keyword)
+  if (!selectedSchoolId.value) return
   
-  if (!keyword) {
-    formData.targetMajorIndex = -1
-    formData.targetMajor = ''
+  // 清除之前的定时器
+  if (searchTimer) {
+    clearTimeout(searchTimer)
   }
-  updateFilteredMajorList(keyword)
+  
+  // 设置新的定时器
+  searchTimer = setTimeout(() => {
+    searchMajors(keyword)
+  }, 500) // 500ms防抖
 }
 
 /**
- * 更新学校搜索结果
+ * 搜索学校
+ * @param {String} keyword - 搜索关键词
+ * @param {Boolean} loadMore - 是否加载更多
  */
-const updateFilteredSchoolList = () => {
-  filteredSchoolList.value = GraduateStore.getters.filteredSchoolList(graduateStore.value)
+const searchSchools = async (keyword, loadMore = false) => {
+  try {
+    await store.dispatch('user/match/searchSchools', { keyword, loadMore })
+  } catch (error) {
+    console.error('搜索学校失败:', error)
+    uni.showToast({
+      title: '搜索学校失败',
+      icon: 'none'
+    })
+  }
 }
 
 /**
- * 更新专业搜索结果
- * @param {String} forceKeyword - 强制使用的关键词（如果提供）
+ * 搜索专业
+ * @param {String} keyword - 搜索关键词
  */
-const updateFilteredMajorList = (forceKeyword) => {
-  if (!formData.targetSchool) {
-    filteredMajorList.value = []
-    return
+const searchMajors = async (keyword) => {
+  try {
+    await store.dispatch('user/match/searchMajors', { keyword })
+  } catch (error) {
+    console.error('搜索专业失败:', error)
+    uni.showToast({
+      title: '搜索专业失败',
+      icon: 'none'
+    })
   }
-  
-  GraduateStore.mutations.setSelectedSchool(graduateStore.value, formData.targetSchool)
-  
-  // 使用强制关键词或从状态获取关键词
-  const currentKeyword = forceKeyword !== undefined ? forceKeyword : graduateStore.value.majorKeyword || ''
-  
-  // 如果关键词被意外清空，重新设置
-  if (forceKeyword && forceKeyword !== graduateStore.value.majorKeyword) {
-    GraduateStore.mutations.setMajorKeyword(graduateStore.value, forceKeyword)
+}
+
+/**
+ * 加载更多学校
+ */
+const loadMoreSchools = () => {
+  if (!schoolLoading.value && schoolHasMore.value) {
+    searchSchools(schoolInput.value, true)
   }
-  
-  // 获取原始专业列表
-  let originalMajorList = []
-  if (currentKeyword) {
-    // 使用关键词搜索
-    // 临时设置关键词到graduate_store确保搜索正确
-    const originalKeyword = graduateStore.value.majorKeyword
-    GraduateStore.mutations.setMajorKeyword(graduateStore.value, currentKeyword)
-    
-    // 使用Fuse.js搜索功能获取匹配结果
-    originalMajorList = GraduateStore.getters.filteredMajorList(graduateStore.value)
-    
-    // 确保原始的关键词还原
-    if (originalKeyword !== currentKeyword) {
-      GraduateStore.mutations.setMajorKeyword(graduateStore.value, originalKeyword)
+}
+
+/**
+ * 加载非专业课选项
+ * @param {String} type - 非专业课类型
+ */
+const loadNonProfessionalOptions = async (type) => {
+  try {
+    const response = await store.dispatch('user/match/fetchNonProfessionalOptions', { type })
+    if (response && response.data) {
+      nonProOptions.value = response.data
     }
-  } else {
-    // 无关键词时，获取所有专业
-    originalMajorList = graduateStore.value.schools[formData.targetSchool]?.slice(0, 100) || []
+  } catch (error) {
+    console.error('加载非专业课选项失败:', error)
+    nonProOptions.value = []
   }
-  
-  filteredMajorList.value = originalMajorList
-  
-  if (!currentKeyword) {
-    customSortMajorList()
-  } else {
-    ensureSelectedMajorVisible()
-  }
-}
-
-/**
- * 确保选中的专业在列表中可见
- */
-const ensureSelectedMajorVisible = () => {
-  if (!formData.targetMajor || !filteredMajorList.value.length) {
-    return
-  }
-  
-  const index = filteredMajorList.value.findIndex(major => major === formData.targetMajor)
-  
-  if (index === -1) {
-    filteredMajorList.value.unshift(formData.targetMajor)
-  } 
-  else if (index > 0) {
-    const selectedMajor = filteredMajorList.value.splice(index, 1)[0]
-    filteredMajorList.value.unshift(selectedMajor)
-  }
-}
-
-/**
- * 自定义专业列表排序
- */
-const customSortMajorList = () => {
-  if (!filteredMajorList.value || filteredMajorList.value.length === 0) {
-    return
-  }
-  
-  // 修改排序逻辑
-  filteredMajorList.value.sort((a, b) => {
-    // 选中项置顶
-    if (a === formData.targetMajor) return -1
-    if (b === formData.targetMajor) return 1
-    
-    // 计算机相关专业优先显示（如果当前学校是同济大学）
-    if (formData.targetSchool === '同济大学') {
-      const aHasComputer = a.includes('计算') || a.includes('软件') || a.includes('信息') || a.includes('通信')
-      const bHasComputer = b.includes('计算') || b.includes('软件') || b.includes('信息') || b.includes('通信')
-      
-      if (aHasComputer && !bHasComputer) return -1
-      if (!aHasComputer && bHasComputer) return 1
-    }
-    
-    // 按拼音首字母排序
-    return a.localeCompare(b, 'zh-CN')
-  })
 }
 
 /**
  * 选择学校（临时）
+ * @param {Object} school - 学校对象
  */
-const selectSchoolTemp = (idx, school) => {
-  formData.targetSchoolIndex = idx
-  formData.targetSchool = school
-  schoolInput.value = school
+const selectSchoolTemp = (school) => {
+  selectedSchoolId.value = school.id
+  selectedSchoolName.value = school.name
+  schoolInput.value = school.name
+}
+
+/**
+ * 选择专业（临时）
+ * @param {Object} major - 专业对象
+ */
+const selectMajorTemp = (major) => {
+  selectedMajorId.value = major.id
+  selectedMajorName.value = major.name
+  majorInput.value = major.name
+}
+
+/**
+ * 选择非专业课选项
+ * @param {Object} option - 选项对象
+ */
+const selectNonProOption = (option) => {
+  // 如果点击的是已选中的选项，则取消选择
+  if (selectedNonProId.value === option.id) {
+    selectedNonProId.value = null
+    selectedNonProName.value = ''
+    selectedNonProType.value = ''
+  } else {
+    selectedNonProId.value = option.id
+    selectedNonProName.value = option.name
+    selectedNonProType.value = activeNonProTab.value
+  }
+}
+
+/**
+ * 选择排序选项
+ * @param {Object} option - 排序选项对象
+ */
+const selectSortOption = (option) => {
+  // 如果点击的是已选中的选项，则取消选择
+  if (selectedSortId.value === option.id) {
+    selectedSortId.value = null
+    selectedSortName.value = ''
+  } else {
+    selectedSortId.value = option.id
+    selectedSortName.value = option.name
+  }
 }
 
 /**
  * 确认学校筛选
  */
-const confirmSchoolFilter = () => {
-  // 直接使用 commit 修改状态
-  store.commit('user/match/SET_SCHOOL_LIST', formData.targetSchool)
-  
-  // 如果选择了学校，触发学校变更处理
-  if (formData.targetSchool) {
-    handleSchoolChange(formData.targetSchool)
+const confirmSchoolFilter = async () => {
+  if (selectedSchoolId.value && selectedSchoolName.value) {
+    await store.dispatch('user/match/selectSchool', {
+      id: selectedSchoolId.value,
+      name: selectedSchoolName.value
+    })
   } else {
-    // 如果清空学校，重置专业相关数据
-    majorInput.value = ''
-    formData.targetMajorIndex = -1
-    formData.targetMajor = ''
-    updateFilteredMajorList()
+    // 清空选择
+    await store.dispatch('user/match/selectSchool', {
+      id: null,
+      name: ''
+    })
   }
   
   applyFilters()
   showPopup.value = false
   currentOption.value = ''
-}
-
-/**
- * 选择专业（临时）
- */
-const selectMajorTemp = (idx, major) => {
-  formData.targetMajorIndex = idx
-  formData.targetMajor = major
-  majorInput.value = major
-  
-  // 临时选择专业时不清空关键词，保持搜索结果
-  // GraduateStore.mutations.setMajorKeyword(graduateStore.value, '')
-}
-
-/**
- * 确认专业筛选前的预处理
- */
-const prepareProfessionalFilter = () => {
-  // 如果有输入关键词但没有选中专业，尝试使用关键词匹配第一个专业
-  if (!formData.targetMajor && majorInput.value && filteredMajorList.value.length > 0) {
-    // 获取当前搜索框的关键词
-    const keyword = majorInput.value
-    
-    // 直接使用关键词进行搜索，不改变store状态
-    let searchResults = []
-    
-    if (keyword) {
-      // 临时设置关键词进行搜索
-      const originalKeyword = graduateStore.value.majorKeyword
-      GraduateStore.mutations.setMajorKeyword(graduateStore.value, keyword)
-      
-      // 执行搜索
-      searchResults = GraduateStore.getters.filteredMajorList(graduateStore.value)
-      
-      // 恢复原始关键词
-      GraduateStore.mutations.setMajorKeyword(graduateStore.value, originalKeyword)
-    }
-    
-    if (searchResults.length > 0) {
-      // 使用搜索结果中的第一项（最匹配的结果）
-      formData.targetMajor = searchResults[0]
-    } else {
-      // 如果搜索无结果，使用当前过滤列表的第一项
-      formData.targetMajor = filteredMajorList.value[0]
-    }
-    formData.targetMajorIndex = 0
-    majorInput.value = formData.targetMajor
-  }
-  
-  return formData.targetMajor
 }
 
 /**
  * 确认专业筛选
  */
-const confirmProfessionalFilter = () => {
-  // 使用预处理函数处理关键词匹配和专业选择
-  const selectedMajor = prepareProfessionalFilter()
-  
-  if (selectedMajor) {
-    formData.mathIndex = -1
-    formData.englishIndex = -1
-    formData.politicsIndex = -1
-    formData.otherIndex = -1
-    
-    // 直接使用 commit 修改状态
-    store.commit('user/match/SET_NON_PROFESSIONAL_LIST', {
-      math: '',
-      english: '',
-      politics: '',
-      other: ''
+const confirmProfessionalFilter = async () => {
+  if (selectedMajorId.value && selectedMajorName.value) {
+    await store.dispatch('user/match/selectMajor', {
+      id: selectedMajorId.value,
+      name: selectedMajorName.value
     })
-  }
-  
-  // 直接使用 commit 修改状态
-  store.commit('user/match/SET_PROFESSIONAL_LIST', selectedMajor)
-  
-  // 清空关键词，以便下次打开时显示完整列表
-  if (graduateStore.value) {
-    GraduateStore.mutations.setMajorKeyword(graduateStore.value, '')
+  } else {
+    // 清空选择
+    await store.dispatch('user/match/selectMajor', {
+      id: null,
+      name: ''
+    })
   }
   
   applyFilters()
   showPopup.value = false
   currentOption.value = ''
-}
-
-/**
- * 获取当前tab对应的选中索引
- */
-const getChoiceIndex = (key) => {
-  switch (key) {
-    case 'math': return formData.mathIndex
-    case 'english': return formData.englishIndex
-    case 'politics': return formData.politicsIndex
-    case 'other': return formData.otherIndex
-    default: return -1
-  }
-}
-
-/**
- * 处理下拉框选项选择
- */
-const handleChoiceSelect = (key, index) => {
-  // 检查是否点击了已选中的选项
-  if ((key === 'math' && formData.mathIndex === index) ||
-      (key === 'english' && formData.englishIndex === index) ||
-      (key === 'politics' && formData.politicsIndex === index) ||
-      (key === 'other' && formData.otherIndex === index)) {
-    // 如果点击的是已选中的选项，则取消选择
-    formData.mathIndex = -1
-    formData.englishIndex = -1
-    formData.politicsIndex = -1
-    formData.otherIndex = -1
-    return
-  }
-  
-  // 如果点击的是未选中的选项，则清空其他选择，选中当前选项
-  formData.mathIndex = -1
-  formData.englishIndex = -1
-  formData.politicsIndex = -1
-  formData.otherIndex = -1
-  
-  switch (key) {
-    case 'math': formData.mathIndex = index; break
-    case 'english': formData.englishIndex = index; break
-    case 'politics': formData.politicsIndex = index; break
-    case 'other': formData.otherIndex = index; break
-  }
 }
 
 /**
  * 确认非专业课筛选
  */
-const confirmNonProfessionalFilter = () => {
-  const updateObj = {
-    math: formData.mathIndex >= 0 ? mathOptions.value[formData.mathIndex] : '',
-    english: formData.englishIndex >= 0 ? englishOptions.value[formData.englishIndex] : '',
-    politics: formData.politicsIndex >= 0 ? politicsOptions.value[formData.politicsIndex] : '',
-    other: formData.otherIndex >= 0 ? otherOptions.value[formData.otherIndex] : ''
-  }
-  
-  // 直接使用 commit 修改状态
-  store.commit('user/match/SET_NON_PROFESSIONAL_LIST', updateObj)
-  
-  if (formData.mathIndex >= 0 || formData.englishIndex >= 0 || formData.politicsIndex >= 0 || formData.otherIndex >= 0) {
-    formData.targetMajorIndex = -1
-    formData.targetMajor = ''
-    
-    // 直接使用 commit 修改状态
-    store.commit('user/match/SET_PROFESSIONAL_LIST', '')
+const confirmNonProfessionalFilter = async () => {
+  if (selectedNonProId.value && selectedNonProName.value && selectedNonProType.value) {
+    await store.dispatch('user/match/selectNonProfessional', {
+      type: selectedNonProType.value,
+      id: selectedNonProId.value,
+      name: selectedNonProName.value
+    })
+  } else {
+    // 清空选择
+    store.commit('user/match/CLEAR_NON_PROFESSIONAL_SELECTION')
   }
   
   applyFilters()
@@ -924,24 +695,21 @@ const confirmNonProfessionalFilter = () => {
 }
 
 /**
- * 临时选择排序方式
- */
-const handleSortSelect = (index) => {
-  // 如果点击了已选中的排序选项，则取消选择
-  if (formData.sortIndex === index) {
-    formData.sortIndex = -1
-  } else {
-    formData.sortIndex = index
-  }
-}
-
-/**
  * 确认排序方式筛选
  */
-const confirmSortFilter = () => {
-  const sortValue = formData.sortIndex >= 0 ? sortOptions.value[formData.sortIndex] : ''
-  // 直接使用 commit 修改状态
-  store.commit('user/match/SET_SORT_MODE', sortValue)
+const confirmSortFilter = async () => {
+  if (selectedSortId.value && selectedSortName.value) {
+    await store.dispatch('user/match/selectSortMode', {
+      id: selectedSortId.value,
+      name: selectedSortName.value
+    })
+  } else {
+    // 清空选择
+    await store.dispatch('user/match/selectSortMode', {
+      id: null,
+      name: ''
+    })
+  }
   
   applyFilters()
   showPopup.value = false
@@ -967,56 +735,36 @@ const handleCommunicate = (teacherId) => {
  */
 const loadMoreTeachers = () => {
   if (isLoading.value || !hasMore.value) return
+  
   isLoading.value = true
   
-  // 获取下一页数据
-  const payload = {
-    loadMore: true,
-    schoolList: store.state.user.match.schoolList,
-    professionalList: store.state.user.match.professionalList,
-    nonProfessionalList: store.state.user.match.nonProfessionalList,
-    sortMode: store.state.user.match.sortMode,
-    currentPage: currentPage.value + 1,
-    pageSize: store.state.user.match.pageSize
-  }
-  
-  // 模拟获取数据
-  setTimeout(() => {
-    // 增加页码
-    store.commit('user/match/SET_PAGINATION', {
-      currentPage: payload.currentPage,
-      hasMore: true // 假设还有更多数据
+  store.dispatch('user/match/fetchMatchTeacherList', { loadMore: true })
+    .then(() => {
+      isLoading.value = false
     })
-    
-    isLoading.value = false
-  }, 1000)
-}
-
-/**
- * 重置专业选择
- */
-const resetMajorSelection = () => {
-  formData.targetMajorIndex = -1
-  formData.targetMajor = ''
+    .catch(error => {
+      console.error('加载更多老师失败:', error)
+      isLoading.value = false
+    })
 }
 
 /**
  * 选择非专业课Tab
  */
-const selectNonProTab = (key) => {
+const selectNonProTab = async (key) => {
   activeNonProTab.value = key
-}
-
-/**
- * 获取当前tab对应的选项列表
- */
-const getChoiceList = (key) => {
-  switch (key) {
-    case 'math': return mathOptions.value
-    case 'english': return englishOptions.value
-    case 'politics': return politicsOptions.value
-    case 'other': return otherOptions.value
-    default: return []
+  await loadNonProfessionalOptions(key)
+  
+  // 同步当前tab的选中状态
+  const nonProfState = store.state.user.match.nonProfessionalList
+  if (nonProfState[key] && nonProfState[key].selected) {
+    selectedNonProId.value = nonProfState[key].selectedId
+    selectedNonProName.value = nonProfState[key].selected
+    selectedNonProType.value = key
+  } else {
+    selectedNonProId.value = null
+    selectedNonProName.value = ''
+    selectedNonProType.value = ''
   }
 }
 
@@ -1026,43 +774,32 @@ const getChoiceList = (key) => {
 const applyFilters = () => {
   isLoading.value = true
   
-  // 构建筛选参数
-  const payload = {
-    schoolList: store.state.user.match.schoolList,
-    professionalList: store.state.user.match.professionalList,
-    nonProfessionalList: store.state.user.match.nonProfessionalList,
-    sortMode: store.state.user.match.sortMode,
-    currentPage: 1 // 重置为第一页
-  }
-  
-  // 重置分页
-  store.commit('user/match/SET_PAGINATION', {
-    currentPage: payload.currentPage,
-    hasMore: true // 假设还有更多数据
-  })
-  
-  // 模拟数据加载
-  setTimeout(() => {
-    isLoading.value = false
-  }, 1000)
+  store.dispatch('user/match/fetchMatchTeacherList')
+    .then(() => {
+      isLoading.value = false
+    })
+    .catch(error => {
+      console.error('应用筛选失败:', error)
+      isLoading.value = false
+    })
 }
 
 // 筛选条件摘要
 const filterSummary = computed(() => {
   const summary = {}
   
-  summary.school = store.state.user.match.schoolList || ''
-  summary.professional = store.state.user.match.professionalList || ''
+  summary.school = store.state.user.match.schoolList.selectedSchool || ''
+  summary.professional = store.state.user.match.professionalList.selectedMajor || ''
   
   const nonProfList = store.state.user.match.nonProfessionalList
   const nonProfItems = []
-  if (nonProfList.math) nonProfItems.push(nonProfList.math)
-  if (nonProfList.english) nonProfItems.push(nonProfList.english)
-  if (nonProfList.politics) nonProfItems.push(nonProfList.politics)
-  if (nonProfList.other) nonProfItems.push(nonProfList.other)
+  if (nonProfList.math.selected) nonProfItems.push(nonProfList.math.selected)
+  if (nonProfList.english.selected) nonProfItems.push(nonProfList.english.selected)
+  if (nonProfList.politics.selected) nonProfItems.push(nonProfList.politics.selected)
+  if (nonProfList.other.selected) nonProfItems.push(nonProfList.other.selected)
   summary.nonProfessional = nonProfItems.join(', ')
   
-  summary.sort = store.state.user.match.sortMode || ''
+  summary.sort = store.state.user.match.sortMode.selected || ''
   
   return summary
 })
@@ -1072,14 +809,9 @@ const filterSummary = computed(() => {
  */
 const resetSchoolFilter = () => {
   schoolInput.value = ''
-  formData.targetSchoolIndex = -1
-  formData.targetSchool = ''
-  
-  majorInput.value = ''
-  formData.targetMajorIndex = -1
-  formData.targetMajor = ''
-  
-  updateFilteredSchoolList()
+  selectedSchoolId.value = null
+  selectedSchoolName.value = ''
+  searchSchools('')
 }
 
 /**
@@ -1087,47 +819,33 @@ const resetSchoolFilter = () => {
  */
 const resetProfessionalFilter = () => {
   majorInput.value = ''
-  formData.targetMajorIndex = -1
-  formData.targetMajor = ''
-  
-  // 直接使用 commit 修改状态
-  store.commit('user/match/SET_PROFESSIONAL_LIST', '')
-  
-  if (formData.targetSchool && graduateStore.value) {
-    GraduateStore.mutations.setMajorKeyword(graduateStore.value, '')
-  }
-  
-  updateFilteredMajorList()
+  selectedMajorId.value = null
+  selectedMajorName.value = ''
+  searchMajors('')
 }
-
 
 const handleBack = () => {
   Navigator.toIndex()
 }
+
 // 初始化
-onMounted(() => {
-  initGraduateData().then(() => {
-    updateFilteredSchoolList()
-    updateFilteredMajorList()
-    
-    // 如果已有选中的学校，初始化对应的专业列表
-    const selectedSchool = store.state.user.match.schoolList
-    if (selectedSchool && graduateStore.value?.schools[selectedSchool]) {
-      const majors = graduateStore.value.schools[selectedSchool].slice(0, 100)
-      targetMajorList.value = majors
-    }
-  })
+onMounted(async () => {
+  // 初始加载排序选项
+  try {
+    await store.dispatch('user/match/fetchSortModeOptions')
+  } catch (error) {
+    console.error('初始化排序选项失败:', error)
+  }
   
   // 模拟初始数据加载
   isLoading.value = true
-  setTimeout(() => {
-    // 重置分页状态
-    store.commit('user/match/SET_PAGINATION', {
-      currentPage: 1,
-      hasMore: true
-    })
+  try {
+    await store.dispatch('user/match/fetchMatchTeacherList')
     isLoading.value = false
-  }, 1000)
+  } catch (error) {
+    console.error('初始化匹配列表失败:', error)
+    isLoading.value = false
+  }
 })
 </script>
 
@@ -1595,7 +1313,12 @@ onMounted(() => {
   color: #999;
 }
 
-
+.loading-item {
+  text-align: center;
+  padding: 10px 0;
+  color: #999;
+  font-size: 14px;
+}
 
 /* 弹出层蒙版 */
 .filter-mask {

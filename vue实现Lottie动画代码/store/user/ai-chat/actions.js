@@ -11,6 +11,12 @@ import {
     deleteConversation 
 } from '../APIroute/AIchat_api/AIchat_api.js';
 
+// 导入学校和专业搜索API
+import {
+    searchUndergraduateSchools,
+    searchUndergraduateMajors
+} from '../APIroute/Login_api/Login_api.js';
+
 export default {
     /**
      * 设置当前活跃的聊天会话
@@ -254,5 +260,105 @@ export default {
                 message: error.error?.message || '获取对话历史失败'
             };
         }
+    },
+
+    // 这是兼容别名
+    testAIQA({ dispatch }, payload) {
+        return dispatch('sendQuestion', payload);
+    },
+    
+    // ===================== 学校搜索相关 actions =====================
+    
+    /**
+     * 搜索学校列表（AI助手页面使用）
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 请求参数
+     * @param {string} payload.keyword - 搜索关键词
+     * @returns {Promise} 返回学校搜索结果
+     */
+    async searchAISchools({ commit, rootState }, { keyword }) {
+        const userId = rootState.user.baseInfo.id;
+        
+        // 设置加载状态
+        commit('SET_AI_SCHOOL_LOADING', true);
+        
+        // 更新搜索关键词
+        commit('SET_AI_SCHOOL_SEARCH_KEYWORD', keyword);
+        
+        const params = {
+            userId: userId,
+            keyword: keyword
+        };
+        
+        return new Promise((resolve, reject) => {
+            searchUndergraduateSchools(params)
+                .then(response => {
+                    if (response && response.data) {
+                        // 更新学校选项列表
+                        commit('SET_AI_SCHOOL_OPTIONS', response.data);
+                    }
+                    commit('SET_AI_SCHOOL_LOADING', false);
+                    resolve(response);
+                })
+                .catch(error => {
+                    commit('SET_AI_SCHOOL_LOADING', false);
+                    reject(error);
+                });
+        });
+    },
+    
+    /**
+     * 搜索专业列表（AI助手页面使用）
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 请求参数
+     * @param {string} payload.keyword - 搜索关键词
+     * @returns {Promise} 返回专业搜索结果
+     */
+    async searchAIMajors({ commit, rootState }, { keyword }) {
+        const userId = rootState.user.baseInfo.id;
+        
+        // 更新搜索关键词
+        commit('SET_AI_MAJOR_SEARCH_KEYWORD', keyword);
+        
+        const params = {
+            userId: userId,
+            keyword: keyword
+        };
+        
+        return new Promise((resolve, reject) => {
+            searchUndergraduateMajors(params)
+                .then(response => {
+                    if (response && response.data) {
+                        // 更新专业选项列表
+                        commit('SET_AI_MAJOR_OPTIONS', response.data);
+                    }
+                    resolve(response);
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        });
+    },
+    
+    /**
+     * 选择学校（AI助手页面使用）
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 学校信息
+     * @param {number} payload.id - 学校ID
+     * @param {string} payload.name - 学校名称
+     */
+    selectAISchool({ commit }, { id, name }) {
+        commit('SET_AI_SELECTED_SCHOOL', { id, name });
+    },
+    
+    /**
+     * 选择专业（AI助手页面使用）
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 专业信息
+     * @param {number} payload.id - 专业ID
+     * @param {string} payload.name - 专业名称
+     */
+    selectAIMajor({ commit }, { id, name }) {
+        commit('SET_AI_SELECTED_MAJOR', { id, name });
     }
 };

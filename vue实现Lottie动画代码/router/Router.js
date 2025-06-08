@@ -29,7 +29,7 @@ export const AIRoutes = {
  * @description 消息相关路由
  */
 export const MessageRoutes = {
-	MESSAGE: '/pagesChat/message',
+	MESSAGE: '/pagesChat/chat-box',
 	CHAT: '/pagesChat/chat'
 };
 

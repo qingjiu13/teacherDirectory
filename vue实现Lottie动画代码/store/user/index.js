@@ -7,7 +7,6 @@
 import myService from './myService'
 import money from './money'
 import baseInfo from './baseInfo'
-import chat from './chat'
 import match from './match'
 import aiChat from './ai-chat'
 import uploadFile from './uploadFile/upload'
@@ -22,7 +21,6 @@ export default {
         myService,
         money,
         baseInfo,
-        chat,
         match,
         aiChat,
         uploadFile

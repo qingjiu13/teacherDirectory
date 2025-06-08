@@ -403,8 +403,8 @@ export default {
           }
         } else if (serviceData.type && serviceData.type.fulllength) {
           // 从type.fulllength获取时长信息
-          const hours = serviceData.type.fulllength.hours || ''
-          const minutes = serviceData.type.fulllength.minutes || ''
+          const hours = serviceData.type.hours || ''
+          const minutes = serviceData.type.minutes || ''
           
           const hoursMatch = hours.match(/(\d+)/)
           const minutesMatch = minutes.match(/(\d+)/)
@@ -430,8 +430,8 @@ export default {
           }
         } else if (serviceData.type && serviceData.type.fulllength) {
           // 从type.fulllength获取时长信息
-          const hours = serviceData.type.fulllength.hours || ''
-          const minutes = serviceData.type.fulllength.minutes || ''
+          const hours = serviceData.type.hours || ''
+          const minutes = serviceData.type.minutes || ''
           
           const hoursMatch = hours.match(/(\d+)/)
           const minutesMatch = minutes.match(/(\d+)/)

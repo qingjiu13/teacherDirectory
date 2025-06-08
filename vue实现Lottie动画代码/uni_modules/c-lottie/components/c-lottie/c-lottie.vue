@@ -121,7 +121,7 @@
 				return new Promise((resolve) => {
 					const {
 						pixelRatio
-					} = uni.getWindowInfo()
+					} = uni.getSystemInfoSync()
 					uni.createSelectorQuery()
 						.in(this)
 						.select(`#${this.myCanvasId}`)

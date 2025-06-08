@@ -1,1 +1,0 @@
-<view id="{{b}}" change:eS="{{uV.sS}}" eS="{{$eS[b]}}" change:eA="{{uV.sA}}" eA="{{$eA[b]}}" class="{{['container', virtualHostClass]}}" style="{{virtualHostStyle}}" hidden="{{virtualHostHidden || false}}"><view class="content"><text class="title">消息页面</text></view><tab-bar u-i="3bdacf44-0" bind:__l="__l" u-p="{{a||''}}"/></view><wxs src="/common/uniView.wxs" module="uV"/>

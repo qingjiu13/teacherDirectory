@@ -114,7 +114,7 @@
 								Navigator.reLaunch(IndexRoutes.INDEX);
 								break;
 							case 'message':
-								Navigator.reLaunch(MessageRoutes.MESSAGE);
+								Navigator.reLaunch(MessageRoutes.CHAT);
 								break;
 							case 'mine':
 								Navigator.reLaunch(MineRoutes.MINE);
@@ -135,7 +135,7 @@
 							Navigator.redirectTo(IndexRoutes.INDEX);
 							break;
 						case 'message':
-							Navigator.redirectTo(MessageRoutes.MESSAGE);
+							Navigator.redirectTo(MessageRoutes.CHAT);
 							break;
 						case 'mine':
 							Navigator.redirectTo(MineRoutes.MINE);
@@ -176,13 +176,9 @@
 		background: linear-gradient(180deg, #e9eaff 11.54%, #747aff 111.54%);
 		overflow: visible; /* 确保tab-bar允许内容溢出 */
 	}
-	.index-tab {
-		width: 40%;
-		position: relative; /* 父元素设置相对定位 */
-		align-items: center;
-		justify-content: flex-end;
-		overflow: visible; /* 确保index-tab允许内容溢出 */
-	}
+
+	
+
 	.tab-item {
 		width: auto;
 		padding: 0 20rpx;
@@ -219,10 +215,6 @@
 		text-align: center;
 		color: rgba(151, 151, 151, 1);
 
-	}
-	.index-tab .tab-text {
-		top:15rpx;
-		font-weight: 700;
 	}
 	.active .tab-text {
 		color: #5F26F7;

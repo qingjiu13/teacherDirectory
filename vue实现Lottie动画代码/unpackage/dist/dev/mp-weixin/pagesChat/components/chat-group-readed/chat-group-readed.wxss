@@ -1,0 +1,2 @@
+:host{display:flex;flex-direction:column}
+.chat-group-readed.data-v-d331fbb7{position:relative;display:flex;flex-direction:column;background-color:#fff;padding:10rpx}.chat-group-readed .member-item.data-v-d331fbb7{height:120rpx;display:flex;position:relative;padding:0 30rpx;align-items:center;background-color:#fff;white-space:nowrap}.chat-group-readed .member-item .member-name.data-v-d331fbb7{flex:1;padding-left:20rpx;font-size:30rpx;font-weight:600;line-height:60rpx;white-space:nowrap;overflow:hidden}

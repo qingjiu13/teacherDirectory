@@ -1,0 +1,2 @@
+:host{display:flex;flex-direction:column}
+.group-rtc-join.data-v-11eb30e9{width:100%}.group-rtc-join .host-info.data-v-11eb30e9,.group-rtc-join .user-info.data-v-11eb30e9{font-size:16px;padding:10px}.group-rtc-join .user-list.data-v-11eb30e9{display:flex;align-items:center;height:90rpx}.group-rtc-join .user-list .user-item.data-v-11eb30e9{padding:3rpx}

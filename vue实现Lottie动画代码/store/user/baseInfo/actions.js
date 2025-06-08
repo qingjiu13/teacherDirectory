@@ -3,6 +3,14 @@
  * @module store/user/baseInfo/actions
  */
 
+// 导入学校和专业搜索API
+import {
+    searchUndergraduateSchools,
+    searchUndergraduateMajors,
+    searchGraduateSchools,
+    searchGraduateMajors
+} from '../APIroute/Login_api/Login_api.js';
+
 // 直接导入API
 const { getUserInfo, updateUserInfo, updateRole } = {
     // 这里可以替换为真实API实现
@@ -197,5 +205,342 @@ export default {
             console.error('退出登录失败:', error);
             return Promise.reject({ message: '退出登录失败' });
         }
+    },
+    
+    // ===================== 本科学校搜索相关 actions =====================
+    
+    /**
+     * @description 搜索本科学校
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 包含keyword和loadMore的参数对象
+     * @returns {Promise} - 返回Promise对象
+     */
+    async searchUndergraduateSchools({ commit, state }, { keyword, loadMore = false }) {
+        console.log('搜索本科学校:', keyword, '加载更多:', loadMore);
+        
+        try {
+            const searchData = state.undergraduateSchoolSearch;
+            
+            // 如果是加载更多，检查是否还有更多数据
+            if (loadMore && !searchData.hasMore) {
+                console.log('没有更多数据了');
+                return { success: true, data: { hasMore: false } };
+            }
+            
+            // 如果不是加载更多，重置页码和选项
+            if (!loadMore) {
+                commit('SET_UNDERGRADUATE_SCHOOL_SEARCH_KEYWORD', keyword);
+                commit('RESET_UNDERGRADUATE_SCHOOL_SEARCH');
+            }
+            
+            // 设置加载状态
+            commit('SET_UNDERGRADUATE_SCHOOL_LOADING', true);
+            
+            const currentPage = loadMore ? searchData.currentPage + 1 : 1;
+            
+            const response = await searchUndergraduateSchools({
+                keyword: keyword,
+                page: currentPage,
+                pageSize: searchData.pageSize
+            });
+            
+            console.log('本科学校搜索API返回:', response);
+            
+            if (response.success && response.data) {
+                const newOptions = response.data.items || [];
+                const hasMore = response.data.hasMore !== false && 
+                                newOptions.length >= searchData.pageSize;
+                
+                // 更新搜索结果
+                commit('SET_UNDERGRADUATE_SCHOOL_OPTIONS', {
+                    options: newOptions,
+                    append: loadMore,
+                    hasMore: hasMore,
+                    currentPage: currentPage
+                });
+                
+                console.log(`本科学校搜索完成: 关键词="${keyword}", 页码=${currentPage}, 结果数=${newOptions.length}, 还有更多=${hasMore}`);
+                
+                return { 
+                    success: true, 
+                    data: { 
+                        options: newOptions,
+                        hasMore: hasMore,
+                        currentPage: currentPage
+                    } 
+                };
+            } else {
+                console.error('本科学校搜索失败:', response.error);
+                return Promise.reject(response.error || { message: '搜索学校失败' });
+            }
+        } catch (error) {
+            console.error('搜索本科学校出错:', error);
+            return Promise.reject(error);
+        } finally {
+            commit('SET_UNDERGRADUATE_SCHOOL_LOADING', false);
+        }
+    },
+    
+    /**
+     * @description 搜索本科专业
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 包含keyword和loadMore的参数对象
+     * @returns {Promise} - 返回Promise对象
+     */
+    async searchUndergraduateMajors({ commit, state }, { keyword, loadMore = false }) {
+        console.log('搜索本科专业:', keyword, '加载更多:', loadMore);
+        
+        try {
+            const searchData = state.undergraduateMajorSearch;
+            
+            // 如果是加载更多，检查是否还有更多数据
+            if (loadMore && !searchData.hasMore) {
+                console.log('没有更多数据了');
+                return { success: true, data: { hasMore: false } };
+            }
+            
+            // 如果不是加载更多，重置页码和选项
+            if (!loadMore) {
+                commit('SET_UNDERGRADUATE_MAJOR_SEARCH_KEYWORD', keyword);
+                commit('RESET_UNDERGRADUATE_MAJOR_SEARCH');
+            }
+            
+            // 设置加载状态
+            commit('SET_UNDERGRADUATE_MAJOR_LOADING', true);
+            
+            const currentPage = loadMore ? searchData.currentPage + 1 : 1;
+            
+            const response = await searchUndergraduateMajors({
+                keyword: keyword,
+                page: currentPage,
+                pageSize: searchData.pageSize
+            });
+            
+            console.log('本科专业搜索API返回:', response);
+            
+            if (response.success && response.data) {
+                const newOptions = response.data.items || [];
+                const hasMore = response.data.hasMore !== false && 
+                                newOptions.length >= searchData.pageSize;
+                
+                // 更新搜索结果
+                commit('SET_UNDERGRADUATE_MAJOR_OPTIONS', {
+                    options: newOptions,
+                    append: loadMore,
+                    hasMore: hasMore,
+                    currentPage: currentPage
+                });
+                
+                console.log(`本科专业搜索完成: 关键词="${keyword}", 页码=${currentPage}, 结果数=${newOptions.length}, 还有更多=${hasMore}`);
+                
+                return { 
+                    success: true, 
+                    data: { 
+                        options: newOptions,
+                        hasMore: hasMore,
+                        currentPage: currentPage
+                    } 
+                };
+            } else {
+                console.error('本科专业搜索失败:', response.error);
+                return Promise.reject(response.error || { message: '搜索专业失败' });
+            }
+        } catch (error) {
+            console.error('搜索本科专业出错:', error);
+            return Promise.reject(error);
+        } finally {
+            commit('SET_UNDERGRADUATE_MAJOR_LOADING', false);
+        }
+    },
+    
+    /**
+     * 选择本科学校
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 学校信息
+     * @param {number} payload.id - 学校ID
+     * @param {string} payload.name - 学校名称
+     */
+    selectUndergraduateSchool({ commit }, { id, name }) {
+        commit('SET_UNDERGRADUATE_SELECTED_SCHOOL', { id, name });
+    },
+    
+    /**
+     * 选择本科专业
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 专业信息
+     * @param {number} payload.id - 专业ID
+     * @param {string} payload.name - 专业名称
+     */
+    selectUndergraduateMajor({ commit }, { id, name }) {
+        commit('SET_UNDERGRADUATE_SELECTED_MAJOR', { id, name });
+    },
+    
+    // ===================== 研究生学校搜索相关 actions =====================
+    
+    /**
+     * 搜索研究生学校列表
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 请求参数
+     * @param {string} payload.keyword - 搜索关键词
+     * @param {boolean} [payload.loadMore=false] - 是否加载更多数据
+     * @returns {Promise} 返回学校搜索结果
+     */
+    async searchGraduateSchools({ commit, state }, { keyword, loadMore = false }) {
+        const userId = state.id;
+        
+        // 如果是新搜索，重置分页；如果是加载更多，使用当前页+1
+        const currentPage = loadMore ? state.graduateSchoolSearch.currentPage + 1 : 1;
+        
+        // 设置加载状态
+        commit('SET_GRADUATE_SCHOOL_PAGINATION', { isLoading: true });
+        
+        // 更新搜索关键词
+        if (!loadMore) {
+            commit('SET_GRADUATE_SCHOOL_SEARCH_KEYWORD', keyword);
+        }
+        
+        const params = {
+            userId: userId,
+            keyword: keyword,
+            currentPage: currentPage,
+            pageSize: state.graduateSchoolSearch.pageSize
+        };
+        
+        return new Promise((resolve, reject) => {
+            searchGraduateSchools(params)
+                .then(response => {
+                    if (response && response.data) {
+                        // 更新学校选项列表
+                        commit('SET_GRADUATE_SCHOOL_OPTIONS', {
+                            options: response.data,
+                            isLoadMore: loadMore
+                        });
+                        
+                        // 更新分页信息
+                        commit('SET_GRADUATE_SCHOOL_PAGINATION', {
+                            currentPage: currentPage,
+                            hasMore: response.hasMore || false,
+                            isLoading: false
+                        });
+                    }
+                    resolve(response);
+                })
+                .catch(error => {
+                    commit('SET_GRADUATE_SCHOOL_PAGINATION', { isLoading: false });
+                    reject(error);
+                });
+        });
+    },
+    
+    /**
+     * @description 搜索研究生专业
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 包含keyword和loadMore的参数对象
+     * @returns {Promise} - 返回Promise对象
+     */
+    async searchGraduateMajors({ commit, state }, { keyword, loadMore = false }) {
+        console.log('搜索研究生专业:', keyword, '加载更多:', loadMore);
+        
+        try {
+            const searchData = state.graduateMajorSearch;
+            
+            // 如果是加载更多，检查是否还有更多数据
+            if (loadMore && !searchData.hasMore) {
+                console.log('没有更多数据了');
+                return { success: true, data: { hasMore: false } };
+            }
+            
+            // 如果不是加载更多，重置页码和选项
+            if (!loadMore) {
+                commit('SET_GRADUATE_MAJOR_SEARCH_KEYWORD', keyword);
+                // 重置搜索状态
+                commit('SET_GRADUATE_MAJOR_OPTIONS', {
+                    options: [],
+                    append: false,
+                    hasMore: true,
+                    currentPage: 1
+                });
+            }
+            
+            // 设置加载状态
+            commit('SET_GRADUATE_SCHOOL_PAGINATION', {
+                currentPage: searchData.currentPage,
+                hasMore: searchData.hasMore,
+                isLoading: true
+            });
+            
+            const currentPage = loadMore ? searchData.currentPage + 1 : 1;
+            
+            const response = await searchGraduateMajors({
+                keyword: keyword,
+                page: currentPage,
+                pageSize: searchData.pageSize
+            });
+            
+            console.log('研究生专业搜索API返回:', response);
+            
+            if (response.success && response.data) {
+                const newOptions = response.data.items || [];
+                const hasMore = response.data.hasMore !== false && 
+                                newOptions.length >= searchData.pageSize;
+                
+                // 更新搜索结果
+                commit('SET_GRADUATE_MAJOR_OPTIONS', {
+                    options: newOptions,
+                    append: loadMore,
+                    hasMore: hasMore,
+                    currentPage: currentPage
+                });
+                
+                console.log(`研究生专业搜索完成: 关键词="${keyword}", 页码=${currentPage}, 结果数=${newOptions.length}, 还有更多=${hasMore}`);
+                
+                return { 
+                    success: true, 
+                    data: { 
+                        options: newOptions,
+                        hasMore: hasMore,
+                        currentPage: currentPage
+                    } 
+                };
+            } else {
+                console.error('研究生专业搜索失败:', response.error);
+                return Promise.reject(response.error || { message: '搜索专业失败' });
+            }
+        } catch (error) {
+            console.error('搜索研究生专业出错:', error);
+            return Promise.reject(error);
+        } finally {
+            // 结束加载状态
+            commit('SET_GRADUATE_SCHOOL_PAGINATION', {
+                currentPage: state.graduateMajorSearch.currentPage,
+                hasMore: state.graduateMajorSearch.hasMore,
+                isLoading: false
+            });
+        }
+    },
+    
+    /**
+     * 选择研究生学校
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 学校信息
+     * @param {number} payload.id - 学校ID
+     * @param {string} payload.name - 学校名称
+     */
+    selectGraduateSchool({ commit }, { id, name }) {
+        commit('SET_GRADUATE_SELECTED_SCHOOL', { id, name });
+        // 清空专业选择
+        commit('SET_GRADUATE_SELECTED_MAJOR', { id: null, name: '' });
+        commit('SET_GRADUATE_MAJOR_OPTIONS', []);
+    },
+    
+    /**
+     * 选择研究生专业
+     * @param {Object} context - Vuex上下文对象
+     * @param {Object} payload - 专业信息
+     * @param {number} payload.id - 专业ID
+     * @param {string} payload.name - 专业名称
+     */
+    selectGraduateMajor({ commit }, { id, name }) {
+        commit('SET_GRADUATE_SELECTED_MAJOR', { id, name });
     }
 }; 

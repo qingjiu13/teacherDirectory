@@ -1,0 +1,2 @@
+:host{display:flex;flex-direction:column}
+.loading-box.data-v-34228fa1{width:100%;height:100%;position:absolute;left:0;top:0;z-index:10000;display:flex;justify-content:center;align-items:center}.rotate.data-v-34228fa1{animation:rotate-34228fa1 2s ease-in-out infinite}@keyframes rotate-34228fa1{0%{transform:rotate(0)}to{transform:rotate(360deg)}}

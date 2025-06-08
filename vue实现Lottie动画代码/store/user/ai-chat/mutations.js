@@ -212,5 +212,82 @@ export default {
         if (state.aiChat.activeConversation === conversationId) {
             state.aiChat.activeConversation = null;
         }
+    },
+    
+    // ===================== 学校搜索相关 mutations =====================
+    
+    /**
+     * 设置学校搜索关键词
+     * @param {Object} state - Vuex状态对象
+     * @param {string} keyword - 搜索关键词
+     */
+    SET_AI_SCHOOL_SEARCH_KEYWORD(state, keyword) {
+        state.aiChat.schoolSearch.searchKeyword = keyword;
+    },
+    
+    /**
+     * 设置学校选项列表
+     * @param {Object} state - Vuex状态对象
+     * @param {Array} options - 学校选项列表 [{id, name}]
+     */
+    SET_AI_SCHOOL_OPTIONS(state, options) {
+        state.aiChat.schoolSearch.options = options;
+    },
+    
+    /**
+     * 设置学校搜索加载状态
+     * @param {Object} state - Vuex状态对象
+     * @param {boolean} isLoading - 是否正在加载
+     */
+    SET_AI_SCHOOL_LOADING(state, isLoading) {
+        state.aiChat.schoolSearch.isLoading = isLoading;
+    },
+    
+    /**
+     * 设置选中的学校
+     * @param {Object} state - Vuex状态对象
+     * @param {Object} school - 学校信息
+     * @param {number} school.id - 学校ID
+     * @param {string} school.name - 学校名称
+     */
+    SET_AI_SELECTED_SCHOOL(state, { id, name }) {
+        state.aiChat.schoolSearch.selectedSchoolId = id;
+        state.aiChat.schoolSearch.selectedSchool = name;
+        // 同时更新用户信息
+        state.aiChat.userInfo.school = name;
+    },
+    
+    // ===================== 专业搜索相关 mutations =====================
+    
+    /**
+     * 设置专业搜索关键词
+     * @param {Object} state - Vuex状态对象
+     * @param {string} keyword - 搜索关键词
+     */
+    SET_AI_MAJOR_SEARCH_KEYWORD(state, keyword) {
+        state.aiChat.majorSearch.searchKeyword = keyword;
+    },
+    
+    /**
+     * 设置专业选项列表
+     * @param {Object} state - Vuex状态对象
+     * @param {Array} options - 专业选项列表 [{id, name}]
+     */
+    SET_AI_MAJOR_OPTIONS(state, options) {
+        state.aiChat.majorSearch.options = options;
+    },
+    
+    /**
+     * 设置选中的专业
+     * @param {Object} state - Vuex状态对象
+     * @param {Object} major - 专业信息
+     * @param {number} major.id - 专业ID
+     * @param {string} major.name - 专业名称
+     */
+    SET_AI_SELECTED_MAJOR(state, { id, name }) {
+        state.aiChat.majorSearch.selectedMajorId = id;
+        state.aiChat.majorSearch.selectedMajor = name;
+        // 同时更新用户信息
+        state.aiChat.userInfo.major = name;
     }
 }; 

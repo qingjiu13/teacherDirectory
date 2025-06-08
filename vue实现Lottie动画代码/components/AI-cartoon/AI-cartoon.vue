@@ -174,7 +174,7 @@ export default {
       
       // 边界检测，防止图标拖出屏幕
       // 使用新的 API 获取窗口信息
-      const windowInfo = uni.getWindowInfo();
+      const windowInfo = uni.getSystemInfoSync();
       const screenWidth = windowInfo.windowWidth;
       const screenHeight = windowInfo.windowHeight;
       const iconSize = this.config.size || 60; // 提供默认值防止null

@@ -1,0 +1,2 @@
+"use strict";const t=require("../../common/vendor.js"),o=require("../common/request.js"),n=t.defineStore("userStore",{state:()=>({userInfo:{}}),actions:{setUserInfo(e){this.userInfo=e},clear(){this.userInfo={}},loadUser(){return new Promise((e,s)=>{o.request({url:"/user/self",method:"GET"}).then(r=>{this.setUserInfo(r),e()}).catch(r=>{s(r)})})}}});exports.useUserStore=n;
+//# sourceMappingURL=../../../.sourcemap/mp-weixin/pagesChat/store/userStore.js.map

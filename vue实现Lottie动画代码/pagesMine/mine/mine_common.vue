@@ -1,4 +1,14 @@
 <template>
+    <!-- 加载状态指示器 -->
+    <view class="loading-container" v-if="isLoading">
+        <loading-animation
+          src="https://lottie.host/1f64310d-d1a9-44c9-ac77-3c29ae849559/c3yfKGAzCm.json"
+          width="150rpx" 
+          height="150rpx"
+          :showText="true"
+          text="加载中..."
+        ></loading-animation>
+    </view>
   <view class="container">
     <view class="top-bg-wrapper">
       <image class="top-image" src="../static/mine/topImage.png" mode="widthFix"></image>
@@ -86,17 +96,19 @@ import { Navigator} from '@/router/Router.js';
 import TabBar from '@/components/tab-bar/tab-bar.vue';
 import store from '@/store/index.js';
 import { mapState } from 'vuex';
+import LoadingAnimation from '@/components/loading/LoadingAnimation.vue';
 
 export default {
   components: {
-    TabBar
+    TabBar,
+    LoadingAnimation
   },
   data() {
     return {
       userData: {},
       isLoggedIn: store.getters['user/baseInfo/id'] !== '',
-      isLoading: false,
-      isDebug: true  // 显示调试信息
+      isLoading: false, // 是否正在加载
+      isDebug: true  // 显示调试信息  
     }
   },
   

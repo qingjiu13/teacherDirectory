@@ -1,0 +1,2 @@
+"use strict";const e=new UTSJSONObject({"uni-search-bar.cancel":"cancel","uni-search-bar.placeholder":"Search enter content"}),c=new UTSJSONObject({"uni-search-bar.cancel":"取消","uni-search-bar.placeholder":"请输入搜索内容"}),a=new UTSJSONObject({"uni-search-bar.cancel":"取消","uni-search-bar.placeholder":"請輸入搜索內容"}),n={en:e,"zh-Hans":c,"zh-Hant":a};exports.messages=n;
+//# sourceMappingURL=../../../../../../.sourcemap/mp-weixin/uni_modules/uni-search-bar/components/uni-search-bar/i18n/index.js.map

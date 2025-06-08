@@ -53,12 +53,13 @@
 					}
 				},
 				{
-					"path": "message",
+					"path": "chat-box",
 					"style": {
 						"navigationStyle": "custom"
 					}
 				}
-			]
+			],
+			"independent": true 
 		},
 		{
 			"root": "pagesMine",
@@ -116,7 +117,7 @@
 				{
 					"path": "modify/modify",
 					"style": {
-						"navigationBarTitleText": "修改资料"
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -157,7 +158,7 @@
 			"network": "all",
 			"packages": ["__APP__"]
 		},
-		"pagesChat/message": {
+		"pagesChat/chat-box": {
 			"network": "all",
 			"packages": ["__APP__"]
 		},

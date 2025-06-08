@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "tab-bar": "../../components/tab-bar/tab-bar"
+    "tab-bar": "../../components/tab-bar/tab-bar",
+    "loading-animation": "../../components/loading/LoadingAnimation"
   }
 }

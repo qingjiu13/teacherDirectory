@@ -151,7 +151,7 @@
               <text class="service-horizontal-line" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">|</text>
               <text class="service-text-popup" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">{{ currentService.type.coursenum }}节</text>
               <text class="service-horizontal-line" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">|</text>
-              <text class="service-text-popup" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">{{ currentService.type.fulllength.hours }}{{ currentService.type.fulllength.minutes }}</text>
+              <text class="service-text-popup" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">{{ currentService.type.hours }}{{ currentService.type.minutes }}</text>
               <text class="service-horizontal-line" v-if="currentService.type.typename === '一对多课程'">|</text>
               <text class="service-text-popup" v-if="currentService.type.typename === '一对多课程'">{{ currentService.type.studentnum }}人</text>
             </view>

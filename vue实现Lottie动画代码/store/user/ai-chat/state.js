@@ -17,6 +17,28 @@ export default {
          */
         chatMode: 'general',
         
+        /**
+         * 学校搜索相关状态
+         * @type {Object}
+         */
+        schoolSearch: {
+            selectedSchool: '', // 当前选中的学校名称
+            selectedSchoolId: null, // 当前选中的学校ID
+            searchKeyword: '', // 搜索关键词
+            options: [], // 当前显示的学校选项列表 [{id, name}]
+            isLoading: false // 是否正在加载
+        },
+        
+        /**
+         * 专业搜索相关状态
+         * @type {Object}
+         */
+        majorSearch: {
+            selectedMajor: '', // 当前选中的专业名称
+            selectedMajorId: null, // 当前选中的专业ID
+            searchKeyword: '', // 搜索关键词
+            options: [] // 当前显示的专业选项列表 [{id, name}]
+        },
         
         /**
          * 用户个人信息

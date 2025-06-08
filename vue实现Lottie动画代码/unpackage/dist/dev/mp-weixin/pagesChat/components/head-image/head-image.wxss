@@ -1,0 +1,2 @@
+:host{display:flex;flex-direction:column}
+.head-image.data-v-40bdca6c{position:relative;cursor:pointer}.head-image .avatar-image.data-v-40bdca6c{position:relative;overflow:hidden;border-radius:50%;vertical-align:bottom}.head-image .avatar-text.data-v-40bdca6c{color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center}.head-image .online.data-v-40bdca6c{position:absolute;right:-10%;bottom:0;width:24rpx;height:24rpx;background:#32cd32;border-radius:50%;border:6rpx solid white}

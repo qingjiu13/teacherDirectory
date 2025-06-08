@@ -17,8 +17,9 @@
       "root": "pagesChat",
       "pages": [
         "chat",
-        "message"
-      ]
+        "chat-box"
+      ],
+      "independent": true
     },
     {
       "root": "pagesMine",
@@ -72,7 +73,7 @@
         "__APP__"
       ]
     },
-    "pagesChat/message": {
+    "pagesChat/chat-box": {
       "network": "all",
       "packages": [
         "__APP__"

@@ -37,21 +37,18 @@ const getServiceTypeByName = (typename) => {
         case '一对一课程':
             return {
                 ...baseType,
-                coursenum: 12,
-                fulllength: {
-                    hours: '120小时',
-                    minutes: '30分钟'
-                }
+                courseNum: 12,
+                hours: '120小时',
+                minutes: '30分钟'
+                
             };
         case '一对多课程':
             return {
                 ...baseType,
-                coursenum: 12,
-                fulllength: {
-                    hours: '120小时',
-                    minutes: '30分钟'
-                },
-                studentnum: 4
+                courseNum: 12,
+                hours: '120小时',
+                minutes: '30分钟',
+                studentNum: 4
             };
         case '学习资料':
             return baseType;
@@ -61,19 +58,53 @@ const getServiceTypeByName = (typename) => {
 };
 
 export default {
-    // 学校列表
-    schoolList: '',
-    // 专业课列表
-    professionalList: '',
-    // 非专业课列表
-    nonProfessionalList: {
-        math:'',
-        english:'',
-        politics:'',
-        other:'',
+    // 学校列表筛选（支持分页）
+    schoolList: {
+        selectedSchool: '', // 当前选中的学校名称
+        selectedSchoolId: null, // 当前选中的学校ID
+        searchKeyword: '', // 搜索关键词
+        options: [], // 当前显示的学校选项列表 [{id, name}]
+        currentPage: 1, // 当前页码
+        pageSize: 20, // 每页数量
+        hasMore: true, // 是否还有更多数据
+        isLoading: false // 是否正在加载
     },
-    // 排序方式
-    sortMode: '',
+    
+    // 专业课列表筛选（不需要分页）
+    professionalList: {
+        selectedMajor: '', // 当前选中的专业名称
+        selectedMajorId: null, // 当前选中的专业ID
+        searchKeyword: '', // 搜索关键词
+        options: [] // 当前显示的专业选项列表 [{id, name}]
+    },
+    
+    // 非专业课列表筛选（不需要分页）
+    nonProfessionalList: {
+        math: {
+            selected: '', // 选中的数学类型
+            selectedId: null // 选中的数学类型ID
+        },
+        english: {
+            selected: '', // 选中的英语类型
+            selectedId: null // 选中的英语类型ID
+        },
+        politics: {
+            selected: '', // 选中的政治类型
+            selectedId: null // 选中的政治类型ID
+        },
+        other: {
+            selected: '', // 选中的其他类型
+            selectedId: null // 选中的其他类型ID
+        }
+    },
+    
+    // 排序方式筛选（不需要分页）
+    sortMode: {
+        selected: '', // 选中的排序方式
+        selectedId: null, // 选中的排序方式ID
+        options: [] // 排序选项列表 [{id, name}]
+    },
+    
     // 匹配列表
     matchList: [
         {
@@ -86,6 +117,7 @@ export default {
             campusAmbassador: 1, // 是否为校园大使
             school: '清华大学',
             major: '计算机科学与技术',
+            hourPrice: 100.00, // 每小时价格
             service:[
                 /** @type {ServiceInfo} */
                 {
@@ -117,6 +149,7 @@ export default {
             campusAmbassador: 1, // 是否为校园大使
             school: '北京大学',
             major: '经济学',
+            hourPrice: 120.00, // 每小时价格
             service:[
                 /** @type {ServiceInfo} */
                 {

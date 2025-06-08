@@ -1,5 +1,14 @@
 <template>
-
+    <!-- 加载状态指示器 -->
+	<view class="loading-container" v-if="isLoading">
+        <loading-animation
+          src="https://lottie.host/1f64310d-d1a9-44c9-ac77-3c29ae849559/c3yfKGAzCm.json"
+          width="150rpx" 
+          height="150rpx"
+          :showText="true"
+          text="加载中..."
+        ></loading-animation>
+      </view>
 	<view class="page-container" @click="onPageClick">
 		<!-- 导航栏和侧边栏 -->
 		<view class="nav-sidebar-container">
@@ -51,7 +60,7 @@
 										class="filter-select"
 										componentType="undergraduate"
 										:choiceIndex="schoolIndex"
-										:choiceList="schoolList"
+										:choiceList="schoolOptions"
 										defaultText="请选择学校"
 										mode="search"
 										searchPlaceholder="输入学校名称"
@@ -72,7 +81,7 @@
 										class="filter-select"
 										componentType="undergraduate"
 										:choiceIndex="majorIndex"
-										:choiceList="majorList"
+										:choiceList="majorOptions"
 										defaultText="请选择专业"
 										mode="search"
 										searchPlaceholder="输入专业名称"
@@ -104,12 +113,7 @@
 			</view>
 		</view>
 		
-		<!-- 加载提示 -->
-		<view class="loading-mask" v-if="isFullLoading">
-			<view class="loading-content">
-				<text>{{loadingText}}</text>
-			</view>
-		</view>
+
 	</view>
 </template>
 
@@ -120,12 +124,10 @@
 	import InputSection from './ai-chat/InputSection'
 	import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox'
 	import store from '@/store'
-	import schoolData from '/pages_AI_Login_Match/static/data/2886所大学.json';
-	import majorData from '/pages_AI_Login_Match/static/data/本科专业.json';
 	import { mapState } from 'vuex';
-	import createDataModule from '/pages_AI_Login_Match/components/combobox/undergraduate.js';
 	import Header from '@/components/navigationTitleBar/header.vue';
 	import { Navigator } from '@/router/Router.js'
+	import LoadingAnimation from '@/components/loading/LoadingAnimation.vue';
 
 	
 	
@@ -161,7 +163,8 @@
 			ModeSelector,
 			InputSection,
 			ChoiceSelected,
-			Header
+			Header,
+			LoadingAnimation
 		},
 		computed: {
 			// 从Vuex获取状态
@@ -170,15 +173,31 @@
 				storeHistoryChats: state => state.aiChat.conversations,
 				storeActiveConversation: state => state.aiChat.activeConversation,
 				storeChatMode: state => state.aiChat.chatMode,
-				storeUserInfo: state => state.aiChat.userInfo
+				storeUserInfo: state => state.aiChat.userInfo,
+				schoolSearchData: state => state.aiChat.schoolSearch,
+				majorSearchData: state => state.aiChat.majorSearch
 			}),
 			
 			// 当前选择的学校和专业
 			currentSchool() {
-				return this.schoolIndex >= 0 ? this.schoolList[this.schoolIndex] : '';
+				return this.schoolSearchData.selectedSchool || '';
 			},
 			currentMajor() {
-				return this.majorIndex >= 0 ? this.majorList[this.majorIndex] : '';
+				return this.majorSearchData.selectedMajor || '';
+			},
+			currentSchoolId() {
+				return this.schoolSearchData.selectedSchoolId || null;
+			},
+			currentMajorId() {
+				return this.majorSearchData.selectedMajorId || null;
+			},
+			
+			// 学校和专业选项列表
+			schoolOptions() {
+				return this.schoolSearchData.options.map(item => item.name);
+			},
+			majorOptions() {
+				return this.majorSearchData.options.map(item => item.name);
 			},
 			
 			// 当前模式名称
@@ -203,18 +222,6 @@
 			},
 			chatMode() {
 				return this.storeChatMode;
-			},
-			
-			// 筛选后的学校列表
-			filteredSchoolList() {
-				if (!this.schoolStore) return [];
-				return this.schoolStore.getters.filteredData(this.schoolStore.state);
-			},
-			
-			// 筛选后的专业列表
-			filteredMajorList() {
-				if (!this.majorStore) return [];
-				return this.majorStore.getters.filteredData(this.majorStore.state);
 			},
 			
 			/**
@@ -257,22 +264,21 @@
 				// 消息相关
 				messages: [],
 				isProcessing: false,
-				isFullLoading: false, 
-				loadingText: '正在加载...',
+				isLoading: false,
 				autoScrollId: '',
 				
 				// 对话模式
 				currentMode: CHAT_MODE.GENERAL,
 				
-				// 学校和专业选择
+				// 学校和专业选择索引
 				schoolIndex: -1,
 				majorIndex: -1,
-				schoolList: [],
-				majorList: [],
 				
-				// 搜索相关
-				schoolStore: null,
-				majorStore: null,
+				// 搜索防抖定时器
+				searchTimers: {
+					school: null,
+					major: null
+				},
 				
 				// 滚动相关
 				isAutoScrollEnabled: true,
@@ -313,18 +319,30 @@
 				},
 				deep: true,
 				immediate: true
+			},
+			
+			// 监听学校选项变化，更新索引
+			schoolOptions: {
+				handler(newOptions) {
+					this.updateSchoolIndex(newOptions);
+				},
+				immediate: true
+			},
+			
+			// 监听专业选项变化，更新索引
+			majorOptions: {
+				handler(newOptions) {
+					this.updateMajorIndex(newOptions);
+				},
+				immediate: true
 			}
 		},
 		onLoad() {
 			/**
 			 * @description 页面加载时的处理逻辑
 			 */
-			// 加载大学数据
-			this.loadUniversityData();
-			
 			// 获取用户信息并初始化
 			this.syncUserInfoFromVuex();
-			
 			
 			// 加载历史会话
 			this.loadChatHistoryFromStorage();
@@ -339,61 +357,13 @@
 		onUnload() {
 			// 页面卸载时中断请求
 			this.abortCurrentRequest();
+			
+			// 清理防抖定时器
+			Object.values(this.searchTimers).forEach(timer => {
+				if (timer) clearTimeout(timer);
+			});
 		},
 		methods: {
-			/**
-			 * @description 初始化学校和专业搜索引擎
-			 */
-			initSchoolAndMajorSearch() {
-				// 初始化本科学校数据状态
-				this.schoolStore = createDataModule(schoolData);
-				
-				// 初始化本科专业数据状态
-				this.majorStore = createDataModule(majorData);
-				
-				// 初始化搜索引擎
-				this.schoolStore.actions.initSearch({
-					commit: (mutation, payload) => {
-						this.schoolStore.mutations[mutation](this.schoolStore.state, payload);
-					}
-				});
-				
-				this.majorStore.actions.initSearch({
-					commit: (mutation, payload) => {
-						this.majorStore.mutations[mutation](this.majorStore.state, payload);
-					}
-				});
-				
-				// 初始填充数据
-				this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
-				this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
-			},
-			
-			/**
-			 * @description 从JSON文件加载大学数据
-			 */
-			loadUniversityData() {
-				try {
-					// 初始化学校和专业搜索引擎
-					this.initSchoolAndMajorSearch();
-					console.log('加载大学数据成功');
-				} catch (error) {
-					console.error('加载数据失败:', error);
-					console.error('错误详情:', error.message, error.stack);
-					
-					// 设置默认学校列表
-					const defaultSchools = ["北京大学", "清华大学", "复旦大学"];
-					
-					// 设置学校列表
-					this.schoolList = defaultSchools;
-					
-					uni.showToast({
-						title: '加载大学数据失败，使用默认列表',
-						icon: 'none'
-					});
-				}
-			},
-			
 			/**
 			 * @description 处理页面点击事件，关闭下拉框
 			 */
@@ -430,21 +400,39 @@
 			setUserSelectionIndexes() {
 				if (!this.storeUserInfo) return;
 				
-				if (this.storeUserInfo.school && this.schoolList.length > 0) {
-					const schoolIndex = this.schoolList.indexOf(this.storeUserInfo.school);
-					if (schoolIndex !== -1) {
-						this.schoolIndex = schoolIndex;
-					}
-				}
+				// 更新学校索引
+				this.updateSchoolIndex(this.schoolOptions);
 				
-				if (this.storeUserInfo.major && this.majorList.length > 0) {
-					const majorIndex = this.majorList.indexOf(this.storeUserInfo.major);
-					if (majorIndex !== -1) {
-						this.majorIndex = majorIndex;
-					}
-				}
+				// 更新专业索引
+				this.updateMajorIndex(this.majorOptions);
 				
 				this.updateContextInfo();
+			},
+			
+			/**
+			 * @description 更新学校索引
+			 * @param {Array} schoolOptions - 学校选项列表
+			 */
+			updateSchoolIndex(schoolOptions) {
+				if (this.currentSchool && schoolOptions.length > 0) {
+					const schoolIndex = schoolOptions.indexOf(this.currentSchool);
+					this.schoolIndex = schoolIndex !== -1 ? schoolIndex : -1;
+				} else {
+					this.schoolIndex = -1;
+				}
+			},
+			
+			/**
+			 * @description 更新专业索引
+			 * @param {Array} majorOptions - 专业选项列表
+			 */
+			updateMajorIndex(majorOptions) {
+				if (this.currentMajor && majorOptions.length > 0) {
+					const majorIndex = majorOptions.indexOf(this.currentMajor);
+					this.majorIndex = majorIndex !== -1 ? majorIndex : -1;
+				} else {
+					this.majorIndex = -1;
+				}
 			},
 			
 			/**
@@ -455,8 +443,14 @@
 			handleSchoolSelect(index, school) {
 				this.schoolIndex = index;
 				
-				// 更新到Vuex
-				store.commit('user/aiChat/UPDATE_USER_SCHOOL', school);
+				// 通过Vuex更新选择
+				const schoolOption = this.schoolSearchData.options.find(item => item.name === school);
+				if (schoolOption) {
+					this.$store.dispatch('user/aiChat/selectAISchool', {
+						id: schoolOption.id,
+						name: schoolOption.name
+					});
+				}
 				
 				// 更新上下文信息
 				this.updateContextInfo();
@@ -470,49 +464,93 @@
 			handleMajorSelect(index, major) {
 				this.majorIndex = index;
 				
-				// 更新到Vuex
-				store.commit('user/aiChat/UPDATE_USER_MAJOR', major);
+				// 通过Vuex更新选择
+				const majorOption = this.majorSearchData.options.find(item => item.name === major);
+				if (majorOption) {
+					this.$store.dispatch('user/aiChat/selectAIMajor', {
+						id: majorOption.id,
+						name: majorOption.name
+					});
+				}
 				
 				// 更新上下文信息
 				this.updateContextInfo();
 			},
 			
 			/**
-			 * @description 处理学校搜索输入
+			 * @description 处理学校搜索输入（带防抖）
 			 * @param {String} keyword - 搜索关键词
 			 */
 			handleSchoolSearch(keyword) {
-				// 更新学校搜索关键词
-				this.schoolStore.actions.updateFilterKeyword({
-					commit: (mutation, payload) => {
-						this.schoolStore.mutations[mutation](this.schoolStore.state, payload);
-					}
-				}, keyword);
+				// 清除之前的定时器
+				if (this.searchTimers.school) {
+					clearTimeout(this.searchTimers.school);
+				}
 				
-				// 获取过滤结果
-				this.schoolList = this.schoolStore.getters.filteredData(this.schoolStore.state);
+				// 设置防抖延迟500ms
+				this.searchTimers.school = setTimeout(() => {
+					this.performSchoolSearch(keyword);
+				}, 500);
 				
-				// 调试信息
-				console.log(`学校搜索: "${keyword}", 结果数: ${this.schoolList.length}`);
+				console.log(`学校搜索防抖设置: "${keyword}"`);
 			},
 			
 			/**
-			 * @description 处理专业搜索输入
+			 * @description 执行学校搜索
+			 * @param {String} keyword - 搜索关键词
+			 */
+			async performSchoolSearch(keyword) {
+				try {
+					const response = await this.$store.dispatch('user/aiChat/searchAISchools', {
+						keyword: keyword
+					});
+					
+					console.log(`学校搜索完成: "${keyword}", 结果数: ${this.schoolOptions.length}`);
+				} catch (error) {
+					console.error('学校搜索失败:', error);
+					uni.showToast({
+						title: '学校搜索失败',
+						icon: 'none'
+					});
+				}
+			},
+			
+			/**
+			 * @description 处理专业搜索输入（带防抖）
 			 * @param {String} keyword - 搜索关键词
 			 */
 			handleMajorSearch(keyword) {
-				// 更新专业搜索关键词
-				this.majorStore.actions.updateFilterKeyword({
-					commit: (mutation, payload) => {
-						this.majorStore.mutations[mutation](this.majorStore.state, payload);
-					}
-				}, keyword);
+				// 清除之前的定时器
+				if (this.searchTimers.major) {
+					clearTimeout(this.searchTimers.major);
+				}
 				
-				// 获取过滤结果
-				this.majorList = this.majorStore.getters.filteredData(this.majorStore.state);
+				// 设置防抖延迟500ms
+				this.searchTimers.major = setTimeout(() => {
+					this.performMajorSearch(keyword);
+				}, 500);
 				
-				// 调试信息
-				console.log(`专业搜索: "${keyword}", 结果数: ${this.majorList.length}`);
+				console.log(`专业搜索防抖设置: "${keyword}"`);
+			},
+			
+			/**
+			 * @description 执行专业搜索
+			 * @param {String} keyword - 搜索关键词
+			 */
+			async performMajorSearch(keyword) {
+				try {
+					const response = await this.$store.dispatch('user/aiChat/searchAIMajors', {
+						keyword: keyword
+					});
+					
+					console.log(`专业搜索完成: "${keyword}", 结果数: ${this.majorOptions.length}`);
+				} catch (error) {
+					console.error('专业搜索失败:', error);
+					uni.showToast({
+						title: '专业搜索失败',
+						icon: 'none'
+					});
+				}
 			},
 			
 			/**
@@ -542,8 +580,8 @@
 			updateContextInfo() {
 				this.contextInfo = {
 					mode: this.currentMode,
-					userSchool: this.currentSchool,
-					userMajor: this.currentMajor
+					userSchoolId: this.currentSchoolId,
+					userMajorId: this.currentMajorId
 				};
 			},
 			
@@ -712,16 +750,11 @@
 			},
 			
 			/**
-			 * @description 显示/隐藏加载提示
-			 * @param {String|Boolean} text - 加载提示文本，如果为false则隐藏
+			 * @description 显示/隐藏加载状态
+			 * @param {Boolean} loading - 是否显示加载状态，true表示显示，false表示隐藏
 			 */
-			toggleLoading(text = '正在加载...') {
-				if (text === false) {
-					this.isFullLoading = false;
-				} else {
-					this.loadingText = text;
-					this.isFullLoading = true;
-				}
+			toggleLoading(loading = true) {
+				this.isLoading = loading;
 			},
 			
 			// 侧边栏相关方法
@@ -741,7 +774,7 @@
 				if (!chatId) return;
 				
 				try {
-					this.toggleLoading('正在加载对话内容...');
+					this.toggleLoading(true);
 					
 					// 从本地状态找对话
 					const conversations = this.historyChats || [];

@@ -6,6 +6,7 @@
     "message-list": "./ai-chat/MessageList",
     "input-section": "./ai-chat/InputSection",
     "choice-selected": "../components/combobox/combobox",
-    "header": "../../components/navigationTitleBar/header"
+    "header": "../../components/navigationTitleBar/header",
+    "loading-animation": "../../components/loading/LoadingAnimation"
   }
 }

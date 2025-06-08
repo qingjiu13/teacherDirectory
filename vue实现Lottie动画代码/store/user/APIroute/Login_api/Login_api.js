@@ -300,3 +300,131 @@ export const registerUser = (options = {}) => {
     }
   });
 };
+
+// ===================== 学校和专业搜索相关API =====================
+
+/**
+ * @description 搜索本科学校列表
+ * @param {Object} params - 请求参数
+ * @param {string} params.userId - 用户ID
+ * @param {string} params.keyword - 搜索关键词
+ * @returns {Promise} 返回学校搜索结果
+ */
+export const searchUndergraduateSchools = (params) => {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: `${LOGIN_URL}/undergraduate/school/search`,
+      method: 'POST',
+      data: {
+        userId: params.userId,
+        keyword: params.keyword
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else {
+          reject(res);
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      }
+    });
+  });
+};
+
+/**
+ * @description 搜索本科专业列表
+ * @param {Object} params - 请求参数
+ * @param {string} params.userId - 用户ID
+ * @param {string} params.keyword - 搜索关键词
+ * @returns {Promise} 返回专业搜索结果
+ */
+export const searchUndergraduateMajors = (params) => {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: `${LOGIN_URL}/undergraduate/major/search`,
+      method: 'POST',
+      data: {
+        userId: params.userId,
+        keyword: params.keyword
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else {
+          reject(res);
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      }
+    });
+  });
+};
+
+/**
+ * @description 搜索研究生学校列表
+ * @param {Object} params - 请求参数
+ * @param {string} params.userId - 用户ID
+ * @param {string} params.keyword - 搜索关键词
+ * @param {number} params.currentPage - 当前页码
+ * @param {number} params.pageSize - 每页数量
+ * @returns {Promise} 返回学校搜索结果
+ */
+export const searchGraduateSchools = (params) => {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: `${LOGIN_URL}/graduate/school/search`,
+      method: 'POST',
+      data: {
+        userId: params.userId,
+        keyword: params.keyword,
+        currentPage: params.currentPage,
+        pageSize: params.pageSize
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else {
+          reject(res);
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      }
+    });
+  });
+};
+
+/**
+ * @description 根据学校ID搜索研究生专业列表
+ * @param {Object} params - 请求参数
+ * @param {string} params.userId - 用户ID
+ * @param {number} params.schoolId - 学校ID
+ * @param {string} params.keyword - 搜索关键词
+ * @returns {Promise} 返回专业搜索结果
+ */
+export const searchGraduateMajors = (params) => {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: `${LOGIN_URL}/graduate/major/search`,
+      method: 'POST',
+      data: {
+        userId: params.userId,
+        schoolId: params.schoolId,
+        keyword: params.keyword
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else {
+          reject(res);
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      }
+    });
+  });
+};
