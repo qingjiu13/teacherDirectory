@@ -70,12 +70,16 @@ export default {
         isLoading: false // 是否正在加载
     },
     
-    // 专业课列表筛选（不需要分页）
+    // 专业课列表筛选
     professionalList: {
         selectedMajor: '', // 当前选中的专业名称
         selectedMajorId: null, // 当前选中的专业ID
         searchKeyword: '', // 搜索关键词
-        options: [] // 当前显示的专业选项列表 [{id, name}]
+        options: [], // 当前显示的专业选项列表 [{id, name}]
+        currentPage: 1, // 当前页码
+        pageSize: 99999, // 每页数量（设置为大值一次性获取所有数据）
+        hasMore: false, // 是否还有更多数据（由于一次性获取所有，默认false）
+        isLoading: false // 是否正在加载
     },
     
     // 非专业课列表筛选（不需要分页）

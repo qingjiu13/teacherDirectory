@@ -126,6 +126,7 @@
               >
                 {{ major.name }}
               </view>
+              <view v-if="majorLoading" class="loading-item">加载中...</view>
             </scroll-view>
           </view>
           <view class="save-button-container">
@@ -350,6 +351,7 @@ const selectedSchoolName = ref('')
 // 专业相关数据
 const majorInput = ref('')
 const majorOptions = computed(() => store.state.user.match.professionalList.options)
+const majorLoading = computed(() => store.state.user.match.professionalList.isLoading)
 const selectedMajorId = ref(null)
 const selectedMajorName = ref('')
 

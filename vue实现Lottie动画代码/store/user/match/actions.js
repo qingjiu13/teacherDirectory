@@ -145,13 +145,18 @@ export const searchMajors = ({ commit, rootState, state }, { keyword }) => {
     return Promise.reject(new Error('请先选择学校'));
   }
   
+  // 设置加载状态
+  commit('SET_PROFESSIONAL_PAGINATION', { isLoading: true });
+  
   // 更新搜索关键词
   commit('SET_PROFESSIONAL_SEARCH_KEYWORD', keyword);
   
   const params = {
     userId: userId,
     schoolId: schoolId,
-    keyword: keyword
+    keyword: keyword,
+    currentPage: state.professionalList.currentPage,
+    pageSize: state.professionalList.pageSize // 使用99999一次性获取所有数据
   };
   
   return new Promise((resolve, reject) => {
@@ -160,10 +165,18 @@ export const searchMajors = ({ commit, rootState, state }, { keyword }) => {
         if (response && response.data) {
           // 更新专业选项列表
           commit('SET_PROFESSIONAL_OPTIONS', response.data);
+          
+          // 更新分页信息
+          commit('SET_PROFESSIONAL_PAGINATION', {
+            currentPage: state.professionalList.currentPage,
+            hasMore: response.hasMore || false,
+            isLoading: false
+          });
         }
         resolve(response);
       })
       .catch(error => {
+        commit('SET_PROFESSIONAL_PAGINATION', { isLoading: false });
         reject(error);
       });
   });

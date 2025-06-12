@@ -128,6 +128,20 @@ export default {
   },
   
   /**
+   * 设置专业课分页信息
+   * @param {Object} state - 当前模块的state
+   * @param {Object} pagination - 分页信息
+   * @param {number} pagination.currentPage - 当前页码
+   * @param {boolean} pagination.hasMore - 是否还有更多数据
+   * @param {boolean} pagination.isLoading - 是否正在加载
+   */
+  SET_PROFESSIONAL_PAGINATION(state, { currentPage, hasMore, isLoading }) {
+    if (currentPage !== undefined) state.professionalList.currentPage = currentPage;
+    if (hasMore !== undefined) state.professionalList.hasMore = hasMore;
+    if (isLoading !== undefined) state.professionalList.isLoading = isLoading;
+  },
+  
+  /**
    * 设置选中的专业课
    * @param {Object} state - 当前模块的state
    * @param {Object} major - 专业信息

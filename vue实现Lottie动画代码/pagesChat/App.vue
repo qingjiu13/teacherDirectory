@@ -143,7 +143,7 @@ export default {
 			return this.userStore.loadUser().then(() => {
 				const promises = [];
 				promises.push(this.friendStore.loadFriend());
-				promises.push(this.groupStore.loadGroup());
+				// promises.push(this.groupStore.loadGroup());
 				promises.push(this.chatStore.loadChat());
 				promises.push(this.configStore.loadConfig());
 				return Promise.all(promises);
@@ -151,7 +151,7 @@ export default {
 		},
 		unloadStore() {
 			this.friendStore.clear();
-			this.groupStore.clear();
+			// this.groupStore.clear();
 			this.chatStore.clear();
 			this.configStore.clear();
 			this.userStore.clear();
@@ -456,7 +456,7 @@ export default {
 			// 重新加载好友和群聊
 			const promises = [];
 			promises.push(this.friendStore.loadFriend());
-			promises.push(this.groupStore.loadGroup());
+			// promises.push(this.groupStore.loadGroup());
 			Promise.all(promises).then(() => {
 				uni.showToast({
 					title: "已重新连接",
