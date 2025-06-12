@@ -103,35 +103,7 @@ export function decryptPhoneNumber(encryptedData, iv, sessionkey) {
   });
 }
 
-/**
- * 处理微信手机号授权的完整流程
- * @param {Object} phoneAuthDetail - 微信手机号授权返回的详细信息
- * @returns {Promise} 返回手机号
- */
-export async function handlePhoneNumberAuth(phoneAuthDetail) {
-  try {
-    // 检查授权是否成功
-    if (phoneAuthDetail.errMsg !== 'getPhoneNumber:ok') {
-      throw new Error('用户拒绝授权手机号');
-    }
 
-    // 获取新的code和sessionkey
-    const code = await getWechatLoginCode();
-    const { sessionkey } = await getOpenidAndSessionKey(code);
-    
-    // 解密手机号
-    const phoneNumber = await decryptPhoneNumber(
-      phoneAuthDetail.encryptedData,
-      phoneAuthDetail.iv,
-      sessionkey
-    );
-    
-    return phoneNumber;
-  } catch (error) {
-    console.error('手机号授权处理失败:', error);
-    throw error;
-  }
-}
 
 /**
  * 检查微信会话是否有效
@@ -201,7 +173,6 @@ export default {
   getWechatLoginCode,
   getOpenidAndSessionKey,
   decryptPhoneNumber,
-  handlePhoneNumberAuth,
   checkWechatSession,
   getStoredOpenid,
   getMaskedPhone
