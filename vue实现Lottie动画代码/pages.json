@@ -105,7 +105,7 @@
 				{
 					"path": "qualification/qualification",
 					"style": {
-						"navigationBarTitleText": "资质认证"
+						"navigationStyle": "custom"
 					}
 				},
 				{
@@ -137,6 +137,18 @@
 					"path": "contactUs/contectUs",
 					"style": {
 						"navigationBarTitleText": "联系我们"
+					}
+				},
+				{
+					"path":"qualification/whyQualification",
+					"style":{
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path":"qualification/leading",
+					"style":{
+						"navigationStyle": "custom"
 					}
 				}
 			]
@@ -214,7 +226,16 @@
 		"pagesMine/teacher/teacher": {
 			"network": "all",
 			"packages": ["__APP__"]
+		},
+		"pagesMine/qualification/whyQualification": {
+			"network": "all",
+			"packages": ["__APP__"]
+		},
+		"pagesMine/qualification/leading": {
+			"network": "all",
+			"packages": ["__APP__"]
 		}
+	
 	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

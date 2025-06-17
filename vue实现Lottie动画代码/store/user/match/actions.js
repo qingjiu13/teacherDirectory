@@ -13,6 +13,19 @@ import {
 } from '../APIroute/match_api/match_api.js';
 
 /**
+ * 设置搜索关键词
+ * @param {Object} context - Vuex上下文对象
+ * @param {string} searchKey - 搜索关键词
+ * @returns {Promise} 返回Promise对象
+ */
+export const setSearchKey = ({ commit, dispatch }, searchKey) => {
+  commit('SET_SEARCH_KEY', searchKey);
+  
+  // 当搜索关键词改变时，重新获取匹配的老师列表
+  return dispatch('fetchMatchTeacherList');
+};
+
+/**
  * 获取匹配的老师列表
  * @param {Object} context - Vuex上下文对象
  * @param {Object} payload - 请求参数
@@ -39,37 +52,46 @@ export const fetchMatchTeacherList = ({ commit, rootState, state }, payload = {}
   
   // 构建请求参数
   const params = {
-    userId: userId,
-    schoolId: state.schoolList.selectedSchoolId,
-    professionalId: state.professionalList.selectedMajorId,
+    school: state.schoolList.selectedSchoolId,
+    professional: state.professionalList.selectedMajorId,
     nonProfessionalList: nonProfessionalList,
-    sortModeId: state.sortMode.selectedId,
-    currentPage: currentPage,
-    pageSize: payload.pageSize || state.pageSize
+    sortMode: state.sortMode.selectedId,
+    pageNum: currentPage,
+    pageSize: payload.pageSize || state.pageSize,
+    searchKey: state.searchKey // 使用store中的searchKey
   };
   
   return new Promise((resolve, reject) => {
     getMatchTeacherList(params)
       .then(response => {
-        // 更新matchList
-        if (response && response.data) {
+        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
+        if (response && response.success && response.data) {
+          // response.data 是API响应的data字段：{ data: [...], hasMore: false }
+          const matchData = response.data;
+          
+          // 获取老师列表数组
+          const teacherList = matchData.data || [];
+          
           if (isLoadMore) {
             // 加载更多时，追加到现有列表
-            commit('APPEND_MATCH_LIST', response.data);
+            commit('APPEND_MATCH_LIST', teacherList);
           } else {
             // 重新加载时，替换列表
-            commit('SET_MATCH_LIST', response.data);
+            commit('SET_MATCH_LIST', teacherList);
           }
           
           // 更新分页信息
           commit('SET_PAGINATION', {
             currentPage: currentPage,
-            hasMore: response.hasMore || false
+            hasMore: matchData.hasMore || false
           });
+          
+          console.log('匹配老师列表更新成功:', teacherList);
         }
         resolve(response);
       })
       .catch(error => {
+        console.error('获取匹配老师列表失败:', error);
         reject(error);
       });
   });
@@ -107,23 +129,27 @@ export const searchSchools = ({ commit, rootState, state }, { keyword, loadMore 
   return new Promise((resolve, reject) => {
     searchSchoolList(params)
       .then(response => {
-        if (response && response.data) {
+        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
+        if (response && response.success && response.data) {
+          const schoolData = response.data;
+          
           // 更新学校选项列表
           commit('SET_SCHOOL_OPTIONS', {
-            options: response.data,
+            options: schoolData.list || schoolData,
             isLoadMore: loadMore
           });
           
           // 更新分页信息
           commit('SET_SCHOOL_PAGINATION', {
             currentPage: currentPage,
-            hasMore: response.hasMore || false,
+            hasMore: schoolData.hasMore || false,
             isLoading: false
           });
         }
         resolve(response);
       })
       .catch(error => {
+        console.error('搜索学校失败:', error);
         commit('SET_SCHOOL_PAGINATION', { isLoading: false });
         reject(error);
       });
@@ -162,20 +188,24 @@ export const searchMajors = ({ commit, rootState, state }, { keyword }) => {
   return new Promise((resolve, reject) => {
     searchMajorList(params)
       .then(response => {
-        if (response && response.data) {
+        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
+        if (response && response.success && response.data) {
+          const majorData = response.data;
+          
           // 更新专业选项列表
-          commit('SET_PROFESSIONAL_OPTIONS', response.data);
+          commit('SET_PROFESSIONAL_OPTIONS', majorData.list || majorData);
           
           // 更新分页信息
           commit('SET_PROFESSIONAL_PAGINATION', {
             currentPage: state.professionalList.currentPage,
-            hasMore: response.hasMore || false,
+            hasMore: majorData.hasMore || false,
             isLoading: false
           });
         }
         resolve(response);
       })
       .catch(error => {
+        console.error('搜索专业失败:', error);
         commit('SET_PROFESSIONAL_PAGINATION', { isLoading: false });
         reject(error);
       });
@@ -223,13 +253,16 @@ export const fetchSortModeOptions = ({ commit, rootState }) => {
   return new Promise((resolve, reject) => {
     getSortModeOptions(params)
       .then(response => {
-        if (response && response.data) {
+        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
+        if (response && response.success && response.data) {
+          const sortData = response.data;
           // 更新排序选项列表
-          commit('SET_SORT_OPTIONS', response.data);
+          commit('SET_SORT_OPTIONS', sortData.list || sortData);
         }
         resolve(response);
       })
       .catch(error => {
+        console.error('获取排序选项失败:', error);
         reject(error);
       });
   });
@@ -311,8 +344,9 @@ export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
   return new Promise((resolve, reject) => {
     getTeacherDetail(params)
       .then(response => {
-        // 更新老师详情
-        if (response && response.data) {
+        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
+        if (response && response.success && response.data) {
+          // 更新老师详情
           commit('SET_TEACHER_DETAIL', {
             teacherId: teacherId,
             detail: response.data
@@ -321,6 +355,7 @@ export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
         resolve(response);
       })
       .catch(error => {
+        console.error('获取老师详情失败:', error);
         reject(error);
       });
   });

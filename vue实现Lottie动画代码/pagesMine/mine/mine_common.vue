@@ -64,7 +64,7 @@
             <image class="arrow-image" src="/static/image/arrow/arrow_right.png" mode="heightFix"></image>
           </view>
           <!-- 老师特有菜单项：资质认证 -->
-          <view v-if="storeRole === '老师' && storeCertificate === 0" class="menu-item" @click="toQualification">
+          <view v-if="storeRole === '老师' && storeCertificate === 0" class="menu-item" @click="toWhyQualification">
             <view class="icon-circle-info">
               <image class="icon-image" src="../static/mine/qualification.png" mode="widthFix"></image>
             </view>
@@ -359,8 +359,8 @@ export default {
     /**
      * @description 跳转到资质认证页面
      */
-    toQualification() {
-      Navigator.toQualification();
+    toWhyQualification() {
+      Navigator.toWhyQualification();
     },
     
     /**

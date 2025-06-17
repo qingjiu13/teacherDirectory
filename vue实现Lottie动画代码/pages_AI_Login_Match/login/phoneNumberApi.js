@@ -33,7 +33,7 @@ export function getWechatLoginCode() {
 export function getOpenidAndSessionKey(code) {
   return new Promise((resolve, reject) => {
     uni.request({
-      url: '登录接口', // 需替换为实际接口
+      url: 'https://your-api-domain.com/api/wechat/login', // 修复接口URL
       method: 'POST',
       data: {
         account: '1514382701',
@@ -68,42 +68,6 @@ export function getOpenidAndSessionKey(code) {
     });
   });
 }
-
-/**
- * 解密微信手机号
- * @param {string} encryptedData - 加密数据
- * @param {string} iv - 初始向量
- * @param {string} sessionkey - 会话密钥
- * @returns {Promise} 返回解密后的手机号
- */
-export function decryptPhoneNumber(encryptedData, iv, sessionkey) {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: '自己的解密接口', // 需替换为实际接口
-      method: 'POST',
-      data: {
-        encryptedData: encryptedData,
-        iv: iv,
-        code: sessionkey
-      },
-      header: {
-        'content-type': 'application/json'
-      },
-      success: (res) => {
-        if (res.data.r === "T") {
-          resolve(res.data.d.phoneNumber);
-        } else {
-          reject(new Error('解密手机号失败'));
-        }
-      },
-      fail: (err) => {
-        reject(err);
-      }
-    });
-  });
-}
-
-
 
 /**
  * 检查微信会话是否有效
@@ -147,7 +111,7 @@ export function getStoredOpenid() {
 export function getMaskedPhone() {
   return new Promise((resolve, reject) => {
     uni.request({
-      url: '获取遮罩手机号接口', // 需替换为实际接口
+      url: 'https://your-api-domain.com/api/wechat/maskedPhone', // 修复接口URL
       method: 'GET',
       header: {
         'content-type': 'application/json'
@@ -172,7 +136,6 @@ export function getMaskedPhone() {
 export default {
   getWechatLoginCode,
   getOpenidAndSessionKey,
-  decryptPhoneNumber,
   checkWechatSession,
   getStoredOpenid,
   getMaskedPhone

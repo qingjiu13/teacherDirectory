@@ -533,5 +533,38 @@ export default {
         state.graduateMajorSearch.selectedMajor = name;
         // 同时更新用户信息
         state.userInfo.targetMajor = name;
+    },
+
+    /**
+     * 设置JWT令牌
+     * @param {Object} state - Vuex状态对象
+     * @param {string} token - JWT令牌
+     */
+    SET_JWT_TOKEN(state, token) {
+        state.jwtToken = token;
+        // 同时保存到本地存储
+        uni.setStorageSync('jwtToken', token);
+        console.log('JWT令牌已设置:', token);
+    },
+
+    /**
+     * 清除JWT令牌
+     * @param {Object} state - Vuex状态对象
+     */
+    CLEAR_JWT_TOKEN(state) {
+        state.jwtToken = '';
+        // 同时清除本地存储
+        uni.removeStorageSync('jwtToken');
+        console.log('JWT令牌已清除');
+    },
+
+    /**
+     * 从本地存储恢复JWT令牌
+     * @param {Object} state - Vuex状态对象
+     */
+    RESTORE_JWT_TOKEN(state) {
+        const token = uni.getStorageSync('jwtToken') || '';
+        state.jwtToken = token;
+        console.log('JWT令牌已从本地存储恢复:', token);
     }
 }; 

@@ -62,6 +62,8 @@ export const MineRoutes = {
 	
 	// 其他设置
 	QUALIFICATION: '/pagesMine/qualification/qualification',
+	WHY_QUALIFICATION: '/pagesMine/qualification/whyQualification',
+	LEADING: '/pagesMine/qualification/leading',
 	SERVICE: '/pagesMine/service/service',
 	SERVICE_NEWBUILT:'/pagesMine/service/service_newbuilt',
 	SETTINGS: '/pagesMine/settings/settings',
@@ -295,6 +297,20 @@ export const Navigator = {
 	 */
 	toContactUs() {
 		this.navigateTo(MineRoutes.CONTACT_US);
+	},
+	
+	/**
+	 * @description 跳转到为什么需要资质认证页面
+	 */
+	toWhyQualification() {
+		this.navigateTo(MineRoutes.WHY_QUALIFICATION);
+	},
+	
+	/**
+	 * @description 跳转到资质认证引导页面
+	 */
+	toLeading() {
+		this.navigateTo(MineRoutes.LEADING);
 	}
 };
 

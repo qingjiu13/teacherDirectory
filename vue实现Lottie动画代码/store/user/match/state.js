@@ -58,6 +58,12 @@ const getServiceTypeByName = (typename) => {
 };
 
 export default {
+    /**
+     * 搜索关键词 - 用于老师匹配搜索
+     * @type {string}
+     * @description 存储用户在搜索框中输入的关键词，用于过滤匹配的老师列表
+     */
+    searchKey: "",
     // 学校列表筛选（支持分页）
     schoolList: {
         selectedSchool: '', // 当前选中的学校名称
@@ -111,61 +117,61 @@ export default {
     
     // 匹配列表
     matchList: [
-        {
-            id: 'teacher001',
-            name: '张老师',
-            avatar: '/static/image/defaultAvatar/teacher-man.png',
-            gender: 'male',
-            selfIntroduction: '清华大学计算机专业硕士，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉',
-            certificate: 1,
-            campusAmbassador: 1, // 是否为校园大使
-            school: '清华大学',
-            major: '计算机科学与技术',
-            hourPrice: 100.00, // 每小时价格
-            service:[
-                /** @type {ServiceInfo} */
-                {
-                    id: 'service001',
-                    name: '考研规划咨询',
-                    type: getServiceTypeByName('一对一课程'),
-                    price: '200元',
-                    description: '提供考研全程规划指导不会不会给vui不会vu一部韩剧韩剧u一般会的给v保监局预估i保护局故意不回就搞不好健康环保',
-                    images: ['/static/image/defaultAvatar/teacher-man.png'],
-                },
-                /** @type {ServiceInfo} */
-                {
-                    id: 'service002',
-                    name: '一对多课程',
-                    type: getServiceTypeByName('一对多课程'),
-                    price: '300元',
-                    description: '计算机专业课一对一辅导',
-                    images: ['/static/image/defaultAvatar/teacher-man.png'],
-                }
-            ]
-        },
-        {
-            id: 'teacher002',
-            name: '李老师',
-            avatar: '/static/image/defaultAvatar/teacher-man.png',
-            gender: 'female',
-            selfIntroduction: '北京大学经济学博士，3年教学经验',
-            certificate: 1,
-            campusAmbassador: 1, // 是否为校园大使
-            school: '北京大学',
-            major: '经济学',
-            hourPrice: 120.00, // 每小时价格
-            service:[
-                /** @type {ServiceInfo} */
-                {
-                    id: 'service003',
-                    name: '经济学基础课程',
-                    type: getServiceTypeByName('学习资料'),
-                    price: '150元',
-                    description: '经济学基础理论讲解',
-                    images: ['/static/image/defaultAvatar/teacher-man.png'],
-                }
-            ]
-        }
+        // {
+        //     id: 'teacher001',
+        //     name: '张老师',
+        //     avatar: '/static/image/defaultAvatar/teacher-man.png',
+        //     gender: 'male',
+        //     selfIntroduction: '清华大学计算机专业硕士，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉，5年教学经验，天赋一个i和v结构图一杠iv后经过长途费i故欲语版本i故不i贵ui贵ui广告过后忽而和任何功夫俄国黄热给被人骨灰盒肉',
+        //     certificate: 1,
+        //     campusAmbassador: 1, // 是否为校园大使
+        //     school: '清华大学',
+        //     major: '计算机科学与技术',
+        //     hourPrice: 100.00, // 每小时价格
+        //     service:[
+        //         /** @type {ServiceInfo} */
+        //         {
+        //             id: 'service001',
+        //             name: '考研规划咨询',
+        //             type: getServiceTypeByName('一对一课程'),
+        //             price: '200元',
+        //             description: '提供考研全程规划指导不会不会给vui不会vu一部韩剧韩剧u一般会的给v保监局预估i保护局故意不回就搞不好健康环保',
+        //             images: ['/static/image/defaultAvatar/teacher-man.png'],
+        //         },
+        //         /** @type {ServiceInfo} */
+        //         {
+        //             id: 'service002',
+        //             name: '一对多课程',
+        //             type: getServiceTypeByName('一对多课程'),
+        //             price: '300元',
+        //             description: '计算机专业课一对一辅导',
+        //             images: ['/static/image/defaultAvatar/teacher-man.png'],
+        //         }
+        //     ]
+        // },
+        // {
+        //     id: 'teacher002',
+        //     name: '李老师',
+        //     avatar: '/static/image/defaultAvatar/teacher-man.png',
+        //     gender: 'female',
+        //     selfIntroduction: '北京大学经济学博士，3年教学经验',
+        //     certificate: 1,
+        //     campusAmbassador: 1, // 是否为校园大使
+        //     school: '北京大学',
+        //     major: '经济学',
+        //     hourPrice: 120.00, // 每小时价格
+        //     service:[
+        //         /** @type {ServiceInfo} */
+        //         {
+        //             id: 'service003',
+        //             name: '经济学基础课程',
+        //             type: getServiceTypeByName('学习资料'),
+        //             price: '150元',
+        //             description: '经济学基础理论讲解',
+        //             images: ['/static/image/defaultAvatar/teacher-man.png'],
+        //         }
+        //     ]
+        // }
     ],
     currentPage: 1,
     pageSize: 10,

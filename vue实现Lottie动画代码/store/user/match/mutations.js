@@ -6,6 +6,15 @@
 export default {
 
   /**
+   * 设置搜索关键词
+   * @param {Object} state - 状态对象
+   * @param {string} searchKey - 搜索关键词
+   */
+  SET_SEARCH_KEY(state, searchKey) {
+    state.searchKey = searchKey
+  },
+
+  /**
    * 设置匹配列表
    * @param {Object} state - 状态对象
    * @param {Array} matchList - 匹配列表数组

@@ -192,7 +192,7 @@
 import { Navigator } from '../../router/Router';
 import { generateRandomNickName } from './randomNickName.js';
 import { getWechatLoginCode, getOpenidAndSessionKey, getStoredOpenid, getMaskedPhone } from './phoneNumberApi.js';
-import { postUserInfo } from './postWechatApi.js';
+import { getDefaultAvatarList, uploadAvatarFile } from './postWechatApi.js';
 
 export default {
   data() {
@@ -206,14 +206,9 @@ export default {
       showNicknameModal: false, // 昵称编辑弹窗
       currentNickname: "", // 当前昵称
       editingNickname: "", // 编辑中的昵称
-      currentAvatar: '/static/image/defaultAvatar/teacher-man.png', // 当前头像
+      currentAvatar: '', // 当前头像，初始为空，从后端获取默认头像列表后设置
       nicknameWidth: 0, // 昵称文字宽度
-      avatarList: [
-        '/static/image/defaultAvatar/teacher-man.png',
-        '/static/image/defaultAvatar/teacher-woman.png',
-        '/static/image/defaultAvatar/student-man.png',
-        '/static/image/defaultAvatar/student-woman.png'
-      ],
+      avatarList: [], // 从后端获取的默认头像列表
       maskedPhoneNumber: ""
     }
   },
@@ -225,6 +220,7 @@ export default {
     this.initializeUserInfo();
     this.getWechatOpenid();
     this.checkLoginState();
+    this.loadDefaultAvatarList();
   },
   
   mounted() {
@@ -267,8 +263,46 @@ export default {
         key: 'currentAvatar',
         success: (res) => {
           this.currentAvatar = res.data;
+        },
+        fail: () => {
+          // 如果缓存中没有头像，则等待从后端获取默认头像列表后设置
         }
       });
+    },
+    
+    /**
+     * 加载默认头像列表
+     */
+    async loadDefaultAvatarList() {
+      try {
+        this.avatarList = await getDefaultAvatarList();
+        
+        // 如果当前没有设置头像，则使用第一个默认头像
+        if (!this.currentAvatar && this.avatarList.length > 0) {
+          this.currentAvatar = this.avatarList[0];
+          uni.setStorage({
+            key: 'currentAvatar',
+            data: this.currentAvatar
+          });
+        }
+      } catch (error) {
+        console.error('获取默认头像列表失败:', error);
+        // 如果获取失败，使用硬编码的默认头像作为备用
+        this.avatarList = [
+          '/static/image/defaultAvatar/teacher-man.png',
+          '/static/image/defaultAvatar/teacher-woman.png',
+          '/static/image/defaultAvatar/student-man.png',
+          '/static/image/defaultAvatar/student-woman.png'
+        ];
+        
+        if (!this.currentAvatar) {
+          this.currentAvatar = this.avatarList[0];
+          uni.setStorage({
+            key: 'currentAvatar',
+            data: this.currentAvatar
+          });
+        }
+      }
     },
     
     /**
@@ -355,46 +389,46 @@ export default {
         title: '登录中...'
       });
       
-      try {
-        // 发送用户信息到后端
-        await postUserInfo({
-          nickname: this.currentNickname,
-          avatar: this.currentAvatar,
-          openid: this.openid
-        });
+      // try {
+      //   // 发送用户信息到后端
+      //   await postUserInfo({
+      //     nickname: this.currentNickname,
+      //     avatar: this.currentAvatar,
+      //     openid: this.openid
+      //   });
         
-        // 设置登录状态
-        this.loginstate = "1";
-        uni.setStorage({
-          key: "loginstate",
-          data: "1"
-        });
+      //   // 设置登录状态
+      //   this.loginstate = "1";
+      //   uni.setStorage({
+      //     key: "loginstate",
+      //     data: "1"
+      //   });
         
-        uni.hideLoading();
-        this.hidePhoneModal();
+      //   uni.hideLoading();
+      //   this.hidePhoneModal();
         
-        // 登录成功提示
-        uni.showToast({
-          title: '登录成功',
-          icon: 'success',
-          duration: 1500
-        });
+      //   // 登录成功提示
+      //   uni.showToast({
+      //     title: '登录成功',
+      //     icon: 'success',
+      //     duration: 1500
+      //   });
         
-        // 延迟跳转到首页
-        setTimeout(() => {
-          this.toHome();
-        }, 1500);
+      //   // 延迟跳转到首页
+      //   setTimeout(() => {
+      //     this.toHome();
+      //   }, 1500);
 
-        Navigator.toLogin();
+      //   Navigator.toLogin();
         
-      } catch (error) {
-        uni.hideLoading();
-        console.error('登录失败:', error);
-        uni.showToast({
-          title: error.message || '登录失败',
-          icon: 'none'
-        });
-      }
+      // } catch (error) {
+      //   uni.hideLoading();
+      //   console.error('登录失败:', error);
+      //   uni.showToast({
+      //     title: error.message || '登录失败',
+      //     icon: 'none'
+      //   });
+      // }
     },
     
     /**
@@ -527,22 +561,39 @@ export default {
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
-        success: (res) => {
+        success: async (res) => {
           const tempFilePath = res.tempFilePaths[0];
           
-          // 可以在这里添加图片上传到服务器的逻辑
-          // 暂时直接使用本地临时路径
-          this.currentAvatar = tempFilePath;
-          uni.setStorage({
-            key: 'currentAvatar',
-            data: tempFilePath
+          // 显示上传进度
+          uni.showLoading({
+            title: '上传头像中...'
           });
           
-          this.hideAvatarModal();
-          uni.showToast({
-            title: '头像已更换',
-            icon: 'success'
-          });
+          try {
+            // 上传头像到服务器
+            const uploadResult = await uploadAvatarFile(tempFilePath);
+            
+            // 使用服务器返回的URL
+            this.currentAvatar = uploadResult.url;
+            uni.setStorage({
+              key: 'currentAvatar',
+              data: uploadResult.url
+            });
+            
+            uni.hideLoading();
+            this.hideAvatarModal();
+            uni.showToast({
+              title: '头像已更换',
+              icon: 'success'
+            });
+          } catch (error) {
+            uni.hideLoading();
+            console.error('上传头像失败:', error);
+            uni.showToast({
+              title: error.message || '上传头像失败',
+              icon: 'none'
+            });
+          }
         },
         fail: (err) => {
           console.error('选择图片失败:', err);

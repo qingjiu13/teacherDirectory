@@ -115,5 +115,19 @@ export default {
 
             }
         };
-    }
+    },
+
+    /**
+     * @description 获取JWT令牌
+     * @param {Object} state - 当前状态
+     * @returns {string} JWT令牌
+     */
+    jwtToken: (state) => state.jwtToken,
+
+    /**
+     * @description 检查是否已登录（基于JWT令牌）
+     * @param {Object} state - 当前状态
+     * @returns {boolean} 是否已登录
+     */
+    isLoggedIn: (state) => !!state.jwtToken
 }; 

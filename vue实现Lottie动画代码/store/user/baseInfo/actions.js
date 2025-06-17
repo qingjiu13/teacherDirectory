@@ -542,5 +542,30 @@ export default {
      */
     selectGraduateMajor({ commit }, { id, name }) {
         commit('SET_GRADUATE_SELECTED_MAJOR', { id, name });
+    },
+
+    /**
+     * 保存JWT令牌
+     * @param {Object} context - Vuex上下文对象
+     * @param {string} token - JWT令牌
+     */
+    saveJwtToken({ commit }, token) {
+        commit('SET_JWT_TOKEN', token);
+    },
+
+    /**
+     * 清除JWT令牌（用于登出）
+     * @param {Object} context - Vuex上下文对象
+     */
+    clearJwtToken({ commit }) {
+        commit('CLEAR_JWT_TOKEN');
+    },
+
+    /**
+     * 从本地存储恢复JWT令牌（用于应用启动时）
+     * @param {Object} context - Vuex上下文对象
+     */
+    restoreJwtToken({ commit }) {
+        commit('RESTORE_JWT_TOKEN');
     }
 }; 

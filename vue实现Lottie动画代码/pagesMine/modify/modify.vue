@@ -76,6 +76,7 @@
 							placeholder="请输入手机号" 
 							class="form-input" 
 							maxlength="11"
+							disabled
 						/>
 					</view>
 				</view>

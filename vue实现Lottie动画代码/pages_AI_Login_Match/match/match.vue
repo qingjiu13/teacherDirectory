@@ -17,11 +17,17 @@
   <view class="page">
     <!-- 搜索框 -->
     <view class="search-wrapper">
-      <input
-        v-model="searchText"
-        placeholder="请输入搜索内容"
-        class="search-input"
-      />
+      <view class="search-container">
+        <input
+          v-model="searchText"
+          placeholder="请输入搜索内容"
+          class="search-input"
+          @input="onSearchInput"
+        />
+        <!-- <view v-if="searchText" class="search-clear-btn" @click="clearSearch">
+          <text class="clear-icon">×</text>
+        </view> -->
+      </view>
     </view>
 
     <!-- 选项容器 -->
@@ -287,8 +293,20 @@ import Header from '@/components/navigationTitleBar/header'
 // 初始化 store
 const store = useStore()
 
-// 搜索文本
-const searchText = ref('')
+// 搜索文本 - 从vuex获取
+const searchText = computed({
+  get: () => store.getters['user/match/searchKey'],
+  set: (value) => {
+    // 防抖处理
+    if (searchTimer) {
+      clearTimeout(searchTimer)
+    }
+    
+    searchTimer = setTimeout(() => {
+      store.dispatch('user/match/setSearchKey', value)
+    }, 500) // 500ms防抖
+  }
+})
 
 // 选项列表
 const options = [
@@ -333,7 +351,7 @@ const tabLabelMap = {
 
 // 从store中获取匹配的老师列表
 const matchTeachers = computed(() => {
-  return store.state.user.match.matchList || []
+  return store.getters['user/match/matchTeachers']
 })
 
 // 分页相关状态
@@ -832,6 +850,16 @@ const handleBack = () => {
 
 // 初始化
 onMounted(async () => {
+  // 设置JWT Token到store中（如果还没有设置的话）
+  if (!store.state.user.baseInfo.jwtToken) {
+    const testToken = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJpZCI6MSwibG9naW5fdXNlcl9rZXkiOiI0YjMwYmQ1Yy04ZDUwLTQ0OGEtYTA4Mi1kZWUxOGMwNmIyMzEifQ.sDcrRbV52iDBs2AHVI5t7_ZfqWZaZm9la861HZyRjZvsbVz2ucI-e3RsYOSkUHSACPG3SGD0_5m-pcKyYCUofg';
+    store.commit('user/baseInfo/SET_JWT_TOKEN', testToken);
+    console.log('已设置JWT Token到store中');
+  }
+  
+  // 初始化搜索关键词
+  store.commit('user/match/SET_SEARCH_KEY', '')
+  
   // 初始加载排序选项
   try {
     await store.dispatch('user/match/fetchSortModeOptions')
@@ -849,6 +877,22 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+/**
+ * 监听搜索框输入变化
+ * @param {Event} e - 输入事件
+ */
+const onSearchInput = (e) => {
+  const value = e.detail.value
+  searchText.value = value
+}
+
+/**
+ * 清空搜索内容
+ */
+const clearSearch = () => {
+  searchText.value = ''
+}
 </script>
 
 <style scoped>
@@ -885,21 +929,50 @@ onMounted(async () => {
   background: #fff;
 }
 
-.input-wrapper {
+.search-container {
   position: relative;
   width: 100%;
+  flex-direction: row;
 }
 
 .search-input {
   width: 100%;
   height: 36px;
-  padding: 0 30px 0 10px;
+  padding: 0 40px 0 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  font-size: 14px;
 }
 
-.clear-icon {
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.search-clear-btn .clear-icon {
+  font-size: 14px;
+  color: #666;
+  line-height: 1;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrapper .clear-icon {
   position: absolute;
   right: 10px;
   top: 50%;
