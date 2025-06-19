@@ -6,8 +6,6 @@
 import { 
   getMatchTeacherList, 
   getTeacherDetail,
-  searchSchoolList,
-  searchMajorList,
   getNonProfessionalOptions,
   getSortModeOptions
 } from '../APIroute/match_api/match_api.js';

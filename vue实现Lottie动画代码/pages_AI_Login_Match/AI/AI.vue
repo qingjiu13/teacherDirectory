@@ -173,31 +173,29 @@
 				storeHistoryChats: state => state.aiChat.conversations,
 				storeActiveConversation: state => state.aiChat.activeConversation,
 				storeChatMode: state => state.aiChat.chatMode,
-				storeUserInfo: state => state.aiChat.userInfo,
-				schoolSearchData: state => state.aiChat.schoolSearch,
-				majorSearchData: state => state.aiChat.majorSearch
+				storeUserInfo: state => state.aiChat.userInfo
 			}),
 			
-			// 当前选择的学校和专业
+			// 当前选择的学校和专业 - 改为使用schoolMajorRequest模块
 			currentSchool() {
-				return this.schoolSearchData.selectedSchool || '';
+				return this.$store.getters['user/schoolMajorRequest/selectedUndergraduateSchool'].name || '';
 			},
 			currentMajor() {
-				return this.majorSearchData.selectedMajor || '';
+				return this.$store.getters['user/schoolMajorRequest/selectedUndergraduateMajor'].name || '';
 			},
 			currentSchoolId() {
-				return this.schoolSearchData.selectedSchoolId || null;
+				return this.$store.getters['user/schoolMajorRequest/selectedUndergraduateSchool'].id || null;
 			},
 			currentMajorId() {
-				return this.majorSearchData.selectedMajorId || null;
+				return this.$store.getters['user/schoolMajorRequest/selectedUndergraduateMajor'].id || null;
 			},
 			
-			// 学校和专业选项列表
+			// 学校和专业选项列表 - 改为使用schoolMajorRequest模块
 			schoolOptions() {
-				return this.schoolSearchData.options.map(item => item.name);
+				return this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'].map(item => item.name);
 			},
 			majorOptions() {
-				return this.majorSearchData.options.map(item => item.name);
+				return this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'].map(item => item.name);
 			},
 			
 			// 当前模式名称
@@ -444,9 +442,9 @@
 				this.schoolIndex = index;
 				
 				// 通过Vuex更新选择
-				const schoolOption = this.schoolSearchData.options.find(item => item.name === school);
+				const schoolOption = this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'].find(item => item.name === school);
 				if (schoolOption) {
-					this.$store.dispatch('user/aiChat/selectAISchool', {
+					this.$store.dispatch('user/schoolMajorRequest/selectUndergraduateSchool', {
 						id: schoolOption.id,
 						name: schoolOption.name
 					});
@@ -465,9 +463,9 @@
 				this.majorIndex = index;
 				
 				// 通过Vuex更新选择
-				const majorOption = this.majorSearchData.options.find(item => item.name === major);
+				const majorOption = this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'].find(item => item.name === major);
 				if (majorOption) {
-					this.$store.dispatch('user/aiChat/selectAIMajor', {
+					this.$store.dispatch('user/schoolMajorRequest/selectUndergraduateMajor', {
 						id: majorOption.id,
 						name: majorOption.name
 					});
@@ -501,7 +499,7 @@
 			 */
 			async performSchoolSearch(keyword) {
 				try {
-					const response = await this.$store.dispatch('user/aiChat/searchAISchools', {
+					const response = await this.$store.dispatch('user/schoolMajorRequest/searchUndergraduateSchools', {
 						keyword: keyword
 					});
 					
@@ -539,7 +537,7 @@
 			 */
 			async performMajorSearch(keyword) {
 				try {
-					const response = await this.$store.dispatch('user/aiChat/searchAIMajors', {
+					const response = await this.$store.dispatch('user/schoolMajorRequest/searchUndergraduateMajors', {
 						keyword: keyword
 					});
 					

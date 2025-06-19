@@ -234,11 +234,7 @@ export default {
       userTargetSchoolId: state => state.userInfo.targetSchoolId,
       userTargetMajorId: state => state.userInfo.targetMajorId,
       userStudentGrade: state => state.userInfo.studentGrade,
-      userTeacherGrade: state => state.userInfo.teacherGrade,
-      undergraduateSchoolSearchData: state => state.undergraduateSchoolSearch,
-      undergraduateMajorSearchData: state => state.undergraduateMajorSearch,
-      graduateSchoolSearchData: state => state.graduateSchoolSearch,
-      graduateMajorSearchData: state => state.graduateMajorSearch
+      userTeacherGrade: state => state.userInfo.teacherGrade
     }),
     
     /**
@@ -254,35 +250,67 @@ export default {
     },
     
     /**
-     * 本科学校选项列表
+     * 本科学校选项列表 - 使用 schoolMajorRequest 模块
      * @returns {Array} 学校名称列表
      */
     schoolOptions() {
-      return this.undergraduateSchoolSearchData.options.map(item => item.name);
+      return this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'].map(item => item.name);
     },
     
     /**
-     * 本科专业选项列表
+     * 本科专业选项列表 - 使用 schoolMajorRequest 模块
      * @returns {Array} 专业名称列表
      */
     majorOptions() {
-      return this.undergraduateMajorSearchData.options.map(item => item.name);
+      return this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'].map(item => item.name);
     },
     
     /**
-     * 研究生学校选项列表
+     * 研究生学校选项列表 - 使用 schoolMajorRequest 模块
      * @returns {Array} 学校名称列表
      */
     targetSchoolOptions() {
-      return this.graduateSchoolSearchData.options.map(item => item.name);
+      return this.$store.getters['user/schoolMajorRequest/graduateSchoolOptions'].map(item => item.name);
     },
     
     /**
-     * 研究生专业选项列表
+     * 研究生专业选项列表 - 使用 schoolMajorRequest 模块
      * @returns {Array} 专业名称列表
      */
     targetMajorOptions() {
-      return this.graduateMajorSearchData.options.map(item => item.name);
+      return this.$store.getters['user/schoolMajorRequest/graduateMajorOptions'].map(item => item.name);
+    },
+    
+    /**
+     * 本科学校搜索状态 - 使用 schoolMajorRequest 模块
+     * @returns {Object} 搜索状态信息
+     */
+    undergraduateSchoolSearchData() {
+      return this.$store.getters['user/schoolMajorRequest/undergraduateSchoolSearchStatus'];
+    },
+    
+    /**
+     * 本科专业搜索状态 - 使用 schoolMajorRequest 模块
+     * @returns {Object} 搜索状态信息
+     */
+    undergraduateMajorSearchData() {
+      return this.$store.getters['user/schoolMajorRequest/undergraduateMajorSearchStatus'];
+    },
+    
+    /**
+     * 研究生学校搜索状态 - 使用 schoolMajorRequest 模块
+     * @returns {Object} 搜索状态信息
+     */
+    graduateSchoolSearchData() {
+      return this.$store.getters['user/schoolMajorRequest/graduateSchoolSearchStatus'];
+    },
+    
+    /**
+     * 研究生专业搜索状态 - 使用 schoolMajorRequest 模块
+     * @returns {Object} 搜索状态信息
+     */
+    graduateMajorSearchData() {
+      return this.$store.getters['user/schoolMajorRequest/graduateMajorSearchStatus'];
     }
   },
   watch: {
@@ -408,8 +436,9 @@ export default {
      * @param {Array} schoolOptions - 学校选项列表
      */
     updateSchoolIndex(schoolOptions) {
-      if (this.undergraduateSchoolSearchData.selectedSchool && schoolOptions.length > 0) {
-        const schoolIndex = schoolOptions.indexOf(this.undergraduateSchoolSearchData.selectedSchool);
+      const selectedSchool = this.$store.getters['user/schoolMajorRequest/selectedUndergraduateSchool'];
+      if (selectedSchool.name && schoolOptions.length > 0) {
+        const schoolIndex = schoolOptions.indexOf(selectedSchool.name);
         this.formData.schoolIndex = schoolIndex !== -1 ? schoolIndex : -1;
       } else {
         this.formData.schoolIndex = -1;
@@ -421,8 +450,9 @@ export default {
      * @param {Array} majorOptions - 专业选项列表
      */
     updateMajorIndex(majorOptions) {
-      if (this.undergraduateMajorSearchData.selectedMajor && majorOptions.length > 0) {
-        const majorIndex = majorOptions.indexOf(this.undergraduateMajorSearchData.selectedMajor);
+      const selectedMajor = this.$store.getters['user/schoolMajorRequest/selectedUndergraduateMajor'];
+      if (selectedMajor.name && majorOptions.length > 0) {
+        const majorIndex = majorOptions.indexOf(selectedMajor.name);
         this.formData.majorIndex = majorIndex !== -1 ? majorIndex : -1;
       } else {
         this.formData.majorIndex = -1;
@@ -434,10 +464,11 @@ export default {
      * @param {Array} targetSchoolOptions - 目标学校选项列表
      */
     updateTargetSchoolIndex(targetSchoolOptions) {
-      if (this.graduateSchoolSearchData.selectedSchool && targetSchoolOptions.length > 0) {
-        const schoolIndex = targetSchoolOptions.indexOf(this.graduateSchoolSearchData.selectedSchool);
+      const selectedSchool = this.$store.getters['user/schoolMajorRequest/selectedGraduateSchool'];
+      if (selectedSchool.name && targetSchoolOptions.length > 0) {
+        const schoolIndex = targetSchoolOptions.indexOf(selectedSchool.name);
         this.formData.targetSchoolIndex = schoolIndex !== -1 ? schoolIndex : -1;
-        this.formData.targetSchool = this.graduateSchoolSearchData.selectedSchool;
+        this.formData.targetSchool = selectedSchool.name;
       } else {
         this.formData.targetSchoolIndex = -1;
         this.formData.targetSchool = '';
@@ -449,10 +480,11 @@ export default {
      * @param {Array} targetMajorOptions - 目标专业选项列表
      */
     updateTargetMajorIndex(targetMajorOptions) {
-      if (this.graduateMajorSearchData.selectedMajor && targetMajorOptions.length > 0) {
-        const majorIndex = targetMajorOptions.indexOf(this.graduateMajorSearchData.selectedMajor);
+      const selectedMajor = this.$store.getters['user/schoolMajorRequest/selectedGraduateMajor'];
+      if (selectedMajor.name && targetMajorOptions.length > 0) {
+        const majorIndex = targetMajorOptions.indexOf(selectedMajor.name);
         this.formData.targetMajorIndex = majorIndex !== -1 ? majorIndex : -1;
-        this.formData.targetMajor = this.graduateMajorSearchData.selectedMajor;
+        this.formData.targetMajor = selectedMajor.name;
       } else {
         this.formData.targetMajorIndex = -1;
         this.formData.targetMajor = '';
@@ -467,10 +499,11 @@ export default {
     handleSchoolSelect(index, school) {
       this.formData.schoolIndex = index;
       
-      // 通过Vuex更新选择
-      const schoolOption = this.undergraduateSchoolSearchData.options.find(item => item.name === school);
+      // 通过新的 schoolMajorRequest 模块更新选择
+      const schoolOptions = this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'];
+      const schoolOption = schoolOptions.find(item => item.name === school);
       if (schoolOption) {
-        this.$store.dispatch('user/baseInfo/selectUndergraduateSchool', {
+        this.$store.dispatch('user/schoolMajorRequest/selectUndergraduateSchool', {
           id: schoolOption.id,
           name: schoolOption.name
         });
@@ -485,10 +518,11 @@ export default {
     handleMajorSelect(index, major) {
       this.formData.majorIndex = index;
       
-      // 通过Vuex更新选择
-      const majorOption = this.undergraduateMajorSearchData.options.find(item => item.name === major);
+      // 通过新的 schoolMajorRequest 模块更新选择
+      const majorOptions = this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'];
+      const majorOption = majorOptions.find(item => item.name === major);
       if (majorOption) {
-        this.$store.dispatch('user/baseInfo/selectUndergraduateMajor', {
+        this.$store.dispatch('user/schoolMajorRequest/selectUndergraduateMajor', {
           id: majorOption.id,
           name: majorOption.name
         });
@@ -504,10 +538,11 @@ export default {
       this.formData.targetSchoolIndex = index;
       this.formData.targetSchool = school;
       
-      // 通过Vuex更新选择
-      const schoolOption = this.graduateSchoolSearchData.options.find(item => item.name === school);
+      // 通过新的 schoolMajorRequest 模块更新选择
+      const schoolOptions = this.$store.getters['user/schoolMajorRequest/graduateSchoolOptions'];
+      const schoolOption = schoolOptions.find(item => item.name === school);
       if (schoolOption) {
-        this.$store.dispatch('user/baseInfo/selectGraduateSchool', {
+        this.$store.dispatch('user/schoolMajorRequest/selectGraduateSchool', {
           id: schoolOption.id,
           name: schoolOption.name
         });
@@ -523,10 +558,11 @@ export default {
       this.formData.targetMajorIndex = index;
       this.formData.targetMajor = major;
       
-      // 通过Vuex更新选择
-      const majorOption = this.graduateMajorSearchData.options.find(item => item.name === major);
+      // 通过新的 schoolMajorRequest 模块更新选择
+      const majorOptions = this.$store.getters['user/schoolMajorRequest/graduateMajorOptions'];
+      const majorOption = majorOptions.find(item => item.name === major);
       if (majorOption) {
-        this.$store.dispatch('user/baseInfo/selectGraduateMajor', {
+        this.$store.dispatch('user/schoolMajorRequest/selectGraduateMajor', {
           id: majorOption.id,
           name: majorOption.name
         });
@@ -564,7 +600,7 @@ export default {
      */
     async performSchoolSearch(keyword) {
       try {
-        await this.$store.dispatch('user/baseInfo/searchUndergraduateSchools', {
+        await this.$store.dispatch('user/schoolMajorRequest/searchUndergraduateSchools', {
           keyword: keyword
         });
       } catch (error) {
@@ -598,7 +634,7 @@ export default {
      */
     async performMajorSearch(keyword) {
       try {
-        await this.$store.dispatch('user/baseInfo/searchUndergraduateMajors', {
+        await this.$store.dispatch('user/schoolMajorRequest/searchUndergraduateMajors', {
           keyword: keyword
         });
       } catch (error) {
@@ -632,7 +668,7 @@ export default {
      */
     async performTargetSchoolSearch(keyword) {
       try {
-        await this.$store.dispatch('user/baseInfo/searchGraduateSchools', {
+        await this.$store.dispatch('user/schoolMajorRequest/searchGraduateSchools', {
           keyword: keyword
         });
       } catch (error) {
@@ -666,7 +702,7 @@ export default {
      */
     async performTargetMajorSearch(keyword) {
       try {
-        await this.$store.dispatch('user/baseInfo/searchGraduateMajors', {
+        await this.$store.dispatch('user/schoolMajorRequest/searchGraduateMajors', {
           keyword: keyword
         });
       } catch (error) {
@@ -687,8 +723,8 @@ export default {
       this.formData.targetMajorIndex = -1;
       this.formData.targetMajor = '';
       
-      // 清空专业列表
-      this.$store.commit('user/baseInfo/SET_GRADUATE_MAJOR_OPTIONS', []);
+      // 通过新的 schoolMajorRequest 模块清空专业列表
+      this.$store.commit('user/schoolMajorRequest/CLEAR_GRADUATE_MAJOR_SELECTION');
     },
     
     /**
@@ -711,11 +747,17 @@ export default {
      * @description 提交表单
      */
     submitForm() {
+      // 从新的 schoolMajorRequest 模块获取选项数据
+      const undergraduateSchoolOptions = this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'];
+      const undergraduateMajorOptions = this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'];
+      const graduateSchoolOptions = this.$store.getters['user/schoolMajorRequest/graduateSchoolOptions'];
+      const graduateMajorOptions = this.$store.getters['user/schoolMajorRequest/graduateMajorOptions'];
+      
       // 检查必填字段（虽然是可选填写，但老师角色需要确认协议）
-      const selectedSchoolOption = this.undergraduateSchoolSearchData.options[this.formData.schoolIndex];
-      const selectedMajorOption = this.undergraduateMajorSearchData.options[this.formData.majorIndex];
-      const selectedTargetSchoolOption = this.graduateSchoolSearchData.options[this.formData.targetSchoolIndex];
-      const selectedTargetMajorOption = this.graduateMajorSearchData.options[this.formData.targetMajorIndex];
+      const selectedSchoolOption = undergraduateSchoolOptions[this.formData.schoolIndex];
+      const selectedMajorOption = undergraduateMajorOptions[this.formData.majorIndex];
+      const selectedTargetSchoolOption = graduateSchoolOptions[this.formData.targetSchoolIndex];
+      const selectedTargetMajorOption = graduateMajorOptions[this.formData.targetMajorIndex];
       const selectedGrade = this.gradeList[this.formData.gradeIndex];
       
       // 构造用户信息
