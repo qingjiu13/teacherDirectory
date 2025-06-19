@@ -4,6 +4,7 @@
  */
 
 import { USER_GET_USER_INFO_URL, USER_UPDATE_USER_INFO_URL } from '../../API.js';
+import { apiRequest } from '../../JWT.js';
 
 /**
  * 获取用户基本信息
@@ -15,23 +16,11 @@ import { USER_GET_USER_INFO_URL, USER_UPDATE_USER_INFO_URL } from '../../API.js'
  */
 export const getUserInfo = async (userId) => {
   try {
-    const response = await fetch(USER_GET_USER_INFO_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id: userId }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`获取用户信息失败: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    const response = await apiRequest(USER_GET_USER_INFO_URL, 'POST', { id: userId });
+    return response.data;
   } catch (error) {
     console.error('获取用户信息出错:', error);
-    throw error;
+    throw new Error(error.error?.message || '获取用户信息失败');
   }
 };
 
@@ -59,22 +48,10 @@ export const updateUserInfo = async (userId, userData) => {
       ...userData
     };
 
-    const response = await fetch(USER_UPDATE_USER_INFO_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`更新用户信息失败: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    const response = await apiRequest(USER_UPDATE_USER_INFO_URL, 'POST', requestData);
+    return response.data;
   } catch (error) {
     console.error('更新用户信息出错:', error);
-    throw error;
+    throw new Error(error.error?.message || '更新用户信息失败');
   }
 };

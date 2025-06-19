@@ -36,37 +36,9 @@ export const getMatchTeacherList = (params) => {
   });
 };
 
-/**
- * 搜索学校列表
- * @param {Object} params - 请求参数
- * @param {string} params.userId - 用户ID
- * @param {string} params.keyword - 搜索关键词
- * @param {number} params.currentPage - 当前页码
- * @param {number} params.pageSize - 每页数量
- * @returns {Promise} 返回学校搜索结果
- */
-export const searchSchoolList = (params) => {
-  // return apiRequest(`${API_BASE_URL}/school/search`, 'POST', {
-  //   keyword: params.keyword,
-  //   currentPage: params.currentPage,
-  //   pageSize: params.pageSize
-  // });
-};
 
-/**
- * 根据学校ID搜索专业列表
- * @param {Object} params - 请求参数
- * @param {string} params.userId - 用户ID
- * @param {number} params.schoolId - 学校ID
- * @param {string} params.keyword - 搜索关键词
- * @returns {Promise} 返回专业搜索结果
- */
-export const searchMajorList = (params) => {
-  // return apiRequest(`${API_BASE_URL}/major/search`, 'POST', {
-  //   schoolId: params.schoolId,
-  //   keyword: params.keyword
-  // });
-};
+
+
 
 /**
  * 获取非专业课选项列表
@@ -101,10 +73,25 @@ export const getSortModeOptions = (params) => {
  * @returns {Promise} 返回老师的详细信息
  */
 export const getTeacherDetail = (params) => {
-  // return apiRequest(`${API_BASE_URL}/teacher/detail`, 'POST', {
-  //   userId: params.userId,
-  //   teacherId: params.teacherId
-  // });
+  console.log('=== getTeacherDetail API 被调用 ===');
+  console.log('接收到的完整参数:', JSON.stringify(params, null, 2));
+  
+  // 确保teacherId是正确的类型
+  let teacherId = params.teacherId;
+  
+  // 如果是字符串数字，转换为数字
+  if (typeof teacherId === 'string' && !isNaN(teacherId)) {
+    teacherId = parseInt(teacherId);
+  }
+  
+  const requestParams = {
+    teacherId: teacherId
+  };
+  
+  console.log('准备发送的请求参数:', JSON.stringify(requestParams, null, 2));
+  console.log('API URL:', `${API_BASE_URL}/teacher/match/detail`);
+  
+  return apiRequest(`${API_BASE_URL}/teacher/match/detail`, 'POST', requestParams);
 };
 
 

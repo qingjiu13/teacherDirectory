@@ -328,10 +328,15 @@ export const selectSortMode = ({ commit }, { id, name }) => {
  * @returns {Promise} 返回老师详细信息
  */
 export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
+  console.log('=== fetchTeacherDetail 开始执行 ===');
+  console.log('teacherId:', teacherId);
+  
   // 从根state获取用户ID
   const userId = rootState.user.baseInfo.id;
+  console.log('userId:', userId);
   
   if (!teacherId) {
+    console.error('teacherId 为空，退出');
     return Promise.reject(new Error('老师ID不能为空'));
   }
   
@@ -341,21 +346,53 @@ export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
     teacherId: teacherId
   };
   
+  console.log('构建的请求参数:', params);
+  
   return new Promise((resolve, reject) => {
+    console.log('准备调用 getTeacherDetail API...');
+    
     getTeacherDetail(params)
       .then(response => {
-        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
-        if (response && response.success && response.data) {
-          // 更新老师详情
-          commit('SET_TEACHER_DETAIL', {
-            teacherId: teacherId,
-            detail: response.data
-          });
+        console.log('=== API 响应完整数据 ===');
+        console.log('response:', JSON.stringify(response, null, 2));
+        
+        // 检查返回的数据结构
+        if (response && response.success) {
+          console.log('response.success 为 true');
+          
+          if (response.data) {
+            console.log('response.data 存在');
+            console.log('response.data:', JSON.stringify(response.data, null, 2));
+            
+            const teacherDetail = response.data;
+            
+            console.log('准备调用 SET_TEACHER_DETAIL mutation...');
+            console.log('teacherId:', teacherId);
+            console.log('detail:', JSON.stringify(teacherDetail, null, 2));
+            
+            // 更新老师详情到store
+            commit('SET_TEACHER_DETAIL', {
+              teacherId: teacherId,
+              detail: teacherDetail
+            });
+            
+            console.log('SET_TEACHER_DETAIL mutation 调用完成');
+          } else {
+            console.error('response.data 不存在');
+          }
+        } else {
+          console.error('response.success 不为 true 或 response 不存在');
+          console.log('响应格式不正确:', response);
+          reject(new Error('响应数据格式不正确'));
+          return;
         }
+        
+        console.log('=== fetchTeacherDetail 成功完成 ===');
         resolve(response);
       })
       .catch(error => {
-        console.error('获取老师详情失败:', error);
+        console.error('=== fetchTeacherDetail 发生错误 ===');
+        console.error('错误详情:', error);
         reject(error);
       });
   });

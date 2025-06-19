@@ -53,20 +53,49 @@ export default {
    * @param {Object} payload.detail - 老师详细信息
    */
   SET_TEACHER_DETAIL(state, { teacherId, detail }) {
+    console.log('=== SET_TEACHER_DETAIL mutation 开始执行 ===');
+    console.log('接收到的参数 - teacherId:', teacherId);
+    console.log('接收到的参数 - detail:', JSON.stringify(detail, null, 2));
+    console.log('当前 matchList 长度:', state.matchList.length);
+    console.log('当前 matchList:', JSON.stringify(state.matchList.map(t => ({id: t.id, name: t.name})), null, 2));
+    
     // 找到匹配列表中对应的老师
     const teacherIndex = state.matchList.findIndex(teacher => teacher.id === teacherId);
+    console.log('查找到的老师索引:', teacherIndex);
     
     if (teacherIndex !== -1) {
+      console.log('找到了对应的老师，准备更新...');
+      const originalTeacher = state.matchList[teacherIndex];
+      console.log('原始老师数据:', JSON.stringify(originalTeacher, null, 2));
+      
       // 如果存在，则更新详细信息
       const updatedTeacher = {
-        ...state.matchList[teacherIndex],
-        selfIntroduction: detail.selfIntroduction || state.matchList[teacherIndex].selfIntroduction,
-        service: detail.service || state.matchList[teacherIndex].service
+        ...originalTeacher,
+        // 更新服务列表
+        service: detail.service || originalTeacher.service || [],
+        // 如果有其他字段，也可以在这里更新
+        selfIntroduction: detail.selfIntroduction || originalTeacher.selfIntroduction,
+        // 其他可能的字段
+        ...detail
       };
+      
+      console.log('合并后的老师数据:', JSON.stringify(updatedTeacher, null, 2));
       
       // 使用Vue.set保证响应式更新
       state.matchList.splice(teacherIndex, 1, updatedTeacher);
+      
+      console.log('老师信息已更新到matchList');
+      console.log('更新后的 matchList:', JSON.stringify(state.matchList.map(t => ({id: t.id, name: t.name, serviceCount: t.service?.length || 0})), null, 2));
+    } else {
+      console.warn('=== 未找到对应的老师 ===');
+      console.warn('查找的 teacherId:', teacherId, '类型:', typeof teacherId);
+      console.warn('matchList 中的所有 ID:');
+      state.matchList.forEach((teacher, index) => {
+        console.warn(`[${index}] id: ${teacher.id} (类型: ${typeof teacher.id})`);
+      });
     }
+    
+    console.log('=== SET_TEACHER_DETAIL mutation 执行完成 ===');
   },
   
   /**

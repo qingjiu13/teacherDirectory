@@ -112,9 +112,9 @@
             <view class="input-wrapper">
               <input
                 v-model="majorInput"
-                :placeholder="selectedSchoolId ? '请输入专业名称' : '请先选择学校'"
+                :placeholder="store.getters['user/schoolMajorRequest/selectedGraduateSchool'].id ? '请输入专业名称' : '请先选择学校'"
                 class="search-input"
-                :disabled="!selectedSchoolId"
+                :disabled="!store.getters['user/schoolMajorRequest/selectedGraduateSchool'].id"
                 @input="onMajorInput"
                 @click.stop
               />
@@ -358,18 +358,18 @@ const matchTeachers = computed(() => {
 const currentPage = computed(() => store.state.user.match.currentPage)
 const hasMore = computed(() => store.state.user.match.hasMore)
 
-// 学校相关数据
+// 学校相关数据 - 改为使用研究生学校数据
 const schoolInput = ref('')
-const schoolOptions = computed(() => store.state.user.match.schoolList.options)
-const schoolLoading = computed(() => store.state.user.match.schoolList.isLoading)
-const schoolHasMore = computed(() => store.state.user.match.schoolList.hasMore)
+const schoolOptions = computed(() => store.getters['user/schoolMajorRequest/graduateSchoolOptions'])
+const schoolLoading = computed(() => store.getters['user/schoolMajorRequest/graduateSchoolSearchStatus'].isLoading)
+const schoolHasMore = computed(() => store.getters['user/schoolMajorRequest/graduateSchoolSearchStatus'].hasMore)
 const selectedSchoolId = ref(null)
 const selectedSchoolName = ref('')
 
-// 专业相关数据
+// 专业相关数据 - 改为使用研究生专业数据
 const majorInput = ref('')
-const majorOptions = computed(() => store.state.user.match.professionalList.options)
-const majorLoading = computed(() => store.state.user.match.professionalList.isLoading)
+const majorOptions = computed(() => store.getters['user/schoolMajorRequest/graduateMajorOptions'])
+const majorLoading = computed(() => store.getters['user/schoolMajorRequest/graduateMajorSearchStatus'].isLoading)
 const selectedMajorId = ref(null)
 const selectedMajorName = ref('')
 
@@ -394,11 +394,11 @@ let searchTimer = null
  */
 const isActive = (key) => {
   if (key === 'school') {
-    return !!store.state.user.match.schoolList.selectedSchool
+    return !!store.getters['user/schoolMajorRequest/selectedGraduateSchool'].name
   }
   
   if (key === 'professional') {
-    return !!store.state.user.match.professionalList.selectedMajor
+    return !!store.getters['user/schoolMajorRequest/selectedGraduateMajor'].name
   }
   
   if (key === 'nonProfessional') {
@@ -439,10 +439,12 @@ const onOptionClick = (key) => {
 const initFilterData = async (key) => {
   if (key === 'school') {
     // 同步当前选中的学校
-    const schoolState = store.state.user.match.schoolList
-    selectedSchoolId.value = schoolState.selectedSchoolId
-    selectedSchoolName.value = schoolState.selectedSchool
-    schoolInput.value = schoolState.searchKeyword || ''
+    const selectedSchool = store.getters['user/schoolMajorRequest/selectedGraduateSchool']
+    const searchStatus = store.getters['user/schoolMajorRequest/graduateSchoolSearchStatus']
+    
+    selectedSchoolId.value = selectedSchool.id
+    selectedSchoolName.value = selectedSchool.name
+    schoolInput.value = searchStatus.keyword || ''
     
     // 如果没有选项，触发搜索
     if (schoolOptions.value.length === 0) {
@@ -452,13 +454,16 @@ const initFilterData = async (key) => {
   
   if (key === 'professional') {
     // 同步当前选中的专业
-    const professionalState = store.state.user.match.professionalList
-    selectedMajorId.value = professionalState.selectedMajorId
-    selectedMajorName.value = professionalState.selectedMajor
-    majorInput.value = professionalState.searchKeyword || ''
+    const selectedMajor = store.getters['user/schoolMajorRequest/selectedGraduateMajor']
+    const searchStatus = store.getters['user/schoolMajorRequest/graduateMajorSearchStatus']
+    
+    selectedMajorId.value = selectedMajor.id
+    selectedMajorName.value = selectedMajor.name
+    majorInput.value = searchStatus.keyword || ''
     
     // 检查是否已选择学校
-    if (!store.state.user.match.schoolList.selectedSchoolId) {
+    const selectedSchool = store.getters['user/schoolMajorRequest/selectedGraduateSchool']
+    if (!selectedSchool.id) {
       majorInput.value = ''
       return
     }
@@ -527,7 +532,9 @@ const onSchoolInput = (e) => {
 const onMajorInput = (e) => {
   const keyword = e.detail.value || majorInput.value
   
-  if (!selectedSchoolId.value) return
+  // 检查 Vuex 中选中的学校而不是本地状态
+  const selectedSchool = store.getters['user/schoolMajorRequest/selectedGraduateSchool']
+  if (!selectedSchool.id) return
   
   // 清除之前的定时器
   if (searchTimer) {
@@ -547,7 +554,7 @@ const onMajorInput = (e) => {
  */
 const searchSchools = async (keyword, loadMore = false) => {
   try {
-    await store.dispatch('user/match/searchSchools', { keyword, loadMore })
+    await store.dispatch('user/schoolMajorRequest/searchGraduateSchools', { keyword, loadMore })
   } catch (error) {
     console.error('搜索学校失败:', error)
     uni.showToast({
@@ -563,7 +570,7 @@ const searchSchools = async (keyword, loadMore = false) => {
  */
 const searchMajors = async (keyword) => {
   try {
-    await store.dispatch('user/match/searchMajors', { keyword })
+    await store.dispatch('user/schoolMajorRequest/searchGraduateMajors', { keyword })
   } catch (error) {
     console.error('搜索专业失败:', error)
     uni.showToast({
@@ -577,7 +584,8 @@ const searchMajors = async (keyword) => {
  * 加载更多学校
  */
 const loadMoreSchools = () => {
-  if (!schoolLoading.value && schoolHasMore.value) {
+  const searchStatus = store.getters['user/schoolMajorRequest/graduateSchoolSearchStatus']
+  if (!searchStatus.isLoading && searchStatus.hasMore) {
     searchSchools(schoolInput.value, true)
   }
 }
@@ -655,13 +663,13 @@ const selectSortOption = (option) => {
  */
 const confirmSchoolFilter = async () => {
   if (selectedSchoolId.value && selectedSchoolName.value) {
-    await store.dispatch('user/match/selectSchool', {
+    await store.dispatch('user/schoolMajorRequest/selectGraduateSchool', {
       id: selectedSchoolId.value,
       name: selectedSchoolName.value
     })
   } else {
     // 清空选择
-    await store.dispatch('user/match/selectSchool', {
+    await store.dispatch('user/schoolMajorRequest/selectGraduateSchool', {
       id: null,
       name: ''
     })
@@ -677,13 +685,13 @@ const confirmSchoolFilter = async () => {
  */
 const confirmProfessionalFilter = async () => {
   if (selectedMajorId.value && selectedMajorName.value) {
-    await store.dispatch('user/match/selectMajor', {
+    await store.dispatch('user/schoolMajorRequest/selectGraduateMajor', {
       id: selectedMajorId.value,
       name: selectedMajorName.value
     })
   } else {
     // 清空选择
-    await store.dispatch('user/match/selectMajor', {
+    await store.dispatch('user/schoolMajorRequest/selectGraduateMajor', {
       id: null,
       name: ''
     })
@@ -738,9 +746,45 @@ const confirmSortFilter = async () => {
 
 /**
  * 查看老师详情
+ * @param {string} teacherId - 老师ID
  */
-const viewTeacherDetail = (teacherId) => {
-  Navigator.toTeacher(teacherId)
+const viewTeacherDetail = async (teacherId) => {
+  console.log('=== viewTeacherDetail 被调用 ===');
+  console.log('传入的 teacherId:', teacherId, '类型:', typeof teacherId);
+  
+  // 确保teacherId是正确的类型（可能需要转换）
+  const normalizedTeacherId = String(teacherId);
+  console.log('标准化后的 teacherId:', normalizedTeacherId);
+  
+  try {
+    // 显示加载状态
+    uni.showLoading({
+      title: '加载中...'
+    })
+    
+    console.log('准备调用 store.dispatch...');
+    
+    // 调用store action获取老师详情
+    const result = await store.dispatch('user/match/fetchTeacherDetail', { teacherId: normalizedTeacherId })
+    
+    console.log('store.dispatch 返回结果:', result);
+    
+    // 隐藏加载状态
+    uni.hideLoading()
+    
+    console.log('准备跳转到老师详情页面...');
+    
+    // 跳转到老师详情页面
+    Navigator.toTeacher(normalizedTeacherId)
+  } catch (error) {
+    console.error('=== viewTeacherDetail 发生错误 ===');
+    console.error('错误详情:', error);
+    uni.hideLoading()
+    uni.showToast({
+      title: '获取老师详情失败',
+      icon: 'none'
+    })
+  }
 }
 
 /**
@@ -808,8 +852,8 @@ const applyFilters = () => {
 const filterSummary = computed(() => {
   const summary = {}
   
-  summary.school = store.state.user.match.schoolList.selectedSchool || ''
-  summary.professional = store.state.user.match.professionalList.selectedMajor || ''
+  summary.school = store.getters['user/schoolMajorRequest/selectedGraduateSchool'].name || ''
+  summary.professional = store.getters['user/schoolMajorRequest/selectedGraduateMajor'].name || ''
   
   const nonProfList = store.state.user.match.nonProfessionalList
   const nonProfItems = []
@@ -850,6 +894,8 @@ const handleBack = () => {
 
 // 初始化
 onMounted(async () => {
+  console.log('=== match.vue onMounted 开始 ===');
+  
   // 设置JWT Token到store中（如果还没有设置的话）
   if (!store.state.user.baseInfo.jwtToken) {
     const testToken = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJpZCI6MSwibG9naW5fdXNlcl9rZXkiOiI0YjMwYmQ1Yy04ZDUwLTQ0OGEtYTA4Mi1kZWUxOGMwNmIyMzEifQ.sDcrRbV52iDBs2AHVI5t7_ZfqWZaZm9la861HZyRjZvsbVz2ucI-e3RsYOSkUHSACPG3SGD0_5m-pcKyYCUofg';
@@ -871,11 +917,26 @@ onMounted(async () => {
   isLoading.value = true
   try {
     await store.dispatch('user/match/fetchMatchTeacherList')
+    
+    // 添加调试信息
+    console.log('=== 初始化后的状态检查 ===');
+    console.log('matchTeachers computed:', matchTeachers.value);
+    console.log('matchTeachers 长度:', matchTeachers.value.length);
+    console.log('store.state.user.match.matchList:', store.state.user.match.matchList);
+    
+    if (matchTeachers.value.length > 0) {
+      console.log('第一个老师的数据结构:', JSON.stringify(matchTeachers.value[0], null, 2));
+    } else {
+      console.log('matchTeachers 为空');
+    }
+    
     isLoading.value = false
   } catch (error) {
     console.error('初始化匹配列表失败:', error)
     isLoading.value = false
   }
+  
+  console.log('=== match.vue onMounted 完成 ===');
 })
 
 /**

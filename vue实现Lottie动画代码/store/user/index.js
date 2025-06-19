@@ -10,6 +10,7 @@ import baseInfo from './baseInfo'
 import match from './match'
 import aiChat from './ai-chat'
 import uploadFile from './uploadFile/upload'
+import schoolMajorRequest from './schoolMajorRequest'
 
 /**
  * 用户模块配置
@@ -23,7 +24,8 @@ export default {
         baseInfo,
         match,
         aiChat,
-        uploadFile
+        uploadFile,
+        schoolMajorRequest
     }
 }
 

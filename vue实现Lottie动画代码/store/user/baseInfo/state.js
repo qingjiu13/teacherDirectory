@@ -25,53 +25,5 @@ export default {
         studentGrade: '大三',//学生年级
         teacherGrade: '研一',//老师年级
     },
-    
-    // 本科学校搜索相关状态（用于登录详情页面）
-    undergraduateSchoolSearch: {
-        selectedSchool: '', // 当前选中的学校名称
-        selectedSchoolId: null, // 当前选中的学校ID
-        searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的学校选项列表 [{id, name}]
-        currentPage: 1, // 当前页码
-        pageSize: 20, // 每页数量
-        hasMore: true, // 是否还有更多数据
-        isLoading: false // 是否正在加载
-    },
-    
-    // 本科专业搜索相关状态
-    undergraduateMajorSearch: {
-        selectedMajor: '', // 当前选中的专业名称
-        selectedMajorId: null, // 当前选中的专业ID
-        searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的专业选项列表 [{id, name}]
-        currentPage: 1, // 当前页码
-        pageSize: 20, // 每页数量
-        hasMore: true, // 是否还有更多数据
-        isLoading: false // 是否正在加载
-    },
-    
-    // 研究生学校搜索相关状态（目标学校）
-    graduateSchoolSearch: {
-        selectedSchool: '', // 当前选中的学校名称
-        selectedSchoolId: null, // 当前选中的学校ID
-        searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的学校选项列表 [{id, name}]
-        currentPage: 1, // 当前页码
-        pageSize: 20, // 每页数量
-        hasMore: true, // 是否还有更多数据
-        isLoading: false // 是否正在加载
-    },
-    
-    // 研究生专业搜索相关状态（目标专业）
-    graduateMajorSearch: {
-        selectedMajor: '', // 当前选中的专业名称
-        selectedMajorId: null, // 当前选中的专业ID
-        searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的专业选项列表 [{id, name}]
-        currentPage: 1, // 当前页码
-        pageSize: 20, // 每页数量
-        hasMore: true, // 是否还有更多数据
-        isLoading: false // 是否正在加载
-    },
     jwtToken: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJpZCI6MSwibG9naW5fdXNlcl9rZXkiOiI0YjMwYmQ1Yy04ZDUwLTQ0OGEtYTA4Mi1kZWUxOGMwNmIyMzEifQ.sDcrRbV52iDBs2AHVI5t7_ZfqWZaZm9la861HZyRjZvsbVz2ucI-e3RsYOSkUHSACPG3SGD0_5m-pcKyYCUofg',
 };

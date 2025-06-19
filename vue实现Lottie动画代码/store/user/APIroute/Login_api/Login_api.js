@@ -8,6 +8,7 @@ import {
   LOGIN_URL, 
   LOGIN_SIGN_IN_URL 
 } from '../../API.js';
+import { apiRequest } from '../../JWT.js';
 
 /**
  * @description 判断用户是否注册过
@@ -33,36 +34,22 @@ export const checkUserRegistration = (options = {}) => {
     return Promise.reject(new Error(error));
   }
   
-  // 构建请求
-  const requestTask = uni.request({
-    url: LOGIN_WETHER_SIGN_IN_URL,
-    method: 'POST',
-    data: { code },
-    header: {
-      'content-type': 'application/json'
-    }
-  });
+  // 构建请求，不需要认证
+  const requestTask = apiRequest(LOGIN_WETHER_SIGN_IN_URL, 'POST', { code }, { requireAuth: false });
   
   // 如果传入了回调函数，使用回调处理结果
   if (typeof success === 'function' || typeof fail === 'function' || typeof complete === 'function') {
     requestTask.then(response => {
-      // 状态码检查
-      if (response.statusCode === 200) {
-        if (typeof success === 'function') {
-          success(response.data);
-        }
-      } else {
-        if (typeof fail === 'function') {
-          fail({
-            errMsg: '接口请求失败',
-            errCode: response.statusCode,
-            data: response.data
-          });
-        }
+      if (typeof success === 'function') {
+        success(response.data);
       }
     }).catch(error => {
       if (typeof fail === 'function') {
-        fail({ errMsg: '网络请求失败', error });
+        fail({
+          errMsg: error.error?.message || '网络请求失败',
+          errCode: error.error?.statusCode,
+          data: error.error
+        });
       }
     }).finally(() => {
       if (typeof complete === 'function') {
@@ -75,15 +62,13 @@ export const checkUserRegistration = (options = {}) => {
   
   // 如果没有回调函数，返回处理后的Promise
   return requestTask.then(response => {
-    if (response.statusCode === 200) {
-      return response.data;
-    } else {
-      throw {
-        errMsg: '接口请求失败',
-        errCode: response.statusCode,
-        data: response.data
-      };
-    }
+    return response.data;
+  }).catch(error => {
+    throw {
+      errMsg: error.error?.message || '网络请求失败',
+      errCode: error.error?.statusCode,
+      data: error.error
+    };
   });
 };
 
@@ -112,40 +97,27 @@ export const verifyLoginStatus = (options = {}) => {
   }
   
   // 构建请求，携带token到后端验证
-  const requestTask = uni.request({
-    url: LOGIN_URL,
-    method: 'POST',
-    header: {
-      'content-type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
-  });
+  const requestTask = apiRequest(LOGIN_URL, 'POST', {});
   
   // 如果传入了回调函数，使用回调处理结果
   if (typeof success === 'function' || typeof fail === 'function' || typeof complete === 'function') {
     requestTask.then(response => {
-      if (response.statusCode === 200) {
-        if (typeof success === 'function') {
-          success(response.data);
-        }
-      } else {
-        // 401表示token无效或过期
-        if (response.statusCode === 401) {
-          // 清除本地无效token
-          uni.removeStorageSync('token');
-        }
-        
-        if (typeof fail === 'function') {
-          fail({
-            errMsg: '登录状态验证失败',
-            errCode: response.statusCode,
-            data: response.data
-          });
-        }
+      if (typeof success === 'function') {
+        success(response.data);
       }
     }).catch(error => {
+      // 401表示token无效或过期
+      if (error.error?.statusCode === 401) {
+        // 清除本地无效token
+        uni.removeStorageSync('token');
+      }
+      
       if (typeof fail === 'function') {
-        fail({ errMsg: '网络请求失败', error });
+        fail({
+          errMsg: error.error?.message || '登录状态验证失败',
+          errCode: error.error?.statusCode,
+          data: error.error
+        });
       }
     }).finally(() => {
       if (typeof complete === 'function') {
@@ -158,21 +130,19 @@ export const verifyLoginStatus = (options = {}) => {
   
   // 如果没有回调函数，返回处理后的Promise
   return requestTask.then(response => {
-    if (response.statusCode === 200) {
-      return response.data;
-    } else {
-      // 401表示token无效或过期
-      if (response.statusCode === 401) {
-        // 清除本地无效token
-        uni.removeStorageSync('token');
-      }
-      
-      throw {
-        errMsg: '登录状态验证失败',
-        errCode: response.statusCode,
-        data: response.data
-      };
+    return response.data;
+  }).catch(error => {
+    // 401表示token无效或过期
+    if (error.error?.statusCode === 401) {
+      // 清除本地无效token
+      uni.removeStorageSync('token');
     }
+    
+    throw {
+      errMsg: error.error?.message || '登录状态验证失败',
+      errCode: error.error?.statusCode,
+      data: error.error
+    };
   });
 };
 
@@ -238,40 +208,27 @@ export const registerUser = (options = {}) => {
     ...(targetMajor && { targetMajor })
   };
   
-  // 发送注册请求
-  const requestTask = uni.request({
-    url: LOGIN_SIGN_IN_URL,
-    method: 'POST',
-    data: requestData,
-    header: {
-      'content-type': 'application/json'
-    }
-  });
+  // 发送注册请求，不需要认证
+  const requestTask = apiRequest(LOGIN_SIGN_IN_URL, 'POST', requestData, { requireAuth: false });
   
   // 如果传入了回调函数，使用回调处理结果
   if (typeof success === 'function' || typeof fail === 'function' || typeof complete === 'function') {
     requestTask.then(response => {
-      if (response.statusCode === 200) {
-        // 注册成功，保存token
-        if (response.data && response.data.token) {
-          uni.setStorageSync('token', response.data.token);
-        }
-        
-        if (typeof success === 'function') {
-          success(response.data);
-        }
-      } else {
-        if (typeof fail === 'function') {
-          fail({
-            errMsg: '注册失败',
-            errCode: response.statusCode,
-            data: response.data
-          });
-        }
+      // 注册成功，保存token
+      if (response.data && response.data.token) {
+        uni.setStorageSync('token', response.data.token);
+      }
+      
+      if (typeof success === 'function') {
+        success(response.data);
       }
     }).catch(error => {
       if (typeof fail === 'function') {
-        fail({ errMsg: '网络请求失败', error });
+        fail({
+          errMsg: error.error?.message || '注册失败',
+          errCode: error.error?.statusCode,
+          data: error.error
+        });
       }
     }).finally(() => {
       if (typeof complete === 'function') {
@@ -284,20 +241,18 @@ export const registerUser = (options = {}) => {
   
   // 如果没有回调函数，返回处理后的Promise
   return requestTask.then(response => {
-    if (response.statusCode === 200) {
-      // 注册成功，保存token
-      if (response.data && response.data.token) {
-        uni.setStorageSync('token', response.data.token);
-      }
-      
-      return response.data;
-    } else {
-      throw {
-        errMsg: '注册失败',
-        errCode: response.statusCode,
-        data: response.data
-      };
+    // 注册成功，保存token
+    if (response.data && response.data.token) {
+      uni.setStorageSync('token', response.data.token);
     }
+    
+    return response.data;
+  }).catch(error => {
+    throw {
+      errMsg: error.error?.message || '注册失败',
+      errCode: error.error?.statusCode,
+      data: error.error
+    };
   });
 };
 
@@ -310,27 +265,16 @@ export const registerUser = (options = {}) => {
  * @param {string} params.keyword - 搜索关键词
  * @returns {Promise} 返回学校搜索结果
  */
-export const searchUndergraduateSchools = (params) => {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${LOGIN_URL}/undergraduate/school/search`,
-      method: 'POST',
-      data: {
-        userId: params.userId,
-        keyword: params.keyword
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          resolve(res.data);
-        } else {
-          reject(res);
-        }
-      },
-      fail: (err) => {
-        reject(err);
-      }
+export const searchUndergraduateSchools = async (params) => {
+  try {
+    const response = await apiRequest(`${LOGIN_URL}/undergraduate/school/search`, 'POST', {
+      userId: params.userId,
+      keyword: params.keyword
     });
-  });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -340,27 +284,16 @@ export const searchUndergraduateSchools = (params) => {
  * @param {string} params.keyword - 搜索关键词
  * @returns {Promise} 返回专业搜索结果
  */
-export const searchUndergraduateMajors = (params) => {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${LOGIN_URL}/undergraduate/major/search`,
-      method: 'POST',
-      data: {
-        userId: params.userId,
-        keyword: params.keyword
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          resolve(res.data);
-        } else {
-          reject(res);
-        }
-      },
-      fail: (err) => {
-        reject(err);
-      }
+export const searchUndergraduateMajors = async (params) => {
+  try {
+    const response = await apiRequest(`${LOGIN_URL}/undergraduate/major/search`, 'POST', {
+      userId: params.userId,
+      keyword: params.keyword
     });
-  });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -372,29 +305,18 @@ export const searchUndergraduateMajors = (params) => {
  * @param {number} params.pageSize - 每页数量
  * @returns {Promise} 返回学校搜索结果
  */
-export const searchGraduateSchools = (params) => {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${LOGIN_URL}/graduate/school/search`,
-      method: 'POST',
-      data: {
-        userId: params.userId,
-        keyword: params.keyword,
-        currentPage: params.currentPage,
-        pageSize: params.pageSize
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          resolve(res.data);
-        } else {
-          reject(res);
-        }
-      },
-      fail: (err) => {
-        reject(err);
-      }
+export const searchGraduateSchools = async (params) => {
+  try {
+    const response = await apiRequest(`${LOGIN_URL}/graduate/school/search`, 'POST', {
+      userId: params.userId,
+      keyword: params.keyword,
+      currentPage: params.currentPage,
+      pageSize: params.pageSize
     });
-  });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -405,26 +327,15 @@ export const searchGraduateSchools = (params) => {
  * @param {string} params.keyword - 搜索关键词
  * @returns {Promise} 返回专业搜索结果
  */
-export const searchGraduateMajors = (params) => {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${LOGIN_URL}/graduate/major/search`,
-      method: 'POST',
-      data: {
-        userId: params.userId,
-        schoolId: params.schoolId,
-        keyword: params.keyword
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          resolve(res.data);
-        } else {
-          reject(res);
-        }
-      },
-      fail: (err) => {
-        reject(err);
-      }
+export const searchGraduateMajors = async (params) => {
+  try {
+    const response = await apiRequest(`${LOGIN_URL}/graduate/major/search`, 'POST', {
+      userId: params.userId,
+      schoolId: params.schoolId,
+      keyword: params.keyword
     });
-  });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };

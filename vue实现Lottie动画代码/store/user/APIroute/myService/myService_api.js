@@ -4,6 +4,7 @@
  */
 
 import { USER_MY_SERVICE_URL, USER_MY_SERVICE_NEWBUILT_URL, USER_MY_SERVICE_DELETE_URL } from '../../API.js';
+import { apiRequest } from '../../JWT.js';
 
 /**
  * 获取用户的所有服务列表
@@ -13,11 +14,7 @@ import { USER_MY_SERVICE_URL, USER_MY_SERVICE_NEWBUILT_URL, USER_MY_SERVICE_DELE
  */
 export const getMyServiceList = async (params) => {
     try {
-        const response = await uni.request({
-            url: USER_MY_SERVICE_URL,
-            method: 'POST',
-            data: params
-        });
+        const response = await apiRequest(USER_MY_SERVICE_URL, 'POST', params);
         return response.data;
     } catch (error) {
         console.error('获取服务列表失败:', error);
@@ -40,11 +37,7 @@ export const getMyServiceList = async (params) => {
  */
 export const addNewService = async (params) => {
     try {
-        const response = await uni.request({
-            url: USER_MY_SERVICE_NEWBUILT_URL,
-            method: 'POST',
-            data: params
-        });
+        const response = await apiRequest(USER_MY_SERVICE_NEWBUILT_URL, 'POST', params);
         return response.data;
     } catch (error) {
         console.error('添加新服务失败:', error);
@@ -61,11 +54,7 @@ export const addNewService = async (params) => {
  */
 export const deleteService = async (params) => {
     try {
-        const response = await uni.request({
-            url: USER_MY_SERVICE_DELETE_URL,
-            method: 'POST',
-            data: params
-        });
+        const response = await apiRequest(USER_MY_SERVICE_DELETE_URL, 'POST', params);
         return response.data;
     } catch (error) {
         console.error('删除服务失败:', error);
