@@ -1296,8 +1296,8 @@ const clearSearch = () => {
 
 .teacher-avatar {
 
-  width: 230rpx;
-  height: 230rpx;
+  width: 200rpx;
+  height: 200rpx;
   position: relative;
   z-index: 10;
 }
