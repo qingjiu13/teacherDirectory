@@ -4,37 +4,14 @@
  */
 
 import { apiRequest } from '../../JWT.js';
-
+import { useGlobalStore } from '../../../global.js';
 // API 基础URL
-const API_BASE_URL = 'http://b968976e.natappfree.cc/yanshilu';
+const API_BASE_URL = 'http://x62e45a8.natappfree.cc';
+const getApiPrefix = () => {
+  const globalStore = useGlobalStore()
+  return globalStore.apiBaseUrl
+}
 
-/**
- * 获取匹配的老师列表
- * @param {Object} params - 请求参数
- * @param {number} params.school - 学校ID
- * @param {number} params.professional - 专业课ID
- * @param {Object} params.nonProfessionalList - 非专业课列表
- * @param {number} params.nonProfessionalList.mathId - 数学ID
- * @param {number} params.nonProfessionalList.englishId - 英语ID
- * @param {number} params.nonProfessionalList.politicsId - 政治ID
- * @param {number} params.nonProfessionalList.otherId - 其他ID
- * @param {number} params.sortMode - 排序方式ID
- * @param {number} params.pageNum - 当前页码
- * @param {number} params.pageSize - 每页数量
- * @param {string} params.searchKey - 搜索关键词
- * @returns {Promise} 返回匹配的老师列表
- */
-export const getMatchTeacherList = (params) => {
-  return apiRequest(`${API_BASE_URL}/teacher/match`, 'POST', {
-    "school": params.school,
-    "professional": params.professional,
-    "nonProfessionalList": params.nonProfessionalList,
-    "sortMode": params.sortMode,
-    "pageNum": params.pageNum,
-    "pageSize": params.pageSize,
-    "searchKey": params.searchKey,
-  });
-};
 
 
 
@@ -68,20 +45,19 @@ export const getSortModeOptions = (params) => {
 /**
  * 获取老师详细信息
  * @param {Object} params - 请求参数
- * @param {string} params.userId - 用户ID
- * @param {string} params.teacherId - 老师ID
+ * @param {number} params.teacherId - 老师ID（数字类型）
  * @returns {Promise} 返回老师的详细信息
  */
 export const getTeacherDetail = (params) => {
   console.log('=== getTeacherDetail API 被调用 ===');
   console.log('接收到的完整参数:', JSON.stringify(params, null, 2));
   
-  // 确保teacherId是正确的类型
-  let teacherId = params.teacherId;
+  // 确保teacherId是数字类型
+  const teacherId = Number(params.teacherId);
   
-  // 如果是字符串数字，转换为数字
-  if (typeof teacherId === 'string' && !isNaN(teacherId)) {
-    teacherId = parseInt(teacherId);
+  if (!teacherId || isNaN(teacherId)) {
+    console.error('teacherId 无效:', params.teacherId);
+    return Promise.reject(new Error('teacherId 必须是有效的数字'));
   }
   
   const requestParams = {
@@ -89,9 +65,9 @@ export const getTeacherDetail = (params) => {
   };
   
   console.log('准备发送的请求参数:', JSON.stringify(requestParams, null, 2));
-  console.log('API URL:', `${API_BASE_URL}/teacher/match/detail`);
+  console.log('API URL:', `${getApiPrefix()}/yanshilu/teacher/match/detail`);
   
-  return apiRequest(`${API_BASE_URL}/teacher/match/detail`, 'POST', requestParams);
+  return apiRequest(`${getApiPrefix()}/yanshilu/teacher/match/detail`, 'POST', requestParams);
 };
 
 

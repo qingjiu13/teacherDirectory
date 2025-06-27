@@ -1,4 +1,5 @@
 {
+  "navigationBarTitleText": "服务设置",
   "navigationStyle": "custom",
   "usingComponents": {
     "choice-selected": "../components/combobox/combobox",

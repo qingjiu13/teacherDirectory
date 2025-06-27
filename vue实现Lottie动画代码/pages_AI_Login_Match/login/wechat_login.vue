@@ -42,13 +42,14 @@
           <image class="edit-icon" src="../static/login/edit.png" mode="aspectFill"></image>
         </view>
       </view>
-      
       <!-- 一键登录按钮 -->
-      <button class="login-btn" @click="showPhoneAuthModal" v-if="!loginstate">
+      <button class="login-btn" open-type="getPhoneNumber"  @getphonenumber="getPhoneNumber" v-if="!loginstate">
         <view class="btn-content">
           <text class="login-text">一键登录</text>
         </view>
       </button>
+
+      
       
       <!-- 已登录状态 -->
       <button class="login-btn logged-in" v-else @click="toHome">
@@ -104,39 +105,7 @@
       </view>
     </view>
     
-    <!-- 简化的手机号显示弹窗 -->
-    <view class="phone-auth-modal" v-if="showPhoneModal" @click.stop="hidePhoneModal">
-      <view class="phone-modal-mask" @click="hidePhoneModal"></view>
-      <view class="phone-modal-content" @click.stop :class="{'show': showPhoneModal}">
-        <!-- 顶部标题栏 -->
-        <view class="phone-modal-header">
-          <view class="phone-modal-top-bar">
-            <view class="phone-modal-logo">
-              <image class="app-logo" src="../static/login/logo.png" mode="aspectFit"></image>
-              <text class="app-name">师门</text>
-            </view>
-            <view class="phone-modal-subtitle">申请获取并验证你的手机号</view>
-          </view>
-          <text class="phone-modal-description">提供账号注册及登录功能、实现司乘联系、通过短信/外呼等方式向您进行信息推送（包括服务消息、活动宣传或其他商业性信息）</text>
-        </view>
-        
-        <!-- 手机号显示区域 - 点击直接完成登录 -->
-        <view class="phone-number-display" @click="completeLogin">
-          <text class="phone-number-text">{{maskedPhoneNumber}}</text>
-          <text class="phone-provider">微信绑定号码</text>
-        </view>
-        
-        <!-- 不允许按钮 -->
-        <view class="phone-modal-actions" @click="hidePhoneModal">
-          <text class="phone-deny-btn">不允许</text>
-        </view>
-        
-        <!-- 使用其它号码 -->
-        <view class="phone-alternative" @click="useOtherPhone">
-          <text class="alternative-text">使用其它号码</text>
-        </view>
-      </view>
-    </view>
+
     
     <!-- 头像选择弹窗 -->
     <view class="avatar-modal" v-if="showAvatarModal" @click.stop="hideAvatarModal">
@@ -191,8 +160,12 @@
 <script>
 import { Navigator } from '../../router/Router';
 import { generateRandomNickName } from './randomNickName.js';
-import { getWechatLoginCode, getOpenidAndSessionKey, getStoredOpenid, getMaskedPhone } from './phoneNumberApi.js';
-import { getDefaultAvatarList, uploadAvatarFile } from './postWechatApi.js';
+import { useGlobalStore } from '@/store/global.js';
+import { apiRequest } from '@/store/user/JWT';
+const getApiPrefix = () => {
+  const globalStore = useGlobalStore()
+  return globalStore.apiBaseUrl
+}
 
 export default {
   data() {
@@ -218,7 +191,7 @@ export default {
    */
   onLoad() {
     this.initializeUserInfo();
-    this.getWechatOpenid();
+    // this.getWechatOpenid();
     this.checkLoginState();
     this.loadDefaultAvatarList();
   },
@@ -273,56 +246,40 @@ export default {
     /**
      * 加载默认头像列表
      */
-    async loadDefaultAvatarList() {
-      try {
-        this.avatarList = await getDefaultAvatarList();
-        
-        // 如果当前没有设置头像，则使用第一个默认头像
-        if (!this.currentAvatar && this.avatarList.length > 0) {
-          this.currentAvatar = this.avatarList[0];
-          uni.setStorage({
-            key: 'currentAvatar',
-            data: this.currentAvatar
-          });
+     async loadDefaultAvatarList() {
+        try {
+          const response = await apiRequest(
+            `${getApiPrefix()}/common/defaultAvatarList`,
+            'GET',
+            {},
+            { requireAuth: false }
+          );
+          console.log('获取默认头像列表:', response);
+          this.avatarList = response.data.data;
+
+          // 如果当前没有设置头像，则使用第一个默认头像
+          if (!this.currentAvatar && this.avatarList.length > 0) {
+            this.currentAvatar = this.avatarList[0];
+            uni.setStorage({
+              key: 'currentAvatar',
+              data: this.currentAvatar
+            });
+          }
+        } catch (error) {
+          console.error('获取默认头像列表失败:', error);
+
+          // 即使失败，也保证 currentAvatar 有默认值
+          if (!this.currentAvatar && this.avatarList?.length > 0) {
+            this.currentAvatar = this.avatarList[0];
+            uni.setStorage({
+              key: 'currentAvatar',
+              data: this.currentAvatar
+            });
+          }
         }
-      } catch (error) {
-        console.error('获取默认头像列表失败:', error);
-        // 如果获取失败，使用硬编码的默认头像作为备用
-        this.avatarList = [
-          '/static/image/defaultAvatar/teacher-man.png',
-          '/static/image/defaultAvatar/teacher-woman.png',
-          '/static/image/defaultAvatar/student-man.png',
-          '/static/image/defaultAvatar/student-woman.png'
-        ];
-        
-        if (!this.currentAvatar) {
-          this.currentAvatar = this.avatarList[0];
-          uni.setStorage({
-            key: 'currentAvatar',
-            data: this.currentAvatar
-          });
-        }
-      }
     },
     
-    /**
-     * 获取微信openid - 使用phoneNumberApi.js中的函数
-     */
-    async getWechatOpenid() {
-      try {
-        // 尝试从缓存获取openid
-        this.openid = await getStoredOpenid();
-      } catch (error) {
-        // 如果缓存中没有，则获取新的openid
-        try {
-          const code = await getWechatLoginCode();
-          const { openid } = await getOpenidAndSessionKey(code);
-          this.openid = openid;
-        } catch (err) {
-          console.error('获取openid失败:', err);
-        }
-      }
-    },
+
     
     /**
      * 检查登录状态
@@ -352,29 +309,6 @@ export default {
     },
     
     /**
-     * 显示手机号授权弹窗 - 使用phoneNumberApi.js中的函数
-     */
-    async showPhoneAuthModal() {
-      // 显示加载
-      uni.showLoading({
-        title: '获取手机号中...'
-      });
-      
-      try {
-        // 使用phoneNumberApi.js的getMaskedPhone函数
-        const result = await getMaskedPhone();
-        this.maskedPhoneNumber = result.maskedPhone || "199****7700";
-        uni.hideLoading();
-        this.showPhoneModal = true;
-      } catch (error) {
-        uni.hideLoading();
-        console.error('获取手机号失败:', error);
-        this.maskedPhoneNumber = "199****7700";
-        this.showPhoneModal = true;
-      }
-    },
-    
-    /**
      * 隐藏手机号授权弹窗
      */
     hidePhoneModal() {
@@ -382,53 +316,257 @@ export default {
     },
     
     /**
-     * 完成登录 - 点击phone-number-display区域触发
+     * 微信手机号授权回调 - 统一的登录入口
+     * @param {Object} e - 微信授权回调事件对象
+     * @param {Object} e.detail - 授权详情
+     * @param {string} e.detail.code - 动态令牌（新版API）
+     * @param {string} e.detail.errMsg - 错误信息
      */
-    async completeLogin() {
-      uni.showLoading({
-        title: '登录中...'
+    async getPhoneNumber(e) {
+      console.log('微信手机号授权回调:', e);
+      
+      // 检查授权是否成功
+      if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+        console.error('用户拒绝授权或授权失败:', e.detail.errMsg);
+        this.handleAuthorizationFailed(e.detail.errMsg);
+        return;
+      }
+      
+      // 检查是否获取到code
+      if (!e.detail.code) {
+        console.error('未获取到授权code');
+        uni.showToast({
+          title: '获取授权信息失败',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 执行登录流程
+      await this.performLogin(e.detail.code);
+    },
+
+    /**
+     * 处理授权失败的情况
+     * @param {string} errMsg - 错误信息
+     */
+    handleAuthorizationFailed(errMsg) {
+      // 根据不同的错误类型给出不同的提示
+      let title = '授权失败';
+      let content = '登录需要您的授权，请重新点击按钮进行授权。';
+      
+      if (errMsg.includes('deny') || errMsg.includes('cancel')) {
+        title = '授权被取消';
+        content = '您取消了手机号授权，无法完成登录。请重新点击按钮进行授权。';
+      } else if (errMsg.includes('fail')) {
+        title = '授权失败';
+        content = '授权过程中出现问题，请检查网络连接后重试。';
+      }
+      
+      uni.showModal({
+        title: title,
+        content: content,
+        confirmText: '知道了',
+        showCancel: false,
+        success: (res) => {
+          if (res.confirm) {
+            console.log('用户确认授权失败提示');
+          }
+        }
+      });
+    },
+
+    /**
+     * 执行登录流程
+     * @param {string} phoneCode - 微信手机号授权code
+     */
+    async performLogin(phoneCode) {
+      try {
+        // 显示登录进度
+        uni.showLoading({
+          title: '登录中...',
+          mask: true
+        });
+        
+        // 1. 获取微信登录code
+        const wechatCode = await this.getWechatLoginCode();
+        console.log('获取到微信登录code:', wechatCode);
+        
+        // 2. 准备登录请求数据
+        const loginData = {
+          phoneCode: phoneCode,           // 手机号授权code
+          wechatCode: wechatCode,         // 微信登录code
+          avatar: this.currentAvatar,     // 用户选择的头像
+          nickname: this.currentNickname  // 用户设置的昵称
+        };
+        
+        console.log('发送登录请求数据:', loginData);
+        
+        // 3. 发送登录请求到后端
+        const response = await this.sendLoginRequest(loginData);
+        
+        // 4. 处理登录结果
+        await this.handleLoginResponse(response);
+        
+      } catch (error) {
+        // 处理登录过程中的异常
+        this.handleLoginError(error);
+      }
+    },
+
+    /**
+     * 发送登录请求到后端
+     * @param {Object} loginData - 登录数据
+     * @returns {Promise<Object>} 登录响应
+     */
+    async sendLoginRequest(loginData) {
+      const response = await apiRequest(`${getApiPrefix()}/auth/wechat/phoneLogin`, 'POST', loginData, {
+        requireAuth: false,  // 登录接口不需要认证
+        showError: false,    // 手动处理错误
+        timeout: 10000       // 10秒超时
       });
       
-      // try {
-      //   // 发送用户信息到后端
-      //   await postUserInfo({
-      //     nickname: this.currentNickname,
-      //     avatar: this.currentAvatar,
-      //     openid: this.openid
-      //   });
-        
-      //   // 设置登录状态
-      //   this.loginstate = "1";
-      //   uni.setStorage({
-      //     key: "loginstate",
-      //     data: "1"
-      //   });
-        
-      //   uni.hideLoading();
-      //   this.hidePhoneModal();
-        
-      //   // 登录成功提示
-      //   uni.showToast({
-      //     title: '登录成功',
-      //     icon: 'success',
-      //     duration: 1500
-      //   });
-        
-      //   // 延迟跳转到首页
-      //   setTimeout(() => {
-      //     this.toHome();
-      //   }, 1500);
+      console.log('登录响应:', response);
+      return response;
+    },
 
-      //   Navigator.toLogin();
+    /**
+     * 处理登录响应
+     * @param {Object} response - 后端响应
+     */
+    async handleLoginResponse(response) {
+      if (response.success && response.data && response.data.token) {
+        // 登录成功
+        await this.handleLoginSuccess(response.data);
+      } else {
+        // 登录失败
+        const errorMsg = response.message || response.msg || '登录失败，请重试';
+        throw new Error(errorMsg);
+      }
+    },
+
+    /**
+     * 处理登录成功
+     * @param {Object} loginData - 登录成功返回的数据
+     */
+    async handleLoginSuccess(loginData) {
+      try {
+        // 存储JWT token到store
+        this.$store.commit('user/baseInfo/SET_JWT_TOKEN', loginData.token);
         
-      // } catch (error) {
-      //   uni.hideLoading();
-      //   console.error('登录失败:', error);
-      //   uni.showToast({
-      //     title: error.message || '登录失败',
-      //     icon: 'none'
-      //   });
-      // }
+        // 如果后端返回了用户信息，也更新到store
+        if (loginData.userInfo) {
+          this.$store.commit('user/baseInfo/SET_USER_INFO', loginData.userInfo);
+        }
+        
+        // 更新登录状态
+        this.$store.commit('user/baseInfo/SET_LOGIN_STATUS', 1);
+        this.loginstate = 1;
+        
+        // 存储登录状态到本地缓存
+        await this.saveLoginStateToStorage();
+        
+        // 隐藏加载提示
+        uni.hideLoading();
+        
+        // 显示成功提示
+        uni.showToast({
+          title: '登录成功',
+          icon: 'success',
+          duration: 1500
+        });
+        
+        console.log('登录成功，JWT token已存储:', loginData.token);
+        
+        // 延迟跳转到首页
+        setTimeout(() => {
+          this.toHome();
+        }, 1500);
+        
+      } catch (error) {
+        console.error('处理登录成功数据时出错:', error);
+        throw new Error('登录成功但数据处理失败');
+      }
+    },
+
+    /**
+     * 保存登录状态到本地存储
+     */
+    async saveLoginStateToStorage() {
+      return new Promise((resolve, reject) => {
+        uni.setStorage({
+          key: 'loginstate',
+          data: 1,
+          success: () => {
+            console.log('登录状态已保存到本地存储');
+            resolve();
+          },
+          fail: (error) => {
+            console.error('保存登录状态失败:', error);
+            reject(error);
+          }
+        });
+      });
+    },
+
+    /**
+     * 处理登录错误
+     * @param {Error} error - 错误对象
+     */
+    handleLoginError(error) {
+      uni.hideLoading();
+      console.error('登录过程中发生错误:', error);
+      
+      let errorMsg = '登录失败，请重试';
+      
+      // 根据不同的错误类型给出不同的提示
+      if (error.message) {
+        if (error.message.includes('网络')) {
+          errorMsg = '网络连接失败，请检查网络后重试';
+        } else if (error.message.includes('超时')) {
+          errorMsg = '登录超时，请重试';
+        } else if (error.message.includes('服务器')) {
+          errorMsg = '服务器繁忙，请稍后重试';
+        } else {
+          errorMsg = error.message;
+        }
+      }
+      
+      uni.showModal({
+        title: '登录失败',
+        content: errorMsg,
+        confirmText: '重试',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            console.log('用户选择重试登录');
+            // 可以在这里添加重试逻辑
+          }
+        }
+      });
+    },
+
+    /**
+     * 获取微信登录code
+     * @returns {Promise<string>} 返回微信登录code
+     */
+    getWechatLoginCode() {
+      return new Promise((resolve, reject) => {
+        uni.login({
+          provider: 'weixin',
+          success: (res) => {
+            if (res.code) {
+              resolve(res.code);
+            } else {
+              reject(new Error('获取微信登录code失败'));
+            }
+          },
+          fail: (err) => {
+            console.error('uni.login失败:', err);
+            reject(new Error('获取微信登录code失败'));
+          }
+        });
+      });
     },
     
     /**
@@ -552,7 +690,51 @@ export default {
         this.showPrivacyModal = false;
       }
     },
-    
+
+    /**
+     * 上传用户自定义头像文件
+     * @param {string} filePath - 本地文件路径
+     * @returns {Promise<Object>} 返回上传结果，包含头像URL和文件信息
+     */
+    uploadAvatarFile(filePath) {
+      return new Promise((resolve, reject) => {
+        uni.uploadFile({
+          url: `${getApiPrefix()}/common/uploadAvatarFile`,
+          filePath: filePath,
+          name: 'avatar',
+          header: {
+            'content-type': 'multipart/form-data'
+          },
+          formData: {
+            type: 'avatar',
+            timestamp: Date.now()
+          },
+          success: (res) => {
+            try {
+              const data = JSON.parse(res.data);
+              // 实际返回格式：{"msg":"操作成功","code":200,"data":{"fileName":"...","newFileName":"...","url":"...","originalFilename":"..."}}
+              if (data.code === 200) {
+                resolve({
+                  url: data.data.url,
+                  fileName: data.data.fileName,
+                  newFileName: data.data.newFileName,
+                  originalFilename: data.data.originalFilename,
+                  message: data.msg || '上传成功'
+                });
+              } else {
+                reject(new Error(data.msg || '上传头像失败'));
+              }
+            } catch (error) {
+              reject(new Error('服务器响应格式错误'));
+            }
+          },
+          fail: (error) => {
+            reject(new Error('上传头像网络请求失败'));
+          }
+        });
+      });
+    },
+
     /**
      * 选择自定义头像
      */
@@ -571,7 +753,7 @@ export default {
           
           try {
             // 上传头像到服务器
-            const uploadResult = await uploadAvatarFile(tempFilePath);
+            const uploadResult = await this.uploadAvatarFile(tempFilePath);
             
             // 使用服务器返回的URL
             this.currentAvatar = uploadResult.url;
@@ -995,7 +1177,6 @@ export default {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2rpx solid transparent;
   position: relative;
 }
 
@@ -1187,6 +1368,7 @@ export default {
 
 .nickname-modal-actions {
   display: flex;
+  flex-direction: row;
   gap: 20rpx;
 }
 

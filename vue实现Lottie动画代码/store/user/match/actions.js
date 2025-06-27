@@ -2,14 +2,19 @@
  * match模块的actions
  * @module store/user/match/actions
  */
-
+// API 基础URL
+// const API_BASE_URL = 'http://x62e45a8.natappfree.cc';
 import { 
-  getMatchTeacherList, 
   getTeacherDetail,
   getNonProfessionalOptions,
   getSortModeOptions
 } from '../APIroute/match_api/match_api.js';
-
+import { apiRequest } from '../JWT.js';
+import { useGlobalStore } from '../../global.js';
+const getApiPrefix = () => {
+  const globalStore = useGlobalStore()
+  return globalStore.apiBaseUrl
+}
 /**
  * 设置搜索关键词
  * @param {Object} context - Vuex上下文对象
@@ -30,185 +35,60 @@ export const setSearchKey = ({ commit, dispatch }, searchKey) => {
  * @param {boolean} [payload.loadMore=false] - 是否加载更多数据
  * @returns {Promise} 返回匹配的老师列表结果
  */
-export const fetchMatchTeacherList = ({ commit, rootState, state }, payload = {}) => {
-  // 从根state获取用户ID
-  const userId = rootState.user.baseInfo.id;
-  
-  // 判断是加载更多还是重新加载第一页
-  const isLoadMore = payload.loadMore === true;
-  
-  // 如果是加载更多，则页码加1，否则重置为第1页
-  const currentPage = isLoadMore ? state.currentPage + 1 : 1;
-  
-  // 构建非专业课参数
-  const nonProfessionalList = {
-    mathId: state.nonProfessionalList.math.selectedId,
-    englishId: state.nonProfessionalList.english.selectedId,
-    politicsId: state.nonProfessionalList.politics.selectedId,
-    otherId: state.nonProfessionalList.other.selectedId
-  };
-  
-  // 构建请求参数
-  const params = {
-    school: state.schoolList.selectedSchoolId,
-    professional: state.professionalList.selectedMajorId,
-    nonProfessionalList: nonProfessionalList,
-    sortMode: state.sortMode.selectedId,
-    pageNum: currentPage,
-    pageSize: payload.pageSize || state.pageSize,
-    searchKey: state.searchKey // 使用store中的searchKey
-  };
-  
-  return new Promise((resolve, reject) => {
-    getMatchTeacherList(params)
-      .then(response => {
-        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
-        if (response && response.success && response.data) {
-          // response.data 是API响应的data字段：{ data: [...], hasMore: false }
-          const matchData = response.data;
-          
-          // 获取老师列表数组
-          const teacherList = matchData.data || [];
-          
-          if (isLoadMore) {
-            // 加载更多时，追加到现有列表
-            commit('APPEND_MATCH_LIST', teacherList);
-          } else {
-            // 重新加载时，替换列表
-            commit('SET_MATCH_LIST', teacherList);
-          }
-          
-          // 更新分页信息
-          commit('SET_PAGINATION', {
-            currentPage: currentPage,
-            hasMore: matchData.hasMore || false
-          });
-          
-          console.log('匹配老师列表更新成功:', teacherList);
-        }
-        resolve(response);
-      })
-      .catch(error => {
-        console.error('获取匹配老师列表失败:', error);
-        reject(error);
+export const fetchMatchTeacherList = async ({ commit, rootState, state }, payload = {}) => {
+  try {
+    const isLoadMore = payload.loadMore === true;
+    const currentPage = isLoadMore ? state.currentPage + 1 : 1;
+
+    const nonProfessionalList = {
+      mathId: state.nonProfessionalList?.math?.selectedId || null,
+      englishId: state.nonProfessionalList?.english?.selectedId || null,
+      politicsId: state.nonProfessionalList?.politics?.selectedId || null,
+      otherId: state.nonProfessionalList?.other?.selectedId || null
+    };
+
+    const selectedSchool = rootState?.user?.schoolMajorRequest?.graduateSchoolSearch?.selectedSchoolId;
+    const selectedMajor = rootState?.user?.schoolMajorRequest?.graduateMajorSearch?.selectedMajorId;
+
+    const params = {
+      school: selectedSchool,
+      professional: selectedMajor,
+      nonProfessionalList,
+      sortMode: state.sortMode?.selectedId || null,
+      pageNum: currentPage,
+      pageSize: payload.pageSize || state.pageSize || 10,
+      searchKey: state.searchKey || ''
+    };
+
+    const response = await apiRequest(`${getApiPrefix()}/yanshilu/teacher/match`, 'POST', params);
+    console.log('匹配老师列表响应:', response);
+    if (response?.success && response.data.code === 200) {
+      const matchData = response.data.data;
+      const teacherList = matchData.data || [];
+
+      if (isLoadMore) {
+        commit('APPEND_MATCH_LIST', teacherList);
+      } else {
+        commit('SET_MATCH_LIST', teacherList);
+      }
+
+      commit('SET_PAGINATION', {
+        currentPage,
+        hasMore: matchData.hasMore || false
       });
-  });
+
+      console.log('匹配老师列表更新成功:', teacherList);
+    } else {
+      console.warn('匹配接口返回数据格式异常:', response);
+    }
+
+    return response;
+  } catch (error) {
+    console.error('获取匹配老师列表失败:', error);
+    throw error;
+  }
 };
 
-/**
- * 搜索学校列表
- * @param {Object} context - Vuex上下文对象
- * @param {Object} payload - 请求参数
- * @param {string} payload.keyword - 搜索关键词
- * @param {boolean} [payload.loadMore=false] - 是否加载更多数据
- * @returns {Promise} 返回学校搜索结果
- */
-export const searchSchools = ({ commit, rootState, state }, { keyword, loadMore = false }) => {
-  const userId = rootState.user.baseInfo.id;
-  
-  // 如果是新搜索，重置分页；如果是加载更多，使用当前页+1
-  const currentPage = loadMore ? state.schoolList.currentPage + 1 : 1;
-  
-  // 设置加载状态
-  commit('SET_SCHOOL_PAGINATION', { isLoading: true });
-  
-  // 更新搜索关键词
-  if (!loadMore) {
-    commit('SET_SCHOOL_SEARCH_KEYWORD', keyword);
-  }
-  
-  const params = {
-    userId: userId,
-    keyword: keyword,
-    currentPage: currentPage,
-    pageSize: state.schoolList.pageSize
-  };
-  
-  return new Promise((resolve, reject) => {
-    searchSchoolList(params)
-      .then(response => {
-        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
-        if (response && response.success && response.data) {
-          const schoolData = response.data;
-          
-          // 更新学校选项列表
-          commit('SET_SCHOOL_OPTIONS', {
-            options: schoolData.list || schoolData,
-            isLoadMore: loadMore
-          });
-          
-          // 更新分页信息
-          commit('SET_SCHOOL_PAGINATION', {
-            currentPage: currentPage,
-            hasMore: schoolData.hasMore || false,
-            isLoading: false
-          });
-        }
-        resolve(response);
-      })
-      .catch(error => {
-        console.error('搜索学校失败:', error);
-        commit('SET_SCHOOL_PAGINATION', { isLoading: false });
-        reject(error);
-      });
-  });
-};
-
-/**
- * 搜索专业列表
- * @param {Object} context - Vuex上下文对象
- * @param {Object} payload - 请求参数
- * @param {string} payload.keyword - 搜索关键词
- * @returns {Promise} 返回专业搜索结果
- */
-export const searchMajors = ({ commit, rootState, state }, { keyword }) => {
-  const userId = rootState.user.baseInfo.id;
-  const schoolId = state.schoolList.selectedSchoolId;
-  
-  if (!schoolId) {
-    return Promise.reject(new Error('请先选择学校'));
-  }
-  
-  // 设置加载状态
-  commit('SET_PROFESSIONAL_PAGINATION', { isLoading: true });
-  
-  // 更新搜索关键词
-  commit('SET_PROFESSIONAL_SEARCH_KEYWORD', keyword);
-  
-  const params = {
-    userId: userId,
-    schoolId: schoolId,
-    keyword: keyword,
-    currentPage: state.professionalList.currentPage,
-    pageSize: state.professionalList.pageSize // 使用99999一次性获取所有数据
-  };
-  
-  return new Promise((resolve, reject) => {
-    searchMajorList(params)
-      .then(response => {
-        // JWT.js的apiRequest返回 {success: true, data: ...} 格式
-        if (response && response.success && response.data) {
-          const majorData = response.data;
-          
-          // 更新专业选项列表
-          commit('SET_PROFESSIONAL_OPTIONS', majorData.list || majorData);
-          
-          // 更新分页信息
-          commit('SET_PROFESSIONAL_PAGINATION', {
-            currentPage: state.professionalList.currentPage,
-            hasMore: majorData.hasMore || false,
-            isLoading: false
-          });
-        }
-        resolve(response);
-      })
-      .catch(error => {
-        console.error('搜索专业失败:', error);
-        commit('SET_PROFESSIONAL_PAGINATION', { isLoading: false });
-        reject(error);
-      });
-  });
-};
 
 /**
  * 获取非专业课选项
@@ -267,33 +147,6 @@ export const fetchSortModeOptions = ({ commit, rootState }) => {
 };
 
 /**
- * 选择学校
- * @param {Object} context - Vuex上下文对象
- * @param {Object} payload - 学校信息
- * @param {number} payload.id - 学校ID
- * @param {string} payload.name - 学校名称
- */
-export const selectSchool = ({ commit }, { id, name }) => {
-  commit('SET_SELECTED_SCHOOL', { id, name });
-  // 清空专业选择
-  commit('SET_SELECTED_PROFESSIONAL', { id: null, name: '' });
-  commit('SET_PROFESSIONAL_OPTIONS', []);
-};
-
-/**
- * 选择专业
- * @param {Object} context - Vuex上下文对象
- * @param {Object} payload - 专业信息
- * @param {number} payload.id - 专业ID
- * @param {string} payload.name - 专业名称
- */
-export const selectMajor = ({ commit }, { id, name }) => {
-  commit('SET_SELECTED_PROFESSIONAL', { id, name });
-  // 清空非专业课选择
-  commit('CLEAR_NON_PROFESSIONAL_SELECTION');
-};
-
-/**
  * 选择非专业课
  * @param {Object} context - Vuex上下文对象
  * @param {Object} payload - 非专业课信息
@@ -303,8 +156,6 @@ export const selectMajor = ({ commit }, { id, name }) => {
  */
 export const selectNonProfessional = ({ commit }, { type, id, name }) => {
   commit('SET_NON_PROFESSIONAL_SELECTION', { type, id, name });
-  // 清空专业课选择
-  commit('SET_SELECTED_PROFESSIONAL', { id: null, name: '' });
 };
 
 /**
@@ -322,26 +173,24 @@ export const selectSortMode = ({ commit }, { id, name }) => {
  * 获取老师详细信息
  * @param {Object} context - Vuex上下文对象
  * @param {Object} payload - 请求参数
- * @param {string} payload.teacherId - 老师ID
+ * @param {number} payload.teacherId - 老师ID（数字类型）
  * @returns {Promise} 返回老师详细信息
  */
 export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
   console.log('=== fetchTeacherDetail 开始执行 ===');
-  console.log('teacherId:', teacherId);
+  console.log('teacherId:', teacherId, '类型:', typeof teacherId);
   
-  // 从根state获取用户ID
-  const userId = rootState.user.baseInfo.id;
-  console.log('userId:', userId);
+  // 确保teacherId是数字类型
+  const normalizedTeacherId = Number(teacherId);
   
-  if (!teacherId) {
-    console.error('teacherId 为空，退出');
-    return Promise.reject(new Error('老师ID不能为空'));
+  if (!normalizedTeacherId || isNaN(normalizedTeacherId)) {
+    console.error('teacherId 无效，退出');
+    return Promise.reject(new Error('老师ID不能为空或无效'));
   }
   
   // 构建请求参数
   const params = {
-    userId: userId,
-    teacherId: teacherId
+    teacherId: normalizedTeacherId
   };
   
   console.log('构建的请求参数:', params);
@@ -354,34 +203,36 @@ export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
         console.log('=== API 响应完整数据 ===');
         console.log('response:', JSON.stringify(response, null, 2));
         
-        // 检查返回的数据结构
-        if (response && response.success) {
-          console.log('response.success 为 true');
+        // 检查返回的数据结构 - 格式：{success: true, data: {msg, code, data: {service: [...]}}}
+        if (response && response.success && response.data && response.data.code === 200) {
+          console.log('response.success 为 true，response.data.code 为 200，请求成功');
           
-          if (response.data) {
-            console.log('response.data 存在');
-            console.log('response.data:', JSON.stringify(response.data, null, 2));
+          if (response.data.data) {
+            console.log('response.data.data 存在');
+            console.log('response.data.data:', JSON.stringify(response.data.data, null, 2));
             
-            const teacherDetail = response.data;
+            const teacherDetail = response.data.data;
             
             console.log('准备调用 SET_TEACHER_DETAIL mutation...');
-            console.log('teacherId:', teacherId);
+            console.log('teacherId:', normalizedTeacherId);
             console.log('detail:', JSON.stringify(teacherDetail, null, 2));
+            console.log('服务数量:', teacherDetail.service?.length || 0);
             
             // 更新老师详情到store
             commit('SET_TEACHER_DETAIL', {
-              teacherId: teacherId,
+              teacherId: normalizedTeacherId,
               detail: teacherDetail
             });
             
             console.log('SET_TEACHER_DETAIL mutation 调用完成');
           } else {
-            console.error('response.data 不存在');
+            console.error('response.data.data 不存在');
+            reject(new Error('响应数据中缺少data.data字段'));
+            return;
           }
         } else {
-          console.error('response.success 不为 true 或 response 不存在');
-          console.log('响应格式不正确:', response);
-          reject(new Error('响应数据格式不正确'));
+          console.error('请求失败，success:', response?.success, 'code:', response?.data?.code, 'msg:', response?.data?.msg);
+          reject(new Error(response?.data?.msg || '获取老师详情失败'));
           return;
         }
         
@@ -397,13 +248,10 @@ export const fetchTeacherDetail = ({ commit, rootState }, { teacherId }) => {
 };
 
 export default {
+  setSearchKey,
   fetchMatchTeacherList,
-  searchSchools,
-  searchMajors,
   fetchNonProfessionalOptions,
   fetchSortModeOptions,
-  selectSchool,
-  selectMajor,
   selectNonProfessional,
   selectSortMode,
   fetchTeacherDetail

@@ -10,7 +10,7 @@ export default {
         selectedSchool: '', // 当前选中的学校名称
         selectedSchoolId: null, // 当前选中的学校ID
         searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的学校选项列表 [{id, name}]
+        options: [], // 当前显示的学校选项列表 [{schoolId, schoolName}]
         currentPage: 1, // 当前页码
         pageSize: 20, // 每页数量
         hasMore: true, // 是否还有更多数据
@@ -22,7 +22,7 @@ export default {
         selectedMajor: '', // 当前选中的专业名称
         selectedMajorId: null, // 当前选中的专业ID
         searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的专业选项列表 [{id, name}]
+        options: [], // 当前显示的专业选项列表 [{professionalId, professionalName}]
         currentPage: 1, // 当前页码
         pageSize: 20, // 每页数量
         hasMore: true, // 是否还有更多数据
@@ -34,7 +34,7 @@ export default {
         selectedSchool: '', // 当前选中的学校名称
         selectedSchoolId: null, // 当前选中的学校ID
         searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的学校选项列表 [{id, name}]
+        options: [], // 当前显示的学校选项列表 [{schoolId, schoolName}]
         currentPage: 1, // 当前页码
         pageSize: 20, // 每页数量
         hasMore: true, // 是否还有更多数据
@@ -46,7 +46,7 @@ export default {
         selectedMajor: '', // 当前选中的专业名称
         selectedMajorId: null, // 当前选中的专业ID
         searchKeyword: '', // 搜索关键词
-        options: [], // 当前显示的专业选项列表 [{id, name}]
+        options: [], // 当前显示的专业选项列表 [{professionalId, professionalName}]
         currentPage: 1, // 当前页码
         pageSize: 20, // 每页数量
         hasMore: true, // 是否还有更多数据

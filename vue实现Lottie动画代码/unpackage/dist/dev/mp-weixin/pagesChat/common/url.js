@@ -1,2 +1,0 @@
-"use strict";let l=(e,r)=>{const i=/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]|\bwww\.[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;return e.replace(i,t=>(t.startsWith("http")||(t="http://"+t),`<a href="${t}" target="_blank" style="color: ${r};text-decoration: underline;">${t}</a>`))};const n={replaceURLWithHTMLLinks:l};exports.urlUtil=n;
-//# sourceMappingURL=../../../.sourcemap/mp-weixin/pagesChat/common/url.js.map

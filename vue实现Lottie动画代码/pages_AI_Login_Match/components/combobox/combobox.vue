@@ -5,7 +5,7 @@
             <!-- 统一的内容容器 -->
             <view class="input-content-wrapper">
                 <!-- 纯下拉选择模式 -->
-                <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'input-placeholder' : 'input-placeholder-selected']" >{{displayContent}}</text>
+                <text v-if="mode === 'select'" :class="[choiceIndex === -1 ? 'input-placeholder' : 'input-placeholder-selected']" >{{displayText}}</text>
                 
                 <!-- 搜索筛选模式 -->
                 <input 
@@ -37,7 +37,7 @@
                 <view v-if="pagedChoiceList.length > 0">
                     <text class="dialog-title" :class="{'dialog-title-selected': choiceIndex == findOriginalIndex(item)}"
                         v-for="(item, index) in pagedChoiceList" :key="index" @click="btnChoiceClick(index)">
-                        {{typeof item === 'string' ? item : item.choiceItemContent}}
+                        {{getItemDisplayText(item)}}
                     </text>
                 </view>
                 <view v-else class="empty-result">
@@ -45,8 +45,13 @@
                 </view>
                 
                 <!-- 加载更多提示 -->
-                <view v-if="isLoadingMore" class="loading-more">
+                <view v-if="shouldShowLoadingMore" class="loading-more">
                     <text class="loading-text">加载中...</text>
+                </view>
+                
+                <!-- 没有更多数据提示 -->
+                <view v-if="shouldShowNoMore" class="no-more">
+                    <text class="no-more-text">没有更多数据</text>
                 </view>
             </scroll-view>
         </view>
@@ -140,6 +145,16 @@
             defaultSearchValue: {
                 type: String,
                 default: ''
+            },
+            // 新增属性：是否正在加载更多（由父组件传入）
+            isLoadingMore: {
+                type: Boolean,
+                default: false
+            },
+            // 新增属性：是否还有更多数据（由父组件传入）
+            hasMoreData: {
+                type: Boolean,
+                default: true
             }
         },
         created() {
@@ -169,6 +184,12 @@
              * @returns {Array} 分页后的选项列表
              */
             pagedChoiceList() {
+                // 如果是schoolMajorRequest相关类型，直接使用传入的选项列表（已经在Vuex中处理了分页）
+                if (['undergraduate', 'graduateSchool', 'graduateMajor'].includes(this.componentType)) {
+                    return this.choiceList;
+                }
+                
+                // 其他类型使用组件内部分页逻辑
                 if (!this.enablePagination) {
                     return this.choiceList;
                 }
@@ -177,6 +198,42 @@
                 const endIndex = this.currentPage * this.pageSize;
                 
                 return this.choiceList.slice(startIndex, endIndex);
+            },
+            
+            /**
+             * @description 获取显示文本内容
+             * @returns {string} 显示的文本
+             */
+            displayText() {
+                if (this.choiceIndex >= 0 && this.choiceIndex < this.choiceList.length) {
+                    const selectedItem = this.choiceList[this.choiceIndex];
+                    return this.getItemDisplayText(selectedItem);
+                }
+                return this.defaultText;
+            },
+            
+            /**
+             * @description 是否应该显示加载更多状态
+             * @returns {boolean} 是否显示加载更多
+             */
+            shouldShowLoadingMore() {
+                if (['undergraduate', 'graduateSchool', 'graduateMajor'].includes(this.componentType)) {
+                    // 从父组件传入的加载状态
+                    return this.isLoadingMore;
+                }
+                return this.isLoadingMore;
+            },
+            
+            /**
+             * @description 是否应该显示没有更多数据状态
+             * @returns {boolean} 是否显示没有更多数据
+             */
+            shouldShowNoMore() {
+                if (['undergraduate', 'graduateSchool', 'graduateMajor'].includes(this.componentType)) {
+                    // 从父组件传入的状态判断
+                    return this.choiceList.length > 0 && !this.hasMoreData && !this.isLoadingMore;
+                }
+                return this.choiceList.length > 0 && !this.hasMoreItems && !this.isLoadingMore;
             }
         },
         watch: {
@@ -184,14 +241,14 @@
                 // 当choiceIndex变化时更新显示内容
                 if (newVal >= 0 && newVal < this.choiceList.length) {
                     const selectedItem = this.choiceList[newVal];
-                    this.displayContent = typeof selectedItem === 'string' ? selectedItem : selectedItem.choiceItemContent;
+                    this.displayContent = this.getItemDisplayText(selectedItem);
                     
                     // 保存上次选中的值
                     this.lastSelectedValue = selectedItem;
                     
                     // 在搜索模式下，设置搜索关键词为选中项
                     if (this.mode === 'search') {
-                        this.searchKeyword = typeof selectedItem === 'string' ? selectedItem : selectedItem.choiceItemContent;
+                        this.searchKeyword = this.getItemDisplayText(selectedItem);
                     }
                     
                     // 如果是联动模式的父级组件，触发联动事件
@@ -290,9 +347,45 @@
              * @description 处理滚动到底部事件
              */
             onScrollToBottom() {
+                // 如果是schoolMajorRequest相关类型，触发加载更多事件让父组件处理
+                if (['undergraduate', 'graduateSchool', 'graduateMajor'].includes(this.componentType)) {
+                    this.$emit('load-more');
+                    return;
+                }
+                
+                // 其他类型使用组件内部分页逻辑
                 if (this.enablePagination) {
                     this.loadMore();
                 }
+            },
+            
+            /**
+             * @description 获取选项显示文本
+             * @param {*} item - 选项项
+             * @returns {string} 显示文本
+             */
+            getItemDisplayText(item) {
+                if (typeof item === 'string') {
+                    return item;
+                } else if (item && typeof item === 'object') {
+                    // 优先使用choiceItemContent，然后是name，最后是其他可能的字段
+                    return item.choiceItemContent || item.name || item.schoolName || item.professionalName || '';
+                }
+                return '';
+            },
+            
+            /**
+             * @description 获取选项的唯一标识
+             * @param {*} item - 选项项
+             * @returns {*} 唯一标识
+             */
+            getItemId(item) {
+                if (typeof item === 'string') {
+                    return item;
+                } else if (item && typeof item === 'object') {
+                    return item.choiceItemId || item.id || item.schoolId || item.professionalId;
+                }
+                return null;
             },
             
             /**
@@ -301,16 +394,17 @@
              * @returns {Number} 原始索引位置
              */
             findOriginalIndex(item) {
-                if (typeof item === 'string') {
-                    return this.choiceList.findIndex(originalItem => 
-                        typeof originalItem === 'string' && originalItem === item
-                    );
-                } else if (item && item.choiceItemId) {
-                    return this.choiceList.findIndex(originalItem => 
-                        originalItem && originalItem.choiceItemId && originalItem.choiceItemId === item.choiceItemId
-                    );
-                }
-                return -1;
+                const itemId = this.getItemId(item);
+                const itemText = this.getItemDisplayText(item);
+                
+                return this.choiceList.findIndex(originalItem => {
+                    const originalId = this.getItemId(originalItem);
+                    const originalText = this.getItemDisplayText(originalItem);
+                    
+                    // 优先通过ID匹配，然后通过文本匹配
+                    return (itemId && originalId && itemId === originalId) || 
+                           (itemText && originalText && itemText === originalText);
+                });
             },
             
             /**
@@ -319,7 +413,7 @@
             updateDisplayContent() {
                 if (this.choiceIndex >= 0 && this.choiceIndex < this.choiceList.length) {
                     const selectedItem = this.choiceList[this.choiceIndex];
-                    this.displayContent = typeof selectedItem === 'string' ? selectedItem : selectedItem.choiceItemContent;
+                    this.displayContent = this.getItemDisplayText(selectedItem);
                 } else {
                     this.displayContent = this.defaultText;
                 }
@@ -335,31 +429,16 @@
                 
                 const selectedItem = _this.pagedChoiceList[position];
                 
-                // 在搜索模式下，我们需要找出在原始列表中的实际位置
-                if (_this.mode === 'search' && _this.searchKeyword) {
-                    if (typeof selectedItem === 'string') {
-                        // 字符串项，直接查找原始列表中的匹配项
-                        const originalIndex = _this.choiceList.findIndex(item => 
-                            typeof item === 'string' && item === selectedItem
-                        );
-                        if (originalIndex !== -1) {
-                            _this.$emit("onChoiceClick", originalIndex, selectedItem);
-                            return;
-                        }
-                    } else if (selectedItem && selectedItem.choiceItemId) {
-                        // 对象项，通过ID查找
-                        const originalIndex = _this.choiceList.findIndex(item => 
-                            item && item.choiceItemId && item.choiceItemId === selectedItem.choiceItemId
-                        );
-                        if (originalIndex !== -1) {
-                            _this.$emit("onChoiceClick", originalIndex, selectedItem);
-                            return;
-                        }
-                    }
-                }
+                // 查找在原始列表中的索引
+                const originalIndex = _this.findOriginalIndex(selectedItem);
                 
-                // 对于普通模式或未找到匹配项，使用当前位置
-                _this.$emit("onChoiceClick", position, selectedItem);
+                if (originalIndex !== -1) {
+                    // 触发选择事件，传递原始索引和选中项
+                    _this.$emit("onChoiceClick", originalIndex, _this.choiceList[originalIndex]);
+                } else {
+                    // 如果找不到原始索引，使用当前位置（向后兼容）
+                    _this.$emit("onChoiceClick", position, selectedItem);
+                }
             },
             
             /**
@@ -680,6 +759,19 @@
     }
     
     .loading-text {
+        color: #999;
+        font-size: 24rpx;
+    }
+    
+    /* 没有更多数据样式 */
+    .no-more {
+        display: flex;
+        justify-content: center;
+        padding: 10rpx 0;
+        background-color: #f8f8f8;
+    }
+    
+    .no-more-text {
         color: #999;
         font-size: 24rpx;
     }

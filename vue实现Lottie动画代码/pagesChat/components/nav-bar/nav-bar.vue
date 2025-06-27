@@ -11,11 +11,27 @@
         <slot></slot>
       </view>
       <view class="btn">
-        <uni-icons class="btn-item" v-if="search" type="search" :size="iconFontSize"
-          @click="$emit('search')"></uni-icons>
-        <uni-icons class="btn-item" v-if="add" type="plusempty" :size="iconFontSize" @click="$emit('add')"></uni-icons>
-        <uni-icons class="btn-item" v-if="more" type="more-filled" :size="iconFontSize"
-          @click="$emit('more')"></uni-icons>
+        <uni-icons
+          class="btn-item"
+          v-if="search"
+          type="search"
+          :size="iconFontSize"
+          @click="$emit('search')"
+        ></uni-icons>
+        <uni-icons
+          class="btn-item"
+          v-if="add"
+          type="plusempty"
+          :size="iconFontSize"
+          @click="$emit('add')"
+        ></uni-icons>
+        <uni-icons
+          class="btn-item"
+          v-if="more"
+          type="more-filled"
+          :size="iconFontSize"
+          @click="$emit('more')"
+        ></uni-icons>
       </view>
     </view>
   </view>
@@ -27,45 +43,43 @@ export default {
   props: {
     back: {
       type: Boolean,
-      default: false
+      default: false,
     },
     title: {
       type: Boolean,
-      default: true
+      default: true,
     },
     search: {
       type: Boolean,
-      default: false
+      default: false,
     },
     add: {
       type: Boolean,
-      default: false
+      default: false,
     },
     more: {
       type: Boolean,
-      default: false
+      default: false,
     },
     iconFontSize: {
       type: Number,
-      default: 24
-    }
+      default: 24,
+    },
   },
   data() {
-    return {}
+    return {};
   },
   computed: {
-    height() {
-
-    }
+    height() {},
   },
   methods: {
     handleBackClick() {
       uni.navigateBack({
-        delta: 1
-      })
-    }
-  }
-}
+        delta: 1,
+      });
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -86,8 +100,6 @@ export default {
     justify-content: center;
     box-sizing: border-box;
     height: $im-nav-bar-height;
-
-    .title {}
 
     .back {
       position: absolute;
@@ -114,6 +126,5 @@ export default {
       }
     }
   }
-
 }
 </style>

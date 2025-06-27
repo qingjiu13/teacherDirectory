@@ -175,6 +175,7 @@ import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { Navigator } from '@/router/Router';
 import Header from '@/components/navigationTitleBar/header';
+import { submitUserInfo } from './login_detail.js';
 
 export default {
   onPageScroll() {
@@ -383,53 +384,53 @@ export default {
         this.formData.avatar = storedAvatar;
       }
       
-      // 如果需要，可以尝试从后端获取最新的用户信息
-      this.fetchUserProfile();
+      // // 如果需要，可以尝试从后端获取最新的用户信息
+      // this.fetchUserProfile();
     },
     
-    /**
-     * @description 从后端获取用户信息
-     */
-    fetchUserProfile() {
-      if (!this.token || !this.userId) return;
+    // /**
+    //  * @description 从后端获取用户信息
+    //  */
+    // fetchUserProfile() {
+    //   if (!this.token || !this.userId) return;
       
-      uni.request({
-        url: `http://localhost:8080/users/profile/${this.userId}`,
-        method: 'GET',
-        header: {
-          'Authorization': `Bearer ${this.token}`
-        },
-        success: (res) => {
-          if (res.statusCode === 200 && res.data) {
-            const userData = res.data;
+    //   uni.request({
+    //     url: `http://localhost:8080/users/profile/${this.userId}`,
+    //     method: 'GET',
+    //     header: {
+    //       'Authorization': `Bearer ${this.token}`
+    //     },
+    //     success: (res) => {
+    //       if (res.statusCode === 200 && res.data) {
+    //         const userData = res.data;
             
-            // 更新表单数据
-            if (userData.nickname) {
-              this.formData.nickname = userData.nickname;
-              uni.setStorageSync('nickname', userData.nickname);
-            }
+    //         // 更新表单数据
+    //         if (userData.nickname) {
+    //           this.formData.nickname = userData.nickname;
+    //           uni.setStorageSync('nickname', userData.nickname);
+    //         }
             
-            if (userData.avatar) {
-              this.formData.avatar = userData.avatar;
-              uni.setStorageSync('avatar', userData.avatar);
-            }
+    //         if (userData.avatar) {
+    //           this.formData.avatar = userData.avatar;
+    //           uni.setStorageSync('avatar', userData.avatar);
+    //         }
             
-            // 更新Vuex状态
-            this.SET_USER_INFO({
-              id: userData.id || this.userId,
-              name: userData.nickname || this.formData.nickname,
-              avatar: userData.avatar || this.formData.avatar,
-              isRegistered: 1
-            });
+    //         // 更新Vuex状态
+    //         this.SET_USER_INFO({
+    //           id: userData.id || this.userId,
+    //           name: userData.nickname || this.formData.nickname,
+    //           avatar: userData.avatar || this.formData.avatar,
+    //           isRegistered: 1
+    //         });
             
-            console.log('用户信息已更新');
-          }
-        },
-        fail: (err) => {
-          console.error('获取用户信息失败', err);
-        }
-      });
-    },
+    //         console.log('用户信息已更新');
+    //       }
+    //     },
+    //     fail: (err) => {
+    //       console.error('获取用户信息失败', err);
+    //     }
+    //   });
+    // },
     
     /**
      * @description 更新本科学校索引
@@ -738,9 +739,45 @@ export default {
     /**
      * @description 跳过表单填写
      */
-    skipForm() {
-      // 直接跳转到首页
-      Navigator.toIndex();
+    async skipForm() {
+      try {
+        uni.showLoading({
+          title: '跳过中...'
+        });
+        
+        // 调用API，传入跳过标识
+        const result = await submitUserInfo({
+          userRole: this.userRole,
+          userInfo: {},
+          isSkip: true
+        });
+        
+        uni.hideLoading();
+        
+        if (result.success) {
+          uni.showToast({
+            title: '跳过成功',
+            icon: 'success'
+          });
+          
+          // 延迟跳转到首页
+          setTimeout(() => {
+            Navigator.toIndex();
+          }, 1500);
+        } else {
+          uni.showToast({
+            title: result.message || '跳过失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        uni.hideLoading();
+        console.error('跳过失败:', error);
+        uni.showToast({
+          title: '跳过失败',
+          icon: 'none'
+        });
+      }
     },
     
     /**
@@ -785,27 +822,65 @@ export default {
      * @description 执行提交操作
      * @param {Object} userInfo - 用户信息
      */
-    doSubmit(userInfo) {
-      uni.showLoading({
-        title: '提交中...'
-      });
-      
-      // 更新Vuex状态
-      this.UPDATE_USER_INFO(userInfo);
-      
-      // 模拟API提交
-      setTimeout(() => {
-        uni.hideLoading();
-        uni.showToast({
-          title: '提交成功',
-          icon: 'success'
+    async doSubmit(userInfo) {
+      try {
+        uni.showLoading({
+          title: '提交中...'
         });
         
-        // 延迟跳转
-        setTimeout(() => {
-          Navigator.toIndex();
-        }, 1500);
-      }, 1000);
+        // 构造年级类型映射
+        const gradeTypeMap = {
+          '大一': 1,
+          '大二': 2,
+          '大三': 3,
+          '大四': 4,
+          '研一': 5,
+          '研二': 6,
+          '研三': 7
+        };
+        
+        // 添加年级类型到用户信息
+        const processedUserInfo = {
+          ...userInfo,
+          gradeType: userInfo.grade ? gradeTypeMap[userInfo.grade] : null
+        };
+        
+        // 调用API提交数据
+        const result = await submitUserInfo({
+          userRole: this.userRole,
+          userInfo: processedUserInfo,
+          isSkip: false
+        });
+        
+        uni.hideLoading();
+        
+        if (result.success) {
+          // 更新Vuex状态
+          this.UPDATE_USER_INFO(userInfo);
+          
+          uni.showToast({
+            title: result.message || '提交成功',
+            icon: 'success'
+          });
+          
+          // 延迟跳转到首页
+          setTimeout(() => {
+            Navigator.toIndex();
+          }, 1500);
+        } else {
+          uni.showToast({
+            title: result.message || '提交失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        uni.hideLoading();
+        console.error('提交失败:', error);
+        uni.showToast({
+          title: '提交失败',
+          icon: 'none'
+        });
+      }
     },
     
     /**
@@ -951,11 +1026,7 @@ export default {
   box-sizing: border-box;
 }
 
-.radio-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
+
 
 .radio-item-row {
   display: flex;

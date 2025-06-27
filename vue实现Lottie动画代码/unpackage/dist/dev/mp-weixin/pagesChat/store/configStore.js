@@ -1,2 +1,0 @@
-"use strict";const o=require("../../common/vendor.js"),s=require("../common/request.js"),n=o.defineStore("configStore",{state:()=>({webrtc:{}}),actions:{setConfig(t){this.webrtc=t.webrtc},clear(){this.webrtc={}},loadConfig(){return new Promise((t,r)=>{s.request({url:"/system/config",method:"GET"}).then(e=>{o.index.__f__("log","at pagesChat/store/configStore.js:23","系统配置",e),this.setConfig(e),t()}).catch(e=>{r(e)})})}}});exports.useConfigStore=n;
-//# sourceMappingURL=../../../.sourcemap/mp-weixin/pagesChat/store/configStore.js.map

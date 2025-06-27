@@ -1,1640 +1,973 @@
 <template>
-	<view class="background-image">
-      <!--
-        @file ./images/background1.png
-        @description 登录页背景图1，分包页面通过相对路径./images/background1.png按需加载
-      -->
-      <image
-        src="/static/image/bgPicture/background1.png"
-        mode="aspectFill" alt="背景图"
-      />
+    <view class="chat-page">
+      <Header :title="chatTitle" :avatar="chatAvatar" @back="goBack" />
+  
+      <!-- 连接状态栏 -->
+      <view class="connection-status" v-if="!isSocketOpen">
+        <view class="status-info">
+          <text class="status-text">{{
+            isPolling ? "轮询模式" : "连接已断开"
+          }}</text>
+          <text class="status-detail">{{
+            isPolling ? "每5秒检查新消息" : "无法实时接收消息"
+          }}</text>
+        </view>
+        <button class="reconnect-btn" @click="manualReconnect">重新连接</button>
+      </view>
+  
+      <!-- 消息列表 -->
+      <scroll-view
+        class="message-list-container"
+        scroll-y
+        :scroll-top="scrollTop"
+        :scroll-with-animation="true"
+        :style="{ height: messageListHeight + 'px' }"
+      >
+        <view class="message-list-content">
+          <view v-for="item in messageListWithTimeTips" :key="item.id">
+            <view v-if="item.type === 'time-tip'" class="time-tip-bar">
+              {{ toTimeText(item.time) }}
+            </view>
+            <view
+              v-else
+              :class="[
+                'message-row',
+                { self: Number(item.senderId) === Number(selfId) },
+              ]"
+            >
+              <ChatMessageItem
+                :message="item"
+                :is-self="Number(item.senderId) === Number(selfId)"
+              />
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+  
+      <!-- 底部输入栏 -->
+      <view
+        class="input-bar-container"
+        :style="{ bottom: keyboardHeight + 'px' }"
+      >
+        <view class="input-bar">
+          <view class="textarea-container">
+            <scroll-view
+              scroll-y
+              :show-scrollbar="false"
+              class="textarea-scroll-view"
+            >
+              <u--textarea
+                class="input-textarea"
+                v-model="textInput"
+                placeholder="请输入内容"
+                :showConfirmBar="false"
+                autoHeight
+                :adjustPosition="false"
+                border="surround"
+                :maxlength="500"
+                @focus="onInputFocus"
+                @blur="onInputBlur"
+              />
+            </scroll-view>
+          </view>
+          <!-- 根据是否有文本输入，切换图标和发送按钮 -->
+          <view class="action-wrapper">
+            <button
+              v-if="textInput.length > 0"
+              class="send-button"
+              @click="sendSocketMessage"
+              @longpress="showDebugInfo"
+            >
+              发送
+            </button>
+            <text
+              v-else
+              class="iconfont icon-add-bold icon"
+              @click="handleMore"
+              @longpress="showDebugInfo"
+            ></text>
+          </view>
+        </view>
+      </view>
     </view>
-    <view class="background-image">
-      <!--
-        @file ./images/background.png
-        @description 登录页背景图2，分包页面通过相对路径./images/background.png按需加载
-      -->
-      <image
-        src="/static/image/bgPicture/background.png"
-        mode="aspectFill" alt="背景图"
-      />
-    </view>
-	<Header :title="'对话'" @back="handleBack"/>
-	<view class="page chat-box">
-		<view class="chat-main-box" :style="{height: chatMainHeight+'px'}">
-			<view class="chat-msg" @click="switchChatTabBox('none')">
-				<scroll-view class="scroll-box" scroll-y="true" upper-threshold="200" @scrolltoupper="onScrollToTop"
-					:scroll-into-view="'chat-item-' + scrollMsgIdx">
-					<view v-if="chat" v-for="(msgInfo, idx) in chat.messages" :key="idx">
-						<ChatMessageItem :ref="'message'+msgInfo.id" v-if="idx >= showMinIdx"
-							:headImage="headImage(msgInfo) || ''" @call="onRtCall(msgInfo)" :showName="showName(msgInfo) || '未知'"
-							@recall="onRecallMessage" @delete="onDeleteMessage" @copy="onCopyMessage"
-							@longPressHead="onLongPressHead(msgInfo)" @download="onDownloadFile"
-							@audioStateChange="onAudioStateChange" :id="'chat-item-' + idx" :msgInfo="msgInfo || {}"
-							:groupMembers="groupMembers || []">
-						</ChatMessageItem>
-					</view>
-				</scroll-view>
-			</view>
-			<view v-if="atUserIds.length > 0" class="chat-at-bar" @click="openAtBox()">
-				<view class="iconfont icon-at">:&nbsp;</view>
-				<scroll-view v-if="atUserIds.length > 0" class="chat-at-scroll-box" scroll-x="true" scroll-left="120">
-					<view class="chat-at-items">
-						<view v-for="m in atUserItems" class="chat-at-item" :key="m.userId">
-							<HeadImage :name="m.showNickName" :url="m.headImage" size="minier"></HeadImage>
-						</view>
-					</view>
-				</scroll-view>
-			</view>
-			<view class="send-bar" :style="{ zIndex: sendBarZIndex }">
-				<!-- <view v-if="!showRecord" class="iconfont icon-voice-circle" @click="onRecorderInput()"></view> -->
-				<!-- <view v-else class="iconfont icon-keyboard" @click="onKeyboardInput()"></view> -->
-				<ChatRecord v-if="showRecord" class="chat-record" @send="onSendRecord"></ChatRecord>
-				<view v-else class="send-container">
-					<view class="send-text">
-						<textarea id="textInput" class="send-text-area" :placeholder="isReceipt ? '[回执消息]' : ''"
-							:disabled="isReadOnly" @focus="onTextareaFocus" @blur="onTextareaBlur" 
-							@input="onTextareaInput" confirm-type="send" return-key-type="send" 
-							@confirm="sendTextMessage" :adjust-position="true" v-model="textContent"
-							:hold-keyboard="false" :auto-height="true" :show-confirm-bar="true">
-						</textarea>
-					</view>
-					<view class="send-actions">
-						<view v-if="chat && chat.type == 'GROUP'" class="iconfont icon-at" @click="openAtBox()"></view>
-						<!-- <view class="iconfont icon-icon_emoji" @click="onShowEmoChatTab()">
-							<image class="icon" src="/pagesChat/static/icon_side/AI.png" mode="aspectFill" lazy-load="true"></image>
-						</view> -->
-						<view v-if="isEmpty" class="iconfont icon-add" @click="onShowToolsChatTab()">
-							<image class="icon" src="/pagesChat/static/icon_side/AI.png" mode="aspectFill" lazy-load="true"></image>
-						</view>
-					</view>
-				</view>
-			</view>
-		</view>
-		<view class="chat-tab-bar">
-			<view v-if="chatTabBox == 'tools'" class="chat-tools" :style="{height: keyboardHeight+'px'}">
-				<view class="chat-tools-item">
-					<FileUpload ref="fileUpload" :onBefore="onUploadFileBefore" :onSuccess="onUploadFileSuccess"
-						:onError="onUploadFileFail">
-						<view class="tool-icon">
-							<image class="icon" src="/pagesChat/static/icon_side/AI.png" mode="aspectFill" lazy-load="true"></image>
-						</view>
-					</FileUpload>
-					<view class="tool-name">文件</view>
-				</view>
-				<view class="chat-tools-item">
-					<ImageUpload :maxCount="9" sourceType="album" :onBefore="onUploadImageBefore"
-						:onSuccess="onUploadImageSuccess" :onError="onUploadImageFail">
-						<view class="tool-icon">
-							<image class="icon" src="/pagesChat/static/icon_side/AI.png" mode="aspectFill" lazy-load="true"></image>
-						</view>
-					</ImageUpload>
-					<view class="tool-name">相册</view>
-				</view>
-				<view class="chat-tools-item">
-					<ImageUpload sourceType="camera" :onBefore="onUploadImageBefore" :onSuccess="onUploadImageSuccess"
-						:onError="onUploadImageFail">
-						<view class="tool-icon">
-							<image class="icon" src="/pagesChat/static/icon_side/AI.png" mode="aspectFill" lazy-load="true"></image>
-						</view>
-					</ImageUpload>
-					<view class="tool-name">拍摄</view>
-				</view>
-				<!-- <view class="chat-tools-item" @click="onRecorderInput()">
-					<view class="tool-icon iconfont icon-microphone"></view>
-					<view class="tool-name">语音消息</view>
-				</view> -->
-				<view v-if="chat.type == 'GROUP' && memberSize<=500" class="chat-tools-item" @click="switchReceipt()">
-					<view class="tool-icon iconfont icon-receipt" :class="isReceipt ? 'active' : ''"></view>
-					<view class="tool-name">回执消息</view>
-				</view>
-				<!-- #ifndef MP-WEIXIN -->
-				<!-- 音视频不支持小程序 -->
-				<view v-if="chat.type == 'PRIVATE'" class="chat-tools-item" @click="onPriviteVideo()">
-					<view class="tool-icon iconfont icon-video"></view>
-					<view class="tool-name">视频通话</view>
-				</view>
-				<view v-if="chat.type == 'PRIVATE'" class="chat-tools-item" @click="onPriviteVoice()">
-					<view class="tool-icon iconfont icon-call"></view>
-					<view class="tool-name">语音通话</view>
-				</view>
-				<view v-if="chat.type == 'GROUP'" class="chat-tools-item" @click="onGroupVideo()">
-					<view class="tool-icon iconfont icon-call"></view>
-					<view class="tool-name">语音通话</view>
-				</view>
-				<!-- #endif -->
-			</view>
-		<scroll-view
-			v-if="chatTabBox === 'emo'"
-			class="chat-emotion"
-			scroll-y="true"
-			:style="{ height: keyboardHeight + 'px' }"
-			>
-			<view class="emotion-item-list">
-				<image
-				class="emotion-item emoji-large"
-				v-for="(emoText, i) in $emo.emoTextList"
-				:key="i"
-				:title="emoText"
-				:src="$emo.textToPath(emoText)"
-				@click="selectEmoji(emoText)"
-				mode="aspectFill"
-				lazy-load="true"
-				></image>
-			</view>
-		</scroll-view>
-
-		</view>
-		<!-- @用户时选择成员 -->
-		<ChatAtBox ref="atBox" :ownerId="group.ownerId" :members="groupMembers"
-			@complete="onAtComplete"></ChatAtBox>
-		<!-- 群语音通话时选择成员 -->
-		<!-- #ifndef MP-WEIXIN -->
-		<GroupMemberSelector ref="selBox" :members="groupMembers" :maxSize="configStore.webrtc.maxChannel"
-			@complete="onInviteOk"></GroupMemberSelector>
-		<GroupRtcJoin ref="rtcJoin" :groupId="group.id"></GroupRtcJoin>
-		<!-- #endif -->
-	</view>
-</template>
-
-<script>
-import UNI_APP from './env.js';
-// 引入模拟数据和服务
-import Header from '@/components/navigationTitleBar/header';
-import mockChatService from './common/mockChatService.js';
-import { getMockUserById, getMockGroupById, getMockCurrentUser, mockChats } from './common/mockData.js';
-import ChatMessageItem from './components/chat-message-item/chat-message-item';
-import ChatRecord from './components/chat-record/chat-record';
-import FileUpload from './components/file-upload/file-upload';
-import ImageUpload from './components/image-upload/image-upload';
-import HeadImage from './components/head-image/head-image';
-import ChatAtBox from './components/chat-at-box/chat-at-box';
-import GroupMemberSelector from './components/group-member-selector/group-member-selector';
-import GroupRtcJoin from './components/group-rtc-join/group-rtc-join';
-import ChatItem from './components/chat-item/chat-item';
-import Loading from './components/loading/loading';
-import LongPressMenu from './components/long-press-menu/long-press-menu';
-// 导入enums等工具
-import * as enums from './common/enums.js';
-import * as messageType from './common/messageType.js';
-import emotion from './common/emotion.js';
-import url from './common/url.js';
-// 直接引入store获取函数
-import { getChatStore, getFriendStore, getConfigStore, getUserStore, getGroupStore } from './main.js';
-
-export default {
-	components: {
-		Header,
-		ChatMessageItem,
-		ChatRecord,
-		FileUpload,
-		ImageUpload,
-		ChatAtBox,
-		HeadImage,
-		GroupMemberSelector,
-		GroupRtcJoin,
-		ChatItem,
-		Loading,
-		LongPressMenu
-	},
-	data() {
-		return {
-			textContent: '',
-			chat: {},
-			userInfo: {},
-			group: {},
-			groupMembers: [],
-			isReceipt: false, // 是否回执消息
-			scrollMsgIdx: 0, // 滚动条定位为到哪条消息
-			chatTabBox: 'none',
-			showRecord: false,
-			chatMainHeight: 0, // 聊天窗口高度
-			keyboardHeight: 290, // 键盘高度
-			windowHeight: 1000, // 窗口高度
-			initHeight: 1000, // h5初始高度
-			atUserIds: [],
-			needScrollToBottom: false, // 需要滚动到底部 
-			showMinIdx: 0, // 下标小于showMinIdx的消息不显示，否则可能很卡
-			reqQueue: [], // 请求队列
-			isSending: false, // 是否正在发送请求
-			isShowKeyBoard: false, // 键盘是否正在弹起 
-			isEmpty: true, // 输入框是否为空
-			isFocus: false, // 输入框是否焦点
-			isReadOnly: false, // 输入框是否只读
-			playingAudio: null, // 当前正在播放的录音消息
-			// 是否使用模拟数据
-			useMockData: true,
-			// 模拟用户数据
-			mockCurrentUser: null,
-			// 存储引用
-			chatStore: null,
-			friendStore: null,
-			configStore: null,
-			userStore: null,
-			groupStore: null,
-			// 输入框层级
-			sendBarZIndex: 2, // 默认z-index值
-		}
-	},
-	created() {
-		// 确保组件中可以使用这些全局属性
-		if (!this.$enums) this.$enums = enums;
-		if (!this.$msgType) this.$msgType = messageType;
-		if (!this.$emo) this.$emo = emotion;
-		if (!this.$url) this.$url = url;
-		
-		// 初始化store引用
-		try {
-			// 优先从直接导入的函数获取
-			this.chatStore = getChatStore();
-			this.friendStore = getFriendStore();
-			this.configStore = getConfigStore();
-			this.userStore = getUserStore();
-			this.groupStore = getGroupStore();
-			
-			// 如果导出的函数无法获取，尝试从全局属性获取
-			if (!this.chatStore && this.$) {
-				console.log('chat-box.vue: 尝试从全局属性获取Store');
-				this.chatStore = this.$chatStore;
-				this.friendStore = this.$friendStore;
-				this.configStore = this.$configStore;
-				this.userStore = this.$userStore;
-				this.groupStore = this.$groupStore;
-			}
-			
-			console.log('chat-box.vue: 获取Store成功:', 
-				'chatStore=', !!this.chatStore, 
-				'friendStore=', !!this.friendStore
-			);
-		} catch (error) {
-			console.error('chat-box.vue: 获取Store失败:', error);
-		}
-		
-		// 初始化当前用户
-		this.mockCurrentUser = getMockCurrentUser();
-		
-		// 添加数据检查，确保模拟数据已初始化
-		if (this.useMockData && (!this.chatStore || !this.chatStore.chats || this.chatStore.chats.length === 0)) {
-			console.log('chat-box.vue: 强制初始化模拟数据');
-			this.initMockData();
-		}
-	},
-	methods: {
-		handleBack() {
-			uni.navigateBack();
-		},
-		onRecorderInput() {
-			this.showRecord = true;
-			this.switchChatTabBox('none');
-		},
-		onKeyboardInput() {
-			this.showRecord = false;
-			this.switchChatTabBox('none');
-		},
-		onSendRecord(data) {
-			// 检查是否被封禁
-			if (this.isBanned) {
-				this.showBannedTip();
-				return;
-			}
-			let msgInfo = {
-				content: JSON.stringify(data),
-				type: this.$enums.MESSAGE_TYPE.AUDIO,
-				receipt: this.isReceipt
-			}
-			// 填充对方id
-			this.fillTargetId(msgInfo, this.chat.targetId);
-			this.sendMessageRequest(msgInfo).then((m) => {
-				m.selfSend = true;
-				this.chatStore.insertMessage(m, this.chat);
-				// 会话置顶
-				this.moveChatToTop();
-				// 滚动到底部
-				this.scrollToBottom();
-				this.isReceipt = false;
-
-			})
-		},
-		onRtCall(msgInfo) {
-			if (msgInfo.type == this.$enums.MESSAGE_TYPE.ACT_RT_VOICE) {
-				this.onPriviteVoice();
-			} else if (msgInfo.type == this.$enums.MESSAGE_TYPE.ACT_RT_VIDEO) {
-				this.onPriviteVideo();
-			}
-		},
-		onPriviteVideo() {
-			const friendInfo = encodeURIComponent(JSON.stringify(this.friend));
-			uni.navigateTo({
-				url: `/pages/chat/chat-private-video?mode=video&friend=${friendInfo}&isHost=true`
-			})
-		},
-		onPriviteVoice() {
-			const friendInfo = encodeURIComponent(JSON.stringify(this.friend));
-			uni.navigateTo({
-				url: `/pages/chat/chat-private-video?mode=voice&friend=${friendInfo}&isHost=true`
-			})
-		},
-		onGroupVideo() {
-			// 邀请成员发起通话
-			let ids = [this.mine.id];
-			this.$refs.selBox.init(ids, ids, []);
-			this.$refs.selBox.open();
-		},
-		onInviteOk(ids) {
-			if (ids.length < 2) {
-				return;
-			}
-			let users = [];
-			ids.forEach(id => {
-				let m = this.groupMembers.find(m => m.userId == id);
-				// 只取部分字段,压缩url长度
-				users.push({
-					id: m.userId,
-					nickName: m.showNickName,
-					headImage: m.headImage,
-					isCamera: false,
-					isMicroPhone: true
-				})
-			})
-			const groupId = this.group.id;
-			const inviterId = this.mine.id;
-			const userInfos = encodeURIComponent(JSON.stringify(users));
-			uni.navigateTo({
-				url: `/pages/chat/chat-group-video?groupId=${groupId}&isHost=true
-						&inviterId=${inviterId}&userInfos=${userInfos}`
-			})
-		},
-		moveChatToTop() {
-			let chatIdx = this.chatStore.findChatIdx(this.chat);
-			this.chatStore.moveTop(chatIdx);
-		},
-		switchReceipt() {
-			this.isReceipt = !this.isReceipt;
-		},
-		openAtBox() {
-			this.$refs.atBox.init(this.atUserIds);
-			this.$refs.atBox.open();
-		},
-		onAtComplete(atUserIds) {
-			this.atUserIds = atUserIds;
-		},
-		onLongPressHead(msgInfo) {
-			if (!msgInfo.selfSend && this.chat.type == "GROUP" && this.atUserIds.indexOf(msgInfo.sendId) < 0) {
-				this.atUserIds.push(msgInfo.sendId);
-			}
-		},
-		headImage(msgInfo) {
-			if (!msgInfo) {
-				return '';
-			}
-			
-			try {
-				if (this.chat && this.chat.type == 'GROUP') {
-					let member = this.groupMembers.find((m) => m && m.userId == msgInfo.sendId);
-					return member ? member.headImage : "";
-				} else {
-					return msgInfo.selfSend ? (this.mine && this.mine.headImageThumb ? this.mine.headImageThumb : '') : 
-						(this.chat && this.chat.headImage ? this.chat.headImage : '');
-				}
-			} catch (error) {
-				console.error('获取头像出错:', error);
-				return '';
-			}
-		},
-		showName(msgInfo) {
-			if (!msgInfo) {
-				return '';
-			}
-			
-			try {
-				if (this.chat && this.chat.type == 'GROUP') {
-					let member = this.groupMembers.find((m) => m && m.userId == msgInfo.sendId);
-					return member ? member.showNickName : "";
-				} else {
-					return msgInfo.selfSend ? (this.mine && this.mine.nickName ? this.mine.nickName : '') : 
-						(this.chat && this.chat.showName ? this.chat.showName : '');
-				}
-			} catch (error) {
-				console.error('获取名称出错:', error);
-				return '';
-			}
-		},
-		sendTextMessage() {
-			console.log('键盘发送按钮被点击');
-			
-			// 检查是否被封禁
-			if (this.isBanned) {
-				this.showBannedTip();
-				return;
-			}
-			
-			let sendText = this.textContent || '';
-			console.log('发送文本内容:', sendText);
-			
-			if (!sendText.trim() && this.atUserIds.length == 0) {
-				return uni.showToast({
-					title: "不能发送空白信息",
-					icon: "none"
-				});
-			}
-			
-			let receiptText = this.isReceipt ? "【回执消息】" : "";
-			let atText = this.createAtText();
-			
-			// 清空输入框（在验证通过后）
-			this.textContent = '';
-			this.isEmpty = true;
-			
-			if (this.useMockData) {
-				// 使用模拟数据
-				const message = {
-					tmpId: 'tmp_' + Date.now(),
-					type: this.$enums.MESSAGE_TYPE.TEXT,
-					content: receiptText + this.html2Escape(sendText) + atText,
-					status: this.$enums.MESSAGE_STATUS.UNSEND
-				};
-				
-				mockChatService.sendMessage(message, {
-					type: this.chat.type,
-					targetId: this.chat.targetId
-				}).then(() => {
-					// 滚动到底部
-					this.scrollToBottom();
-				});
-				
-				// 清空@成员和回执标记
-				this.atUserIds = [];
-				this.isReceipt = false;
-			} else {
-				// 使用原接口
-				let msgInfo = {
-					content: receiptText + this.html2Escape(sendText) + atText,
-					atUserIds: this.atUserIds,
-					receipt: this.isReceipt,
-					type: 0
-				}
-				// 清空@成员和回执标记
-				this.atUserIds = [];
-				this.isReceipt = false;
-				// 填充对方id
-				this.fillTargetId(msgInfo, this.chat.targetId);
-				this.sendMessageRequest(msgInfo).then((m) => {
-					m.selfSend = true;
-					this.chatStore.insertMessage(m, this.chat);
-					// 会话置顶
-					this.moveChatToTop();
-				}).finally(() => {
-					// 滚动到底部
-					this.scrollToBottom();
-				});
-			}
-		},
-		createAtText() {
-			let atText = "";
-			this.atUserIds.forEach((id) => {
-				if (id == -1) {
-					atText += ` @全体成员`;
-				} else {
-					let member = this.groupMembers.find((m) => m.userId == id);
-					if (member) {
-						atText += ` @${member.showNickName}`;
-					}
-				}
-			})
-			return atText;
-		},
-		fillTargetId(msgInfo, targetId) {
-			if (this.chat.type == "GROUP") {
-				msgInfo.groupId = targetId;
-			} else {
-				msgInfo.recvId = targetId;
-			}
-		},
-		scrollToBottom() {
-			let size = this.messageSize;
-			if (size > 0) {
-				this.scrollToMsgIdx(size - 1);
-			}
-		},
-		scrollToMsgIdx(idx) {
-			// 如果scrollMsgIdx值没变化，滚动条不会移动
-			if (idx == this.scrollMsgIdx && idx > 0) {
-				this.$nextTick(() => {
-					// 先滚动到上一条
-					this.scrollMsgIdx = idx - 1;
-					// 再滚动目标位置
-					this.scrollToMsgIdx(idx);
-				});
-				return;
-			}
-			this.$nextTick(() => {
-				this.scrollMsgIdx = idx;
-			});
-		},
-		onShowEmoChatTab() {
-			this.showRecord = false;
-			// 简单关闭表情栏时的键盘
-			uni.hideKeyboard();
-			// 直接切换到表情栏，不进行复杂的键盘监听操作
-			setTimeout(() => {
-				this.switchChatTabBox('emo');
-			}, 100);
-		},
-		onShowToolsChatTab() {
-			this.showRecord = false;
-			// 简单关闭工具栏时的键盘
-			uni.hideKeyboard();
-			// 直接切换到工具栏，不进行复杂的键盘监听操作
-			setTimeout(() => {
-				this.switchChatTabBox('tools');
-			}, 100);
-		},
-		switchChatTabBox(chatTabBox) {
-			this.chatTabBox = chatTabBox;
-			this.reCalChatMainHeight();
-			
-			// 移除键盘监听的重新启用，让系统原生处理
-			if (chatTabBox != 'tools' && this.$refs.fileUpload) {
-				this.$refs.fileUpload.hide()
-			}
-		},
-		selectEmoji(emoText) {
-			// 直接在文本内容中插入表情文字
-			this.textContent = (this.textContent || '') + emoText;
-			this.isEmpty = false;
-		},
-		onUploadImageBefore(file) {
-			// 检查是否被封禁
-			if (this.isBanned) {
-				this.showBannedTip();
-				return;
-			}
-			let data = {
-				originUrl: file.path,
-				thumbUrl: file.path
-			}
-			let msgInfo = {
-				id: 0,
-				tmpId: this.generateId(),
-				fileId: file.uid,
-				sendId: this.mine.id,
-				content: JSON.stringify(data),
-				sendTime: new Date().getTime(),
-				selfSend: true,
-				type: this.$enums.MESSAGE_TYPE.IMAGE,
-				readedCount: 0,
-				loadStatus: "loading",
-				status: this.$enums.MESSAGE_STATUS.UNSEND
-			}
-			// 填充对方id
-			this.fillTargetId(msgInfo, this.chat.targetId);
-			// 插入消息
-			this.chatStore.insertMessage(msgInfo, this.chat);
-			// 会话置顶
-			this.moveChatToTop();
-			// 借助file对象保存
-			file.msgInfo = msgInfo;
-			file.chat = this.chat;
-			// 滚到最低部
-			this.scrollToBottom();
-			return true;
-		},
-		onUploadImageSuccess(file, res) {
-			let msgInfo = JSON.parse(JSON.stringify(file.msgInfo));
-			msgInfo.content = JSON.stringify(res.data);
-			msgInfo.receipt = this.isReceipt
-			this.sendMessageRequest(msgInfo).then((m) => {
-				msgInfo.loadStatus = 'ok';
-				msgInfo.id = m.id;
-				this.isReceipt = false;
-				this.chatStore.insertMessage(msgInfo, file.chat);
-			})
-		},
-		onUploadImageFail(file, err) {
-			let msgInfo = JSON.parse(JSON.stringify(file.msgInfo));
-			msgInfo.loadStatus = 'fail';
-			this.chatStore.insertMessage(msgInfo, file.chat);
-		},
-		onUploadFileBefore(file) {
-			// 检查是否被封禁
-			if (this.isBanned) {
-				this.showBannedTip();
-				return;
-			}
-			let data = {
-				name: file.name,
-				size: file.size,
-				url: file.path
-			}
-			let msgInfo = {
-				id: 0,
-				tmpId: this.generateId(),
-				sendId: this.mine.id,
-				content: JSON.stringify(data),
-				sendTime: new Date().getTime(),
-				selfSend: true,
-				type: this.$enums.MESSAGE_TYPE.FILE,
-				readedCount: 0,
-				loadStatus: "loading",
-				status: this.$enums.MESSAGE_STATUS.UNSEND
-			}
-			// 填充对方id
-			this.fillTargetId(msgInfo, this.chat.targetId);
-			// 插入消息
-			this.chatStore.insertMessage(msgInfo, this.chat);
-			// 会话置顶
-			this.moveChatToTop();
-			// 借助file对象保存
-			file.msgInfo = msgInfo;
-			file.chat = this.chat;
-			// 滚到最低部
-			this.scrollToBottom();
-			return true;
-		},
-		onUploadFileSuccess(file, res) {
-			let data = {
-				name: file.name,
-				size: file.size,
-				url: res.data
-			}
-			let msgInfo = JSON.parse(JSON.stringify(file.msgInfo));
-			msgInfo.content = JSON.stringify(data);
-			msgInfo.receipt = this.isReceipt
-			this.sendMessageRequest(msgInfo).then((m) => {
-				msgInfo.loadStatus = 'ok';
-				msgInfo.id = m.id;
-				this.isReceipt = false;
-				this.chatStore.insertMessage(msgInfo, file.chat);
-			})
-		},
-		onUploadFileFail(file, res) {
-			let msgInfo = JSON.parse(JSON.stringify(file.msgInfo));
-			msgInfo.loadStatus = 'fail';
-			this.chatStore.insertMessage(msgInfo, file.chat);
-		},
-		onDeleteMessage(msgInfo) {
-			uni.showModal({
-				title: '删除消息',
-				content: '确认删除消息?',
-				success: (res) => {
-					if (!res.cancel) {
-						if (this.useMockData) {
-							// 使用模拟数据
-							mockChatService.deleteMessage(msgInfo, {
-								type: this.chat.type,
-								targetId: this.chat.targetId
-							}).then(() => {
-								uni.showToast({
-									title: "删除成功",
-									icon: "none"
-								});
-							});
-						} else {
-							// 使用原接口
-							this.chatStore.deleteMessage(msgInfo, this.chat);
-							uni.showToast({
-								title: "删除成功",
-								icon: "none"
-							})
-						}
-					}
-				}
-			})
-		},
-		onRecallMessage(msgInfo) {
-			uni.showModal({
-				title: '撤回消息',
-				content: '确认撤回消息?',
-				success: (res) => {
-					if (!res.cancel) {
-						if (this.useMockData) {
-							// 使用模拟数据
-							mockChatService.recallMessage(msgInfo, {
-								type: this.chat.type,
-								targetId: this.chat.targetId
-							}).then(() => {
-								uni.showToast({
-									title: '撤回成功',
-									icon: 'none'
-								});
-							});
-						} else {
-							// 使用原接口
-							let url = `/message/${this.chat.type.toLowerCase()}/recall/${msgInfo.id}`
-							this.$http({
-								url: url,
-								method: 'DELETE'
-							}).then((m) => {
-								m.selfSend = true;
-								this.chatStore.recallMessage(m, this.chat);
-							})
-						}
-					}
-				}
-			})
-		},
-		onCopyMessage(msgInfo) {
-			uni.setClipboardData({
-				data: msgInfo.content,
-				success: () => {
-					uni.showToast({ title: '复制成功' });
-				},
-				fail: () => {
-					uni.showToast({ title: '复制失败', icon: 'none' });
-				}
-			});
-		},
-		onDownloadFile(msgInfo) {
-			let url = JSON.parse(msgInfo.content).url;
-			uni.downloadFile({
-				url: url,
-				success(res) {
-					if (res.statusCode === 200) {
-						var filePath = encodeURI(res.tempFilePath);
-						uni.openDocument({
-							filePath: filePath,
-							showMenu: true
-						});
-					}
-				},
-				fail(e) {
-					uni.showToast({
-						title: "文件下载失败",
-						icon: "none"
-					})
-				}
-			});
-		},
-		onScrollToTop() {
-			if (this.showMinIdx == 0) {
-				console.log("消息已滚动到顶部")
-				return;
-			}
-			//  #ifndef H5
-			// 防止滚动条定格在顶部，不能一直往上滚
-			this.scrollToMsgIdx(this.showMinIdx);
-			// #endif
-			// 多展示20条信息
-			this.showMinIdx = this.showMinIdx > 20 ? this.showMinIdx - 20 : 0;
-		},
-		onShowMore() {
-			if (this.chat.type == "GROUP") {
-				uni.navigateTo({
-					url: "/pages/group/group-info?id=" + this.group.id
-				})
-			} else {
-				uni.navigateTo({
-					url: "/pages/common/user-info?id=" + this.userInfo.id
-				})
-			}
-		},
-		onTextareaFocus(e) {
-			try {
-				this.isFocus = true;
-				
-				// 如果有展开项，先收起再重新获得焦点
-				if (this.chatTabBox !== 'none') {
-					// 先让输入框失去焦点，阻止键盘立刻弹起
-					uni.hideKeyboard();
-					
-					// 收起所有展开项
-					this.switchChatTabBox('none');
-					
-					// 延迟后重新让输入框获得焦点
-					setTimeout(() => {
-						// 重新获得焦点
-						const query = uni.createSelectorQuery().in(this);
-						query.select('#textInput').focus();
-						this.scrollToBottom();
-						this.reCalChatMainHeight();
-					}, 200);
-				} else {
-					// 如果没有展开项，直接处理
-					this.scrollToBottom();
-					setTimeout(() => {
-						this.reCalChatMainHeight();
-					}, 50);
-				}
-			} catch (error) {
-				console.error('输入框获取焦点错误:', error);
-			}
-		},
-		onTextareaBlur(e) {
-			try {
-				this.isFocus = false;
-				// 简化失焦处理
-				setTimeout(() => {
-					this.reCalChatMainHeight();
-				}, 50);
-			} catch (error) {
-				console.error('输入框失去焦点错误:', error);
-			}
-		},
-		onTextareaInput(e) {
-			try {
-				this.textContent = e.detail.value;
-				// 检查输入内容是否为空
-				this.isEmpty = !this.textContent || this.textContent.trim() === '';
-				
-				// 调整输入框高度（延时确保UI更新）
-				setTimeout(() => {
-					// 重新计算布局
-					this.reCalChatMainHeight();
-					
-					// 如果焦点在输入框，滚动到底部
-					if (this.isFocus) {
-						this.scrollToBottom();
-					}
-				}, 50);
-			} catch (error) {
-				console.error('处理文本输入错误:', error);
-			}
-		},
-		onAudioStateChange(state, msgInfo) {
-			const playingAudio = this.$refs['message' + msgInfo.id][0]
-			if (state == 'PLAYING' && playingAudio != this.playingAudio) {
-				// 停止之前的录音
-				this.playingAudio && this.playingAudio.stopPlayAudio();
-				// 记录当前正在播放的消息
-				this.playingAudio = playingAudio;
-			}
-		},
-		loadReaded(fid) {
-			if (this.useMockData) {
-				// 模拟数据无需加载已读状态
-				return;
-			}
-			
-			this.$http({
-				url: `/message/private/maxReadedId?friendId=${fid}`,
-				method: 'get'
-			}).then((id) => {
-				this.chatStore.readedMessage({
-					friendId: fid,
-					maxId: id
-				});
-			});
-		},
-		readedMessage() {
-			if (this.unreadCount == 0) {
-				return;
-			}
-			
-			if (this.useMockData) {
-				// 使用模拟数据时直接重置未读计数
-				if (this.chat) {
-					this.chat.unreadCount = 0;
-					this.scrollToBottom();
-				}
-				return;
-			}
-			
-			let url = ""
-			if (this.chat.type == "GROUP") {
-				url = `/message/group/readed?groupId=${this.chat.targetId}`
-			} else {
-				url = `/message/private/readed?friendId=${this.chat.targetId}`
-			}
-			this.$http({
-				url: url,
-				method: 'PUT'
-			}).then(() => {
-				this.chatStore.resetUnreadCount(this.chat)
-				this.scrollToBottom();
-			})
-		},
-		loadGroup(groupId) {
-			if (this.useMockData) {
-				// 使用模拟数据
-				const group = getMockGroupById(groupId);
-				if (group) {
-					this.group = {
-						id: group.id,
-						showGroupName: group.showGroupName,
-						headImageThumb: group.headImageThumb,
-						memberCount: group.memberCount,
-						isBanned: false,
-						ownerId: 1 // 假设当前用户是群主
-					};
-					
-					// 模拟群成员
-					this.groupMembers = [];
-					group.members.forEach(memberId => {
-						const user = getMockUserById(memberId);
-						if (user) {
-							this.groupMembers.push({
-								userId: user.id,
-								showNickName: user.nickName,
-								headImage: user.headImageThumb,
-								quit: false
-							});
-						}
-					});
-				}
-				return;
-			}
-			
-			this.$http({
-				url: `/group/find/${groupId}`,
-				method: 'GET'
-			}).then((group) => {
-				this.group = group;
-				this.chatStore.updateChatFromGroup(group);
-				this.groupStore.updateGroup(group);
-			});
-
-			this.$http({
-				url: `/group/members/${groupId}`,
-				method: 'GET'
-			}).then((groupMembers) => {
-				this.groupMembers = groupMembers;
-			});
-		},
-		updateFriendInfo() {
-			if (this.isFriend) {
-				// store的数据不能直接修改，深拷贝一份store的数据
-				let friend = JSON.parse(JSON.stringify(this.friend));
-				friend.headImage = this.userInfo.headImageThumb;
-				friend.nickName = this.userInfo.nickName;
-				friend.showNickName = friend.remarkNickName ? friend.remarkNickName : friend.nickName;
-				// 更新好友列表中的昵称和头像
-				this.friendStore.updateFriend(friend);
-				// 更新会话中的头像和昵称
-				this.chatStore.updateChatFromFriend(friend);
-			} else {
-				this.chatStore.updateChatFromUser(this.userInfo);
-			}
-		},
-		loadFriend(friendId) {
-			if (this.useMockData) {
-				// 使用模拟数据
-				const user = getMockUserById(friendId);
-				if (user) {
-					this.userInfo = {
-						id: user.id,
-						nickName: user.nickName,
-						headImageThumb: user.headImageThumb,
-						state: user.state,
-						isBanned: false
-					};
-				}
-				return;
-			}
-			
-			// 获取好友用户信息
-			this.$http({
-				url: `/user/find/${friendId}`,
-				method: 'GET'
-			}).then((userInfo) => {
-				this.userInfo = userInfo;
-				this.updateFriendInfo();
-			})
-		},
-		rpxTopx(rpx) {
-			// rpx转换成px
-			let info = uni.getSystemInfoSync()
-			let px = info.windowWidth * rpx / 750;
-			return Math.floor(rpx);
-		},
-		html2Escape(strHtml) {
-			return strHtml.replace(/[<>&"]/g, function(c) {
-				return {
-					'<': '&lt;',
-					'>': '&gt;',
-					'&': '&amp;',
-					'"': '&quot;'
-				} [c];
-			});
-		},
-		sendMessageRequest(msgInfo) {
-			return new Promise((resolve, reject) => {
-				// 请求入队列，防止请求"后发先至"，导致消息错序
-				this.reqQueue.push({ msgInfo, resolve, reject });
-				this.processReqQueue();
-			})
-		},
-		processReqQueue() {
-			if (this.reqQueue.length && !this.isSending) {
-				this.isSending = true;
-				const reqData = this.reqQueue.shift();
-				
-				if (this.useMockData) {
-					// 使用模拟数据发送消息
-					mockChatService.sendMessage(reqData.msgInfo, {
-						type: this.chat.type,
-						targetId: this.chat.targetId
-					}).then(result => {
-						reqData.resolve(result.message);
-					}).catch(error => {
-						reqData.reject(error);
-					}).finally(() => {
-						this.isSending = false;
-						// 发送下一条请求
-						this.processReqQueue();
-					});
-				} else {
-					// 使用原接口
-					this.$http({
-						url: this.messageAction,
-						method: 'post',
-						data: reqData.msgInfo
-					}).then((res) => {
-						reqData.resolve(res)
-					}).catch((e) => {
-						reqData.reject(e)
-					}).finally(() => {
-						this.isSending = false;
-						// 发送下一条请求
-						this.processReqQueue();
-					})
-				}
-			}
-		},
-		reCalChatMainHeight() {
-			setTimeout(() => {
-				try {
-					let h = this.windowHeight;
-					// 减去标题栏高度
-					h -= 50;
-					
-					// 如果显示表情栏或工具栏，减去其高度
-					if (this.chatTabBox === 'emo' || this.chatTabBox === 'tools') {
-						h -= this.keyboardHeight;
-						this.sendBarZIndex = 1001;
-					} else {
-						this.sendBarZIndex = 2;
-					}
-					
-					// #ifndef H5
-					h -= uni.getSystemInfoSync().statusBarHeight;
-					// #endif
-					
-					this.chatMainHeight = h;
-					
-					// 只在工具栏显示时滚动到底部，输入框焦点时让系统处理
-					if (this.chatTabBox != 'none') {
-						this.scrollToBottom();
-					}
-					
-					// #ifdef H5
-					if (uni.getSystemInfoSync().platform == 'ios') {
-						const delays = [50, 100, 500];
-						delays.forEach((delay) => {
-							setTimeout(() => {
-								uni.pageScrollTo({
-									scrollTop: 0,
-									duration: 10
-								});
-							}, delay);
-						});
-					}
-					// #endif
-				} catch (e) {
-					console.error('重新计算聊天主窗口高度错误:', e);
-				}
-			}, 30);
-		},
-		listenKeyBoard() {
-			// #ifdef H5	
-			if (navigator.platform == "Win32") {
-				// 电脑端不需要弹出键盘
-				console.log("navigator.platform:", navigator.platform)
-				return;
-			}
-			if (uni.getSystemInfoSync().platform == 'ios') {
-				// ios h5实现键盘监听
-				window.addEventListener('focusin', this.focusInListener);
-				window.addEventListener('focusout', this.focusOutListener);
-				// 监听键盘高度，ios13以上开始支持
-				if (window.visualViewport) {
-					window.visualViewport.addEventListener('resize', this.resizeListener);
-				}
-			} else {
-				// 安卓h5实现键盘监听
-				window.addEventListener('resize', this.resizeListener);
-			}
-			// #endif
-			// #ifndef H5
-			// app实现键盘监听
-			uni.onKeyboardHeightChange(this.keyBoardListener);
-			// #endif
-		},
-		unListenKeyboard() {
-			// #ifdef H5
-			window.removeEventListener('resize', this.resizeListener);
-			window.removeEventListener('focusin', this.focusInListener);
-			window.removeEventListener('focusout', this.focusOutListener);
-			// #endif
-			// #ifndef H5
-			uni.offKeyboardHeightChange(this.keyBoardListener);
-			// #endif
-		},
-		keyBoardListener(res) {
-			// 只记录键盘状态，不进行高度计算
-			this.isShowKeyBoard = res.height > 0;
-		},
-		resizeListener() {
-			// 简化resize监听，只记录状态
-			let keyboardHeight = 0;
-			
-			if (window.visualViewport && uni.getSystemInfoSync().platform == 'ios') {
-				keyboardHeight = 0;
-			}
-			
-			this.isShowKeyBoard = keyboardHeight > 150;
-		},
-		focusInListener() {
-			// 简化焦点监听
-			this.isShowKeyBoard = true;
-		},
-		focusOutListener() {
-			// 简化失焦监听
-			this.isShowKeyBoard = false;
-		},
-		showBannedTip() {
-			let msgInfo = {
-				tmpId: this.generateId(),
-				sendId: this.mine.id,
-				sendTime: new Date().getTime(),
-				type: this.$enums.MESSAGE_TYPE.TIP_TEXT
-			}
-			if (this.chat.type == "PRIVATE") {
-				msgInfo.recvId = this.mine.id
-				msgInfo.content = "该用户已被管理员封禁,原因:" + this.userInfo.reason
-			} else {
-				msgInfo.groupId = this.group.id;
-				msgInfo.content = "本群聊已被管理员封禁,原因:" + this.group.reason
-			}
-			this.chatStore.insertMessage(msgInfo, this.chat);
-		},
-		generateId() {
-			// 生成临时id 
-			return String(new Date().getTime()) + String(Math.floor(Math.random() * 1000));
-		},
-		initMockData() {
-			console.log('chat-box.vue: 开始初始化模拟数据');
-			try {
-				if (!this.chatStore) {
-					console.error('chat-box.vue: chatStore不可用，初始化失败');
-					return;
-				}
-				
-				// 初始化模拟数据
-				this.chatStore.initChats({
-					chats: JSON.parse(JSON.stringify(mockChats)),
-					privateMsgMaxId: 5000,
-					groupMsgMaxId: 6000
-				});
-				
-				console.log('chat-box.vue: 模拟数据初始化成功，共', mockChats.length, '条会话');
-			} catch (error) {
-				console.error('chat-box.vue: 初始化模拟数据失败', error);
-			}
-		},
-	},
-	computed: {
-		mine() {
-			if (this.useMockData) {
-				// 使用模拟数据
-				return this.mockCurrentUser || getMockCurrentUser();
-			}
-			return this.userStore.userInfo;
-		},
-		friend() {
-			if (this.useMockData) {
-				// 模拟数据模式下不使用好友存储
-				return null;
-			}
-			return this.friendStore.findFriend(this.userInfo.id);
-		},
-		title() {
-			if (!this.chat) {
-				return "";
-			}
-			let title = this.chat.showName;
-			if (this.chat.type == "GROUP") {
-				let size = this.groupMembers.filter(m => !m.quit).length;
-				title += `(${size})`;
-			}
-			return title;
-		},
-		messageAction() {
-			return `/message/${this.chat.type.toLowerCase()}/send`;
-		},
-		messageSize() {
-			if (!this.chat || !this.chat.messages) {
-				return 0;
-			}
-			return this.chat.messages.length;
-		},
-		unreadCount() {
-			if (!this.chat || !this.chat.unreadCount) {
-				return 0;
-			}
-			return this.chat.unreadCount;
-		},
-		isBanned() {
-			return (this.chat.type == "PRIVATE" && this.userInfo.isBanned) ||
-				(this.chat.type == "GROUP" && this.group.isBanned)
-		},
-		atUserItems() {
-			let atUsers = [];
-			this.atUserIds.forEach((id) => {
-				if (id == -1) {
-					atUsers.push({
-						id: -1,
-						showNickName: "全体成员"
-					})
-					return;
-				}
-				let member = this.groupMembers.find((m) => m.userId == id);
-				if (member) {
-					atUsers.push(member);
-				}
-			})
-			return atUsers;
-		},
-		memberSize() {
-			return this.groupMembers.filter(m => !m.quit).length;
-		}
-	},
-	watch: {
-		messageSize: function(newSize, oldSize) {
-			// 接收到消息时滚动到底部
-			if (newSize > oldSize) {
-				let pages = getCurrentPages();
-				let curPage = pages[pages.length - 1].route;
-				if (curPage == "pages/chat/chat-box") {
-					this.scrollToBottom();
-				} else {
-					this.needScrollToBottom = true;
-				}
-			}
-		},
-		unreadCount: {
-			handler(newCount, oldCount) {
-				if (newCount > 0) {
-					// 消息已读
-					this.readedMessage()
-				}
-			}
-		}
-	},
-	onLoad(options) {
-		if (this.useMockData) {
-			// 使用模拟数据
-			this.mockCurrentUser = getMockCurrentUser();
-			
-			// 从模拟数据加载聊天数据
-			const chatIdx = options.chatIdx || 0;
-			
-			try {
-				// 先直接从mockChats获取数据
-				console.log('chat-box.vue: 直接从mockChats获取聊天数据');
-				this.chat = JSON.parse(JSON.stringify(mockChats[chatIdx]));
-				
-				// 确保消息有sendId字段
-				if (this.chat && this.chat.messages) {
-					this.chat.messages.forEach(msg => {
-						if (!msg.sendId && msg.senderId) {
-							msg.sendId = msg.senderId;
-						}
-					});
-				}
-				
-				// 将数据加载到chatStore中
-				if (this.chatStore && this.chatStore.initChats) {
-					this.chatStore.initChats({
-						chats: mockChats,
-						privateMsgMaxId: 5000,
-						groupMsgMaxId: 6000
-					});
-				}
-
-				// 初始状态只显示20条消息
-				let size = this.messageSize;
-				this.showMinIdx = size > 20 ? size - 20 : 0;
-				
-				// 消息已读
-				this.readedMessage();
-				
-				// 加载好友或群聊信息
-				if (this.chat && this.chat.type == "GROUP") {
-					this.loadGroup(this.chat.targetId);
-				} else if (this.chat) {
-					this.loadFriend(this.chat.targetId);
-				}
-			} catch (error) {
-				console.error('chat-box.vue: 加载聊天数据出错', error);
-			}
-		} else {
-			// 使用原有方式
-			try {
-				// 确保chatStore和chats存在
-				if (!this.chatStore || !this.chatStore.chats || !this.chatStore.chats.length) {
-					console.error('chat-box.vue: chatStore或chats不存在');
-					return;
-				}
-				
-				// 聊天数据
-				this.chat = this.chatStore.chats[options.chatIdx];
-				
-				// 初始状态只显示20条消息
-				let size = this.messageSize;
-				this.showMinIdx = size > 20 ? size - 20 : 0;
-				
-				// 消息已读
-				this.readedMessage();
-				
-				// 加载好友或群聊信息
-				if (this.chat.type == "GROUP") {
-					this.loadGroup(this.chat.targetId);
-				} else {
-					this.loadFriend(this.chat.targetId);
-					this.loadReaded(this.chat.targetId);
-				}
-				
-				// 激活当前会话
-				this.chatStore.activeChat(options.chatIdx);
-			} catch (error) {
-				console.error('chat-box.vue: 加载聊天数据出错', error);
-			}
-		}
-		
-		// 复位回执消息
-		this.isReceipt = false;
-		// 计算聊天窗口高度
-		this.$nextTick(() => {
-			this.windowHeight = uni.getSystemInfoSync().windowHeight;
-			this.reCalChatMainHeight();
-			// #ifdef H5
-			this.initHeight = window.innerHeight;
-			document.body.addEventListener('touchmove', function(e) {
-				e.preventDefault();
-			}, { passive: false });
-			// #endif
-		});
-	},
-	onUnload() {
-		// 由于不再使用自定义键盘监听，移除相关清理
-		// this.unListenKeyboard();
-	},
-	onShow() {
-		if (this.needScrollToBottom) {
-			// 页面滚到底部
-			this.scrollToBottom();
-			this.needScrollToBottom = false;
-		}
-	}
-}
-</script>
-
-<style lang="scss">
-.background-image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.background-image image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.chat-box {
-	$icon-color: rgba(0, 0, 0, 0.88);
-	position: relative;
-	background-color:transparent;
-
-	.header {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 60rpx;
-		padding: 5px;
-		background-color:transparent;
-		line-height: 50px;
-		font-size: $im-font-size-large;
-		box-shadow: $im-box-shadow-lighter;
-		z-index: 1;
-
-		.btn-side {
-			position: absolute;
-			line-height: 60rpx;
-			cursor: pointer;
-
-			&.right {
-				right: 30rpx;
-			}
-		}
-	}
-
-	.chat-main-box {
-		// #ifdef H5
-		top: $im-nav-bar-height;
-		// #endif
-		// #ifndef H5
-		top: calc($im-nav-bar-height + var(--status-bar-height));
-		// #endif
-		position: fixed;
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		z-index: 2;
-
-		.chat-msg {
-			flex: 1;
-			padding: 0;
-			overflow: hidden;
-			position: relative;
-			background-color: transparent;
-
-			.scroll-box {
-				height: 100%;
-			}
-		}
-
-		.chat-at-bar {
-			display: flex;
-			align-items: center;
-			padding: 0 10rpx;
-
-			.icon-at {
-				font-size: $im-font-size-larger;
-				color: $im-color-primary;
-				font-weight: bold;
-			}
-
-			.chat-at-scroll-box {
-				flex: 1;
-				width: 80%;
-
-				.chat-at-items {
-					display: flex;
-					align-items: center;
-					height: 70rpx;
-
-					.chat-at-item {
-						padding: 0 3rpx;
-					}
-				}
-			}
-
-		}
-
-		.send-bar {
-			display: flex;
-			flex-direction: row;
-			padding: 10rpx 20rpx;
-			border-top: $im-border solid 1px;
-			background-color: $im-bg;
-			min-height: 100rpx;
-			margin-bottom: 14rpx;
-			position: relative;
-
-			.iconfont {
-				font-size: 60rpx;
-				margin: 0 10rpx;
-				color: $icon-color;
-				min-width: 60rpx;
-
-			}
-			.icon{
-				width: 60rpx;
-				height: 60rpx;
-			}
-
-			.chat-record {
-				flex: 1;
-			}
-
-			.send-container {
-				flex: 1;
-				display: flex;
-				flex-direction: row;
-				position: relative;
-
-				.send-text {
-					flex: 1;
-					overflow: auto;
-					padding: 0 20rpx;
-
-					border-radius: 8rpx;
-					font-size: $im-font-size;
-					box-sizing: border-box;
-					margin: 0 10rpx;
-
-
-					.send-text-area {
-						background-color: white;
-						width: 100%;
-						height: auto;
-						min-height: 70rpx;
-						max-height: 300rpx; /* 约为10行文字高度 */
-						overflow-y: auto; /* 确保可以滚动 */
-						font-size: 30rpx;
-						border-radius: 8rpx;
-					}
-				
-
-
-
-					.btn-send {
-						margin: 5rpx;
-						height: 60rpx;
-					}
-				}
-				.send-actions{
-					display: flex;
-					flex-direction: row;
-				}
-			}
-
-		}
-	}
-
-	.chat-tab-bar {
-		position: fixed;
-		bottom: 0;
-		background-color: $im-bg;
-		width: 100%;
-		background-color: white;
-		z-index: 1000;
-
-		.chat-tools {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			align-items: top;
-			height: 90rpx;
-			padding: 40rpx;
-			box-sizing: border-box;
-			width: 100%;
-
-			.chat-tools-item {
-				width: 25%;
-				padding: 16rpx;
-				box-sizing: border-box;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				.icon{
-					width: 100%;
-					height: 100%;
-					z-index: 1000;
-				}
-
-				.tool-icon {
-					font-size: 54rpx;
-					border-radius: 20%;
-					background-color: white;
-					color: $icon-color;
-					width: 60rpx;
-					height: 60rpx;
-					.icon{
-						width: 100%;
-						height: 100%;
-					}
-
-					&:active {
-						background-color: $im-bg-active;
-					}
-				}
-
-				.tool-name {
-					height: 60rpx;
-					line-height: 60rpx;
-					font-size: 28rpx;
-				}
-			}
-		}
-
-		.chat-emotion {
-			height: 310px;
-			padding: 20rpx;
-			box-sizing: border-box;
-
-			.emotion-item-list {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 10rpx; // 控制横向与纵向的间距
-				justify-content: flex-start;
-				flex-direction: row;
-				height: 100%;
-			}
-
-				.emotion-item {
-					width: calc((100% - 70rpx) / 8); // 减去7个gap再平分8个表情
-					height: calc((100% - 70rpx) / 8);
-					box-sizing: border-box;
-				}
-			}
-
-
-	}
-}
-</style>
+  </template>
+  
+  <script setup>
+  import { ref, computed, watch } from "vue";
+  import { onLoad, onShow, onUnload } from "@dcloudio/uni-app";
+  import ChatMessageItem from "./components/chat-message-item/chat-message-item.vue";
+  import UNI_APP from "./env.js";
+  import Header from "@/components/navigationTitleBar/header.vue";
+  import { getCurrentToken, getCurrentUserId } from "@/store/user/JWT.js";
+  import pollingManager from "@/utils/pollingManager.js";
+  import websocketManager from "@/utils/websocketManager.js";
+  import { toTimeText } from "./common/date.js";
+  
+  // --- 数据定义 ---
+  const chatId = ref(null);
+  const selfId = ref(null);
+  const chatTitle = ref("");
+  const chatAvatar = ref("");
+  const messages = ref([]);
+  const textInput = ref("");
+  const scrollTop = ref(0);
+  const keyboardHeight = ref(0);
+  const statusBarHeight = ref(0);
+  const windowHeight = ref(0);
+  const navbarHeight = ref(44); // 添加导航栏高度，默认44px
+  
+  // 客服ID
+  const ADMIN_ID = 1;
+  
+  // 添加轮询相关变量
+  const pollingInterval = ref(null);
+  const lastMessageId = ref(0);
+  const isPolling = computed(() => pollingManager.getStatus().isPolling);
+  
+  // WebSocket 相关变量
+  const isSocketOpen = ref(false);
+  let socketTask = null;
+  
+  // 计算消息列表高度
+  const messageListHeight = computed(() => {
+    return windowHeight.value - navbarHeight.value - 140 - keyboardHeight.value;
+  });
+  
+  // --- 本地缓存相关 ---
+  function getCacheKey() {
+    return `chat_messages_${selfId.value}_${chatId.value}`;
+  }
+  
+  function saveMessagesToCache() {
+    try {
+      const messagesToSave = messages.value.filter(
+        (msg) => msg.status === "confirmed" || msg.isLocal
+      );
+      const maxCacheSize = 100;
+      const messagesToCache = messagesToSave.slice(-maxCacheSize);
+      const cacheKey = getCacheKey();
+      uni.setStorageSync(cacheKey, messagesToCache);
+    } catch (error) {}
+  }
+  
+  function loadMessagesFromCache() {
+    const cacheKey = getCacheKey();
+    const cached = uni.getStorageSync(cacheKey) || [];
+    if (cached.length === 0 && Number(chatId.value) === 1) {
+      // 客服会话且无消息，插入欢迎语
+      messages.value.splice(0, messages.value.length, {
+        id: "welcome",
+        senderId: 1,
+        receiverId: selfId.value,
+        content: "您好，我是小助手，有什么可以帮到您？",
+        messageType: 1,
+        createdAt: new Date().toISOString(),
+        isSelf: false,
+        status: "confirmed",
+        isLocal: false,
+      });
+    } else {
+      messages.value.splice(0, messages.value.length, ...cached);
+    }
+  }
+  
+  // --- 键盘事件处理 ---
+  const onInputFocus = (e) => {
+    // 键盘弹出时的处理
+    setTimeout(() => {
+      scrollToBottom();
+    }, 300);
+  };
+  
+  const onInputBlur = () => {
+    // 键盘收起时的处理
+    keyboardHeight.value = 0;
+  };
+  
+  // --- 键盘监听 ---
+  const initKeyboardListener = () => {
+    // 监听键盘高度变化
+    uni.onKeyboardHeightChange((res) => {
+      keyboardHeight.value = res.height || 0;
+  
+      // 键盘弹出时滚动到底部
+      if (res.height > 0) {
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }
+    });
+  };
+  
+  // --- 生命周期 ---
+  onLoad(async (options) => {
+    // 获取系统信息
+    const systemInfo = uni.getSystemInfoSync();
+    statusBarHeight.value = systemInfo.statusBarHeight || 0;
+    windowHeight.value = systemInfo.windowHeight;
+  
+    // 初始化键盘监听
+    initKeyboardListener();
+  
+    console.log("[调试] onLoad options:", options);
+  
+    // 校验 chatId 参数
+    if (!options.id) {
+      console.error("[调试] 错误：onLoad 未接收到 chatId 参数！");
+      uni.showToast({ title: "参数错误", icon: "none" });
+      setTimeout(() => uni.navigateBack(), 1500);
+      return;
+    }
+  
+    chatId.value = options.id;
+    selfId.value = Number(getCurrentUserId() || 1);
+    chatTitle.value = options.title ? decodeURIComponent(options.title) : "";
+    chatAvatar.value =
+      options.avatar || "/static/image/defaultAvatar/student-man.png";
+    console.log(
+      "[调试] onLoad chatId:",
+      chatId.value,
+      "selfId:",
+      selfId.value,
+      "chatId类型:",
+      typeof chatId.value
+    );
+  
+    // 拉取历史消息后，如果 chatTitle 还是空，就自动从消息里找
+    if (!chatTitle.value) {
+      // 找到第一条对方发来的消息
+      const otherMsg = messages.value.find(
+        (m) => m.senderId && m.senderId !== selfId.value && m.nickname
+      );
+      if (otherMsg && otherMsg.nickname) {
+        chatTitle.value = otherMsg.nickname;
+      }
+    }
+    if (!chatTitle.value) {
+      chatTitle.value = "聊天";
+    }
+  
+    // 先清空本地消息
+    messages.value.splice(0, messages.value.length);
+  
+    // 检查网络连接和token
+    const token = getCurrentToken();
+    console.log("[调试] 页面加载，检查配置:", {
+      chatId: chatId.value,
+      chatIdType: typeof chatId.value,
+      selfId: selfId.value,
+      hasToken: !!token,
+      baseUrl: UNI_APP.BASE_URL,
+      wsUrl: UNI_APP.WS_URL,
+    });
+  
+    if (!token) {
+      console.error("[调试] 未找到token，无法建立连接");
+      uni.showToast({ title: "请先登录", icon: "none" });
+      return;
+    }
+  
+    // 页面加载时读取缓存
+    loadMessagesFromCache();
+    console.log(
+      "[调试] onLoad 缓存消息:",
+      JSON.parse(JSON.stringify(messages.value))
+    );
+  
+    // 确保 chatId 有效后再加载历史消息
+    if (chatId.value) {
+      await loadChatHistory();
+    } else {
+      console.error("[调试] chatId 无效，跳过历史消息加载");
+    }
+  
+    // 设置当前页面为chat-box
+    pollingManager.setCurrentPage("chat-box");
+  
+    // 注册轮询回调
+    pollingManager.registerPollingCallback("chat-box", checkNewMessages);
+  
+    // 确保 chatId 有效后再连接 WebSocket
+    if (chatId.value) {
+      connectWebSocket();
+    } else {
+      console.error("[调试] chatId 无效，跳过 WebSocket 连接");
+    }
+  });
+  
+  onShow(() => {
+    console.log("[调试] onShow - 页面显示");
+    // 设置当前页面为聊天页面
+    pollingManager.setCurrentPage("chat-box");
+  
+    // 如果WebSocket断开，尝试重连
+    if (!isSocketOpen.value) {
+      console.log("[调试] onShow - WebSocket断开，尝试重连");
+      setTimeout(() => {
+        connectWebSocket();
+      }, 1000);
+    }
+  });
+  
+  onUnload(() => {
+    console.log("[调试] onUnload - 页面卸载");
+    // 注销轮询回调
+    pollingManager.unregisterPollingCallback("chat-box");
+  
+    // 关闭WebSocket连接
+    closeWebSocket();
+  
+    // 清理缓存
+    saveMessagesToCache();
+  });
+  
+  // --- API 调用 ---
+  function getCurrentChatInfo() {
+    // chatId为对方id
+    const id = Number(chatId.value);
+    // 由于无法直接导入chats，这里返回空对象
+    // 如果需要获取聊天信息，可以通过API调用或本地存储获取
+    return {};
+  }
+  
+  const loadChatHistory = async () => {
+    try {
+      if (!chatId.value) return;
+      loadMessagesFromCache();
+      const token = getCurrentToken();
+      if (!token) return;
+      // 只用 chatId 作为目标用户，后端自动识别当前用户
+      console.log("[调试] 拉取历史消息参数:", { targetUserId: chatId.value });
+      const response = await uni.request({
+        url: `${UNI_APP.BASE_URL}/yanshilu/chatMessage/history/${chatId.value}`,
+        method: "GET",
+        data: {
+          chatId: chatId.value,
+        },
+        header: { Authorization: `Bearer ${token}` },
+      });
+      let resData = response[1] ? response[1] : response;
+      if (
+        resData &&
+        resData.statusCode === 200 &&
+        resData.data &&
+        resData.data.code === 200
+      ) {
+        const history = resData.data.data || [];
+        const historyMessages = history.map((msg) => ({
+          id: msg.id || msg.chatMessageId,
+          chatMessageId: msg.chatMessageId,
+          senderId: msg.sendId || msg.senderId,
+          receiverId: msg.receiverId,
+          content: msg.content,
+          messageType: msg.type || msg.msgType,
+          createdAt: msg.sendTime || msg.send_time,
+          isSelf: (msg.sendId || msg.senderId) === selfId.value,
+          status: "confirmed",
+          isLocal: false,
+          avatar:
+            msg.avatar ||
+            msg.senderPicture ||
+            msg.headImage ||
+            "/static/image/defaultAvatar/student-man.png",
+          nickname:
+            msg.nickname ||
+            msg.senderName ||
+            msg.nickName ||
+            `用户${msg.senderId || msg.sendId}`,
+        }));
+        const filtered = historyMessages.filter(
+          (m) =>
+            (m.senderId === selfId.value &&
+              m.receiverId === Number(chatId.value)) ||
+            (m.senderId === Number(chatId.value) && m.receiverId === selfId.value)
+        );
+        messages.value.splice(0, messages.value.length, ...filtered);
+        saveMessagesToCache();
+        scrollToBottom();
+        // 拉取历史消息后，如果 chatTitle 还是空，就自动从消息里找
+        if (!chatTitle.value) {
+          const otherMsg = filtered.find(
+            (m) => m.senderId && m.senderId !== selfId.value && m.nickname
+          );
+          if (otherMsg && otherMsg.nickname) {
+            chatTitle.value = otherMsg.nickname;
+          }
+        }
+        if (!chatTitle.value) {
+          chatTitle.value = "聊天";
+        }
+      } else {
+        console.log(
+          "[调试] loadChatHistory 未通过判断，resData:",
+          JSON.stringify(resData)
+        );
+      }
+    } catch (e) {}
+  };
+  
+  // 获取用户头像
+  const getAvatarForUser = (senderId, chatId) => {
+    if (senderId === selfId.value) {
+      return (
+        uni.getStorageSync("userAvatar") ||
+        "/static/image/defaultAvatar/student-man.png"
+      );
+    } else if (senderId === chatId) {
+      const chatInfo = getCurrentChatInfo();
+      return (
+        chatInfo.headImage ||
+        chatInfo.chatAvatar ||
+        "/static/image/defaultAvatar/student-man.png"
+      );
+    }
+    return "/static/image/defaultAvatar/student-man.png";
+  };
+  
+  // 2. 发送消息到 WebSocket
+  const sendSocketMessage = () => {
+    if (!isSocketOpen.value || !socketTask) {
+      connectWebSocket();
+      setTimeout(() => {
+        if (isSocketOpen.value && socketTask) sendSocketMessage();
+      }, 2000);
+      return;
+    }
+    if (!textInput.value.trim()) return;
+    if (!chatId.value) return;
+  
+    let fromUserId = selfId.value;
+    let toUserId = Number(chatId.value);
+  
+    const messageId = `msg_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+    const content = textInput.value;
+    const localMsg = {
+      id: messageId,
+      senderId: fromUserId,
+      receiverId: toUserId,
+      content,
+      messageType: 1,
+      createdAt: new Date().toISOString(),
+      isSelf: true,
+      status: "sending",
+      isLocal: true,
+    };
+    messages.value.push(localMsg);
+    scrollToBottom();
+    saveMessagesToCache();
+    textInput.value = "";
+  
+    const messagePayload = {
+      category: "PRIVATE_CHAT",
+      messageId,
+      timestamp: Date.now(),
+      payload: {
+        receiveUserId: toUserId,
+        content,
+        messageType: 1,
+      },
+      metadata: {},
+    };
+    socketTask.send({
+      data: JSON.stringify(messagePayload),
+      success: () => {
+        try {
+          pollingManager.triggerPollingCallback &&
+            pollingManager.triggerPollingCallback("chat-list-sessions");
+        } catch (e) {
+          console.error("[调试] 触发会话列表轮询失败", e);
+        }
+      },
+      fail: (err) => {
+        uni.showToast({ title: "消息发送失败", icon: "none" });
+      },
+    });
+  };
+  
+  // WebSocket 核心逻辑
+  function closeWebSocket() {
+    if (socketTask) {
+      try {
+        socketTask.close();
+      } catch (e) {}
+      socketTask = null;
+      isSocketOpen.value = false;
+      // 通知WebSocket管理器连接断开
+      websocketManager.setConnectionStatus(false);
+    }
+  }
+  
+  const connectWebSocket = () => {
+    // 防重复连接：如果已连接则不再创建
+    if (socketTask && isSocketOpen.value) {
+      return;
+    }
+    closeWebSocket();
+  
+    const token = getCurrentToken() || "";
+    if (!token) {
+      console.error("聊天需要认证，但未找到token");
+      uni.showToast({ title: "请先登录", icon: "none" });
+      // 没有token时通知WebSocket管理器连接断开
+      websocketManager.setConnectionStatus(false);
+      return;
+    }
+  
+    // 校验 chatId
+    if (!chatId.value) {
+      console.error("[调试] WebSocket连接失败：chatId 无效！");
+      uni.showToast({ title: "会话参数错误", icon: "none" });
+      websocketManager.setConnectionStatus(false);
+      return;
+    }
+  
+    const conversationId = chatId.value;
+    const url = `${UNI_APP.WS_URL}/websocket/message?token=${encodeURIComponent(
+      token
+    )}&conversationId=${conversationId}`;
+  
+    try {
+      socketTask = uni.connectSocket({
+        url: url,
+        success: () => {},
+        fail: (err) => {
+          websocketManager.setConnectionStatus(false);
+        },
+      });
+  
+      if (!socketTask) {
+        websocketManager.setConnectionStatus(false);
+        return;
+      }
+  
+      socketTask.onOpen(() => {
+        isSocketOpen.value = true;
+        // 通知WebSocket管理器连接成功
+        websocketManager.setConnectionStatus(true, conversationId);
+  
+        // 发送初始连接消息
+        const initMessage = {
+          category: "CONNECTION",
+          messageId: "init_" + Date.now(),
+          timestamp: Date.now(),
+          payload: {
+            type: "connect",
+            conversationId: conversationId,
+          },
+        };
+  
+        try {
+          socketTask.send({
+            data: JSON.stringify(initMessage),
+          });
+        } catch (error) {}
+      });
+  
+      socketTask.onClose((e) => {
+        isSocketOpen.value = false;
+        socketTask = null;
+        // 通知WebSocket管理器连接断开
+        websocketManager.setConnectionStatus(false);
+      });
+  
+      socketTask.onError((err) => {
+        isSocketOpen.value = false;
+        socketTask = null;
+        // 通知WebSocket管理器连接断开
+        websocketManager.setConnectionStatus(false);
+      });
+  
+      socketTask.onMessage((res) => {
+        if (
+          typeof res.data === "string" &&
+          (res.data.trim().startsWith("{") || res.data.trim().startsWith("["))
+        ) {
+          try {
+            const newMessage = JSON.parse(res.data);
+            if (newMessage && typeof newMessage === "object") {
+              // 处理连接确认消息
+              if (newMessage.category === "CONNECTION_ACK") {
+                return;
+              }
+  
+              // 处理消息确认
+              if (newMessage.category === "MESSAGE_CONFIRM") {
+                const messageId = newMessage.payload?.messageId;
+                if (messageId) {
+                  // 更新本地消息状态为已确认
+                  const msgIndex = messages.value.findIndex(
+                    (m) => m.id === messageId
+                  );
+                  if (msgIndex !== -1) {
+                    messages.value[msgIndex].status = "confirmed";
+                    messages.value[msgIndex].isLocal = false; // 不再是本地消息
+                    messages.value[msgIndex].chatMessageId =
+                      newMessage.payload.messageId; // 保存服务器消息ID
+                    saveMessagesToCache();
+                  }
+                }
+                return;
+              }
+  
+              // 处理错误消息
+              if (newMessage.category === "MESSAGE_ERROR") {
+                const messageId = newMessage.messageId;
+                if (messageId) {
+                  const msgIndex = messages.value.findIndex(
+                    (m) => m.id === messageId
+                  );
+                  if (msgIndex !== -1) {
+                    messages.value[msgIndex].status = "failed";
+                    saveMessagesToCache();
+                  }
+                }
+                uni.showToast({
+                  title: newMessage.payload?.content || "消息发送失败",
+                  icon: "none",
+                });
+                return;
+              }
+  
+              // 处理私聊消息推送
+              if (newMessage.category === "PRIVATE_CHAT") {
+                // 只处理属于当前会话的消息
+                const payload = newMessage.payload || {};
+                if (
+                  (payload.senderId === selfId.value &&
+                    payload.receiveUserId === Number(chatId.value)) ||
+                  (payload.senderId === Number(chatId.value) &&
+                    payload.receiveUserId === selfId.value)
+                ) {
+                  const receivedMessage = {
+                    id: newMessage.messageId || `server_${Date.now()}`,
+                    senderId: payload.senderId,
+                    receiverId: payload.receiveUserId,
+                    content: payload.content,
+                    messageType: payload.messageType,
+                    createdAt: payload.createdAt || new Date().toISOString(),
+                    isSelf: payload.senderId === selfId.value,
+                    status: "received",
+                    isLocal: false,
+                    chatMessageId: payload.messageId,
+                  };
+                  messages.value.push(receivedMessage);
+                  scrollToBottom();
+                  saveMessagesToCache();
+                }
+                return;
+              }
+            } else {
+            }
+          } catch (error) {}
+        } else {
+        }
+      });
+    } catch (error) {
+      websocketManager.setConnectionStatus(false);
+    }
+  };
+  
+  // 轮询获取新消息 - 移除原有的轮询逻辑，使用轮询管理器
+  const startMessagePolling = () => {
+    // 这个方法现在由轮询管理器统一管理，不再需要手动调用
+  };
+  
+  const stopMessagePolling = () => {
+    // 这个方法现在由轮询管理器统一管理，不再需要手动调用
+  };
+  
+  // 检查新消息 - 保持原有逻辑，但由轮询管理器调用
+  const checkNewMessages = async () => {
+    try {
+      if (!chatId.value) return;
+      const token = getCurrentToken();
+      if (!token) return;
+      let fromUserId = selfId.value;
+      let toUserId = Number(chatId.value);
+      const response = await new Promise((resolve, reject) => {
+        uni.request({
+          url: `${UNI_APP.BASE_URL}/message/private/newMessages`,
+          method: "GET",
+          data: {
+            fromUserId,
+            toUserId,
+            lastMessageId: lastMessageId.value,
+            limit: 20,
+            chatId: chatId.value,
+          },
+          header: { Authorization: `Bearer ${token}` },
+          success: (res) => resolve(res),
+          fail: (err) => reject(err),
+        });
+      });
+      if (response.statusCode === 200 && response.data.code === 200) {
+        const newMessages = response.data.data || [];
+        newMessages.forEach((msg) => {
+          const messageObj = {
+            id: `msg_${msg.chatMessageId}`,
+            chatMessageId: msg.chatMessageId,
+            senderId: msg.senderId,
+            receiverId: msg.receiverId,
+            content: msg.content,
+            messageType: msg.msgType,
+            createdAt: msg.sendTime,
+            isSelf: msg.senderId === selfId.value,
+            status: "received",
+            isLocal: false,
+          };
+          // 只保留双方的消息
+          if (
+            (messageObj.senderId === fromUserId &&
+              messageObj.receiverId === toUserId) ||
+            (messageObj.senderId === toUserId &&
+              messageObj.receiverId === fromUserId)
+          ) {
+            const exists = messages.value.find(
+              (m) => m.chatMessageId === msg.chatMessageId
+            );
+            if (!exists) {
+              messages.value.push(messageObj);
+              lastMessageId.value = Math.max(
+                lastMessageId.value,
+                msg.chatMessageId
+              );
+            }
+          }
+        });
+        scrollToBottom();
+        saveMessagesToCache();
+      }
+    } catch (error) {}
+  };
+  
+  // --- 辅助函数 ---
+  const goBack = () => {
+    uni.navigateBack();
+  };
+  
+  const handleMore = () => {
+    uni.showToast({
+      title: "更多功能开发中",
+      icon: "none",
+    });
+  };
+  
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      scrollTop.value = scrollTop.value + 9999;
+    }, 100);
+  };
+  
+  const manualReconnect = () => {
+    uni.showToast({ title: "正在重新连接...", icon: "loading" });
+    connectWebSocket();
+  };
+  
+  // 显示调试信息
+  const showDebugInfo = () => {
+    const debugInfo = {
+      chatId: chatId.value,
+      selfId: selfId.value,
+      isSocketOpen: isSocketOpen.value,
+      isPolling: isPolling.value,
+      hasSocketTask: !!socketTask,
+      baseUrl: UNI_APP.BASE_URL,
+      wsUrl: UNI_APP.WS_URL,
+      hasToken: !!getCurrentToken(),
+    };
+  
+    uni.showModal({
+      title: "调试信息",
+      content: JSON.stringify(debugInfo, null, 2),
+      showCancel: false,
+    });
+  };
+  
+  // 检查连接状态
+  const checkConnectionStatus = () => {
+    websocketManager.setConnectionStatus(isSocketOpen.value, chatId.value);
+  };
+  
+  // 在消息渲染前加日志（setup末尾）
+  watch(messages, (val) => {
+    console.log(
+      "[调试] 消息 senderId/selfId 类型和值:",
+      val.map((m) => ({
+        id: m.id,
+        senderId: m.senderId,
+        senderIdType: typeof m.senderId,
+        selfId: selfId.value,
+        selfIdType: typeof selfId.value,
+        content: m.content,
+      }))
+    );
+  });
+  
+  const FIVE_MINUTES = 5 * 60 * 1000;
+  const messageListWithTimeTips = computed(() => {
+    const result = [];
+    let lastTime = null;
+    messages.value.forEach((msg, idx) => {
+      const msgTime = new Date(msg.createdAt || msg.sendTime).getTime();
+      if (idx === 0 || (lastTime && msgTime - lastTime > FIVE_MINUTES)) {
+        result.push({
+          type: "time-tip",
+          time: msgTime,
+          id: `time_${msgTime}_${idx}`,
+        });
+      }
+      result.push({
+        type: "message",
+        ...msg,
+      });
+      lastTime = msgTime;
+    });
+    return result;
+  });
+  </script>
+  
+  <style lang="scss" scoped>
+  @import "./static/fonts/iconfont.css";
+  
+  .chat-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f4f4f4;
+  }
+  
+  .message-list-container {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .message-list-content {
+    width: 100%;
+  }
+  
+  .message-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+  
+  .message-row.self {
+    justify-content: flex-end;
+  }
+  
+  .input-bar-container {
+    position: fixed;
+    width: 100%;
+    background-color: #f7f7f7;
+    border-top: 1px solid #e0e0e0;
+    transition: bottom 0.3s ease;
+  }
+  
+  .input-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    padding: 12rpx 20rpx;
+    padding-bottom: 24rpx;
+  }
+  
+  .textarea-container {
+    flex: 1;
+    margin: 0;
+  }
+  
+  .textarea-scroll-view {
+    max-height: 160rpx;
+  }
+  
+  .input-textarea {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 12rpx;
+    border: 1px solid #c7c7c7;
+    padding: 18rpx 20rpx;
+    font-size: 32rpx;
+    line-height: 1.5;
+  }
+  
+  .action-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+    margin-left: 20rpx;
+  }
+  
+  .icon {
+    font-size: 44rpx;
+    color: #339af0;
+    transform: translateY(-14rpx);
+  }
+  
+  .send-button {
+    width: 120rpx;
+    height: 68rpx;
+    line-height: 68rpx;
+    background-color: #339af0;
+    color: #fff;
+    border-radius: 12rpx;
+    font-size: 28rpx;
+    padding: 0;
+    margin: 6rpx 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    &::after {
+      border: none;
+    }
+  }
+  
+  .connection-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10rpx 20rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+  
+    .status-info {
+      flex: 1;
+    }
+  
+    .status-text {
+      font-size: 28rpx;
+      color: #333;
+    }
+  
+    .status-detail {
+      font-size: 24rpx;
+      color: #666;
+    }
+  
+    .reconnect-btn {
+      background-color: #339af0;
+      color: #fff;
+      border: none;
+      border-radius: 12rpx;
+      padding: 8rpx 20rpx;
+      font-size: 28rpx;
+    }
+  }
+  
+  .time-tip-bar {
+    width: 100%;
+    text-align: center;
+    color: #b3b3b3;
+    font-size: 26rpx;
+    margin: 18rpx 0 0 0;
+    padding: 0 0 10rpx 0;
+  }
+  </style>
+  

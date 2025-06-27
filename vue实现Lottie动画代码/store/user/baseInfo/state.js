@@ -16,7 +16,7 @@ export default {
     isRegistered: 0, // 是否注册过
     campusAmbassador: 1, // 是否为校园大使
     userInfo:{    
-        certificate: 0,//是否认证，0为未认证，1为已认证
+        certificate: 0,//认证
         role: '学生',//学生或老师
         schoolId: null,//学校ID
         majorId: null,//专业ID

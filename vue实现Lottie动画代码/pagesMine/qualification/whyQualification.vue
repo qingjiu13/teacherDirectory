@@ -125,6 +125,7 @@ export default {
 	border-radius: 24rpx;
 	display: flex;
 	align-items: center;
+	flex-direction: row;
 	padding: 32rpx;
 	margin-bottom: 32rpx;
 	box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);

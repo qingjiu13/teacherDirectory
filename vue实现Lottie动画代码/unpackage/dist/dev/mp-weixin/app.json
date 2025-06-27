@@ -35,7 +35,9 @@
         "modify/modify",
         "order/order_common",
         "order/appraise",
-        "contactUs/contectUs"
+        "contactUs/contectUs",
+        "qualification/whyQualification",
+        "qualification/leading"
       ]
     }
   ],
@@ -152,6 +154,18 @@
       ]
     },
     "pagesMine/teacher/teacher": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/qualification/whyQualification": {
+      "network": "all",
+      "packages": [
+        "__APP__"
+      ]
+    },
+    "pagesMine/qualification/leading": {
       "network": "all",
       "packages": [
         "__APP__"

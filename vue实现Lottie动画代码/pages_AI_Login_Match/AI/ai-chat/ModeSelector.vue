@@ -2,37 +2,37 @@
 	<view class="function-section" :class="{ 'nav-mode': inNav }">
 		<view class="function-list nav-tab-list" v-if="inNav">
 			<view class="function-item nav-tab-item"
-				:class="{active: currentMode === 'general'}"
+				:class="{active: activeChatMode === 'general'}"
 				@click="switchMode('general')">
 				<text class="function-item-text nav-tab-text">通用</text>
-				<view v-if="currentMode === 'general'" class="tab-underline"></view>
+				<view v-if="activeChatMode === 'general'" class="tab-underline"></view>
 			</view>
 			<view class="function-item nav-tab-item"
-				:class="{active: currentMode === 'school'}"
+				:class="{active: activeChatMode === 'school'}"
 				@click="switchMode('school')">
 				<text class="function-item-text nav-tab-text">择校</text>
-				<view v-if="currentMode === 'school'" class="tab-underline"></view>
+				<view v-if="activeChatMode === 'school'" class="tab-underline"></view>
 			</view>
 			<view class="function-item nav-tab-item"
-				:class="{active: currentMode === 'career'}"
+				:class="{active: activeChatMode === 'career'}"
 				@click="switchMode('career')">
 				<text class="function-item-text nav-tab-text">职业规划</text>
-				<view v-if="currentMode === 'career'" class="tab-underline"></view>
+				<view v-if="activeChatMode === 'career'" class="tab-underline"></view>
 			</view>
 		</view>
 		<view class="function-list" v-else>
 			<view class="function-item"
-				:class="{active: currentMode === 'general'}"
+				:class="{active: activeChatMode === 'general'}"
 				@click="switchMode('general')">
 				<text class="function-item-text">通用</text>
 			</view>
 			<view class="function-item"
-				:class="{active: currentMode === 'school'}"
+				:class="{active: activeChatMode === 'school'}"
 				@click="switchMode('school')">
 				<text class="function-item-text">择校</text>
 			</view>
 			<view class="function-item"
-				:class="{active: currentMode === 'career'}"
+				:class="{active: activeChatMode === 'career'}"
 				@click="switchMode('career')">
 				<text class="function-item-text">职业规划</text>
 			</view>
@@ -41,9 +41,11 @@
 </template>
 
 <script>
+	import { mapState } from 'vuex';
+	
 	/**
 	 * @description 功能模式选择组件
-	 * @property {String} currentMode - 当前选中的模式
+	 * @property {String} currentMode - 当前选中的模式（父组件传递，优先级低于Vuex状态）
 	 * @property {Boolean} inNav - 组件是否在导航栏中显示
 	 * @event {Function} modeChange - 模式变更事件
 	 */
@@ -60,14 +62,142 @@
 				default: false
 			}
 		},
+		computed: {
+			/**
+			 * @description 从 Vuex 状态中获取聊天模式
+			 */
+			...mapState({
+				vuexChatMode: state => {
+					try {
+						return state.user && state.user.aiChat && state.user.aiChat.aiChat 
+							? state.user.aiChat.aiChat.chatMode 
+							: null;
+					} catch (e) {
+						console.error('获取 Vuex chatMode 状态出错:', e);
+						return null;
+					}
+				}
+			}),
+			
+			/**
+			 * @description 计算当前活跃的聊天模式
+			 * 优先使用 Vuex 中的状态，如果没有则使用父组件传递的 prop
+			 * @returns {String} 当前活跃的聊天模式
+			 */
+			activeChatMode() {
+				const mode = this.vuexChatMode || this.currentMode || 'general';
+				console.log('ModeSelector activeChatMode 计算:', {
+					vuexChatMode: this.vuexChatMode,
+					currentMode: this.currentMode,
+					activeChatMode: mode,
+					timestamp: new Date().toLocaleTimeString()
+				});
+				return mode;
+			}
+		},
+		watch: {
+			/**
+			 * @description 监听 Vuex 中的聊天模式变化
+			 * @param {String} newMode - 新的聊天模式
+			 * @param {String} oldMode - 旧的聊天模式
+			 */
+			vuexChatMode: {
+				handler(newMode, oldMode) {
+					console.log('ModeSelector vuexChatMode watch 触发:', {
+						oldMode,
+						newMode,
+						activeChatMode: this.activeChatMode,
+						timestamp: new Date().toLocaleTimeString()
+					});
+					
+					// 强制触发响应式更新
+					this.$forceUpdate();
+					
+					// 只有在真正发生变化且不是初始化时才处理
+					if (newMode && oldMode && newMode !== oldMode) {
+						console.log('ModeSelector 检测到 Vuex 聊天模式变化:', {
+							oldMode,
+							newMode,
+							source: '外部变化（如历史记录加载）'
+						});
+						
+						// 这里不需要emit modeChange，因为这是由外部变化引起的
+						// 外部变化（如加载历史记录）不应该触发新对话创建
+						// 只有用户主动点击切换按钮时才需要创建新对话
+					}
+				},
+				immediate: false
+			},
+			
+			/**
+			 * @description 监听 activeChatMode 的变化，用于调试
+			 * @param {String} newMode - 新的模式
+			 * @param {String} oldMode - 旧的模式
+			 */
+			activeChatMode: {
+				handler(newMode, oldMode) {
+					console.log('ModeSelector activeChatMode 发生变化:', {
+						oldMode,
+						newMode,
+						timestamp: new Date().toLocaleTimeString()
+					});
+				},
+				immediate: true
+			}
+		},
 		methods: {
 			/**
 			 * @description 切换对话模式
 			 * @param {String} mode - 对话模式
 			 */
 			switchMode(mode) {
-				if (this.currentMode === mode) return;
-				this.$emit('modeChange', mode);
+				console.log('switchMode 被调用:', {
+					targetMode: mode,
+					currentActiveChatMode: this.activeChatMode,
+					vuexChatMode: this.vuexChatMode,
+					shouldProceed: this.activeChatMode !== mode
+				});
+				
+				if (this.activeChatMode === mode) {
+					console.log('模式相同，跳过切换');
+					return;
+				}
+				
+				console.log('ModeSelector 用户主动切换模式:', {
+					from: this.activeChatMode,
+					to: mode
+				});
+				
+				// 创建新对话状态 - 这会清空当前对话并设置新的聊天模式
+				this.$store.commit('user/aiChat/CREATE_NEW_CONVERSATION', {
+					chatMode: mode
+				});
+				
+				// 验证状态是否已更新
+				this.$nextTick(() => {
+					console.log('switchMode 状态更新后验证:', {
+						targetMode: mode,
+						vuexChatMode: this.vuexChatMode,
+						activeChatMode: this.activeChatMode,
+						stateUpdated: this.vuexChatMode === mode
+					});
+					
+					// 如果状态没有正确更新，强制更新
+					if (this.vuexChatMode !== mode) {
+						console.warn('状态更新失败，尝试直接更新 chatMode');
+						this.$store.commit('user/aiChat/UPDATE_CHAT_MODE', mode);
+						this.$forceUpdate();
+					}
+				});
+				
+				// 通知父组件模式已切换，需要开始新对话
+				this.$emit('modeChange', {
+					mode: mode,
+					isNewConversation: true,
+					action: 'switch'
+				});
+				
+				console.log('已切换到新模式并准备新对话:', mode);
 			}
 		}
 	}

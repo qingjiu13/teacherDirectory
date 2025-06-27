@@ -76,7 +76,7 @@
 
 <script>
 import Header from '@/components/navigationTitleBar/header'
-import { Navigator } from '@/router/Router.js'
+import { Navigator, MineRoutes } from '@/router/Router.js'
 export default {
   components: {
     Header
@@ -278,7 +278,7 @@ export default {
         
         // 跳转到新建服务页面（修复路径）
         uni.navigateTo({
-          url: './service_newbuilt',
+          url: '/pagesMine/service/service_newbuilt',
           fail: (err) => {
             console.error('跳转失败：', err)
             uni.showToast({

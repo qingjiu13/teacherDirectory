@@ -1,1 +1,0 @@
-<view style="{{c + ';' + virtualHostStyle}}" id="{{b}}" change:eS="{{uV.sS}}" eS="{{$eS[b]}}" change:eA="{{uV.sA}}" eA="{{$eA[b]}}" class="{{['loading-box', 'data-v-34228fa1', virtualHostClass]}}" hidden="{{virtualHostHidden || false}}"><view class="rotate iconfont icon-loading data-v-34228fa1" style="{{a}}"></view><slot></slot></view><wxs src="/common/uniView.wxs" module="uV"/>

@@ -746,14 +746,24 @@ const confirmSortFilter = async () => {
 
 /**
  * 查看老师详情
- * @param {string} teacherId - 老师ID
+ * @param {number} teacherId - 老师ID（数字类型）
  */
 const viewTeacherDetail = async (teacherId) => {
   console.log('=== viewTeacherDetail 被调用 ===');
   console.log('传入的 teacherId:', teacherId, '类型:', typeof teacherId);
   
-  // 确保teacherId是正确的类型（可能需要转换）
-  const normalizedTeacherId = String(teacherId);
+  // 确保teacherId是数字类型
+  const normalizedTeacherId = Number(teacherId);
+  
+  if (!normalizedTeacherId || isNaN(normalizedTeacherId)) {
+    console.error('teacherId 无效:', teacherId);
+    uni.showToast({
+      title: '老师ID无效',
+      icon: 'none'
+    });
+    return;
+  }
+  
   console.log('标准化后的 teacherId:', normalizedTeacherId);
   
   try {
@@ -764,10 +774,10 @@ const viewTeacherDetail = async (teacherId) => {
     
     console.log('准备调用 store.dispatch...');
     
-    // 调用store action获取老师详情
-    const result = await store.dispatch('user/match/fetchTeacherDetail', { teacherId: normalizedTeacherId })
+    // // 调用store action获取老师详情
+    // const result = await store.dispatch('user/match/fetchTeacherDetail', { teacherId: normalizedTeacherId })
     
-    console.log('store.dispatch 返回结果:', result);
+    // console.log('store.dispatch 返回结果:', result);
     
     // 隐藏加载状态
     uni.hideLoading()
@@ -776,15 +786,15 @@ const viewTeacherDetail = async (teacherId) => {
     
     // 跳转到老师详情页面
     Navigator.toTeacher(normalizedTeacherId)
-  } catch (error) {
-    console.error('=== viewTeacherDetail 发生错误 ===');
-    console.error('错误详情:', error);
-    uni.hideLoading()
-    uni.showToast({
-      title: '获取老师详情失败',
-      icon: 'none'
-    })
-  }
+    } catch (error) {
+      console.error('=== viewTeacherDetail 发生错误 ===');
+      console.error('错误详情:', error);
+      uni.hideLoading()
+      uni.showToast({
+        title: '获取老师详情失败',
+        icon: 'none'
+      })
+    }
 }
 
 /**

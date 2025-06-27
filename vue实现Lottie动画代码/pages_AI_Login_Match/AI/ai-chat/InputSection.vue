@@ -5,17 +5,23 @@
 			placeholder="请输入您的问题..." 
 			:disabled="isProcessing"
 			@confirm="sendMessage" />
-		<button class="send-button" @click="sendMessage" :disabled="!inputValue.trim()">
-			<text class="send-button-text">{{isProcessing ? '请稍候' : '确认'}}</text>
+		<button class="send-button" @click="sendMessage" :disabled="!inputValue.trim() || isProcessing">
+			<text class="send-button-text">{{isProcessing ? '发送中...' : '发送'}}</text>
 		</button>
 	</view>
 </template>
 
 <script>
 	/**
-	 * @description 输入区域组件
+	 * @description 输入区域组件，支持流式传输
 	 * @property {Boolean} isProcessing - 是否正在处理消息
-	 * @event {Function} send - 发送消息
+	 * @property {String} chatMode - 聊天模式，用于设置topic
+	 * @event {Function} processing-start - 开始处理消息
+	 * @event {Function} processing-end - 结束处理消息
+	 * @event {Function} message-sent - 消息发送完成事件
+	 * @event {Function} stream-message - 流式消息片段事件
+	 * @event {Function} stream-complete - 流式传输完成事件
+	 * @event {Function} stream-error - 流式传输错误事件
 	 */
 	export default {
 		name: "InputSection",
@@ -32,18 +38,104 @@
 		},
 		methods: {
 			/**
-			 * @description 发送消息
+			 * @description 发送消息并处理流式回复
 			 */
-			sendMessage() {
-				if (!this.inputValue.trim() || this.isProcessing) {
-					return;
+			async sendMessage() {
+				if (!this.inputValue.trim()) return;
+				
+				// 通知父组件开始处理
+				this.$emit('processing-start');
+				
+				try {
+					const result = await this.$store.dispatch('user/aiChat/sendQuestion', {
+						content: this.inputValue.trim(),
+						// 流式消息回调 - 接收每个消息片段
+						onMessage: (messageInfo) => {
+							// console.log('🔄 收到流式消息片段:', messageInfo);
+							// console.log(`   - 片段内容: "${messageInfo.content}"`);
+							// console.log(`   - 累积内容长度: ${messageInfo.fullContent ? messageInfo.fullContent.length : 0}`);
+							// console.log(`   - 消息序号: ${messageInfo.messageCount || 0}`);
+							// console.log(`   - 是否完成: ${messageInfo.isComplete}`);
+							// console.log(`   - 会话ID: ${messageInfo.conversationId}`);
+							
+							// 通知父组件有新的流式消息片段
+							this.$emit('stream-message', {
+								content: messageInfo.content,
+								fullContent: messageInfo.fullContent,
+								isComplete: messageInfo.isComplete,
+								conversationId: messageInfo.conversationId,
+								messageCount: messageInfo.messageCount,
+								isTimeout: messageInfo.isTimeout
+							});
+						},
+						// 流式传输完成回调
+						onComplete: (finalMessage) => {
+							console.log('✅ 流式传输完成:', finalMessage);
+							console.log(`   - 最终内容长度: ${finalMessage.content ? finalMessage.content.length : 0}`);
+							console.log(`   - 总消息片段数: ${finalMessage.messageCount || 0}`);
+							console.log(`   - 会话ID: ${finalMessage.conversationId}`);
+							
+							// 通知父组件流式传输完成
+							this.$emit('stream-complete', {
+								content: finalMessage.content,
+								conversationId: finalMessage.conversationId,
+								messageCount: finalMessage.messageCount,
+								isTimeout: finalMessage.isTimeout
+							});
+						},
+						// 错误处理回调
+						onError: (error) => {
+							console.error('❌ 流式传输错误:', error);
+							
+							// 通知父组件发生错误
+							this.$emit('stream-error', error);
+							
+							// 显示错误提示
+							uni.showToast({
+								title: error.message || '发送失败',
+								icon: 'none'
+							});
+						}
+					});
+					
+					if (result.success) {
+						// console.log('🎉 消息发送流程完成:', result);
+						// console.log(`   - 最终数据: "${result.data}"`);
+						// console.log(`   - 消息片段总数: ${result.messageCount || 0}`);
+						// console.log(`   - 流式完成状态: ${result.isStreamComplete ? '✅' : '❌'}`);
+						// console.log(`   - 是否超时: ${result.isTimeout ? '⚠️' : '✅'}`);
+						// console.log(`   - 会话ID: ${result.conversationId}`);
+						
+						// 清空输入框
+						this.inputValue = '';
+						// 通知父组件消息发送成功
+						this.$emit('message-sent', {
+							...result,
+							controller: result.controller // 传递控制器供外部使用
+						});
+					} else {
+						console.error('❌ 消息发送失败:', result);
+						// 显示错误信息
+						uni.showToast({
+							title: result.message || '发送失败',
+							icon: 'none'
+						});
+					}
+				} catch (error) {
+					console.error('发送消息出错:', error);
+					uni.showToast({
+						title: '发送失败，请重试',
+						icon: 'none'
+					});
+					
+					// 通知父组件发生错误
+					this.$emit('stream-error', {
+						message: '发送失败，请重试'
+					});
+				} finally {
+					// 通知父组件处理结束
+					this.$emit('processing-end');
 				}
-				
-				// 发送消息
-				this.$emit('send', this.inputValue.trim());
-				
-				// 清空输入框
-				this.inputValue = '';
 			}
 		}
 	}

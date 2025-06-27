@@ -3,23 +3,24 @@
 		<view class="message-container">
 			<!-- AI头像 -->
 			<image v-if="messageType === 'ai'" :src="aiAvatar" class="avatar ai-avatar" mode="aspectFill" />
-			
+
 			<!-- 消息内容区 -->
 			<view class="message-content-wrapper" :class="messageType + '-wrapper'">
 				<view class="message-header" v-if="messageType === 'ai'">
-					<text class="ai-title">{{aiTitle}}</text>
+					<text class="ai-title">{{ aiTitle }}</text>
 				</view>
-				
+
 				<!-- 消息卡片外层：渐变边框 -->
 				<view class="card-outer" :class="messageType + '-card-outer-gradient'">
 					<!-- 消息卡片内层：内容区 -->
 					<view class="card-inner" :class="messageType + '-card-inner'">
 						<view class="message-content" :class="messageType + '-content'">
-							<text>{{content}}</text>
+							<!-- 这里改成使用 v-html 渲染 markdown -->
+							<view v-html="renderedContent"></view>
 						</view>
 					</view>
 				</view>
-				
+
 				<view class="message-status" v-if="status === 'sending'">
 					<text class="sending-dots">...</text>
 				</view>
@@ -30,7 +31,7 @@
 					</view>
 				</view>
 			</view>
-			
+
 			<!-- 用户头像 -->
 			<image v-if="messageType === 'user'" :src="userAvatar" class="avatar user-avatar" mode="aspectFill" />
 		</view>
@@ -38,79 +39,90 @@
 </template>
 
 <script>
-	/**
-	 * @description 消息项组件
-	 * @property {String} role - 消息角色，可能的值：user(用户), AI(人工智能), system(系统)
-	 * @property {String} content - 消息内容
-	 * @property {String} status - 消息状态，可能的值：sending(发送中), sent(已发送), error(错误)
-	 * @property {Boolean} streaming - 是否正在流式接收
-	 * @property {String} aiTitle - AI消息的标题
-	 * @property {String} userAvatar - 用户头像地址
-	 * @property {String} aiAvatar - AI头像地址
-	 * @event {Function} retry - 重试发送消息
-	 */
-	export default {
-		name: "MessageItem",
-		props: {
-			role: {
-				type: String,
-				default: 'user',
-				validator: (value) => ['user', 'AI', 'system'].includes(value)
-			},
-			content: {
-				type: String,
-				default: ''
-			},
-			status: {
-				type: String,
-				default: 'sent',
-				validator: (value) => ['sending', 'sent', 'error'].includes(value)
-			},
-			streaming: {
-				type: Boolean,
-				default: false
-			},
-			aiTitle: {
-				type: String,
-				default: '研师录AI'
-			},
-			/**
-			 * @property {String} userAvatar - 用户头像地址
-			 */
-			userAvatar: {
-				type: String,
-				default: ''
-			},
-			/**
-			 * @property {String} aiAvatar - AI头像地址
-			 */
-			aiAvatar: {
-				type: String,
-				default: ''
-			}
+import { marked } from 'marked'
+
+export default {
+	name: "MessageItem",
+	props: {
+		role: {
+			type: String,
+			default: 'user',
+			validator: (value) => ['user', 'AI'].includes(value)
 		},
-		computed: {
-			/**
-			 * @description 获取消息类型（小写），用于CSS类名
-			 * @returns {String} 消息类型
-			 */
-			messageType() {
-				// 将AI角色转换为小写ai用于CSS类名
-				return this.role === 'AI' ? 'ai' : this.role;
-			}
+		content: {
+			type: String,
+			default: ''
 		},
-		methods: {
-			/**
-			 * @description 重试发送消息
-			 */
-			onRetry() {
-				this.$emit('retry');
+		status: {
+			type: String,
+			default: 'sent',
+			validator: (value) => ['sending', 'sent', 'error'].includes(value)
+		},
+		streaming: {
+			type: Boolean,
+			default: false
+		},
+		aiTitle: {
+			type: String,
+			default: '研师录AI'
+		},
+		userAvatar: {
+			type: String,
+			default: ''
+		},
+		aiAvatar: {
+			type: String,
+			default: ''
+		}
+	},
+	computed: {
+		messageType() {
+			return this.role === 'AI' ? 'ai' : this.role;
+		},
+		// 新增：Markdown 转 HTML
+		renderedContent() {
+			try {
+				return marked.parse(this.content || '');
+			} catch (e) {
+				return this.content;
 			}
 		}
+	},
+	methods: {
+		onRetry() {
+			this.$emit('retry');
+		}
 	}
+}
 </script>
 
+
 <style>
+.message-content h1,
+.message-content h2 {
+	font-weight: bold;
+	margin-bottom: 10rpx;
+}
+.message-content p {
+	margin-bottom: 10rpx;
+}
+.message-content ul {
+	padding-left: 40rpx;
+}
+.message-content li {
+	margin-bottom: 6rpx;
+}
+.message-content a {
+	color: #1e90ff;
+	text-decoration: underline;
+}
+.message-content code {
+	background-color: #f4f4f4;
+	padding: 4rpx 8rpx;
+	border-radius: 4rpx;
+	font-family: monospace;
+}
+
 	.message-item {
 		width: 100%;
 		margin-bottom: 30rpx;

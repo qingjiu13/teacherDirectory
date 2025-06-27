@@ -1,4 +1,7 @@
 {
-  "navigationBarTitleText": "我的钱包",
-  "usingComponents": {}
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "uni-datetime-picker": "../../uni_modules/uni-datetime-picker/components/uni-datetime-picker/uni-datetime-picker",
+    "header": "../../components/navigationTitleBar/header"
+  }
 }

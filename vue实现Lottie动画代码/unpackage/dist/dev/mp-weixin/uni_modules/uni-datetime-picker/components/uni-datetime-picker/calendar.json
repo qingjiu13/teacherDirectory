@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "uni-icons": "../../../uni-icons/components/uni-icons/uni-icons",
+    "calendar-item": "./calendar-item",
+    "time-picker": "./time-picker"
+  }
+}

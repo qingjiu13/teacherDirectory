@@ -20,8 +20,11 @@
 					:visible="sidebarVisible"
 					:grouped-history="groupedHistorySummaries"
 					:current-chat-id="currentChatId"
-					@load-chat="loadChatHistory"
-					@delete-chat="deleteChatHistory">
+					:pagination="pagination"
+					@load-chat="handleLoadChat"
+					@delete-chat="handleDeleteChat"
+					@loadMore="handleLoadMore"
+					@refresh="handleRefresh">
 				</history-sidebar>
 			<!-- 主内容区域 -->
 			<view class="main-wrapper">
@@ -64,8 +67,11 @@
 										defaultText="请选择学校"
 										mode="search"
 										searchPlaceholder="输入学校名称"
+										:isLoadingMore="schoolSearchStatus.isLoading"
+										:hasMoreData="schoolSearchStatus.hasMore"
 										@onChoiceClick="handleSchoolSelect"
 										@search-input="handleSchoolSearch"
+										@load-more="handleSchoolLoadMore"
 										ref="schoolDropdown"
 									/>
 									</view>
@@ -85,8 +91,11 @@
 										defaultText="请选择专业"
 										mode="search"
 										searchPlaceholder="输入专业名称"
+										:isLoadingMore="majorSearchStatus.isLoading"
+										:hasMoreData="majorSearchStatus.hasMore"
 										@onChoiceClick="handleMajorSelect"
 										@search-input="handleMajorSearch"
+										@load-more="handleMajorLoadMore"
 										ref="majorDropdown"
 									/>
 									</view>
@@ -97,7 +106,7 @@
 					
 					<!-- 消息区域 -->
 					<message-list
-						:messages="messages"
+						:messages="currentMessages"
 						:auto-scroll-id="autoScrollId"
 						@retry-message="retryMessage"
 						@update-auto-scroll-id="autoScrollId = $event"
@@ -107,13 +116,16 @@
 					<!-- 输入区域 -->
 					<input-section
 						:is-processing="isProcessing"
-						@send="sendMessage">
+						@processing-start="handleProcessingStart"
+						@processing-end="handleProcessingEnd"
+						@message-sent="handleMessageSent"
+						@stream-message="handleStreamMessage"
+						@stream-complete="handleStreamComplete"
+						@stream-error="handleStreamError">
 					</input-section>
 				</scroll-view>
 			</view>
 		</view>
-		
-
 	</view>
 </template>
 
@@ -124,13 +136,11 @@
 	import InputSection from './ai-chat/InputSection'
 	import ChoiceSelected from '/pages_AI_Login_Match/components/combobox/combobox'
 	import store from '@/store'
-	import { mapState } from 'vuex';
+	import { mapState, mapActions } from 'vuex';
 	import Header from '@/components/navigationTitleBar/header.vue';
 	import { Navigator } from '@/router/Router.js'
 	import LoadingAnimation from '@/components/loading/LoadingAnimation.vue';
 
-	
-	
 	// 消息类型常量
 	const MESSAGE_TYPE = {
 		USER: 'user',
@@ -169,14 +179,25 @@
 		computed: {
 			// 从Vuex获取状态
 			...mapState('user/aiChat', {
-				storeHistorySummaries: state => state.aiChat.historySummaries,
+				storeHistorySummaries: state => state.aiChat.conversations.map(conversation => ({
+					id: conversation.id,
+					abstract: conversation.abstract,
+					chatMode: conversation.chatMode,
+					createdAt: conversation.createdAt,
+					updatedAt: conversation.updatedAt
+				})),
 				storeHistoryChats: state => state.aiChat.conversations,
 				storeActiveConversation: state => state.aiChat.activeConversation,
 				storeChatMode: state => state.aiChat.chatMode,
-				storeUserInfo: state => state.aiChat.userInfo
+				storePagination: state => state.aiChat.pagination
 			}),
 			
-			// 当前选择的学校和专业 - 改为使用schoolMajorRequest模块
+			// 获取当前对话的消息列表
+			currentMessages() {
+				return this.$store.getters['user/aiChat/currentMessages'] || [];
+			},
+			
+			// 当前选择的学校和专业 - 使用schoolMajorRequest模块
 			currentSchool() {
 				return this.$store.getters['user/schoolMajorRequest/selectedUndergraduateSchool'].name || '';
 			},
@@ -190,12 +211,20 @@
 				return this.$store.getters['user/schoolMajorRequest/selectedUndergraduateMajor'].id || null;
 			},
 			
-			// 学校和专业选项列表 - 改为使用schoolMajorRequest模块
+			// 学校和专业选项列表 - 使用schoolMajorRequest模块
 			schoolOptions() {
-				return this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'].map(item => item.name);
+				return this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'];
 			},
 			majorOptions() {
-				return this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'].map(item => item.name);
+				return this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'];
+			},
+			
+			// 学校和专业的加载状态
+			schoolSearchStatus() {
+				return this.$store.getters['user/schoolMajorRequest/undergraduateSchoolSearchStatus'];
+			},
+			majorSearchStatus() {
+				return this.$store.getters['user/schoolMajorRequest/undergraduateMajorSearchStatus'];
 			},
 			
 			// 当前模式名称
@@ -203,7 +232,7 @@
 				const modeNames = {
 					[CHAT_MODE.GENERAL]: '通用',
 					[CHAT_MODE.SCHOOL]: '择校',
-					[CHAT_MODE.CAREER]: '职业规划'
+					[CHAT_MODE.CAREER]: '就业'
 				};
 				return modeNames[this.currentMode] || '通用';
 			},
@@ -220,6 +249,11 @@
 			},
 			chatMode() {
 				return this.storeChatMode;
+			},
+			
+			// 分页相关计算属性
+			pagination() {
+				return this.storePagination;
 			},
 			
 			/**
@@ -259,8 +293,7 @@
 		},
 		data() {
 			return {
-				// 消息相关
-				messages: [],
+				// 处理状态
 				isProcessing: false,
 				isLoading: false,
 				autoScrollId: '',
@@ -308,17 +341,6 @@
 				immediate: true
 			},
 			
-			// 监听用户信息变化
-			storeUserInfo: {
-				handler(newVal) {
-					if (newVal) {
-						this.setUserSelectionIndexes();
-					}
-				},
-				deep: true,
-				immediate: true
-			},
-			
 			// 监听学校选项变化，更新索引
 			schoolOptions: {
 				handler(newOptions) {
@@ -333,24 +355,37 @@
 					this.updateMajorIndex(newOptions);
 				},
 				immediate: true
+			},
+			
+			// 监听当前选择的学校变化
+			currentSchool: {
+				handler() {
+					this.updateSchoolIndex(this.schoolOptions);
+				},
+				immediate: true
+			},
+			
+			// 监听当前选择的专业变化
+			currentMajor: {
+				handler() {
+					this.updateMajorIndex(this.majorOptions);
+				},
+				immediate: true
 			}
 		},
 		onLoad() {
 			/**
 			 * @description 页面加载时的处理逻辑
 			 */
-			// 获取用户信息并初始化
-			this.syncUserInfoFromVuex();
+			// 初始化选择索引
+			this.updateSelectionIndexes();
 			
-			// 加载历史会话
-			this.loadChatHistoryFromStorage();
+			// 加载第一页对话历史
+			this.loadConversationHistoryData();
 		},
 		onShow() {
-			// 页面显示时刷新历史记录
-			this.loadChatHistoryFromStorage();
-			
-			// 刷新用户信息
-			this.syncUserInfoFromVuex();
+			// 页面显示时更新选择索引
+			this.updateSelectionIndexes();
 		},
 		onUnload() {
 			// 页面卸载时中断请求
@@ -362,6 +397,21 @@
 			});
 		},
 		methods: {
+			// 映射 Vuex actions
+			...mapActions({
+				// AI Chat actions
+				setCurrentChat: 'user/aiChat/setCurrentChat',
+				sendQuestion: 'user/aiChat/sendQuestion',
+				loadChat: 'user/aiChat/loadChat',
+				deleteChat: 'user/aiChat/deleteChat',
+				loadConversationHistory: 'user/aiChat/loadConversationHistory',
+				// School Major Request actions
+				searchUndergraduateSchools: 'user/schoolMajorRequest/searchUndergraduateSchools',
+				searchUndergraduateMajors: 'user/schoolMajorRequest/searchUndergraduateMajors',
+				selectUndergraduateSchool: 'user/schoolMajorRequest/selectUndergraduateSchool',
+				selectUndergraduateMajor: 'user/schoolMajorRequest/selectUndergraduateMajor'
+			}),
+			
 			/**
 			 * @description 处理页面点击事件，关闭下拉框
 			 */
@@ -382,27 +432,28 @@
 			},
 			
 			/**
-			 * @description 从Vuex同步用户信息
+			 * @description 根据当前选择更新学校和专业索引
 			 */
-			syncUserInfoFromVuex() {
-				// 从Vuex获取用户信息
-				if (this.storeUserInfo) {
-					// 设置选中索引
-					this.setUserSelectionIndexes();
-				}
-			},
-			
-			/**
-			 * @description 根据用户信息设置学校和专业索引
-			 */
-			setUserSelectionIndexes() {
-				if (!this.storeUserInfo) return;
-				
+			updateSelectionIndexes() {
 				// 更新学校索引
-				this.updateSchoolIndex(this.schoolOptions);
+				if (this.currentSchool && this.schoolOptions.length > 0) {
+					const schoolIndex = this.schoolOptions.findIndex(item => 
+						(item.name || item.schoolName) === this.currentSchool
+					);
+					this.schoolIndex = schoolIndex !== -1 ? schoolIndex : -1;
+				} else {
+					this.schoolIndex = -1;
+				}
 				
 				// 更新专业索引
-				this.updateMajorIndex(this.majorOptions);
+				if (this.currentMajor && this.majorOptions.length > 0) {
+					const majorIndex = this.majorOptions.findIndex(item => 
+						(item.name || item.professionalName) === this.currentMajor
+					);
+					this.majorIndex = majorIndex !== -1 ? majorIndex : -1;
+				} else {
+					this.majorIndex = -1;
+				}
 				
 				this.updateContextInfo();
 			},
@@ -413,7 +464,9 @@
 			 */
 			updateSchoolIndex(schoolOptions) {
 				if (this.currentSchool && schoolOptions.length > 0) {
-					const schoolIndex = schoolOptions.indexOf(this.currentSchool);
+					const schoolIndex = schoolOptions.findIndex(item => 
+						(item.name || item.schoolName) === this.currentSchool
+					);
 					this.schoolIndex = schoolIndex !== -1 ? schoolIndex : -1;
 				} else {
 					this.schoolIndex = -1;
@@ -426,7 +479,9 @@
 			 */
 			updateMajorIndex(majorOptions) {
 				if (this.currentMajor && majorOptions.length > 0) {
-					const majorIndex = majorOptions.indexOf(this.currentMajor);
+					const majorIndex = majorOptions.findIndex(item => 
+						(item.name || item.professionalName) === this.currentMajor
+					);
 					this.majorIndex = majorIndex !== -1 ? majorIndex : -1;
 				} else {
 					this.majorIndex = -1;
@@ -436,42 +491,38 @@
 			/**
 			 * @description 处理学校选择
 			 * @param {Number} index - 选择的索引
-			 * @param {String} school - 选择的学校名称
+			 * @param {Object} school - 选择的学校对象
 			 */
 			handleSchoolSelect(index, school) {
 				this.schoolIndex = index;
 				
-				// 通过Vuex更新选择
-				const schoolOption = this.$store.getters['user/schoolMajorRequest/undergraduateSchoolOptions'].find(item => item.name === school);
-				if (schoolOption) {
-					this.$store.dispatch('user/schoolMajorRequest/selectUndergraduateSchool', {
-						id: schoolOption.id,
-						name: schoolOption.name
+				// 直接使用传入的学校对象
+				if (school && (school.id || school.schoolId)) {
+					this.selectUndergraduateSchool({
+						id: school.id || school.schoolId,
+						name: school.name || school.schoolName
 					});
 				}
 				
-				// 更新上下文信息
 				this.updateContextInfo();
 			},
 			
 			/**
 			 * @description 处理专业选择
 			 * @param {Number} index - 选择的索引
-			 * @param {String} major - 选择的专业名称
+			 * @param {Object} major - 选择的专业对象
 			 */
 			handleMajorSelect(index, major) {
 				this.majorIndex = index;
 				
-				// 通过Vuex更新选择
-				const majorOption = this.$store.getters['user/schoolMajorRequest/undergraduateMajorOptions'].find(item => item.name === major);
-				if (majorOption) {
-					this.$store.dispatch('user/schoolMajorRequest/selectUndergraduateMajor', {
-						id: majorOption.id,
-						name: majorOption.name
+				// 直接使用传入的专业对象
+				if (major && (major.id || major.professionalId)) {
+					this.selectUndergraduateMajor({
+						id: major.id || major.professionalId,
+						name: major.name || major.professionalName
 					});
 				}
 				
-				// 更新上下文信息
 				this.updateContextInfo();
 			},
 			
@@ -489,8 +540,6 @@
 				this.searchTimers.school = setTimeout(() => {
 					this.performSchoolSearch(keyword);
 				}, 500);
-				
-				console.log(`学校搜索防抖设置: "${keyword}"`);
 			},
 			
 			/**
@@ -499,17 +548,10 @@
 			 */
 			async performSchoolSearch(keyword) {
 				try {
-					const response = await this.$store.dispatch('user/schoolMajorRequest/searchUndergraduateSchools', {
-						keyword: keyword
-					});
-					
-					console.log(`学校搜索完成: "${keyword}", 结果数: ${this.schoolOptions.length}`);
+					await this.searchUndergraduateSchools({ keyword });
 				} catch (error) {
 					console.error('学校搜索失败:', error);
-					uni.showToast({
-						title: '学校搜索失败',
-						icon: 'none'
-					});
+					this.showToast('学校搜索失败', 'none');
 				}
 			},
 			
@@ -527,8 +569,6 @@
 				this.searchTimers.major = setTimeout(() => {
 					this.performMajorSearch(keyword);
 				}, 500);
-				
-				console.log(`专业搜索防抖设置: "${keyword}"`);
 			},
 			
 			/**
@@ -537,17 +577,10 @@
 			 */
 			async performMajorSearch(keyword) {
 				try {
-					const response = await this.$store.dispatch('user/schoolMajorRequest/searchUndergraduateMajors', {
-						keyword: keyword
-					});
-					
-					console.log(`专业搜索完成: "${keyword}", 结果数: ${this.majorOptions.length}`);
+					await this.searchUndergraduateMajors({ keyword });
 				} catch (error) {
 					console.error('专业搜索失败:', error);
-					uni.showToast({
-						title: '专业搜索失败',
-						icon: 'none'
-					});
+					this.showToast('专业搜索失败', 'none');
 				}
 			},
 			
@@ -559,17 +592,7 @@
 				if (this.currentMode === mode) return;
 				
 				this.currentMode = mode;
-				this.messages = [];
-				this.currentChatId = 'chat_' + Date.now();
-				
-				this.updateContextInfo();
-				
-				this.$store.dispatch('user/aiChat/setCurrentChat', {
-					chatId: this.currentChatId,
-					chatMode: this.currentMode
-				});
-				
-				this.closeSidebar();
+				this.startNewChat();
 			},
 			
 			/**
@@ -583,109 +606,94 @@
 				};
 			},
 			
-			
 			/**
 			 * @description 开始新对话
 			 */
 			startNewChat() {
-				this.messages = [];
-				this.currentChatId = 'chat_' + Date.now();
+				console.log('=== 开始新对话 ===');
+				console.log('当前模式:', this.currentMode);
 				
+				this.currentChatId = null;
 				this.updateContextInfo();
 				
-				this.$store.dispatch('user/aiChat/setCurrentChat', {
-					chatId: this.currentChatId,
+				// 清空当前活跃对话ID，准备新对话
+				this.$store.commit('user/aiChat/UPDATE_CURRENT_CONVERSATION', null);
+				
+				// 创建新对话（只设置状态，不创建任何临时内容）
+				this.$store.commit('user/aiChat/CREATE_NEW_CONVERSATION', {
 					chatMode: this.currentMode
 				});
 				
-				this.closeSidebar();
+				console.log('新对话已准备就绪，等待用户发送消息');
+				console.log('===============');
 			},
 			
 			/**
-			 * @description 处理消息发送和重试
-			 * @param {String} messageContent - 消息内容
-			 * @param {Number} [retryIndex] - 重试消息的索引
+			 * @description 处理开始处理事件
 			 */
-			async handleMessage(messageContent, retryIndex = null) {
-				if (!messageContent || this.isProcessing) return;
-				
-				let userMessageIndex, aiMessageIndex;
-				
-				if (retryIndex === null) {
-					// 新消息
-					userMessageIndex = this.messages.length;
-					this.messages.push({
-						role: MESSAGE_TYPE.USER,
-						content: messageContent,
-						status: MESSAGE_STATUS.SENT
-					});
-					
-					aiMessageIndex = this.messages.length;
-					this.messages.push({
-						role: MESSAGE_TYPE.AI,
-						content: '',
-						status: MESSAGE_STATUS.SENDING,
-						streaming: false
-					});
-				} else {
-					// 重试消息
-					userMessageIndex = retryIndex - 1;
-					aiMessageIndex = retryIndex;
-					this.messages[aiMessageIndex].content = '';
-					this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENDING;
-					this.messages[aiMessageIndex].streaming = false;
-				}
-				
-				this.scrollToBottom();
+			handleProcessingStart() {
 				this.isProcessing = true;
-				
-				try {
-					this.updateContextInfo();
-					
-					if (!this.currentChatId) {
-						this.currentChatId = 'chat_' + Date.now();
-						this.$store.dispatch('user/aiChat/setCurrentChat', {
-							chatId: this.currentChatId,
-							chatMode: this.currentMode
-						});
-					}
-					
-					const response = await this.$store.dispatch('user/aiChat/testAIQA', {
-						question: messageContent,
-						contextInfo: this.contextInfo,
-						chatId: this.currentChatId,
-						chatMode: this.currentMode
-					});
-					
-					if (response.success) {
-						this.messages[aiMessageIndex].content = response.data;
-						this.messages[aiMessageIndex].status = MESSAGE_STATUS.SENT;
-						this.saveChatHistory();
-					} else {
-						const errorMessage = response.error?.message || response.message || '获取回复失败，请稍后重试';
-						this.messages[aiMessageIndex].content = `抱歉，无法获取回复：${errorMessage}`;
-						this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
-						
-						this.showToast(errorMessage, 'none', 3000);
-					}
-				} catch (error) {
-					const errorMsg = error.message || '系统异常，请稍后再试';
-					this.messages[aiMessageIndex].content = `抱歉，发生了错误：${errorMsg}`;
-					this.messages[aiMessageIndex].status = MESSAGE_STATUS.ERROR;
-					this.showToast(errorMsg, 'none', 3000);
-				} finally {
-					this.isProcessing = false;
-					this.messages[aiMessageIndex].streaming = false;
-					this.scrollToBottom();
+			},
+			
+			/**
+			 * @description 处理结束处理事件
+			 */
+			handleProcessingEnd() {
+				this.isProcessing = false;
+				this.scrollToBottom();
+			},
+			
+			/**
+			 * @description 处理消息发送完成事件
+			 * @param {Object} result - 发送结果
+			 */
+			handleMessageSent(result) {
+				console.log('消息发送完成:', result);
+				// 更新当前对话ID
+				if (result.conversationId) {
+					this.currentChatId = result.conversationId;
+					// 更新Vuex中的activeConversation状态
+					this.$store.commit('user/aiChat/UPDATE_CURRENT_CONVERSATION', result.conversationId);
 				}
 			},
 			
 			/**
-			 * @description 发送消息
-			 * @param {String} messageContent - 消息内容
+			 * @description 处理流式消息片段事件
+			 * @param {Object} messageInfo - 消息信息
 			 */
-			sendMessage(messageContent) {
-				this.handleMessage(messageContent);
+			handleStreamMessage(messageInfo) {
+				// 流式消息已经通过Vuex更新，这里可以添加额外的UI更新逻辑
+				// 如果收到conversationId，立即更新状态
+				if (messageInfo.conversationId && !this.currentChatId) {
+					this.currentChatId = messageInfo.conversationId;
+					this.$store.commit('user/aiChat/UPDATE_CURRENT_CONVERSATION', messageInfo.conversationId);
+				}
+				this.scrollToBottom();
+			},
+			
+			/**
+			 * @description 处理流式传输完成事件
+			 * @param {Object} finalMessage - 最终消息
+			 */
+			handleStreamComplete(finalMessage) {
+				console.log('流式传输完成:', finalMessage);
+				// 更新当前对话ID（如果有新的conversationId）
+				if (finalMessage.conversationId && finalMessage.conversationId !== this.currentChatId) {
+					this.currentChatId = finalMessage.conversationId;
+					// 更新Vuex中的activeConversation状态
+					this.$store.commit('user/aiChat/UPDATE_CURRENT_CONVERSATION', finalMessage.conversationId);
+					console.log('✅ 已更新当前对话ID为:', finalMessage.conversationId);
+				}
+				this.scrollToBottom();
+			},
+			
+			/**
+			 * @description 处理流式传输错误事件
+			 * @param {Object} error - 错误信息
+			 */
+			handleStreamError(error) {
+				console.error('流式传输错误:', error);
+				this.showToast(error.message || '发送失败', 'none');
 			},
 			
 			/**
@@ -693,16 +701,42 @@
 			 * @param {Number} index - 消息索引
 			 */
 			retryMessage(index) {
-				if (index < 1 || this.messages[index].role !== MESSAGE_TYPE.AI) {
+				const messages = this.currentMessages;
+				if (index < 1 || !messages[index] || messages[index].role !== MESSAGE_TYPE.AI) {
 					return;
 				}
 				
-				const userMessage = this.messages[index - 1];
-				if (userMessage.role !== MESSAGE_TYPE.USER) {
+				const userMessage = messages[index - 1];
+				if (!userMessage || userMessage.role !== MESSAGE_TYPE.USER) {
 					return;
 				}
 				
-				this.handleMessage(userMessage.content, index);
+				// 重置AI消息状态
+				this.$store.commit('user/aiChat/UPDATE_MESSAGE_CONTENT', {
+					messageId: messages[index].id,
+					content: '',
+					streaming: true,
+					status: 'sending'
+				});
+				
+				// 使用sendQuestion action重试，但跳过添加用户消息
+				this.isProcessing = true;
+				this.$store.dispatch('user/aiChat/sendQuestion', {
+					content: userMessage.content,
+					skipUserMessage: true, // 跳过添加用户消息
+					aiMessageId: messages[index].id, // 使用现有的AI消息ID
+					onMessage: (messageInfo) => {
+						this.handleStreamMessage(messageInfo);
+					},
+					onComplete: (finalMessage) => {
+						this.handleStreamComplete(finalMessage);
+					},
+					onError: (error) => {
+						this.handleStreamError(error);
+					}
+				}).finally(() => {
+					this.isProcessing = false;
+				});
 			},
 			
 			/**
@@ -721,8 +755,9 @@
 			scrollToBottom() {
 				if (!this.isAutoScrollEnabled) return;
 				
-				if (this.messages.length > 0) {
-					this.autoScrollId = 'msg-' + (this.messages.length - 1);
+				const messages = this.currentMessages;
+				if (messages.length > 0) {
+					this.autoScrollId = 'msg-' + (messages.length - 1);
 				}
 			},
 			
@@ -749,7 +784,7 @@
 			
 			/**
 			 * @description 显示/隐藏加载状态
-			 * @param {Boolean} loading - 是否显示加载状态，true表示显示，false表示隐藏
+			 * @param {Boolean} loading - 是否显示加载状态
 			 */
 			toggleLoading(loading = true) {
 				this.isLoading = loading;
@@ -765,190 +800,143 @@
 			},
 			
 			/**
-			 * @description 加载指定的聊天历史
-			 * @param {String} chatId - 聊天历史ID
+			 * @description 加载对话历史数据
 			 */
-			loadChatHistory(chatId) {
-				if (!chatId) return;
-				
+			async loadConversationHistoryData() {
 				try {
-					this.toggleLoading(true);
-					
-					// 从本地状态找对话
-					const conversations = this.historyChats || [];
-					const conversation = conversations.find(chat => chat.id === chatId);
-					
-					if (conversation) {
-						// 设置当前会话ID
-						this.currentChatId = chatId;
-						
-						// 设置对话模式
-						if (conversation.chatMode) {
-							this.currentMode = conversation.chatMode;
-							this.updateContextInfo();
-						}
-						
-						// 构建消息列表
-						const messages = conversation.messages ? conversation.messages.map(msg => {
-							let role = msg.role || MESSAGE_TYPE.AI;
-							
-							if (!msg.role && msg.id) {
-								if (msg.id.includes('msg-user')) {
-									role = MESSAGE_TYPE.USER;
-								} else if (msg.id.includes('msg-system')) {
-									role = MESSAGE_TYPE.SYSTEM;
-								}
-							}
-							
-							return {
-								role: role,
-								content: msg.content,
-								status: MESSAGE_STATUS.SENT,
-								streaming: false
-							};
-						}) : [];
-						
-						this.messages = messages;
-						this.closeSidebar();
-						
-						this.$nextTick(() => {
-							this.scrollToBottom();
-						});
-						
-						this.toggleLoading(false);
+					const response = await this.loadConversationHistory();
+					if (response.success) {
+						console.log('对话历史加载成功');
 					} else {
-						// 从服务器加载
-						this.$store.dispatch('user/aiChat/loadChat', chatId).then(response => {
-							if (response.success) {
-								this.currentChatId = chatId;
-								
-								if (response.data.chatMode) {
-									this.currentMode = response.data.chatMode;
-									this.updateContextInfo();
-								}
-								
-								this.messages = response.data.messages || [];
-								this.closeSidebar();
-								
-								this.$nextTick(() => {
-									this.scrollToBottom();
-								});
-							} else {
-								const errorMsg = response.error?.message || response.message || '加载对话失败';
-								this.showToast(`加载失败: ${errorMsg}`, 'none', 3000);
-								
-								if (response.error?.statusCode >= 500) {
-									this.startNewChat();
-								}
-							}
-						}).finally(() => {
-							this.toggleLoading(false);
-						});
+						console.error('对话历史加载失败:', response.message);
 					}
 				} catch (error) {
-					console.error('加载对话内容失败:', error);
-					this.toggleLoading(false);
-					this.startNewChat();
+					console.error('加载对话历史异常:', error);
 				}
 			},
 			
 			/**
-			 * @description 从Vuex加载历史会话摘要
+			 * @description 处理侧边栏加载聊天事件
+			 * @param {Object} data - 加载结果数据
 			 */
-			loadChatHistoryFromStorage() {
-				const conversations = this.historyChats;
+			async handleLoadChat(data) {
+				if (!data.success) {
+					this.showToast(data.message || '加载聊天失败', 'none');
+					return;
+				}
 				
-				if (conversations && conversations.length > 0) {
-					const historySummaries = conversations.map(chat => ({
-						id: chat.id,
-						title: chat.abstract,
-						abstract: chat.abstract,
-						chatMode: chat.chatMode,
-						createdAt: chat.createdAt,
-						updatedAt: chat.updatedAt
-					}));
+				try {
+					console.log('=== 加载旧对话 ===');
+					console.log('加载的chatId:', data.chatId);
 					
-					this.$store.commit('user/aiChat/SET_HISTORY_SUMMARIES', historySummaries);
+					this.toggleLoading(true);
+					this.currentChatId = data.chatId;
+					
+					// 设置当前活跃对话ID
+					this.$store.commit('user/aiChat/UPDATE_CURRENT_CONVERSATION', data.chatId);
+					
+					console.log('对话ID已设置为:', data.chatId);
+					
+					// 如果有聊天模式，更新当前模式
+					if (data.data && data.data.chatMode) {
+						this.currentMode = data.data.chatMode;
+						this.updateContextInfo();
+					}
+					
+					// 直接使用从后端加载的消息数据，不需要重新构建
+					// 因为loadChat action已经处理了消息格式转换
+					
+					this.closeSidebar();
+					
+					this.$nextTick(() => {
+						this.scrollToBottom();
+					});
+					
+					console.log('旧对话加载完成');
+					console.log('当前活跃对话ID:', this.$store.state.user.aiChat.activeConversation);
+					console.log('当前消息数量:', this.currentMessages.length);
+					console.log('===============');
+					
+				} catch (error) {
+					console.error('处理加载聊天失败:', error);
+					this.showToast('加载聊天失败', 'none');
+				} finally {
+					this.toggleLoading(false);
 				}
 			},
 			
 			/**
-			 * @description 保存聊天历史摘要到Vuex
+			 * @description 处理侧边栏删除聊天事件
+			 * @param {Object} data - 删除结果数据
 			 */
-			saveChatHistory() {
-				if (!this.currentChatId || this.messages.length === 0) return;
-				
-				const firstUserMessage = this.messages.find(msg => msg.role === MESSAGE_TYPE.USER);
-				const title = firstUserMessage ? firstUserMessage.content.substring(0, 20) : '新对话';
-				
-				const chatData = {
-					id: this.currentChatId,
-					title: title + (title.length >= 20 ? '...' : ''),
-					abstract: title,
-					chatMode: this.currentMode,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-					messages: this.messages.map((msg, index) => ({
-						id: `msg-${msg.role === MESSAGE_TYPE.USER ? 'user' : 'ai'}-${this.currentChatId}-${index}`,
-						role: msg.role,
-						content: msg.content,
-						timestamp: new Date().toISOString()
-					}))
-				};
-				
-				// 更新到Vuex
-				this.$store.commit('user/aiChat/ADD_CONVERSATION', chatData);
-				
-				// 更新历史摘要
-				const summaryData = {
-					id: chatData.id,
-					title: chatData.title,
-					abstract: chatData.abstract,
-					chatMode: chatData.chatMode,
-					createdAt: chatData.createdAt,
-					updatedAt: chatData.updatedAt
-				};
-				this.$store.commit('user/aiChat/ADD_HISTORY_SUMMARY', summaryData);
+			handleDeleteChat(data) {
+				if (data.success) {
+					// 如果删除的是当前聊天，开始新聊天
+					if (this.currentChatId === data.chatId) {
+						this.startNewChat();
+					}
+				} else {
+					this.showToast(data.message || '删除失败', 'none');
+				}
 			},
 			
 			/**
-			 * @description 删除历史记录
-			 * @param {String} chatId - 历史记录ID
+			 * @description 处理侧边栏加载更多事件
+			 * @param {Object} data - 加载更多结果数据
 			 */
-			deleteChatHistory(chatId) {
-				if (!chatId) return;
-				
-				uni.showModal({
-					title: '确认删除',
-					content: '确定要删除这条对话记录吗？',
-					success: (res) => {
-						if (res.confirm) {
-							uni.showLoading({
-								title: '正在删除...',
-								mask: true
-							});
-							
-							try {
-								this.$store.commit('user/aiChat/REMOVE_CONVERSATION', chatId);
-								this.$store.commit('user/aiChat/REMOVE_HISTORY_SUMMARY', chatId);
-								
-								uni.hideLoading();
-								
-								if (this.currentChatId === chatId) {
-									this.startNewChat();
-								}
-								
-								this.showToast('删除成功');
-							} catch (error) {
-								uni.hideLoading();
-								this.showToast('删除失败: ' + (error.message || '系统错误'), 'none', 3000);
-							}
-						}
-					}
-				});
+			handleLoadMore(data) {
+				if (!data.success) {
+					this.showToast(data.message || '加载更多失败', 'none');
+				}
 			},
-			handleBack(){
-				Navigator.toIndex()
+			
+			/**
+			 * @description 处理侧边栏刷新事件
+			 * @param {Object} data - 刷新结果数据
+			 */
+			handleRefresh(data) {
+				if (!data.success) {
+					this.showToast(data.message || '刷新失败', 'none');
+				}
+			},
+			
+			/**
+			 * @description 处理返回事件
+			 */
+			handleBack() {
+				Navigator.toIndex();
+			},
+			
+			/**
+			 * @description 处理学校加载更多事件
+			 */
+			async handleSchoolLoadMore() {
+				try {
+					const currentKeyword = this.$store.state.user.schoolMajorRequest.undergraduateSchoolSearch.searchKeyword || '';
+					await this.searchUndergraduateSchools({ 
+						keyword: currentKeyword, 
+						loadMore: true 
+					});
+				} catch (error) {
+					console.error('加载更多学校失败:', error);
+					this.showToast('加载更多学校失败', 'none');
+				}
+			},
+			
+			/**
+			 * @description 处理专业加载更多事件
+			 */
+			async handleMajorLoadMore() {
+				try {
+					const currentKeyword = this.$store.state.user.schoolMajorRequest.undergraduateMajorSearch.searchKeyword || '';
+					await this.searchUndergraduateMajors({ 
+						keyword: currentKeyword, 
+						loadMore: true 
+					});
+				} catch (error) {
+					console.error('加载更多专业失败:', error);
+					this.showToast('加载更多专业失败', 'none');
+				}
 			}
 		}
 	}
@@ -965,6 +953,20 @@
 		box-sizing: border-box;
 		background-color: #f5f5f5;
 		overflow: hidden; /* 防止内容溢出 */
+	}
+	
+	/* 加载容器 */
+	.loading-container {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 2000; /* 确保在所有内容之上 */
 	}
 	
 	/* 加载遮罩 */

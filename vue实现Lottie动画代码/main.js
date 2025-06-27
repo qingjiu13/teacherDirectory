@@ -1,6 +1,7 @@
 import App from './App'
 import { createSSRApp } from 'vue'
 import store from './store'
+import { createPinia } from 'pinia'
 
 import { installDebugPlugin, installDebugForVue3 } from './utils/vuex-debug'
 import { injectStoreSafety, checkStoreAvailability } from './store/inject-checker'
@@ -69,7 +70,8 @@ async function preloadResources() {
 
 export function createApp() {
   const app = createSSRApp(App)
-
+  const pinia = createPinia()
+  app.use(pinia)
   // ✅ 注册 Vuex
   app.use(store)
 
@@ -208,12 +210,12 @@ export function createApp() {
       console.error('微信小程序配置失败:', e)
     }
   }
-
   // 尝试初始预加载
   preloadResources()
 
   // ✅ 返回给 uni-app
   return {
-    app
+    app,
+    pinia
   }
 }

@@ -2,7 +2,7 @@
   "navigationBarTitleText": "我的课程",
   "navigationStyle": "custom",
   "usingComponents": {
-    "uni-calendar": "../../uni_modules/uni-calendar/components/uni-calendar/uni-calendar",
+    "uni-datetime-picker": "../../uni_modules/uni-datetime-picker/components/uni-datetime-picker/uni-datetime-picker",
     "top-navbar": "../../components/top-navbar/top-navbar",
     "header": "../../components/navigationTitleBar/header"
   }

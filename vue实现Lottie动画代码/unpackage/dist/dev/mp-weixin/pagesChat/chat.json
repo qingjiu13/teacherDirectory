@@ -2,9 +2,7 @@
   "navigationStyle": "custom",
   "usingComponents": {
     "uni-search-bar": "../uni_modules/uni-search-bar/components/uni-search-bar/uni-search-bar",
-    "tab-bar": "../components/tab-bar/tab-bar",
     "chat-item": "./components/chat-item/chat-item",
-    "long-press-menu": "./components/long-press-menu/long-press-menu",
-    "loading": "./components/loading/loading"
+    "tab-bar": "./components/tab-bar/tab-bar"
   }
 }

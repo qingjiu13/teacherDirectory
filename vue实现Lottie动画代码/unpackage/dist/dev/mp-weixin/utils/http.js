@@ -1,2 +1,2 @@
-"use strict";const l=require("../common/vendor.js"),n=require("../store/user/API.js"),t=(r,a,i="file")=>new Promise((u,o)=>{l.index.uploadFile({url:n.UPLOAD_FILE_URL,filePath:r,name:i,formData:{userId:a},success:e=>{const s=JSON.parse(e.data);s.code===200?u(s):o(s)},fail:e=>{o(e)}})});exports.uploadFile=t;
+"use strict";const u=require("../common/vendor.js"),t=require("../store/user/API.js"),l=require("./safeJsonParse.js"),c=(r,a,i="file")=>new Promise((n,o)=>{u.index.uploadFile({url:t.UPLOAD_FILE_URL,filePath:r,name:i,formData:{userId:a},success:e=>{const s=l.safeJsonParse(e.data,{code:500,message:"响应数据格式错误"});s.code===200?n(s):o(s)},fail:e=>{o(e)}})});exports.uploadFile=c;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/utils/http.js.map

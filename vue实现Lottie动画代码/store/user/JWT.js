@@ -5,13 +5,44 @@
 
 // 导入 store
 import store from '@/store/index.js';
+import { jwtDecode } from "jwt-decode";
 
+
+
+/**
+ * 获取当前登录用户ID（从JWT token解析）
+ * @returns {number|null}
+ */
+export const getCurrentUserId = () => {
+  const token = getCurrentToken();
+  console.log("[调试] JWT Token:", token);
+  if (!token) {
+    console.log("[调试] Token为空，返回null");
+    return null;
+  }
+  try {
+    const decoded = jwtDecode(token);
+    console.log("[调试] JWT解码结果:", decoded);
+    console.log("[调试] decoded.userid:", decoded.userid);
+    console.log("[调试] decoded.sub:", decoded.sub);
+
+    // 后端使用的是 'userid' 字段，不是 'sub'
+    const userId = decoded.userid;
+    console.log("[调试] 最终用户ID:", userId);
+    console.log("[调试] 最终用户ID类型:", typeof userId);
+
+    return Number(userId) || null;
+  } catch (e) {
+    console.error("[调试] JWT解析失败:", e);
+    return null;
+  }
+};
 /**
  * 获取当前存储的JWT令牌
  * @returns {string} JWT令牌
  */
 export const getCurrentToken = () => {
-    return store.state.user.baseInfo.jwtToken || '';
+    return store.state.user.baseInfo.jwtToken;
 };
 
 /**
@@ -37,6 +68,7 @@ export const apiRequest = (url, method = 'GET', data = {}, options = {}) => {
     return new Promise((resolve, reject) => {
         // 获取JWT令牌
         const token = getCurrentToken();
+        console.log('token',token);
         
         // 如果需要认证但没有令牌
         if (finalOptions.requireAuth && !token) {
@@ -78,12 +110,31 @@ export const apiRequest = (url, method = 'GET', data = {}, options = {}) => {
             data: data,
             header: headers,
             success: (res) => {
-                // 请求成功
-                if (res.statusCode === 200 && res.data && res.data.code === 200) {
-                    resolve({
-                        success: true,
-                        data: res.data.data
-                    });
+                // 请求成功 - 优化响应处理逻辑
+                if (res.statusCode === 200) {
+                    // 如果响应数据存在且格式正确
+                    if (res.data) {
+                        // 处理标准格式 {code: 200, data: {...}}
+                        if (res.data.code === 200) {
+                            resolve({
+                                success: true,
+                                data: res.data
+                            });
+                        } else {
+                            // 处理业务错误 {code: 非200, msg: "错误信息"}
+                            resolve({
+                                success: false,
+                                message: res.data.msg || res.data.message || '请求失败',
+                                data: res.data
+                            });
+                        }
+                    } else {
+                        // 处理空响应
+                        resolve({
+                            success: true,
+                            data: null
+                        });
+                    }
                 } else if (res.statusCode === 401 || res.statusCode === 403) {
                     // 认证失败，清除令牌
                     store.commit('user/baseInfo/CLEAR_JWT_TOKEN');
@@ -106,12 +157,12 @@ export const apiRequest = (url, method = 'GET', data = {}, options = {}) => {
                     
                     reject(error);
                 } else {
-                    // 其他业务逻辑错误
+                    // HTTP状态码错误
                     const error = {
                         success: false,
                         error: {
                             statusCode: res.statusCode,
-                            message: res.data?.msg || '请求失败'
+                            message: res.data?.msg || `HTTP错误: ${res.statusCode}`
                         }
                     };
                     

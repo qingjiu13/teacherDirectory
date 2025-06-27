@@ -97,7 +97,7 @@
                   <block v-if="teacherData.service && teacherData.service.length > 0">
                     <view class="service-card" v-for="(service, index) in teacherData.service" :key="index" @click="goToServiceDetail(service.id)">
                       <view class="service-card-outer">
-                      <image class="service-image" :src="service.image || '../static/teacher/test.png'" mode="aspectFill"/>
+                      <image class="service-image" :src="(service.images && service.images.length > 0) ? service.images[0] : '../static/teacher/test.png'" mode="aspectFill"/>
                       <view class="service-card-header">
                           <view class="service-title-price">
                             <text class="service-title">{{service.name}}</text>
@@ -135,10 +135,10 @@
       <view class="popup-mask" @click="closeServiceDetail"></view>
       <view class="popup-content">
         <view class="popup-body">
-          <view class="image-container">
-              <image class="service-image-popup" :src="currentService.image||'../static/teacher/test.png'" mode="widthFix"></image>
-              <view class="image-gradient-overlay"></view>
-            </view>
+
+          <image class="service-image-popup" :src="(currentService.images && currentService.images.length > 0) ? currentService.images[0] : '../static/teacher/test.png'" mode="aspectFill"/>
+          <view class="image-gradient-overlay"></view>
+
           <!-- 服务基本信息 -->
           <view class="service-info">
             <view class="service-name">{{currentService.name}}</view>
@@ -147,13 +147,13 @@
               <text class="service-price-text">{{currentService.price}}</text>
             </view>
             <view class="service-type">
-              <text class="service-text-popup">{{ currentService.type.typename }}</text>
-              <text class="service-horizontal-line" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">|</text>
-              <text class="service-text-popup" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">{{ currentService.type.coursenum }}节</text>
-              <text class="service-horizontal-line" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">|</text>
-              <text class="service-text-popup" v-if="currentService.type.typename === '一对一课程'||currentService.type.typename === '一对多课程'">{{ currentService.type.hours }}{{ currentService.type.minutes }}</text>
-              <text class="service-horizontal-line" v-if="currentService.type.typename === '一对多课程'">|</text>
-              <text class="service-text-popup" v-if="currentService.type.typename === '一对多课程'">{{ currentService.type.studentnum }}人</text>
+              <text class="service-text-popup">{{ currentService.type.typeName }}</text>
+              <text class="service-horizontal-line" v-if="currentService.type.typeName === '一对一课程'||currentService.type.typeName === '一对多课程'">|</text>
+              <text class="service-text-popup" v-if="currentService.type.typeName === '一对一课程'||currentService.type.typeName === '一对多课程'">{{ currentService.type.courseNum }}节</text>
+              <text class="service-horizontal-line" v-if="currentService.type.typeName === '一对一课程'||currentService.type.typeName === '一对多课程'">|</text>
+              <text class="service-text-popup" v-if="currentService.type.typeName === '一对一课程'||currentService.type.typeName === '一对多课程'">{{ currentService.type.hours }}小时{{ currentService.type.minutes }}分钟</text>
+              <text class="service-horizontal-line" v-if="currentService.type.typeName === '一对多课程'">|</text>
+              <text class="service-text-popup" v-if="currentService.type.typeName === '一对多课程'">{{ currentService.type.studentNum }}人</text>
             </view>
             <view class="service-description-popup">
               <view class="description-content">{{currentService.description}}</view>
@@ -204,8 +204,26 @@ export default {
        * @returns {Object} 教师详细信息
        */
       teacherData() {   
-        // 从matchList中过滤出当前教师
-        const teacher = this.matchList.find(t => t.id === this.teacherId);
+        console.log('=== teacherData computed 被调用 ===');
+        console.log('当前 teacherId:', this.teacherId, '类型:', typeof this.teacherId);
+        console.log('matchList 长度:', this.matchList.length);
+        
+        // 调试：打印所有教师的ID
+        this.matchList.forEach((teacher, index) => {
+          console.log(`[${index}] teacher.id: ${teacher.id} (类型: ${typeof teacher.id})`);
+        });
+        
+        // 从matchList中过滤出当前教师，确保类型转换一致
+        const teacher = this.matchList.find(t => Number(t.id) === Number(this.teacherId));
+        
+        console.log('找到的教师:', teacher ? '是' : '否');
+        if (teacher) {
+          console.log('教师服务数量:', teacher.service?.length || 0);
+          if (teacher.service && teacher.service.length > 0) {
+            console.log('第一个服务:', JSON.stringify(teacher.service[0], null, 2));
+          }
+        }
+        
         return teacher || {
           id: null,
           name: '',
@@ -252,10 +270,16 @@ export default {
       }
     },
     onLoad(options) {
-      // 获取老师ID
-      this.teacherId = options.id || '';
+      console.log('=== teacher.vue onLoad 开始 ===');
+      console.log('接收到的options:', options);
+      
+      // 获取老师ID，确保转换为数字类型
+      this.teacherId = Number(options.id) || null;
+      
+      console.log('解析后的teacherId:', this.teacherId, '类型:', typeof this.teacherId);
       
       if (!this.teacherId) {
+        console.error('teacherId 无效或为空');
         uni.showToast({
           title: '未获取到教师ID',
           icon: 'none'
@@ -266,24 +290,44 @@ export default {
       // 显示加载状态
       this.isLoading = true;
       
-      // 模拟获取教师详情
-      setTimeout(() => {
-        // 在实际应用中，这里应该调用API获取教师详情，然后通过commit修改状态
-        // 例如：const teacherDetail = await getTeacherDetail({teacherId: this.teacherId});
-        // this.$store.commit('user/match/SET_TEACHER_DETAIL', {teacherId: this.teacherId, detail: teacherDetail});
+      // 调用store action获取教师详情
+      this.$store.dispatch('user/match/fetchTeacherDetail', { 
+        teacherId: this.teacherId 
+      })
+      .then(response => {
+        console.log('=== teacher.vue 获取教师详情成功 ===');
+        console.log('API响应:', response);
         
-        // 这里我们假设使用现有的教师数据
-        const teacherIndex = this.matchList.findIndex(t => t.id === this.teacherId);
+        // 检查是否成功获取到教师数据
+        const teacherIndex = this.matchList.findIndex(t => Number(t.id) === this.teacherId);
         if (teacherIndex === -1) {
+          console.warn('在matchList中未找到对应的教师信息');
           uni.showToast({
             title: '未找到该教师信息',
             icon: 'none'
           });
+        } else {
+          console.log('成功找到教师信息，索引:', teacherIndex);
+          console.log('教师服务数量:', this.teacherData.service?.length || 0);
         }
         
         // 加载结束
         this.isLoading = false;
-      }, 1000);
+      })
+      .catch(error => {
+        console.error('=== teacher.vue 获取教师详情失败 ===');
+        console.error('错误详情:', error);
+        
+        // 加载结束
+        this.isLoading = false;
+        
+        uni.showToast({
+          title: error.message || '获取教师详情失败',
+          icon: 'none'
+        });
+      });
+      
+      console.log('=== teacher.vue onLoad 完成 ===');
     },
     
     methods: {
@@ -692,7 +736,7 @@ export default {
       width: 100%;
       margin-left:30rpx;
     }
-    
+
     .service-image-container {
       width: 70px;
       height: 70px;
@@ -713,7 +757,7 @@ export default {
     }
     .service-image-popup{
       width: 100%;
-      margin-top: -324rpx;
+      overflow: visible;
     }
     .image-gradient-overlay{
       position: absolute;
@@ -973,7 +1017,7 @@ export default {
       flex: 1;
       display: flex;
       flex-direction: column;
-      overflow: invisible;
+      overflow: visible;
       border-radius: 40rpx;
     }
     

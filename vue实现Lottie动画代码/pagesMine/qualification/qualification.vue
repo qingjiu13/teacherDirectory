@@ -27,6 +27,13 @@
       <view class="qualification-method-box">
         <view class="qualification-method-label">学信网在线验证码</view>
       </view>
+      <view class="qualification-code-title">姓名</view>
+      <input
+        class="qualification-code-input"
+        type="text"
+        v-model="name"
+        placeholder="请输入姓名"
+      />
       <view class="qualification-code-title">在线验证码</view>
       <input
         class="qualification-code-input"
@@ -40,8 +47,8 @@
       </view>
       <button
         class="btn-auth"
-        :disabled="!code"
-        :class="{ 'btn-auth-disabled': !code }"
+        :disabled="!code || !name"
+        :class="{ 'btn-auth-disabled': !code || !name }"
         @click="submitAuth"
       >立即认证</button>
     </view>
@@ -55,6 +62,13 @@
 <script>
 import { Navigator, MineRoutes } from '@/router/Router.js';
 import Header from '@/components/navigationTitleBar/header'
+import { apiRequest,getCurrentToken } from '@/store/user/JWT.js';
+import { useGlobalStore } from '@/store/global.js';
+const getApiPrefix = () => {
+  const globalStore = useGlobalStore()
+  return globalStore.apiBaseUrl
+}
+
 export default {
   name: 'Qualification',
   components: {
@@ -66,7 +80,8 @@ export default {
        * 学信网在线验证码
        * @type {string}
        */
-      code: ''
+      code: '',
+      name: '',
     };
   },
   methods: {
@@ -77,13 +92,40 @@ export default {
       Navigator.toLeading();
     },
     /**
-     * 提交认证（此处仅做演示，实际需接入后端）
+     * 提交认证
      */
-    submitAuth() {
-      if (!this.code) return;
-      // TODO: 提交认证逻辑
-      uni.showToast({ title: '已提交认证', icon: 'success' });
-    },
+     submitAuth() {
+  if (this.code && this.name) {
+    console.log("开始认证")
+    const token = getCurrentToken()
+      return apiRequest(`${getApiPrefix()}/yanshilu/teacher/auth`,
+        'POST',
+        {
+          name: this.name,
+          authType: 0,
+          authCode: this.code
+        },{
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then((res2) => {
+          if (res2.data.result) {
+            uni.showToast({
+              title: '认证成功'
+            })
+          } else {
+            uni.showToast({
+              title: '认证失败'
+            })
+          }
+        }).catch((err) => {
+          console.error("提交认证时出错：", err)
+        })
+    }
+}
+
+    ,
     /**
      * @description 返回上一页
      */

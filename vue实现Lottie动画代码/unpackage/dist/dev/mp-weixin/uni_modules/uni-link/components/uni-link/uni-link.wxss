@@ -1,2 +1,0 @@
-:host{display:flex;flex-direction:column}
-.uni-link{cursor:pointer}.uni-link--withline{text-decoration:underline}

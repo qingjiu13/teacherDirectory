@@ -1,12 +1,8 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "header": "../components/navigationTitleBar/header",
+    "u--textarea": "../uni_modules/uview-plus/components/u--textarea/u--textarea",
     "chat-message-item": "./components/chat-message-item/chat-message-item",
-    "chat-record": "./components/chat-record/chat-record",
-    "file-upload": "./components/file-upload/file-upload",
-    "image-upload": "./components/image-upload/image-upload",
-    "head-image": "./components/head-image/head-image",
-    "chat-at-box": "./components/chat-at-box/chat-at-box"
+    "header": "../components/navigationTitleBar/header"
   }
 }

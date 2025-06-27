@@ -15,8 +15,15 @@
           "scene": null
         },
         {
-          "name": "pagesChat/chat",
-          "pathName": "pagesChat/chat",
+          "name": "pages_AI_Login_Match/AI/AI",
+          "pathName": "pages_AI_Login_Match/AI/AI",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages_AI_Login_Match/match/match",
+          "pathName": "pages_AI_Login_Match/match/match",
           "query": "",
           "launchMode": "default",
           "scene": null

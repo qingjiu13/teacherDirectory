@@ -1,2 +1,0 @@
-"use strict";let e=function(t){return t>=0&&t<10},r=function(t){return t>=10&&t<20},i=function(t){return t>=20&&t<30},n=function(t){return t>=40&&t<50},o=function(t){return t>=100&&t<200},u=function(t){return t>=200&&t<300};const s=Object.freeze(Object.defineProperty({__proto__:null,isAction:n,isNormal:e,isRtcGroup:u,isRtcPrivate:o,isStatus:r,isTip:i},Symbol.toStringTag,{value:"Module"}));exports.isAction=n;exports.isNormal=e;exports.messageType=s;
-//# sourceMappingURL=../../../.sourcemap/mp-weixin/pagesChat/common/messageType.js.map
